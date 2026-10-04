@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><script src="./image-slot.js"></script><style>button,input,textarea{font:inherit;color:inherit}button{background:none;border:0;padding:0;margin:0;cursor:pointer;text-align:inherit}input,textarea{outline:none;border:0;background:transparent;resize:none}input::placeholder,textarea::placeholder{color:var(--ink3)}button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}a{color:#5B3FD6}a:hover{color:#4A2FBF}</style></helmet>
+<div data-screen-label="Fomio iPhone" lang="en" style="width:{{ devW }}px;height:{{ devH }}px;border-radius:{{ devR }}px;box-shadow:{{ devSh }};position:relative;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;--bg:{{ T.bg }};--ink:{{ T.ink }};--ink2:{{ T.ink2 }};--ink3:{{ T.ink3 }};--grp:{{ T.grp }};--cell:{{ T.cell }};--fill:{{ T.fill }};--stripe:{{ T.stripe }};--sep:{{ T.sep }};--accent:{{ T.accent }};--accent2:{{ T.accent2 }};--onAccent:{{ T.onAccent }};--hl:{{ T.hl }};--sel:{{ T.sel }};--danger:{{ T.danger }};--success:{{ T.success }};--love:{{ T.love }};--sheet:{{ T.sheet }};--scrim:{{ T.scrim }};--kb:{{ T.kb }};--kbKey:{{ T.kbKey }};--gl:{{ T.gl }};--glMenu:{{ T.glMenu }};--glBlur:{{ T.glBlur }};--glSh:{{ T.glSh }};--glSel:{{ T.glSel }};--glTint:{{ T.glTint }};--glTintSh:{{ T.glTintSh }};--edgeBlur:{{ T.edgeBlur }};--ts:{{ T.ts }};background:var(--bg);color:var(--ink)">
+
+<div ref="{{ scrollRef }}" style="position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;box-sizing:border-box;padding-top:{{ padTop }}px;padding-bottom:{{ padBottom }}px;background:{{ pageBg }}"><div style="max-width:{{ colMax }};margin:0 auto">
+
+<sc-if value="{{ showOffline }}" hint-placeholder-val="{{ false }}"><div role="status" style="margin:4px 16px 10px;padding:12px 14px;border-radius:18px;background:var(--fill);font-size:calc(15px * var(--ts));line-height:1.35"><b style="font-weight:600">You're offline.</b> Showing what was loaded earlier. Replies can't be sent until you're back online.</div></sc-if>
+
+<sc-if value="{{ showNotice }}" hint-placeholder-val="{{ false }}"><div role="status" style="margin:4px 16px 10px;padding:14px;border-radius:18px;background:var(--fill);display:flex;gap:12px;align-items:flex-start"><svg aria-hidden="true" width="24" height="24" style="flex:none;fill:none;stroke:var(--ink2);stroke-width:1.8;stroke-linecap:round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg><div style="flex:1;display:flex;flex-direction:column;gap:3px"><span style="font-size:calc(16px * var(--ts));font-weight:600">Submitted for review</span><span style="font-size:calc(15px * var(--ts));line-height:1.35;color:var(--ink2)">{{ noticeBody }}</span></div><button onClick="{{ dismissNotice }}" aria-label="Dismiss" style="width:44px;height:44px;margin:-10px -10px 0 0;display:flex;align-items:center;justify-content:center;color:var(--ink2)"><svg aria-hidden="true" width="24" height="24" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><path d="M7 7l10 10M17 7 7 17"></path></svg></button></div></sc-if>
+
+<sc-if value="{{ showLargeTitle }}" hint-placeholder-val="{{ false }}"><h1 style="margin:0;padding:2px 20px 10px;font-size:calc(34px * var(--ts));line-height:calc(41px * var(--ts));font-weight:700;letter-spacing:.005em;overflow-wrap:break-word;hyphens:auto">{{ rootTitle }}</h1></sc-if>
+
+<sc-if value="{{ isFeed }}" hint-placeholder-val="{{ true }}">
+<h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);margin:0">Home</h1>
+<sc-if value="{{ guest }}" hint-placeholder-val="{{ false }}"><div style="margin:2px 16px 10px;padding:14px;border-radius:18px;background:var(--sel);display:flex;gap:12px;align-items:center"><span style="flex:1;font-size:calc(15px * var(--ts));line-height:1.35">You're reading as a guest. Sign in to reply and save discussions.</span><button onClick="{{ openSignIn }}" style="flex:none;height:44px;padding:0 18px;border-radius:22px;background:var(--accent);color:var(--onAccent);font-size:calc(15px * var(--ts));font-weight:600">Sign in</button></div></sc-if>
+<div style="padding:6px 20px 4px;font-size:calc(15px * var(--ts));font-weight:600;color:var(--ink2)">Latest</div>
+<sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}"><div aria-label="Loading discussions" role="status" style="display:flex;flex-direction:column"><sc-for list="{{ skeleton }}" as="k" hint-placeholder-count="4"><div style="padding:16px 20px;border-bottom:.5px solid var(--sep);display:flex;flex-direction:column;gap:10px"><span style="width:120px;height:12px;border-radius:6px;background:var(--fill)"></span><span style="width:90%;height:18px;border-radius:6px;background:var(--fill)"></span><span style="width:70%;height:14px;border-radius:6px;background:var(--fill)"></span><span style="width:150px;height:12px;border-radius:6px;background:var(--fill)"></span></div></sc-for></div></sc-if>
+<sc-for list="{{ feedRows }}" as="r" hint-placeholder-count="5">
+<div style="padding:12px 20px 13px;border-bottom:.5px solid var(--sep);display:flex;flex-direction:{{ rowDir }};gap:{{ rowGap }}px;align-items:{{ rowAlign }}">
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+<button onClick="{{ r.openCat }}" aria-label="{{ r.catAria }}" style="align-self:flex-start;min-height:44px;margin:{{ catM }};display:flex;align-items:center;font-size:calc(13px * var(--ts));font-weight:600;color:var(--accent)">{{ r.catLabel }}</button>
+<button onClick="{{ r.open }}" aria-label="{{ r.aria }}" style="display:flex;flex-direction:column;gap:4px;text-align:left">
+<span style="font-size:calc(17px * var(--ts));line-height:1.3;font-weight:600;letter-spacing:-.015em;text-wrap:pretty">{{ r.title }}</span>
+<span style="font-size:calc(15px * var(--ts));line-height:1.42;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ r.excerpt }}</span>
+<span style="display:flex;flex-wrap:wrap;align-items:center;gap:2px 5px;font-size:calc(13px * var(--ts));color:var(--ink3);margin-top:2px"><span style="font-weight:600;color:var(--ink2)">{{ r.author }}</span><span aria-hidden="true">·</span><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round"><path d="M4 5h16v11H9l-5 4z"></path></svg><span>{{ r.replies }}</span><span aria-hidden="true">·</span><span>{{ r.act }}</span></span>
+</button>
+</div>
+<sc-if value="{{ r.hasPhoto }}" hint-placeholder-val="{{ false }}"><div style="flex:none;width:{{ thumbW }};height:{{ thumbH }}px;margin-top:{{ thumbMt }}px;border-radius:12px;overflow:hidden;background:var(--fill)"><sc-if value="{{ r.hasSrc }}" hint-placeholder-val="{{ false }}"><img src="{{ r.src }}" alt="{{ r.photo }}" style="display:block;width:100%;height:100%;object-fit:cover"></img></sc-if><sc-if value="{{ r.showSlot }}" hint-placeholder-val="{{ false }}"><image-slot id="{{ r.img }}" shape="rounded" radius="12" placeholder="{{ r.photoShort }}"></image-slot></sc-if><sc-if value="{{ r.showIcon }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="display:flex;width:100%;height:100%;align-items:center;justify-content:center;color:var(--ink3)"><svg width="24" height="24" style="fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="5" width="18" height="14" rx="2.5"></rect><circle cx="8.5" cy="10" r="1.6"></circle><path d="M21 16l-5-5-8 8"></path></svg></span></sc-if></div></sc-if>
+</div>
+</sc-for>
+<div style="height:16px"></div>
+</sc-if>
+
+<sc-if value="{{ isDirectory }}" hint-placeholder-val="{{ false }}">
+<div style="padding:0 16px 10px;display:flex;flex-direction:column;gap:6px">
+<label style="display:flex;align-items:center;gap:8px;min-height:44px;padding:0 0 0 12px;border-radius:12px;background:var(--fill);color:var(--ink2)"><svg aria-hidden="true" width="18" height="18" style="flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><circle cx="8" cy="8" r="5.5"></circle><path d="M12 12l4 4"></path></svg><input aria-label="Find communities by name or description" placeholder="Find communities" value="{{ fq }}" onChange="{{ onFq }}" style="flex:1;min-width:0;min-height:44px;font-size:calc(17px * var(--ts));color:var(--ink)"></input><sc-if value="{{ fqHas }}" hint-placeholder-val="{{ false }}"><button onClick="{{ clearFq }}" aria-label="Clear community filter" style="flex:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink2)"><svg aria-hidden="true" width="18" height="18" style="fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round"><path d="M4.5 4.5l9 9M13.5 4.5l-9 9"></path></svg></button></sc-if></label>
+<sc-if value="{{ fqHas }}" hint-placeholder-val="{{ false }}"><span role="status" style="padding:0 4px;font-size:calc(13px * var(--ts));line-height:1.35;color:var(--ink2)">{{ fqStatus }}</span></sc-if>
+</div>
+<sc-if value="{{ dirNoMatch }}" hint-placeholder-val="{{ false }}"><div style="padding:28px 32px;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;border-top:.5px solid var(--sep)"><span style="font-size:calc(20px * var(--ts));font-weight:600;line-height:1.25">{{ dirNoMatchTitle }}</span><span style="font-size:calc(15px * var(--ts));line-height:1.4;color:var(--ink2)">This box only filters the communities listed here.</span><button onClick="{{ searchFromFq }}" style="margin-top:4px;min-height:44px;padding:0 18px;border-radius:22px;background:var(--fill);color:var(--accent);font-size:calc(15px * var(--ts));font-weight:600;text-align:center">{{ searchFromFqLabel }}</button></div></sc-if>
+<sc-for list="{{ dirGroups }}" as="g" hint-placeholder-count="4">
+<section aria-label="{{ g.name }}" style="border-top:.5px solid var(--sep);padding:4px 0 10px">
+<button onClick="{{ g.open }}" aria-label="{{ g.aria }}" style="width:100%;display:flex;align-items:flex-start;gap:12px;padding:10px 12px 4px 20px;box-sizing:border-box;text-align:left">
+<span aria-hidden="true" style="flex:none;width:44px;height:44px;border-radius:12px;background:var(--sel);color:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700">{{ g.mono }}</span>
+<span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+<span style="display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px"><span style="font-size:calc(17px * var(--ts));font-weight:600;line-height:1.3">{{ g.name }}</span><sc-if value="{{ g.restricted }}" hint-placeholder-val="{{ false }}"><span style="display:flex;align-items:center;gap:3px;font-size:calc(13px * var(--ts));font-weight:600;color:var(--ink2)"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>Restricted</span></sc-if></span>
+<span style="font-size:calc(15px * var(--ts));line-height:1.35;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:{{ dirClamp }};-webkit-box-orient:vertical;overflow:hidden">{{ g.desc }}</span>
+</span>
+<svg aria-hidden="true" width="24" height="24" style="flex:none;margin-top:10px;fill:none;stroke:var(--ink3);stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M9 6l6 6-6 6"></path></svg>
+</button>
+<sc-if value="{{ g.hasRecent }}" hint-placeholder-val="{{ false }}"><button onClick="{{ g.openRecent }}" aria-label="{{ g.recentAria }}" style="display:flex;flex-direction:column;justify-content:center;gap:1px;width:calc(100% - {{ dirIndent }}px);margin-left:{{ dirIndent }}px;padding:6px 16px 6px 0;min-height:44px;box-sizing:border-box;text-align:left"><span style="font-size:calc(13px * var(--ts));color:var(--ink3)">{{ g.recentMeta }}</span><span style="font-size:calc(15px * var(--ts));line-height:1.3;font-weight:500;color:var(--ink);display:-webkit-box;-webkit-line-clamp:{{ dirClamp }};-webkit-box-orient:vertical;overflow:hidden">{{ g.recentTitle }}</span></button></sc-if>
+<sc-if value="{{ g.hasKids }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-wrap:wrap;gap:8px;padding:6px 16px 4px {{ dirIndent }}px"><sc-for list="{{ g.kids }}" as="c" hint-placeholder-count="2"><button onClick="{{ c.open }}" aria-label="{{ c.aria }}" style="min-height:44px;padding:0 14px;border-radius:22px;background:var(--fill);display:flex;align-items:center;font-size:calc(15px * var(--ts));font-weight:600;color:var(--ink);text-align:left">{{ c.name }}</button></sc-for><sc-if value="{{ g.hasMore }}" hint-placeholder-val="{{ false }}"><button onClick="{{ g.onMore }}" aria-label="{{ g.moreAria }}" aria-expanded="false" style="min-height:44px;padding:0 14px;border-radius:22px;box-shadow:inset 0 0 0 1px var(--sep);display:flex;align-items:center;font-size:calc(15px * var(--ts));font-weight:600;color:var(--accent)">{{ g.moreLabel }}</button></sc-if><sc-if value="{{ g.hasLess }}" hint-placeholder-val="{{ false }}"><button onClick="{{ g.onLess }}" aria-expanded="true" style="min-height:44px;padding:0 14px;border-radius:22px;box-shadow:inset 0 0 0 1px var(--sep);display:flex;align-items:center;font-size:calc(15px * var(--ts));font-weight:600;color:var(--accent)">Show fewer</button></sc-if></div></sc-if>
+</section>
+</sc-for>
+<div style="height:16px"></div>
+</sc-if>
+
+<sc-if value="{{ isCommunity }}" hint-placeholder-val="{{ false }}">
+<div style="padding:0 20px 18px;display:flex;flex-direction:column;gap:6px">
+<sc-if value="{{ comHasParent }}" hint-placeholder-val="{{ false }}"><button onClick="{{ comOpenParent }}" style="align-self:flex-start;min-height:44px;margin:-8px 0 -10px;font-size:calc(15px * var(--ts));font-weight:600;color:var(--accent)">{{ comParentLabel }}</button></sc-if>
+<div style="display:flex;align-items:center;gap:12px"><span aria-hidden="true" style="flex:none;width:48px;height:48px;border-radius:13px;background:var(--sel);color:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700">{{ comMono }}</span><h1 style="margin:0;min-width:0;font-size:calc(28px * var(--ts));line-height:1.18;font-weight:700;letter-spacing:-.01em;text-wrap:pretty;overflow-wrap:break-word;hyphens:auto">{{ comName }}</h1></div>
+<p style="margin:0;font-size:calc(15px * var(--ts));line-height:1.4;color:var(--ink2);text-wrap:pretty">{{ comDesc }}</p>
+<button onClick="{{ comCreate }}" aria-label="{{ comCreateAria }}" style="align-self:flex-start;margin-top:8px;height:44px;padding:0 18px 0 14px;border-radius:22px;background:var(--accent);color:var(--onAccent);font-size:calc(16px * var(--ts));font-weight:600;display:flex;align-items:center;gap:6px"><svg aria-hidden="true" width="24" height="24" style="transform:scale(.8);fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round"><path d="M12 5v14M5 12h14"></path></svg>New discussion</button>
+</div>
+<sc-if value="{{ comHasChildren }}" hint-placeholder-val="{{ false }}">
+<div style="padding:0 20px 6px;font-size:calc(15px * var(--ts));font-weight:600;color:var(--ink2)">Subcommunities</div>
+<div style="padding:0 20px 18px;display:flex;flex-wrap:wrap;gap:8px"><sc-for list="{{ comChildren }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.open }}" aria-label="{{ c.aria }}" style="min-height:44px;padding:0 14px;border-radius:22px;background:var(--fill);display:flex;align-items:center;font-size:calc(15px * var(--ts));font-weight:600;color:var(--ink);text-align:left">{{ c.name }}</button></sc-for></div>
+</sc-if>
+<div style="padding:0 20px 8px;font-size:calc(15px * var(--ts));font-weight:600;color:var(--ink2);border-bottom:.5px solid var(--sep)">Latest discussions</div>
+<sc-if value="{{ comEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:40px 32px;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center"><span style="font-size:calc(20px * var(--ts));font-weight:600">No discussions yet</span><span style="font-size:calc(15px * var(--ts));line-height:1.4;color:var(--ink2)">{{ comEmptyBody }}</span></div></sc-if>
+<sc-for list="{{ comRows }}" as="r" hint-placeholder-count="3">
+<div style="padding:12px 20px 13px;border-bottom:.5px solid var(--sep);display:flex;flex-direction:{{ rowDir }};gap:{{ rowGap }}px;align-items:{{ rowAlign }}">
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+<sc-if value="{{ r.showCat }}" hint-placeholder-val="{{ false }}"><button onClick="{{ r.openCat }}" aria-label="{{ r.catAria }}" style="align-self:flex-start;min-height:44px;margin:{{ catM }};display:flex;align-items:center;font-size:calc(13px * var(--ts));font-weight:600;color:var(--accent)">{{ r.catLabel }}</button></sc-if>
+<button onClick="{{ r.open }}" aria-label="{{ r.aria }}" style="display:flex;flex-direction:column;gap:4px;text-align:left">
+<span style="font-size:calc(17px * var(--ts));line-height:1.3;font-weight:600;letter-spacing:-.015em;text-wrap:pretty">{{ r.title }}</span>
+<span style="font-size:calc(15px * var(--ts));line-height:1.42;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ r.excerpt }}</span>
+<span style="display:flex;flex-wrap:wrap;align-items:center;gap:2px 5px;font-size:calc(13px * var(--ts));color:var(--ink3);margin-top:2px"><span style="font-weight:600;color:var(--ink2)">{{ r.author }}</span><span aria-hidden="true">·</span><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round"><path d="M4 5h16v11H9l-5 4z"></path></svg><span>{{ r.replies }}</span><span aria-hidden="true">·</span><span>{{ r.act }}</span></span>
+</button>
+</div>
+<sc-if value="{{ r.hasPhoto }}" hint-placeholder-val="{{ false }}"><div style="flex:none;width:{{ thumbW }};height:{{ thumbH }}px;margin-top:{{ thumbMt }}px;border-radius:12px;overflow:hidden;background:var(--fill)"><sc-if value="{{ r.hasSrc }}" hint-placeholder-val="{{ false }}"><img src="{{ r.src }}" alt="{{ r.photo }}" style="display:block;width:100%;height:100%;object-fit:cover"></img></sc-if><sc-if value="{{ r.showSlot }}" hint-placeholder-val="{{ false }}"><image-slot id="{{ r.img }}" shape="rounded" radius="12" placeholder="{{ r.photoShort }}"></image-slot></sc-if><sc-if value="{{ r.showIcon }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="display:flex;width:100%;height:100%;align-items:center;justify-content:center;color:var(--ink3)"><svg width="24" height="24" style="fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="5" width="18" height="14" rx="2.5"></rect><circle cx="8.5" cy="10" r="1.6"></circle><path d="M21 16l-5-5-8 8"></path></svg></span></sc-if></div></sc-if>
+</div>
+</sc-for>
+<div style="height:16px"></div>
+</sc-if>
+
+<sc-if value="{{ isDiscussion }}" hint-placeholder-val="{{ false }}">
+<div style="padding:0 20px 14px;display:flex;flex-direction:column;gap:6px">
+<button onClick="{{ dOpenCat }}" aria-label="{{ dCatAria }}" style="align-self:flex-start;min-height:44px;margin:{{ dCatM }};display:flex;align-items:center;font-size:calc(13px * var(--ts));font-weight:600;color:var(--accent)">{{ dCatLabel }}</button>
+<h1 style="margin:0;font-size:calc(22px * var(--ts));line-height:1.25;font-weight:700;letter-spacing:-.01em;text-wrap:pretty">{{ dTitle }}</h1>
+<span style="font-size:calc(13px * var(--ts));color:var(--ink3)">{{ dMeta }}</span>
+</div>
+<sc-if value="{{ gapShow }}" hint-placeholder-val="{{ false }}"><button onClick="{{ gapOpen }}" style="width:100%;min-height:48px;border-top:.5px solid var(--sep);font-size:calc(15px * var(--ts));font-weight:600;color:var(--accent);text-align:center">{{ gapLabel }}</button></sc-if>
+<sc-for list="{{ posts }}" as="p" hint-placeholder-count="3">
+<article data-post="{{ p.n }}" aria-label="{{ p.aria }}" style="padding:12px 20px 6px;border-top:.5px solid var(--sep);background:{{ p.bg }};display:flex;flex-direction:column;gap:8px">
+<sc-if value="{{ p.hl }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-start;margin-top:2px;padding:3px 9px;border-radius:10px;background:var(--hl);font-size:calc(12px * var(--ts));font-weight:700;color:var(--accent2)">{{ p.hlLabel }}</span></sc-if>
+<div style="display:flex;align-items:center;gap:8px">
+<button onClick="{{ p.onAuthor }}" aria-label="{{ p.authorAria }}" style="display:flex;align-items:center;gap:10px;min-height:44px">
+<span aria-hidden="true" style="width:34px;height:34px;border-radius:17px;background:var(--sel);color:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:calc(13px * var(--ts));font-weight:700;flex:none">{{ p.initials }}</span>
+<span style="display:flex;flex-direction:column;text-align:left"><span style="font-size:calc(15px * var(--ts));font-weight:600">{{ p.author }}</span><span style="font-size:calc(13px * var(--ts));color:var(--ink3)">{{ p.age }}</span></span>
+</button>
+<span style="margin-left:auto;font-size:calc(13px * var(--ts));color:var(--ink3)">#{{ p.n }}</span>
+</div>
+<sc-if value="{{ p.hasQuote }}" hint-placeholder-val="{{ false }}"><div style="padding:10px 12px;border-radius:14px;background:var(--fill);display:flex;flex-direction:column;gap:3px"><span style="font-size:calc(13px * var(--ts));font-weight:600;color:var(--ink2)">{{ p.qHead }}</span><span style="font-size:calc(15px * var(--ts));line-height:1.45;color:var(--ink2)">{{ p.qText }}</span></div></sc-if>
+<div style="font-size:calc(17px * var(--ts));line-height:1.47;text-wrap:pretty">{{ p.body }}</div>
+<sc-if value="{{ p.hasPhoto }}" hint-placeholder-val="{{ false }}"><div style="height:200px;border-radius:14px;overflow:hidden;background:var(--fill)"><sc-if value="{{ p.hasSrc }}" hint-placeholder-val="{{ false }}"><img src="{{ p.src }}" alt="{{ p.photo }}" style="display:block;width:100%;height:100%;object-fit:cover"></img></sc-if><sc-if value="{{ p.showSlot }}" hint-placeholder-val="{{ false }}"><image-slot id="{{ p.img }}" shape="rounded" radius="14" placeholder="{{ p.photo }}"></image-slot></sc-if><sc-if value="{{ p.showIcon }}" hint-placeholder-val="{{ false }}"><span style="display:flex;width:100%;height:100%;flex-direction:column;gap:6px;align-items:center;justify-content:center;color:var(--ink3);font-size:calc(13px * var(--ts));text-align:center;padding:0 24px;box-sizing:border-box"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="5" width="18" height="14" rx="2.5"></rect><circle cx="8.5" cy="10" r="1.6"></circle><path d="M21 16l-5-5-8 8"></path></svg>{{ p.photo }}</span></sc-if></div></sc-if>
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:2px;margin-left:-10px">
+<sc-if value="{{ p.canLike }}" hint-placeholder-val="{{ true }}"><button onClick="{{ p.onLike }}" aria-label="{{ p.likeAria }}" aria-pressed="{{ p.liked }}" style="min-height:44px;min-width:44px;padding:0 10px;display:flex;align-items:center;gap:6px;color:{{ p.likeColor }};font-size:calc(15px * var(--ts))"><svg aria-hidden="true" width="24" height="24" style="transform:scale(.85);fill:{{ p.heartFill }};stroke:currentColor;stroke-width:1.9;stroke-linejoin:round"><path d="M12 20s-7-4.4-9-8.8A4.8 4.8 0 0 1 12 7a4.8 4.8 0 0 1 9 4.2C19 15.6 12 20 12 20z"></path></svg><span>{{ p.likeText }}</span></button></sc-if>
+<sc-if value="{{ p.ownLikes }}" hint-placeholder-val="{{ false }}"><span style="min-height:44px;padding:0 10px;display:flex;align-items:center;font-size:calc(15px * var(--ts));color:var(--ink3)">{{ p.likeText }}</span></sc-if>
+<button onClick="{{ p.onQuote }}" aria-label="{{ p.quoteAria }}" style="min-height:44px;padding:0 10px;display:flex;align-items:center;gap:6px;color:var(--ink2);font-size:calc(15px * var(--ts))"><span aria-hidden="true" style="font-size:calc(24px * var(--ts));line-height:1;margin-top:8px;font-weight:600">“</span>Quote</button>
+</div>
+</article>
+</sc-for>
+<div style="height:12px"></div>
+</sc-if>
+
+<sc-if value="{{ isSearch }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ searchHint }}" hint-placeholder-val="{{ true }}"><div style="padding:48px 36px;text-align:center;font-size:calc(15px * var(--ts));line-height:1.4;color:var(--ink2)">Search discussion titles and posts across the communities you can see.</div></sc-if>
+<sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}"><div style="padding:48px 36px;display:flex;flex-direction:column;gap:6px;text-align:center"><span style="font-size:calc(20px * var(--ts));font-weight:600">{{ noResultsTitle }}</span><span style="font-size:calc(15px * var(--ts));line-height:1.4;color:var(--ink2)">Check the spelling or try fewer words.</span></div></sc-if>
+<sc-if value="{{ hasResults }}" hint-placeholder-val="{{ false }}"><div style="padding:6px 20px 6px;font-size:calc(15px * var(--ts));font-weight:600;color:var(--ink2)">Discussions</div></sc-if>
+<sc-for list="{{ results }}" as="r" hint-placeholder-count="0">
+<button onClick="{{ r.open }}" aria-label="{{ r.aria }}" style="display:flex;flex-direction:column;gap:4px;width:100%;padding:12px 20px 14px;border-bottom:.5px solid var(--sep);box-sizing:border-box;text-align:left">
+<span style="font-size:calc(13px * var(--ts));font-weight:600;color:var(--accent)">{{ r.catLabel }}</span>
+<span style="font-size:calc(17px * var(--ts));line-height:1.3;font-weight:600">{{ r.title }}</span>
+<span style="font-size:calc(15px * var(--ts));line-height:1.45;color:var(--ink2)">{{ r.pre }}<b style="color:var(--ink);font-weight:700;background:var(--hl);border-radius:3px;padding:0 2px">{{ r.mid }}</b>{{ r.post }}</span>
+<span style="font-size:calc(13px * var(--ts));color:var(--ink3)">{{ r.label }}</span>
+</button>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{ isNotifs }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ guest }}" hint-placeholder-val="{{ false }}"><div style="padding:60px 36px;display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center"><span style="font-size:calc(20px * var(--ts));font-weight:600">Sign in to see notifications</span><span style="font-size:calc(15px * var(--ts));line-height:1.4;color:var(--ink2)">Find out when someone replies to you or mentions you.</span><button onClick="{{ openSignIn }}" style="margin-top:8px;height:50px;padding:0 28px;border-radius:25px;background:var(--accent);color:var(--onAccent);font-size:calc(17px * var(--ts));font-weight:600">Sign in</button></div></sc-if>
+<sc-for list="{{ notifRows }}" as="n" hint-placeholder-count="3">
+<button onClick="{{ n.open }}" aria-label="{{ n.aria }}" style="display:flex;gap:12px;align-items:flex-start;width:100%;padding:14px 20px 14px 12px;border-bottom:.5px solid var(--sep);box-sizing:border-box;text-align:left">
+<span aria-hidden="true" style="width:8px;height:8px;border-radius:4px;margin-top:15px;flex:none;background:{{ n.dot }}"></span>
+<span aria-hidden="true" style="width:36px;height:36px;border-radius:18px;flex:none;background:var(--sel);color:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:calc(17px * var(--ts));font-weight:600">{{ n.glyph }}</span>
+<span style="flex:1;display:flex;flex-direction:column;gap:3px;min-width:0">
+<span style="font-size:calc(16px * var(--ts));line-height:1.3;font-weight:{{ n.weight }}">{{ n.text }}</span>
+<span style="font-size:calc(15px * var(--ts));line-height:1.35;color:var(--ink2)">{{ n.sub }}</span>
+<span style="font-size:calc(13px * var(--ts));color:var(--ink3)">{{ n.meta }}</span>
+</span>
+</button>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{ isMe }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ guest }}" hint-placeholder-val="{{ false }}"><div style="padding:60px 36px;display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center"><span style="font-size:calc(20px * var(--ts));font-weight:600">Sign in to see your profile</span><span style="font-size:calc(15px * var(--ts));line-height:1.4;color:var(--ink2)">Your saved discussions and drafts live here once you're signed in.</span><button onClick="{{ openSignIn }}" style="margin-top:8px;height:50px;padding:0 28px;border-radius:25px;background:var(--accent);color:var(--onAccent);font-size:calc(17px * var(--ts));font-weight:600">Sign in</button></div></sc-if>
+<sc-if value="{{ member }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:20px;padding:4px 16px 24px">
+<button onClick="{{ openOwnProfile }}" aria-label="View your profile, Jonah Wells" style="display:flex;align-items:center;gap:14px;padding:14px 12px 14px 16px;background:var(--cell);border-radius:24px">
+<span aria-hidden="true" style="width:56px;height:56px;border-radius:28px;background:var(--sel);color:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:calc(20px * var(--ts));font-weight:700">JW</span>
+<span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:calc(20px * var(--ts));font-weight:600">Jonah Wells</span><span style="font-size:calc(15px * var(--ts));color:var(--ink2)">@jonah.w · View profile</span></span>
+<svg aria-hidden="true" width="24" height="24" style="flex:none;fill:none;stroke:var(--ink3);stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M9 6l6 6-6 6"></path></svg>
+</button>
+<div style="background:var(--cell);border-radius:24px;overflow:hidden">
+<button onClick="{{ openSaved }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:0 12px 0 16px;min-height:52px;font-size:calc(17px * var(--ts))"><svg aria-hidden="true" width="24" height="24" style="flex:none;fill:none;stroke:var(--accent);stroke-width:1.9;stroke-linejoin:round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg><span style="flex:1">Saved</span><span style="color:var(--ink3)">{{ savedCount }}</span><svg aria-hidden="true" width="24" height="24" style="flex:none;fill:none;stroke:var(--ink3);stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M9 6l6 6-6 6"></path></svg></button>
+<button onClick="{{ openDrafts }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:0 12px 0 16px;min-height:52px;font-size:calc(17px * var(--ts));border-top:.5px solid var(--sep)"><svg aria-hidden="true" width="24" height="24" style="flex:none;fill:none;stroke:var(--accent);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round"><path d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"></path><path d="M17.5 3.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"></path></svg><span style="flex:1">Drafts</span><span style="color:var(--ink3)">{{ draftsCount }}</span><svg aria-hidden="true" width="24" height="24" style="flex:none;fill:none;stroke:var(--ink3);stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M9 6l6 6-6 6"></path></svg></button>
+</div>
+<div style="background:var(--cell);border-radius:24px;overflow:hidden"><button onClick="{{ askSignOut }}" style="width:100%;min-height:52px;padding:0 16px;font-size:calc(17px * var(--ts));color:var(--danger);text-align:left">Sign out</button></div>
+</div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+<div style="padding:4px 20px 20px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;align-items:center;gap:14px"><span aria-hidden="true" style="width:72px;height:72px;border-radius:36px;background:var(--sel);color:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:calc(26px * var(--ts));font-weight:700;flex:none">{{ prInitials }}</span><span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:calc(22px * var(--ts));font-weight:700;line-height:1.2">{{ prName }}</span><span style="font-size:calc(15px * var(--ts));color:var(--ink2)">{{ prHandle }}</span></span></div>
+<sc-if value="{{ prHasBio }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font-size:calc(17px * var(--ts));line-height:1.5;text-wrap:pretty">{{ prBio }}</p></sc-if>
+</div>
+<div style="padding:0 20px 8px;font-size:calc(15px * var(--ts));font-weight:600;color:var(--ink2);border-bottom:.5px solid var(--sep)">Recent discussions</div>
+<sc-if value="{{ prEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:28px 20px;font-size:calc(15px * var(--ts));color:var(--ink2)">No discussions started yet.</div></sc-if>
+<sc-for list="{{ prRows }}" as="r" hint-placeholder-count="2">
+<button onClick="{{ r.open }}" aria-label="{{ r.aria }}" style="display:flex;flex-direction:column;gap:4px;width:100%;padding:12px 20px 14px;border-bottom:.5px solid var(--sep);box-sizing:border-box;text-align:left"><span style="font-size:calc(13px * var(--ts));font-weight:600;color:var(--accent)">{{ r.catLabel }}</span><span style="font-size:calc(17px * var(--ts));line-height:1.3;font-weight:600">{{ r.title }}</span><span style="font-size:calc(13px * var(--ts));color:var(--ink3)">{{ r.meta }}</span></button>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{ isSaved }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ savedEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:60px 36px;text-align:center;display:flex;flex-direction:column;gap:6px"><span style="font-size:calc(20px * var(--ts));font-weight:600">Nothing saved yet</span><span style="font-size:calc(15px * var(--ts));line-height:1.4;color:var(--ink2)">Use Save in a discussion's menu to keep it here.</span></div></sc-if>
+<sc-for list="{{ savedRows }}" as="r" hint-placeholder-count="2">
+<button onClick="{{ r.open }}" aria-label="{{ r.aria }}" style="display:flex;flex-direction:column;gap:4px;width:100%;padding:12px 20px 14px;border-bottom:.5px solid var(--sep);box-sizing:border-box;text-align:left"><span style="font-size:calc(13px * var(--ts));font-weight:600;color:var(--ink2)">{{ r.kind }}</span><span style="font-size:calc(17px * var(--ts));line-height:1.3;font-weight:600">{{ r.title }}</span><span style="font-size:calc(13px * var(--ts));color:var(--accent);font-weight:600">{{ r.meta }}</span></button>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{ isDrafts }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ draftsEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:60px 36px;text-align:center;display:flex;flex-direction:column;gap:6px"><span style="font-size:calc(20px * var(--ts));font-weight:600">No drafts</span><span style="font-size:calc(15px * var(--ts));line-height:1.4;color:var(--ink2)">When you keep unfinished writing, it waits here.</span></div></sc-if>
+<sc-for list="{{ draftRows }}" as="d" hint-placeholder-count="2">
+<div style="padding:12px 20px 6px;border-bottom:.5px solid var(--sep);display:flex;flex-direction:column;gap:4px">
+<button onClick="{{ d.resume }}" aria-label="{{ d.aria }}" style="display:flex;flex-direction:column;gap:4px;text-align:left">
+<span style="font-size:calc(13px * var(--ts));font-weight:600;color:var(--ink2)">{{ d.kind }}</span>
+<span style="font-size:calc(17px * var(--ts));line-height:1.3;font-weight:600">{{ d.title }}</span>
+<span style="font-size:calc(15px * var(--ts));line-height:1.45;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ d.excerpt }}</span>
+<sc-if value="{{ d.lostPhoto }}" hint-placeholder-val="{{ false }}"><span style="display:flex;gap:6px;align-items:flex-start;font-size:calc(13px * var(--ts));line-height:1.35;color:var(--ink)"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" style="flex:none;margin-top:1px;fill:none;stroke:var(--danger);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><path d="M12 3 2 20h20z"></path><path d="M12 10v4.5"></path><circle cx="12" cy="17.2" r=".5"></circle></svg>Photo not included. It hadn’t finished uploading. Add it again after you resume.</span></sc-if>
+<span style="font-size:calc(13px * var(--ts));color:var(--ink3)">{{ d.age }}</span>
+</button>
+<div style="display:flex;gap:4px;margin-left:-10px"><button onClick="{{ d.resume }}" style="min-height:44px;padding:0 10px;font-size:calc(15px * var(--ts));font-weight:600;color:var(--accent)">Resume</button><button onClick="{{ d.discard }}" aria-label="{{ d.discardAria }}" style="min-height:44px;padding:0 10px;font-size:calc(15px * var(--ts));color:var(--danger)">Discard</button></div>
+</div>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{ isUnavailable }}" hint-placeholder-val="{{ false }}"><div style="padding:90px 36px;display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center"><span style="font-size:calc(22px * var(--ts));font-weight:600">This post isn't available</span><span style="font-size:calc(15px * var(--ts));line-height:1.4;color:var(--ink2)">It may have been deleted, or moved somewhere you can't see.</span><button onClick="{{ onBack }}" style="margin-top:8px;height:44px;padding:0 20px;border-radius:22px;background:var(--fill);color:var(--accent);font-size:calc(16px * var(--ts));font-weight:600">Back to Notifications</button></div></sc-if>
+
+<sc-if value="{{ isDenied }}" hint-placeholder-val="{{ false }}"><div style="padding:90px 36px;display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center"><svg aria-hidden="true" width="24" height="24" style="transform:scale(1.5);fill:none;stroke:var(--ink2);stroke-width:1.7;stroke-linecap:round"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg><span style="margin-top:8px;font-size:calc(22px * var(--ts));font-weight:600">You don't have access</span><span style="font-size:calc(15px * var(--ts));line-height:1.4;color:var(--ink2)">Makers Council is only open to some members.</span><button onClick="{{ onBack }}" style="margin-top:8px;height:44px;padding:0 20px;border-radius:22px;background:var(--fill);color:var(--accent);font-size:calc(16px * var(--ts));font-weight:600">Back to Communities</button></div></sc-if>
+</div>
+</div>
+
+<div aria-hidden="true" style="position:absolute;left:0;right:0;top:0;height:{{ edgeH }}px;background:{{ edgeTop }};backdrop-filter:var(--edgeBlur);-webkit-backdrop-filter:var(--edgeBlur);-webkit-mask-image:linear-gradient(#000 62%,transparent);mask-image:linear-gradient(#000 62%,transparent);pointer-events:none;z-index:10"></div>
+<div aria-hidden="true" style="position:absolute;left:0;right:0;bottom:0;height:{{ edgeBH }}px;background:{{ edgeBottom }};pointer-events:none;z-index:10"></div>
+
+<div aria-hidden="true" style="position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;justify-content:space-between;padding:4px 30px 0 46px;box-sizing:border-box;font-size:calc(17px * var(--ts));font-weight:600;z-index:25;pointer-events:none">
+<span>9:41</span>
+<span style="display:flex;gap:6px;align-items:center"><span style="display:flex;gap:2px;align-items:flex-end;height:12px"><span style="width:3px;height:4px;background:var(--ink);border-radius:1px"></span><span style="width:3px;height:6px;background:var(--ink);border-radius:1px"></span><span style="width:3px;height:9px;background:var(--ink);border-radius:1px"></span><span style="width:3px;height:12px;background:var(--ink);border-radius:1px"></span></span><span style="width:25px;height:12px;border:1.2px solid var(--ink3);border-radius:4px;padding:1.5px;box-sizing:border-box"><span style="display:block;width:75%;height:100%;background:var(--ink);border-radius:2px"></span></span></span>
+<sc-if value="{{ hasIsland }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;top:11px;left:50%;transform:translateX(-50%);width:124px;height:36px;border-radius:20px;background:#000"></span></sc-if>
+</div>
+
+<sc-if value="{{ showNav }}" hint-placeholder-val="{{ true }}">
+<div style="position:absolute;top:54px;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;box-sizing:border-box;z-index:20">
+<sc-if value="{{ navPushed }}" hint-placeholder-val="{{ false }}"><button onClick="{{ onBack }}" aria-label="{{ backAria }}" style="width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;color:var(--ink);background:var(--gl);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)"><svg aria-hidden="true" width="24" height="24" style="fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round"><path d="M14.5 5.5 8 12l6.5 6.5"></path></svg></button>
+<span style="position:absolute;left:50%;transform:translateX(-50%);max-width:190px;font-size:calc(17px * var(--ts));font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ navTitle }}</span></sc-if>
+<sc-if value="{{ navBrand }}" hint-placeholder-val="{{ true }}"><img src="./assets/logo-wordmark-mono.png" alt="fomio" style="height:30px;width:64px;margin-left:4px;filter:{{ wmFilter }}"></img></sc-if>
+<sc-if value="{{ navBlank }}" hint-placeholder-val="{{ false }}"><span></span></sc-if>
+<span style="display:flex;align-items:center;gap:10px">
+<sc-if value="{{ navTools }}" hint-placeholder-val="{{ true }}"><span style="display:flex;align-items:center;height:44px;border-radius:22px;padding:0 2px;color:var(--ink);background:var(--gl);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)">
+<sc-if value="{{ navSearch }}" hint-placeholder-val="{{ true }}"><button onClick="{{ openSearch }}" aria-label="Search discussions" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="24" height="24" style="transform:scale(.92);fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="M15.5 15.5 20 20"></path></svg></button></sc-if>
+<sc-if value="{{ navCompose }}" hint-placeholder-val="{{ true }}"><button onClick="{{ onGlobalCreate }}" aria-label="New discussion" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="24" height="24" style="transform:scale(.92);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"></path><path d="M17.5 3.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"></path></svg></button></sc-if>
+</span></sc-if>
+<sc-if value="{{ navMore }}" hint-placeholder-val="{{ false }}"><button onClick="{{ openMenu }}" aria-label="More actions" aria-expanded="{{ menuOpen }}" style="width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;color:var(--ink);background:var(--gl);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)"><svg aria-hidden="true" width="24" height="24" style="fill:currentColor"><circle cx="5.5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="18.5" cy="12" r="1.8"></circle></svg></button></sc-if>
+</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ isSearch }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;top:56px;left:0;right:0;display:flex;align-items:center;gap:10px;padding:0 16px;z-index:20">
+<label style="flex:1;height:46px;border-radius:23px;display:flex;align-items:center;gap:8px;padding:0 14px;color:var(--ink2);background:var(--gl);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)"><svg aria-hidden="true" width="20" height="20" style="flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><circle cx="9" cy="9" r="5.5"></circle><path d="M13 13l4 4"></path></svg><input aria-label="Search discussions" placeholder="Search discussions" value="{{ q }}" onChange="{{ onQ }}" style="flex:1;font-size:calc(17px * var(--ts));color:var(--ink);min-width:0"></input></label>
+<button onClick="{{ onBack }}" aria-label="Cancel search" style="flex:none;width:46px;height:46px;border-radius:23px;display:flex;align-items:center;justify-content:center;color:var(--ink);background:var(--gl);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)"><svg aria-hidden="true" width="24" height="24" style="transform:scale(.85);fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg></button>
+</div>
+</sc-if>
+
+<sc-if value="{{ isDiscussion }}" hint-placeholder-val="{{ false }}"><button onClick="{{ onReply }}" aria-label="{{ replyAria }}" style="position:absolute;left:{{ replyL }}px;right:{{ replyL }}px;bottom:{{ replyBottom }}px;height:50px;border-radius:25px;z-index:20;display:flex;align-items:center;justify-content:center;gap:8px;font-size:calc(17px * var(--ts));font-weight:600;color:var(--onAccent);background:var(--glTint);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glTintSh)"><svg aria-hidden="true" width="24" height="24" style="transform:scale(.85);fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round"><path d="M10 8 5 12.5l5 4.5"></path><path d="M5.5 12.5H14a5 5 0 0 1 5 5V19"></path></svg>Reply</button></sc-if>
+
+<sc-if value="{{ showTabs }}" hint-placeholder-val="{{ true }}"><nav aria-label="Tabs" style="position:absolute;left:20px;right:20px;bottom:22px;height:62px;border-radius:31px;padding:4px;box-sizing:border-box;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));z-index:20;background:var(--gl);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)">
+<button onClick="{{ tabHome }}" aria-label="Home" aria-current="{{ homeCur }}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:27px;background:{{ homeLens }};color:{{ homeColor }};font-size:10px;font-weight:600"><svg aria-hidden="true" width="24" height="24" style="fill:{{ homeFill }};stroke:currentColor;stroke-width:1.8;stroke-linejoin:round"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"></path></svg>Home</button>
+<button onClick="{{ tabCommunities }}" aria-label="Communities" aria-current="{{ comCur }}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:27px;background:{{ comLens }};color:{{ comColor }};font-size:10px;font-weight:600"><svg aria-hidden="true" width="24" height="24" style="fill:{{ comFill }};stroke:currentColor;stroke-width:1.8"><rect x="3.5" y="3.5" width="7" height="7" rx="2"></rect><rect x="13.5" y="3.5" width="7" height="7" rx="2"></rect><rect x="3.5" y="13.5" width="7" height="7" rx="2"></rect><rect x="13.5" y="13.5" width="7" height="7" rx="2"></rect></svg>Communities</button>
+<button onClick="{{ tabNotifications }}" aria-label="{{ notifTabAria }}" aria-current="{{ notCur }}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:27px;background:{{ notLens }};color:{{ notColor }};font-size:10px;font-weight:600;position:relative"><svg aria-hidden="true" width="24" height="24" style="fill:{{ notFill }};stroke:currentColor;stroke-width:1.8;stroke-linejoin:round"><path d="M6 16.5V11a6 6 0 1 1 12 0v5.5l1.5 2h-15z"></path><path d="M10 20.5a2 2 0 0 0 4 0"></path></svg>Notifications<sc-if value="{{ badge }}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="position:absolute;top:3px;left:calc(50% + 5px);min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:var(--accent);color:var(--onAccent);box-shadow:0 0 0 2px var(--bg);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">{{ badge }}</span></sc-if></button>
+<button onClick="{{ tabMe }}" aria-label="Me" aria-current="{{ meCur }}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:27px;background:{{ meLens }};color:{{ meColor }};font-size:10px;font-weight:600"><svg aria-hidden="true" width="24" height="24" style="fill:{{ meFill }};stroke:currentColor;stroke-width:1.8;stroke-linecap:round"><circle cx="12" cy="8.5" r="4"></circle><path d="M4.5 20.5c1.4-3.6 4.2-5.5 7.5-5.5s6.1 1.9 7.5 5.5z"></path></svg>Me</button>
+</nav></sc-if>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}"><div role="status" style="position:absolute;left:50%;transform:translateX(-50%);bottom:{{ toastBottom }}px;width:max-content;max-width:330px;padding:12px 18px;border-radius:24px;font-size:calc(15px * var(--ts));line-height:1.3;text-align:center;z-index:35;background:var(--glMenu);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)">{{ toast }}</div></sc-if>
+
+<sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}"><div onClick="{{ closeMenu }}" style="position:absolute;inset:0;z-index:44"></div><div role="menu" style="position:absolute;top:104px;right:16px;width:238px;border-radius:26px;padding:6px;box-sizing:border-box;z-index:45;background:var(--glMenu);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh);display:flex;flex-direction:column"><button role="menuitem" onClick="{{ onMenuSave }}" style="min-height:46px;padding:0 12px;border-radius:20px;display:flex;align-items:center;gap:12px;font-size:calc(17px * var(--ts))"><svg aria-hidden="true" width="24" height="24" style="flex:none;fill:{{ saveFill }};stroke:currentColor;stroke-width:1.8;stroke-linejoin:round"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"></path></svg>{{ menuSaveLabel }}</button><button role="menuitem" onClick="{{ onMenuShare }}" style="min-height:46px;padding:0 12px;border-radius:20px;display:flex;align-items:center;gap:12px;font-size:calc(17px * var(--ts))"><svg aria-hidden="true" width="24" height="24" style="flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M12 3.5v12M7.5 8 12 3.5 16.5 8"></path><path d="M8 11H6v9.5h12V11h-2"></path></svg>Share</button></div></sc-if>
+
+<sc-if value="{{ cOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:var(--scrim);z-index:40"></div>
+<div role="dialog" aria-label="{{ cTitle }}" style="position:absolute;left:{{ sheetL }}px;right:{{ sheetL }}px;top:58px;bottom:{{ sheetB }}px;background:var(--sheet);border-radius:{{ sheetR }};z-index:41;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -0.5px 0 var(--sep)">
+<div style="flex:none;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;position:relative">
+<button onClick="{{ onCancel }}" aria-label="Cancel" style="width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;color:var(--ink);background:var(--gl);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)"><svg aria-hidden="true" width="24" height="24" style="transform:scale(.85);fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg></button>
+<sc-if value="{{ cHeadTitle }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;left:50%;transform:translateX(-50%);font-size:calc(17px * var(--ts));font-weight:600">{{ cTitle }}</span></sc-if>
+<button onClick="{{ onPost }}" aria-disabled="{{ cPostDisabled }}" style="min-height:44px;padding:0 20px;border-radius:22px;font-size:calc(17px * var(--ts));font-weight:600;background:{{ cPostBg }};color:{{ cPostFg }};box-shadow:{{ cPostSh }};backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur)">Post</button>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column">
+<sc-if value="{{ cRejected }}" hint-placeholder-val="{{ false }}"><div role="alert" style="margin:4px 16px 0;padding:14px;border-radius:18px;background:var(--fill);display:flex;gap:12px"><svg aria-hidden="true" width="24" height="24" style="flex:none;fill:none;stroke:var(--danger);stroke-width:1.9;stroke-linecap:round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v6"></path><circle cx="12" cy="16.8" r=".6"></circle></svg><div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:calc(16px * var(--ts));font-weight:600">Couldn't post</span><span style="font-size:calc(15px * var(--ts));line-height:1.35">{{ cRejectMsg }}</span><span style="font-size:calc(13px * var(--ts));color:var(--ink2)">Your writing is kept. Edit and try again.</span></div></div></sc-if>
+<sc-if value="{{ cExpired }}" hint-placeholder-val="{{ false }}"><div role="alert" style="margin:4px 16px 0;padding:14px;border-radius:18px;background:var(--fill);display:flex;flex-direction:column;gap:10px"><span style="font-size:calc(16px * var(--ts));font-weight:600">You've been signed out</span><span style="font-size:calc(15px * var(--ts));line-height:1.35;color:var(--ink2)">Sign in again to post. Your {{ cNoun }} stays here and won't be sent automatically.</span><button onClick="{{ onReauth }}" style="align-self:flex-start;height:44px;padding:0 18px;border-radius:22px;background:var(--accent);color:var(--onAccent);font-size:calc(16px * var(--ts));font-weight:600">Sign in</button></div></sc-if>
+<sc-if value="{{ cOffline }}" hint-placeholder-val="{{ false }}"><div role="status" style="margin:4px 16px 0;padding:12px 14px;border-radius:18px;background:var(--fill);font-size:calc(15px * var(--ts));line-height:1.35"><b style="font-weight:600">You're offline.</b> Keep writing. Post works again once you're back online; nothing is sent automatically.</div></sc-if>
+<sc-if value="{{ cUnconfirmed }}" hint-placeholder-val="{{ false }}"><div role="alert" style="margin:4px 16px 0;padding:14px;border-radius:18px;background:var(--fill);display:flex;flex-direction:column;gap:10px">
+<span style="font-size:calc(16px * var(--ts));font-weight:600;line-height:1.3">We couldn't confirm whether your {{ cNoun }} posted</span>
+<span style="font-size:calc(15px * var(--ts));line-height:1.35;color:var(--ink2)">Our check didn't find it yet. That doesn't mean it failed. Your text is kept here.</span>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button onClick="{{ checkAgain }}" style="height:44px;padding:0 18px;border-radius:22px;background:var(--accent);color:var(--onAccent);font-size:calc(16px * var(--ts));font-weight:600">Check again</button><button onClick="{{ backUnconfirmed }}" style="height:44px;padding:0 10px;font-size:calc(16px * var(--ts));font-weight:600;color:var(--accent)">{{ cBackLabel }}</button></div>
+<div style="border-top:.5px solid var(--sep);padding-top:10px;display:flex;flex-direction:column;gap:2px"><span style="font-size:calc(14px * var(--ts));line-height:1.35;color:var(--ink2)">Posting again could create a duplicate if the first one went through.</span><button onClick="{{ askPostAgain }}" style="align-self:flex-start;min-height:44px;font-size:calc(15px * var(--ts));font-weight:600;color:var(--danger)">Post again…</button></div>
+</div></sc-if>
+<sc-if value="{{ cLost }}" hint-placeholder-val="{{ false }}"><div role="status" style="margin:4px 16px 0;padding:14px;border-radius:18px;background:var(--fill);display:flex;flex-direction:column;gap:6px"><span style="font-size:calc(16px * var(--ts));font-weight:600;line-height:1.3">Photo not kept</span><span style="font-size:calc(15px * var(--ts));line-height:1.35;color:var(--ink2)">{{ cLostBody }}</span><div style="display:flex;flex-direction:{{ lostDir }};align-items:flex-start;gap:0 8px;flex-wrap:wrap;margin-left:-8px"><button onClick="{{ addPhoto }}" style="min-height:44px;padding:0 8px;font-size:calc(16px * var(--ts));font-weight:600;color:var(--accent);text-align:left">Add photo again</button><button onClick="{{ dismissLost }}" style="min-height:44px;padding:0 8px;font-size:calc(16px * var(--ts));color:var(--ink);text-align:left">Continue without photo</button></div></div></sc-if>
+<div style="padding:10px 20px 16px;display:flex;flex-direction:column;gap:12px"><sc-if value="{{ cInlineTitle }}" hint-placeholder-val="{{ false }}"><h2 style="margin:0;font-size:calc(17px * var(--ts));line-height:1.2;font-weight:700">{{ cTitle }}</h2></sc-if>
+<sc-if value="{{ cIsReply }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:calc(13px * var(--ts));font-weight:600;color:var(--ink2)">{{ cCtxSub }}</span><span style="font-size:calc(17px * var(--ts));line-height:1.35;font-weight:600">{{ cCtxTitle }}</span></div></sc-if>
+<sc-if value="{{ cIsNew }}" hint-placeholder-val="{{ false }}"><button onClick="{{ onDest }}" aria-label="{{ cDestAria }}" style="display:flex;flex-wrap:wrap;align-items:center;gap:2px 10px;min-height:52px;padding:6px 14px 6px 16px;box-sizing:border-box;border-radius:20px;background:var(--fill);box-shadow:{{ cDestRing }};text-align:left"><span style="font-size:calc(15px * var(--ts));color:var(--ink2)">Post in</span><span style="flex:1 1 auto;min-width:0;overflow-wrap:anywhere;font-size:calc(17px * var(--ts));font-weight:600;color:{{ cDestColor }}">{{ cDestLabel }}</span><span style="font-size:calc(15px * var(--ts));font-weight:600;color:var(--accent)">{{ cDestAction }}</span></button></sc-if>
+<sc-if value="{{ cHasQuote }}" hint-placeholder-val="{{ false }}"><div style="padding:10px 12px;border-radius:14px;background:var(--fill);display:flex;flex-direction:column;gap:3px"><span style="font-size:calc(13px * var(--ts));font-weight:600;color:var(--ink2)">{{ cQuoteHead }}</span><span style="font-size:calc(15px * var(--ts));line-height:1.45;color:var(--ink2)">{{ cQuoteText }}</span></div></sc-if>
+<sc-if value="{{ cIsNew }}" hint-placeholder-val="{{ false }}"><input aria-label="Title" placeholder="Title" value="{{ cTitleVal }}" onChange="{{ onTitle }}" onFocus="{{ onFieldFocus }}" style="min-height:44px;box-sizing:border-box;font-size:calc(20px * var(--ts));font-weight:700;line-height:1.3;padding:6px 0;border-bottom:.5px solid var(--sep);color:var(--ink)"></input></sc-if>
+<textarea aria-label="{{ cBodyLabel }}" placeholder="{{ cBodyPh }}" value="{{ cBody }}" onChange="{{ onBody }}" onFocus="{{ onFieldFocus }}" style="min-height:{{ cBodyMin }}px;font-size:calc(17px * var(--ts));line-height:1.47;color:var(--ink)"></textarea>
+<sc-if value="{{ cPhoto }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:4px;padding:10px 12px 4px;border-radius:16px;background:var(--fill)">
+<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+<div role="img" aria-label="Attached photo" style="width:64px;height:64px;border-radius:12px;overflow:hidden;flex:none;opacity:{{ cPhotoOp }}"><sc-if value="{{ slots }}" hint-placeholder-val="{{ false }}"><image-slot id="ph-attach" shape="rounded" radius="12" placeholder="Your photo"></image-slot></sc-if><sc-if value="{{ noSlots }}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="display:flex;width:100%;height:100%;align-items:center;justify-content:center;color:var(--ink3);background:var(--bg)"><svg width="24" height="24" style="fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="5" width="18" height="14" rx="2.5"></rect><circle cx="8.5" cy="10" r="1.6"></circle><path d="M21 16l-5-5-8 8"></path></svg></span></sc-if></div>
+<div style="flex:1;min-width:150px;display:flex;flex-direction:column;gap:6px">
+<span role="status" style="display:flex;align-items:center;gap:6px;font-size:calc(15px * var(--ts));font-weight:600;color:{{ cPhotoColor }}"><sc-if value="{{ cPhotoFailed }}" hint-placeholder-val="{{ false }}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" style="flex:none;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><path d="M12 3 2 20h20z"></path><path d="M12 10v4.5"></path><circle cx="12" cy="17.2" r=".5"></circle></svg></sc-if>{{ cPhotoLabel }}</span>
+<sc-if value="{{ cPhotoUploading }}" hint-placeholder-val="{{ false }}"><span role="progressbar" aria-label="Photo upload progress" aria-valuenow="{{ cPhotoPct }}" aria-valuemin="0" aria-valuemax="100" style="display:block;height:4px;border-radius:2px;background:var(--sep);overflow:hidden"><span style="display:block;height:100%;width:{{ cPhotoPctW }};background:var(--accent)"></span></span></sc-if>
+<span style="font-size:calc(13px * var(--ts));line-height:1.35;color:var(--ink2)">{{ cPhotoHelp }}</span>
+</div></div>
+<div style="display:flex;gap:4px;flex-wrap:wrap;margin-left:-8px"><sc-if value="{{ cPhotoFailed }}" hint-placeholder-val="{{ false }}"><button onClick="{{ retryPhoto }}" style="min-height:44px;padding:0 8px;font-size:calc(15px * var(--ts));font-weight:600;color:var(--accent)">Retry upload</button></sc-if><button onClick="{{ removePhoto }}" style="min-height:44px;padding:0 8px;font-size:calc(15px * var(--ts));color:var(--danger)">{{ cRemoveLabel }}</button></div>
+</div></sc-if>
+</div>
+</div>
+<div style="flex:none;padding:8px 14px {{ cAccPad }}px;display:flex;align-items:center">
+<sc-if value="{{ cCanAdd }}" hint-placeholder-val="{{ true }}"><button onClick="{{ addPhoto }}" aria-label="Add photo" style="height:44px;padding:0 16px 0 12px;border-radius:22px;display:flex;align-items:center;gap:8px;font-size:calc(15px * var(--ts));font-weight:600;color:var(--ink);background:var(--gl);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)"><svg aria-hidden="true" width="24" height="24" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="5" width="18" height="14" rx="2.5"></rect><circle cx="8.5" cy="10" r="1.6"></circle><path d="M21 16l-5-5-8 8"></path></svg>Add photo</button></sc-if>
+</div>
+<sc-if value="{{ kbShow }}" hint-placeholder-val="{{ false }}"><div aria-hidden="true" style="flex:none;height:300px;background:repeating-linear-gradient(135deg,var(--kb) 0 10px,var(--fill) 10px 20px);display:flex;align-items:flex-start;justify-content:center;padding-top:110px;box-sizing:border-box;font-family:ui-monospace,Menlo,monospace;font-size:calc(12px * var(--ts));color:var(--ink2)">system keyboard · simulated</div></sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ sheetChooser }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeChooser }}" style="position:absolute;inset:0;background:var(--scrim);z-index:50"></div>
+<div role="dialog" aria-label="Choose a community" style="position:absolute;left:{{ sheetL }}px;right:{{ sheetL }}px;top:70px;bottom:{{ sheetB }}px;background:var(--grp);border-radius:{{ sheetR }};z-index:51;display:flex;flex-direction:column;overflow:hidden">
+<div style="flex:none;height:64px;display:flex;align-items:center;padding:0 14px;position:relative"><button onClick="{{ closeChooser }}" aria-label="Cancel" style="width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;color:var(--ink);background:var(--gl);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)"><svg aria-hidden="true" width="24" height="24" style="transform:scale(.85);fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"></path></svg></button><span style="position:absolute;left:50%;transform:translateX(-50%);font-size:calc(17px * var(--ts));font-weight:600">Choose a community</span></div>
+<div style="flex:1;overflow-y:auto;scrollbar-width:none;padding:4px 16px 40px;display:flex;flex-direction:column;gap:18px">
+<sc-for list="{{ chooserGroups }}" as="g" hint-placeholder-count="3">
+<div style="background:var(--cell);border-radius:24px;overflow:hidden">
+<sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3"><button onClick="{{ it.pick }}" aria-label="{{ it.aria }}" aria-pressed="{{ it.selected }}" style="width:100%;display:flex;align-items:center;min-height:50px;padding:0 14px 0 {{ it.pad }}px;border-top:{{ it.border }};box-sizing:border-box;font-size:calc(17px * var(--ts));font-weight:{{ it.weight }}"><span style="flex:1">{{ it.name }}</span><sc-if value="{{ it.selected }}" hint-placeholder-val="{{ false }}"><svg aria-hidden="true" width="24" height="24" style="fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round"><path d="M5 12.5l4.5 4.5L19 7"></path></svg></sc-if></button></sc-for>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ sheetKeep }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ onKeepEditing }}" style="position:absolute;inset:0;z-index:60"></div>
+<div role="dialog" aria-label="{{ keepMsg }}" style="position:absolute;left:{{ keepL }}px;top:126px;width:{{ keepW }};max-height:calc(100% - 150px);overflow-y:auto;border-radius:28px;padding:6px;box-sizing:border-box;z-index:61;display:flex;flex-direction:column;background:var(--glMenu);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)">
+<span style="padding:12px 14px 8px;font-size:calc(13px * var(--ts));line-height:1.35;color:var(--ink2);text-align:center">{{ keepMsg }}</span>
+<sc-if value="{{ keepPhotoWarn }}" hint-placeholder-val="{{ false }}"><div role="note" style="margin:0 6px 6px;padding:10px 12px;border-radius:18px;background:var(--fill);display:flex;gap:8px;align-items:flex-start"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" style="flex:none;margin-top:1px;fill:none;stroke:var(--danger);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><path d="M12 3 2 20h20z"></path><path d="M12 10v4.5"></path><circle cx="12" cy="17.2" r=".5"></circle></svg><span style="font-size:calc(14px * var(--ts));line-height:1.35;color:var(--ink);text-wrap:pretty">{{ keepPhotoText }}</span></div></sc-if>
+<button onClick="{{ onKeepDraft }}" style="min-height:50px;padding:6px 10px;border-radius:22px;font-size:calc(17px * var(--ts));font-weight:600;color:var(--accent);text-align:center">{{ keepLabel }}</button>
+<button onClick="{{ onDiscard }}" style="min-height:50px;border-radius:22px;font-size:calc(17px * var(--ts));color:var(--danger);text-align:center">{{ discardLabel }}</button>
+<span style="height:.5px;background:var(--sep);margin:2px 12px"></span>
+<button onClick="{{ onKeepEditing }}" style="min-height:50px;border-radius:22px;font-size:calc(17px * var(--ts));color:var(--ink);text-align:center">Keep editing</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ sheetSignin }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ onNotNow }}" style="position:absolute;inset:0;background:var(--scrim);z-index:50"></div>
+<div role="dialog" aria-label="{{ gateTitle }}" style="position:absolute;left:8px;right:8px;bottom:8px;border-radius:44px;z-index:51;padding:10px 26px 30px;display:flex;flex-direction:column;gap:12px;background:var(--glMenu);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)">
+<span aria-hidden="true" style="align-self:center;width:36px;height:5px;border-radius:3px;background:var(--ink3);opacity:.5"></span>
+<img src="./assets/logo-wordmark-mono.png" alt="fomio" style="width:69px;height:32px;margin-top:6px;filter:{{ wmFilter }}"></img>
+<span style="font-size:calc(24px * var(--ts));font-weight:700;line-height:1.2">{{ gateTitle }}</span>
+<span style="font-size:calc(16px * var(--ts));line-height:1.4;color:var(--ink2)">{{ gateBody }}</span>
+<button onClick="{{ onSignIn }}" style="margin-top:6px;height:52px;border-radius:26px;background:var(--accent);color:var(--onAccent);font-size:calc(17px * var(--ts));font-weight:600;text-align:center">Sign in</button>
+<button onClick="{{ onNotNow }}" style="min-height:44px;font-size:calc(17px * var(--ts));font-weight:600;color:var(--accent);text-align:center">Not now</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ sheetShare }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeShare }}" style="position:absolute;inset:0;background:var(--scrim);z-index:50"></div>
+<div role="dialog" aria-label="Share" style="position:absolute;left:8px;right:8px;bottom:8px;border-radius:44px;z-index:51;padding:10px 16px 26px;display:flex;flex-direction:column;gap:12px;background:var(--glMenu);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)">
+<span aria-hidden="true" style="align-self:center;width:36px;height:5px;border-radius:3px;background:var(--ink3);opacity:.5"></span>
+<div style="height:200px;border-radius:28px;background:repeating-linear-gradient(135deg,var(--fill) 0 8px,var(--stripe) 8px 16px);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,Menlo,monospace;font-size:calc(12px * var(--ts));color:var(--ink2);text-align:center">system share sheet<br></br>(discussion link)</div>
+<button onClick="{{ closeShare }}" style="min-height:50px;border-radius:25px;background:var(--glSel);font-size:calc(17px * var(--ts));font-weight:600;color:var(--ink);text-align:center">Close</button>
+</div>
+</sc-if>
+
+<sc-if value="{{ alertOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;background:var(--scrim);z-index:70"></div>
+<div role="alertdialog" aria-label="{{ alertTitle }}" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:300px;border-radius:34px;z-index:71;padding:22px 16px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:16px;background:var(--glMenu);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)">
+<div style="display:flex;flex-direction:column;gap:6px;text-align:center;padding:0 6px"><span style="font-size:calc(17px * var(--ts));font-weight:600">{{ alertTitle }}</span><span style="font-size:calc(15px * var(--ts));line-height:1.35;color:var(--ink2)">{{ alertMsg }}</span></div>
+<div style="display:grid;grid-template-columns:{{ alertCols }};gap:8px"><button onClick="{{ alertCancel }}" style="min-height:48px;border-radius:24px;background:var(--glSel);font-size:calc(17px * var(--ts));color:var(--ink);text-align:center">Cancel</button><button onClick="{{ alertOk }}" style="min-height:48px;border-radius:24px;background:var(--glSel);font-size:calc(17px * var(--ts));font-weight:600;color:var(--danger);text-align:center">{{ alertOkLabel }}</button></div>
+</div>
+</sc-if>
+
+<span aria-hidden="true" style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:var(--ink);z-index:90"></span>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;preset&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;guest&quot;,&quot;discussion&quot;,&quot;menu&quot;,&quot;signin&quot;,&quot;linked&quot;,&quot;community&quot;,&quot;subcommunity&quot;,&quot;search&quot;,&quot;drafts&quot;,&quot;saved&quot;,&quot;profile&quot;,&quot;reply&quot;,&quot;quote&quot;,&quot;newtopic&quot;,&quot;uploading&quot;,&quot;uploadfail&quot;,&quot;chooser&quot;,&quot;keep&quot;,&quot;keepphoto&quot;,&quot;draftlost&quot;,&quot;resumelost&quot;,&quot;rejected&quot;,&quot;pending&quot;,&quot;unconfirmed&quot;,&quot;postagain&quot;,&quot;expired&quot;,&quot;offline&quot;,&quot;loading&quot;,&quot;empty&quot;,&quot;denied&quot;,&quot;unavailable&quot;,&quot;communities&quot;,&quot;findcom&quot;,&quot;findnone&quot;,&quot;notifications&quot;,&quot;me&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;transparency&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;regular&quot;,&quot;reduced&quot;],&quot;default&quot;:&quot;regular&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;contrast&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;standard&quot;,&quot;increased&quot;],&quot;default&quot;:&quot;standard&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;textSize&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;default&quot;,&quot;large&quot;,&quot;xl&quot;],&quot;default&quot;:&quot;default&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;device&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;iphone&quot;,&quot;narrow&quot;,&quot;split&quot;],&quot;default&quot;:&quot;iphone&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;photoSlots&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;frameW&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:540,&quot;tsType&quot;:&quot;number&quot;},&quot;frameH&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:834,&quot;tsType&quot;:&quot;number&quot;},&quot;account&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;member&quot;,&quot;guest&quot;],&quot;default&quot;:&quot;member&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;outcome&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;published&quot;,&quot;pending&quot;,&quot;rejected&quot;,&quot;unconfirmed&quot;,&quot;expired&quot;],&quot;default&quot;:&quot;published&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;upload&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ok&quot;,&quot;fail&quot;],&quot;default&quot;:&quot;ok&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;offline&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;journey&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;nonce&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;number&quot;},&quot;onRoute&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(r: object) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  scrollRef = React.createRef();
+  state = this.fresh(this.props.account !== 'guest', this.props.journey || this.props.preset || 'home');
+
+  seed() {
+    const P = (n, a, t, b, l = 0, x = {}) => ({ n, author: a, age: t, body: b, likes: l, ...x });
+    return {
+      topics: [
+        { id: 4190, cat: 'repairs', act: 2, actL: '2m', title: 'Bench PSU hums after a fuse swap', posts: [
+          P(1, 'devon', '5h', 'Replaced the 2A fuse with the same rating, and now there’s a 50 Hz hum from the transformer side. Output voltage looks normal on the meter. Anything I should check before I open it up again?', 3),
+          P(2, 'priya', '5h', 'Is it the same fuse type? A slow-blow and a fast-blow can look identical.', 1),
+          P(3, 'devon', '5h', 'Same type, T2A, from the same bag as the original spare.'),
+          P(4, 'alex.h', '4h', 'A hum at 50 Hz rather than 100 Hz usually points at the transformer, not the rectifier.', 2),
+          P(5, 'theo', '4h', 'Could be a loose lamination. Does pressing on the transformer case change it?'),
+          P(6, 'devon', '4h', 'Pressing on it does nothing. It’s quieter with no load.'),
+          P(7, 'ines.r', '3h', 'Mine did that when a mounting screw had backed out.'),
+          P(8, 'devon', '3h', 'Screws are tight. I’ll scope the output tonight.'),
+          P(9, 'priya', '2h', 'Post the ripple if you can. Scope at the output, AC coupled.', 1),
+          P(10, 'devon', '1h', 'About 40 mV of ripple at 1 A, AC coupled at 10 mV per division. That seems high for a linear supply. Photo of the bench scope I’m using attached.', 0, { photo: 'Rigol oscilloscope and function generator on a bench', img: 'ph-scope' }),
+          P(11, 'alex.h', '1h', 'That’s high for this unit. The spec sheet says under 5 mV.'),
+          P(12, 'sunil.p', '40m', 'Check the main filter cap too. They dry out on older units.', 2),
+          P(13, 'jonah.w', '20m', 'If the ripple went up at the same time as the hum, I’d test the bridge rectifier before the caps.', 4),
+          P(14, 'devon', '5m', 'You were right. One diode in the bridge rectifier reads open, and a cracked diode hums exactly like that.', 2),
+          P(15, 'theo', '2m', 'Good find. Replace the whole bridge, they’re cheap.')] },
+        { id: 4199, cat: 'woodworking', act: 25, actL: '25m', title: 'Built a standing desk from reclaimed oak flooring and the top has cupped about 3 mm across the width since spring. Can I still flatten it without taking it apart?', posts: [
+          P(1, 'margaux.delacroix-whitfield', '3h', 'The boards were glued edge to edge with the growth rings all facing the same way, which I now realise was a mistake. The cup is worst on the window side. Finish is two coats of water-based poly on the top only, nothing underneath.', 5),
+          P(2, 'sunil.p', '2h', 'Finishing only one face is probably most of it. The bare underside takes on moisture faster than the top.', 3),
+          P(3, 'alex.h', '1h', 'Seal the underside and give it a few weeks before you plane anything.', 1)] },
+        { id: 4182, cat: 'finishing', act: 10, actL: '10m', title: 'Oil vs. hardwax on a walnut desk top?', posts: [
+          P(1, 'mara_k', '2h', 'Sanded to 220. It’s a daily desk: coffee mugs and a laptop. Rubbing oil looks great, but I’m worried about rings. Would hardwax oil hold up better, or should I go straight to a film finish?', 12, { photo: 'Close-up of a solid walnut table top', img: 'ph-walnut' }),
+          P(2, 'devon', '1h', 'Hardwax oil is easier to spot-repair. Two thin coats, buff off the excess, and give it a full week before the mugs come back.', 4),
+          P(3, 'ines.r', '40m', 'Test both on an offcut from the same board. Walnut can go darker under oil than you expect.', 2),
+          P(4, 'sunil.p', '30m', 'If the laptop always sits in one place, a film finish resists the heat better. Hardwax will dull there eventually.', 1),
+          P(5, 'theo', '10m', 'Whatever you pick, try it on the underside first.', 3)] },
+        { id: 4201, cat: 'micro', act: 60, actL: '1h', title: 'Deep sleep current on a dev board: 40 mA?', posts: [
+          P(1, 'priya', '3h', 'My board draws 40 mA in deep sleep. The datasheet says microamps. Is the USB-serial chip the culprit, or am I measuring wrong?', 4),
+          P(2, 'alex.h', '3h', 'Most dev boards keep the USB bridge and the power LED on. Try powering it from the 3.3 V pin.', 2),
+          P(3, 'priya', '2h', 'From the 3.3 V pin it drops to 9 mA. Better, still not microamps.'),
+          P(4, 'devon', '2h', 'The regulator’s quiescent current might be most of that.'),
+          P(5, 'theo', '1h', 'Check whether any GPIO is left driving a pull-up.'),
+          P(6, 'priya', '1h', '@jonah.w you measured this on the same board last year, didn’t you? What did you get?')] },
+        { id: 4195, cat: 'joinery', act: 240, actL: '4h', title: 'First drawbored mortise and tenon', posts: [
+          P(1, 'alex.h', '4h', 'Offset the peg hole by about 1.5 mm and it pulled the shoulder tight without clamps. Oak peg, riven, not dowel stock.', 9),
+          P(2, 'mara_k', '3h', 'That’s a clean shoulder. Did you taper the peg tip?', 1),
+          P(3, 'alex.h', '3h', 'Yes, a short taper with a knife. Without it the peg split on the first test.')] },
+        { id: 4188, cat: 'finishing', act: 360, actL: '6h', title: 'Blotchy cherry: can gel stain save it?', posts: [
+          P(1, 'theo', '6h', 'First cherry project, and the oil stain went on blotchy. Can I sand back and use a gel stain, or is it too late?', 2),
+          P(2, 'sunil.p', '5h', 'Sand back to bare wood, then a thin washcoat of dewaxed shellac before the gel. It evens out the absorption.', 5)] },
+        { id: 4176, cat: 'handtools', act: 1440, actL: '1d', title: 'Low-angle jack or a No. 5 for a first plane?', posts: [
+          P(1, 'mara_k', '1d', 'Setting up a small shop and I can only buy one bench plane this year. Which one would you start with?', 6),
+          P(2, 'devon', '1d', 'A No. 5. It does a bit of everything and teaches you how to set a chipbreaker.', 3)] },
+        { id: 4170, cat: 'gardening', act: 1500, actL: '1d', title: 'Overwintering a fig in a large container', posts: [
+          P(1, 'ines.r', '1d', 'This is the fig in summer. My garage stays around 2°C in winter. Should I wrap the container and leave it there, or bring it inside?', 31, { photo: 'Fig tree growing in a large container outdoors', img: 'ph-fig' }),
+          P(2, 'theo', '1d', 'Leave it in the garage. Indoors it’ll wake up too early.', 4),
+          P(3, 'sunil.p', '20h', 'Water it lightly once a month so the roots don’t dry out completely.', 2)] },
+        { id: 4160, cat: 'finishing', act: 2880, actL: '2d', title: 'Dewaxed shellac under water-based poly', posts: [
+          P(1, 'sunil.p', '2d', 'Does it have to be dewaxed, or will regular shellac work as a sealer under water-based poly?', 3),
+          P(2, 'mara_k', '2d', 'Dewaxed. Regular shellac can cause adhesion problems with water-based topcoats.', 4)] }
+      ],
+      notifs: [
+        { id: 'n1', type: 'reply', who: 'devon', topic: 4190, post: 14, age: '5m', unread: true },
+        { id: 'n2', type: 'mention', who: 'priya', topic: 4201, post: 6, age: '1h', unread: true },
+        { id: 'n3', type: 'reply', who: 'sunil.p', topic: null, title: 'Walnut darkening under water-based finish', post: 4, age: '2d', unread: false }
+      ],
+      saved: [{ topic: 4182, post: null }, { topic: 4190, post: 14 }],
+      drafts: [
+        { id: 'd1', kind: 'reply', topic: 4170, target: null, quote: null, title: '', body: 'Mine survived at 0°C wrapped in burlap, but I brought it in when it dropped below −5°C.', photo: false, age: 'Edited 1h ago' },
+        { id: 'd2', kind: 'new', cat: 'handtools', title: 'Spoon carving knives for a beginner?', body: 'Looking for a first hook knife and a straight knife. Budget is modest, and I’d rather buy once than twice.', photo: false, age: 'Edited 2d ago' }
+      ]
+    };
+  }
+
+  cats() {
+    return {
+      woodworking: { name: 'Woodworking', desc: 'Furniture, tools and techniques. Show your builds and ask for help.', children: ['handtools', 'finishing', 'joinery', 'turning'] },
+      handtools: { name: 'Hand Tools', parent: 'woodworking', desc: 'Planes, saws, chisels and keeping them sharp.' },
+      finishing: { name: 'Finishing', parent: 'woodworking', desc: 'Stains, oils, film finishes and fixing blotchy results.' },
+      joinery: { name: 'Joinery', parent: 'woodworking', desc: 'Mortise and tenon, dovetails and everything that holds furniture together.' },
+      turning: { name: 'Turning', parent: 'woodworking', desc: 'Lathe work, from bowls to pens.' },
+      electronics: { name: 'Electronics', desc: 'Repairs, microcontrollers and test gear.', children: ['repairs', 'micro'] },
+      repairs: { name: 'Repairs', parent: 'electronics', desc: 'Fixing what broke, and finding out why.' },
+      micro: { name: 'Microcontrollers', parent: 'electronics', desc: 'Boards, firmware and power budgets.' },
+      gardening: { name: 'Gardening', desc: 'Growing food and flowers.' },
+      council: { name: 'Makers Council', desc: 'Restricted community', restricted: true }
+    };
+  }
+
+  users() {
+    return {
+      'jonah.w': ['Jonah Wells', 'Mar 2024', 'Weekend furniture maker in a one-car garage. Mostly walnut and oak, hand tools where I can.'],
+      'margaux.delacroix-whitfield': ['Margaux Delacroix-Whitfield', '2025', 'Learning furniture making on weekends, mostly with reclaimed timber.'],
+      'mara_k': ['Mara K.', '2021', 'Restoring mid-century pieces, one veneer patch at a time.'],
+      devon: ['Devon Price', '2022', 'Bench repairs and vintage test gear.'],
+      priya: ['Priya S.', '2023', 'Low-power firmware, mostly sensors that run on a coin cell.'],
+      'ines.r': ['Inês R.', '2020', 'Balcony fruit trees in a cold climate.'],
+      theo: ['Theo M.', '2022', ''],
+      'sunil.p': ['Sunil P.', '2021', ''],
+      'alex.h': ['Alex H.', '2024', '']
+    };
+  }
+
+  themeVars() {
+    const d = this.props.theme === 'dark', r = this.props.transparency === 'reduced', hc = this.props.contrast === 'increased';
+    const T = d
+      ? { bg: '#000000', ink: '#ECEBF0', ink2: hc ? '#CFCDD8' : '#AEACB8', ink3: hc ? '#B5B3BF' : '#8F8D99', grp: '#000000', cell: '#111114', fill: '#17161C', stripe: '#201F27', sep: hc ? '#5A5863' : '#2A2831', accent: hc ? '#BFAFFF' : '#A58FFF', accent2: '#BFAFFF', onAccent: '#000000', hl: '#2B2257', sel: '#1B1826', danger: '#FF6B78', success: '#4CD48A', love: '#FF5C8D', sheet: '#111114', scrim: 'rgba(0,0,0,.6)', kb: '#24232A', kbKey: '#4A4952' }
+      : { bg: '#FFFFFF', ink: '#1B1A1F', ink2: hc ? '#45434D' : '#5E5C67', ink3: hc ? '#55535E' : '#706E79', grp: '#F4F3F7', cell: '#FFFFFF', fill: '#F4F3F7', stripe: '#E9E7EF', sep: hc ? '#A9A6B4' : '#E2E0E8', accent: hc ? '#4A2FBF' : '#5B3FD6', accent2: '#4A2FBF', onAccent: '#FFFFFF', hl: '#E7E0FF', sel: '#EEEBFA', danger: '#C62D3A', success: '#1D7F4A', love: '#D6245C', sheet: '#FFFFFF', scrim: 'rgba(27,26,31,.24)', kb: '#DCDAE3', kbKey: '#FFFFFF' };
+    const line = hc ? (d ? '0 0 0 1px #8E8C98' : '0 0 0 1px #6E6C78') : null;
+    if (r) {
+      T.gl = d ? '#1E1D24' : '#F4F3F7'; T.glMenu = d ? '#1E1D24' : '#FFFFFF'; T.glBlur = 'none';
+      T.glSh = line || (d ? '0 0 0 .5px #3A3842' : '0 0 0 .5px #D3D0DC, 0 6px 18px -10px rgba(27,26,31,.25)');
+      T.glTint = T.accent; T.glTintSh = line || 'none';
+    } else {
+      T.gl = hc ? (d ? 'rgba(38,37,44,.88)' : 'rgba(255,255,255,.92)') : (d ? 'rgba(38,37,44,.66)' : 'rgba(246,245,250,.8)');
+      T.glMenu = d ? 'rgba(38,37,44,.86)' : 'rgba(255,255,255,.88)'; T.glBlur = 'blur(18px) saturate(180%)';
+      T.glSh = (d ? 'inset 0 1px 0 rgba(255,255,255,.16), inset 0 0 0 .5px rgba(255,255,255,.1), 0 10px 26px -10px rgba(0,0,0,.9)' : 'inset 0 1px 0 rgba(255,255,255,.95), inset 0 -1px 0 rgba(27,26,31,.04), 0 0 0 .5px rgba(27,26,31,.13), 0 2px 6px rgba(27,26,31,.06), 0 12px 28px -10px rgba(27,26,31,.26)') + (line ? ', ' + line : '');
+      T.glTint = hc ? T.accent : (d ? 'rgba(165,143,255,.94)' : 'rgba(91,63,214,.94)');
+      T.glTintSh = (d ? 'inset 0 1px 0 rgba(255,255,255,.45), 0 10px 24px -10px rgba(0,0,0,.9)' : 'inset 0 1px 0 rgba(255,255,255,.35), 0 10px 24px -10px rgba(27,26,31,.35)') + (line ? ', ' + line : '');
+    }
+    T.glSel = d ? 'rgba(255,255,255,.14)' : 'rgba(27,26,31,.07)';
+    T.edgeBlur = r ? 'none' : 'blur(5px)';
+    T.ts = ({ large: 1.35, xl: 2 })[this.props.textSize] || 1;
+    return T;
+  }
+
+  fresh(signed, preset) {
+    const st = { signedIn: signed, tab: 'home', stacks: { home: [{ s: 'feed' }], communities: [{ s: 'directory', fq: '', exp: {} }], notifications: [{ s: 'notifs' }], me: [{ s: 'me' }] }, ...this.seed(), liked: {}, composer: null, sheet: null, alert: null, gate: null, toast: null, notice: null, menu: false, loading: false, chooseFor: null, nextId: 4210, offlinePreset: false };
+    const S = st.stacks, p = preset;
+    const typed = 'I used a hardwax oil on white oak two years ago. Mug rings wiped off with a damp cloth, and one scratch spot-repaired fine.';
+    const replyC = (status) => ({ kind: 'reply', topic: 4182, target: null, quote: null, title: '', body: typed, photo: false, orig: '|', status });
+    if (p === 'j2' || p === 'communities') st.tab = 'communities';
+    if (p === 'j3' || p === 'notifications') st.tab = 'notifications';
+    if (p === 'j4' || p === 'me') st.tab = 'me';
+    if (p === 'guest') st.signedIn = false;
+    if (p === 'loading') st.loading = true;
+    if (p === 'empty') { st.tab = 'communities'; S.communities.push({ s: 'community', id: 'woodworking' }, { s: 'community', id: 'turning' }); }
+    if (p === 'denied') { st.tab = 'communities'; S.communities.push({ s: 'denied' }); }
+    if (p === 'unavailable') { st.tab = 'notifications'; S.notifications.push({ s: 'unavailable' }); }
+    if (p === 'offline') { S.home.push({ s: 'discussion', id: 4182 }); st.offlinePreset = true; }
+    if (p === 'discussion' || p === 'menu') S.home.push({ s: 'discussion', id: 4182 });
+    if (p === 'menu') st.menu = true;
+    if (p === 'signin') { st.signedIn = false; S.home.push({ s: 'discussion', id: 4182 }); st.sheet = 'signin'; st.gate = { action: 'reply', topic: 4182 }; }
+    if (p === 'linked') { st.tab = 'notifications'; S.notifications.push({ s: 'discussion', id: 4190, focus: 14, focusLabel: 'From your notification' }); st.notifs[0].unread = false; }
+    if (['rejected', 'unconfirmed', 'expired', 'keep', 'postagain', 'reply'].includes(p)) { S.home.push({ s: 'discussion', id: 4182 }); st.composer = replyC(p === 'rejected' ? 'rejected' : p === 'unconfirmed' || p === 'postagain' ? 'unconfirmed' : p === 'expired' ? 'expired' : null); }
+    if (p === 'keep') st.sheet = 'keep';
+    if (p === 'postagain') st.alert = { kind: 'postAgain' };
+    if (p === 'pending') { S.home.push({ s: 'discussion', id: 4182 }); st.notice = { key: 'home:2', kind: 'reply', cat: 'finishing' }; }
+    if (p === 'chooser') { st.sheet = 'chooser'; st.chooseFor = 'new'; }
+    if (p === 'newtopic') { st.tab = 'communities'; S.communities.push({ s: 'community', id: 'woodworking' }, { s: 'community', id: 'finishing' }); st.composer = { kind: 'new', cat: 'finishing', title: 'Hardwax oil on a white oak table: how many coats?', body: '', photo: { st: 'done', pct: 100 }, orig: '|', status: null }; }
+    if (p === 'uploading' || p === 'uploadfail') { st.tab = 'communities'; S.communities.push({ s: 'community', id: 'woodworking' }, { s: 'community', id: 'finishing' }); st.composer = { kind: 'new', cat: 'finishing', title: 'Hardwax oil on a white oak table: how many coats?', body: 'Two coats so far. The second one looks patchy where the grain is open.', photo: p === 'uploading' ? { st: 'uploading', pct: 40 } : { st: 'failed', pct: 60 }, orig: '|', status: null }; }
+    if (p === 'keepphoto') { st.tab = 'communities'; S.communities.push({ s: 'community', id: 'woodworking' }, { s: 'community', id: 'finishing' }); st.composer = { kind: 'new', cat: 'finishing', title: 'Hardwax oil on a white oak table: how many coats?', body: 'Two coats so far. The second one looks patchy where the grain is open.', photo: { st: 'failed', pct: 60 }, orig: '|', status: null }; st.sheet = 'keep'; }
+    if (p === 'draftlost' || p === 'resumelost') { st.tab = 'me'; S.me.push({ s: 'drafts' }); st.drafts = [{ id: 'd3', kind: 'new', cat: 'finishing', title: 'Hardwax oil on a white oak table: how many coats?', body: 'Two coats so far. The second one looks patchy where the grain is open.', photo: false, lostPhoto: true, age: 'Edited just now' }, ...st.drafts]; }
+    if (p === 'resumelost') { const d = st.drafts[0]; st.composer = { kind: 'new', cat: d.cat, title: d.title, body: d.body, photo: false, lostPhoto: true, draftId: d.id, status: null, kb: false }; st.composer.orig = this.sig(st.composer); }
+    if (p === 'comexp') { st.tab = 'communities'; S.communities[0].exp = { woodworking: true }; }
+    if (p === 'findcom') { st.tab = 'communities'; S.communities[0].fq = 'fin'; }
+    if (p === 'findnone') { st.tab = 'communities'; S.communities[0].fq = 'pottery'; }
+    if (p === 'quote') { S.home.push({ s: 'discussion', id: 4182 }); st.composer = { kind: 'reply', topic: 4182, target: 2, quote: { author: 'devon', n: 2, text: 'Hardwax oil is easier to spot-repair. Two thin coats, buff off the excess…' }, title: '', body: '', photo: false, orig: '|', status: null }; }
+    if (p === 'search') { S.home.push({ s: 'search', q: 'walnut' }); }
+    if (p === 'drafts') { st.tab = 'me'; S.me.push({ s: 'drafts' }); }
+    if (p === 'saved') { st.tab = 'me'; S.me.push({ s: 'saved' }); }
+    if (p === 'profile') { S.home.push({ s: 'discussion', id: 4182 }, { s: 'profile', u: 'mara_k' }); }
+    if (p === 'community') { st.tab = 'communities'; S.communities.push({ s: 'community', id: 'woodworking' }); }
+    if (p === 'subcommunity') { st.tab = 'communities'; S.communities.push({ s: 'community', id: 'woodworking' }, { s: 'community', id: 'finishing' }); }
+    return st;
+  }
+
+  componentDidMount() { this.report(); }
+  componentDidUpdate(prev) {
+    if (prev.nonce !== this.props.nonce || prev.account !== this.props.account) { this._k = null; this.setState(this.fresh(this.props.account !== 'guest', this.props.journey || 'home')); return; }
+    if (this.props.tabCmd && prev.tabCmd !== this.props.tabCmd) { this.tabTo(String(this.props.tabCmd).split(':')[0]); return; }
+    const s = this.state, st = s.stacks[s.tab], t = st[st.length - 1];
+    const key = s.tab + ':' + st.length + ':' + t.s + ':' + (t.id || t.u || '') + ':' + (t.focus || '') + ':' + (t.showAll ? 1 : 0);
+    if (key !== this._k) {
+      this._k = key; const el = this.scrollRef.current;
+      if (el) {
+        if (t.focus) requestAnimationFrame(() => { const p = el.querySelector('[data-post="' + t.focus + '"]'); el.scrollTop = p ? Math.max(0, p.offsetTop - 112) : 0; });
+        else el.scrollTop = t.scroll || 0;
+      }
+    }
+    this.report();
+  }
+  componentWillUnmount() { clearTimeout(this._tt); clearInterval(this._up); }
+
+  report() {
+    if (!this.props.onRoute) return;
+    const r = this.routeInfo(); const k = JSON.stringify(r);
+    if (k !== this._rk) { this._rk = k; this.props.onRoute(r); }
+  }
+
+  cat(id) { return this.cats()[id]; }
+  catLabel(id) { const c = this.cat(id); return c.parent ? c.name + ' · ' + this.cat(c.parent).name : c.name; }
+  topic(id) { return this.state.topics.find(t => t.id === id); }
+  user(u) { const x = this.users()[u] || [u, '', '']; return { name: x[0], joined: x[1], bio: x[2] }; }
+  initials(u) { const n = this.user(u).name.split(' '); return (n[0][0] + (n[1] ? n[1][0] : '')).toUpperCase(); }
+  top() { const s = this.state, st = s.stacks[s.tab]; return st[st.length - 1]; }
+  topKey() { const s = this.state; return s.tab + ':' + s.stacks[s.tab].length; }
+  offline() { return !!(this.props.offline || this.state.offlinePreset); }
+  outcome() { return this.props.outcome || 'published'; }
+
+  title(e) {
+    switch (e.s) {
+      case 'feed': return 'Home'; case 'directory': return 'Communities'; case 'notifs': return 'Notifications'; case 'me': return 'Me';
+      case 'community': return this.cat(e.id).name; case 'discussion': return 'Discussion'; case 'search': return 'Search';
+      case 'profile': return e.u === 'jonah.w' ? 'Profile' : e.u; case 'saved': return 'Saved'; case 'drafts': return 'Drafts';
+      case 'unavailable': return 'Unavailable'; case 'denied': return 'Makers Council';
+    }
+    return '';
+  }
+
+  saveScroll() { const el = this.scrollRef.current; if (el) this.top().scroll = el.scrollTop; }
+  pushOn(s, e) { return { ...s.stacks, [s.tab]: [...s.stacks[s.tab], e] }; }
+  push(e) { this.saveScroll(); this.setState(s => ({ stacks: this.pushOn(s, e), menu: false })); }
+  back() { this.setState(s => { const st = s.stacks[s.tab]; return st.length < 2 ? null : { stacks: { ...s.stacks, [s.tab]: st.slice(0, -1) } }; }); }
+  tabTo(t) { this.saveScroll(); this.setState(s => s.tab === t ? { stacks: { ...s.stacks, [t]: [s.stacks[t][0]] } } : { tab: t, menu: false }); }
+  updTop(patch) { this.setState(s => { const st = s.stacks[s.tab].slice(); st[st.length - 1] = { ...st[st.length - 1], ...patch }; return { stacks: { ...s.stacks, [s.tab]: st } }; }); }
+  toast(msg) { clearTimeout(this._tt); this.setState({ toast: msg }); this._tt = setTimeout(() => this.setState({ toast: null }), 3000); }
+  setC(patch) { this.setState(s => ({ composer: { ...s.composer, ...patch } })); }
+  startUpload() {
+    if (this.offline()) { this.toast('Photos can’t upload while you’re offline. Your writing is kept.'); return; }
+    clearInterval(this._up); const fail = this.props.upload === 'fail';
+    this.setC({ photo: { st: 'uploading', pct: 0 }, lostPhoto: false });
+    this._up = setInterval(() => {
+      const c = this.state.composer, ph = c && c.photo;
+      if (!ph || ph.st !== 'uploading') { clearInterval(this._up); return; }
+      const pct = ph.pct + 20;
+      if (fail && pct >= 60) { clearInterval(this._up); this.setC({ photo: { st: 'failed', pct } }); }
+      else if (pct >= 100) { clearInterval(this._up); this.setC({ photo: { st: 'done', pct: 100 } }); }
+      else this.setC({ photo: { st: 'uploading', pct } });
+    }, 400);
+  }
+  sig(c) { return (c.title || '') + '|' + (c.body || '') + (c.photo ? '+' : ''); }
+
+  need(intent) { if (this.state.signedIn) return true; this.setState({ sheet: 'signin', gate: intent, menu: false }); return false; }
+  signIn() {
+    const g = this.state.gate || {};
+    this.setState({ signedIn: true, sheet: null, gate: null });
+    setTimeout(() => {
+      if (g.action === 'reply' || g.action === 'quote') { this.openReply(g.topic, g.target, g.quote); this.toast('Signed in as jonah.w. Your reply is ready.'); }
+      else if (g.action === 'create') { this.openCreate(g.cat); this.toast('Signed in as jonah.w.'); }
+      else if (g.action === 'like' || g.action === 'save') this.toast('Signed in as jonah.w. Tap again to ' + (g.action === 'like' ? 'like the post.' : 'save.'));
+      else this.toast('Signed in as jonah.w');
+    }, 0);
+  }
+
+  openReply(topicId, target, quoteN) {
+    if (!this.need({ action: quoteN ? 'quote' : 'reply', topic: topicId, target, quote: quoteN })) return;
+    const t = this.topic(topicId); let quote = null;
+    if (quoteN) { const p = t.posts.find(x => x.n === quoteN); quote = { author: p.author, n: p.n, text: p.body.length > 150 ? p.body.slice(0, 150) + '…' : p.body }; }
+    this.setState({ menu: false, composer: { kind: 'reply', topic: topicId, target: quoteN || target || null, quote, title: '', body: '', photo: false, orig: '|', status: null } });
+  }
+  openCreate(cat) {
+    if (!this.need({ action: 'create', cat })) return;
+    if (!cat) { this.setState({ sheet: 'chooser', chooseFor: 'new' }); return; }
+    this.setState({ composer: { kind: 'new', cat, title: '', body: '', photo: false, orig: '|', status: null } });
+  }
+  pick(cat) {
+    if (this.state.composer) this.setState(s => ({ composer: { ...s.composer, cat, status: s.composer.status === 'rejected' ? null : s.composer.status }, sheet: null }));
+    else this.setState({ composer: { kind: 'new', cat, title: '', body: '', photo: false, orig: '|', status: null }, sheet: null, chooseFor: null });
+  }
+  cancel() { const c = this.state.composer; if (this.sig(c) !== c.orig) this.setState({ sheet: 'keep' }); else this.setState({ composer: null }); }
+  keepDraft(msg) {
+    const c0 = this.state.composer; clearInterval(this._up);
+    this.setState(s => {
+      const c = s.composer; const d = { id: c.draftId || 'd' + Date.now(), kind: c.kind, topic: c.topic, target: c.target, quote: c.quote, cat: c.cat, title: c.title, body: c.body, photo: c.photo && c.photo.st === 'done' ? c.photo : false, lostPhoto: (!!c.photo && c.photo.st !== 'done') || (!c.photo && !!c.lostPhoto), age: 'Edited just now' };
+      return { drafts: [d, ...s.drafts.filter(x => x.id !== d.id)], composer: null, sheet: null };
+    });
+    this.toast(c0 && c0.photo && c0.photo.st !== 'done' ? 'Draft kept without the photo. Find it in Me › Drafts.' : (msg || 'Draft kept. Find it in Me › Drafts.'));
+  }
+  discard() { const c = this.state.composer; this.setState(s => ({ composer: null, sheet: null, drafts: c.draftId ? s.drafts.filter(x => x.id !== c.draftId) : s.drafts })); if (c.draftId) this.toast('Draft discarded'); }
+  resume(d) { const c = { kind: d.kind, topic: d.topic, target: d.target, quote: d.quote, cat: d.cat, title: d.title || '', body: d.body, photo: d.photo, lostPhoto: !!d.lostPhoto, draftId: d.id, status: null, kb: false }; c.orig = this.sig(c); this.setState({ composer: c }); }
+  canPost(c) { return !!c && !this.offline() && c.status !== 'unconfirmed' && c.status !== 'expired' && c.body.trim().length > 0 && (!c.photo || c.photo.st === 'done') && (c.kind === 'reply' || (c.title.trim().length > 0 && !!c.cat)); }
+  post() {
+    const c = this.state.composer; if (!this.canPost(c)) return;
+    const o = this.outcome();
+    if (o === 'rejected') return this.setC({ status: 'rejected' });
+    if (o === 'unconfirmed') return this.setC({ status: 'unconfirmed' });
+    if (o === 'expired') return this.setC({ status: 'expired' });
+    if (o === 'pending') { const key = this.topKey(); this.setState(s => ({ composer: null, notice: { key, kind: c.kind, cat: c.cat }, drafts: c.draftId ? s.drafts.filter(x => x.id !== c.draftId) : s.drafts })); return; }
+    this.publish(c);
+  }
+  publish(c, msg) {
+    this.saveScroll();
+    this.setState(s => {
+      const drafts = c.draftId ? s.drafts.filter(x => x.id !== c.draftId) : s.drafts;
+      const t = s.stacks[s.tab][s.stacks[s.tab].length - 1];
+      if (c.kind === 'reply') {
+        let n = 0;
+        const topics = s.topics.map(tp => { if (tp.id !== c.topic) return tp; n = Math.max(...tp.posts.map(p => p.n)) + 1; return { ...tp, act: 0, actL: 'now', posts: [...tp.posts, { n, author: 'jonah.w', age: 'now', body: c.body, likes: 0, quote: c.quote, photo: c.photo ? 'Your attached photo' : null, img: 'ph-attach' }] }; });
+        const e = { s: 'discussion', id: c.topic, focus: n, focusLabel: 'Your reply', showAll: true };
+        const stacks = (t.s === 'discussion' && t.id === c.topic) ? { ...s.stacks, [s.tab]: [...s.stacks[s.tab].slice(0, -1), { ...t, ...e }] } : this.pushOn(s, e);
+        return { topics, stacks, drafts, composer: null, sheet: null, alert: null };
+      }
+      const id = s.nextId;
+      const tp = { id, cat: c.cat, act: 0, actL: 'now', title: c.title.trim(), posts: [{ n: 1, author: 'jonah.w', age: 'now', body: c.body, likes: 0, photo: c.photo ? 'Your attached photo' : null, img: 'ph-attach' }] };
+      return { topics: [tp, ...s.topics], nextId: id + 1, stacks: this.pushOn(s, { s: 'discussion', id }), drafts, composer: null, sheet: null, alert: null };
+    });
+    this.toast(msg || (c.kind === 'reply' ? 'Reply posted' : 'Discussion posted in ' + this.cat(c.cat).name));
+  }
+  like(t, n) { if (!this.need({ action: 'like' })) return; const k = t + '-' + n; this.setState(s => ({ liked: { ...s.liked, [k]: !s.liked[k] } })); }
+  isSaved(id) { return this.state.saved.some(x => x.topic === id && !x.post); }
+  toggleSave(id) {
+    if (!this.need({ action: 'save' })) return;
+    const on = this.isSaved(id);
+    this.setState(s => ({ menu: false, saved: on ? s.saved.filter(x => !(x.topic === id && !x.post)) : [{ topic: id, post: null }, ...s.saved] }));
+    this.toast(on ? 'Removed from Saved' : 'Saved. Find it in Me › Saved.');
+  }
+  openNotif(n) {
+    this.setState(s => ({ notifs: s.notifs.map(x => x.id === n.id ? { ...x, unread: false } : x) }));
+    if (!n.topic) this.push({ s: 'unavailable' }); else this.push({ s: 'discussion', id: n.topic, focus: n.post, focusLabel: 'From your notification' });
+  }
+  alertOk() {
+    const a = this.state.alert;
+    if (a.kind === 'postAgain') { this.setState({ alert: null }); this.publish(this.state.composer); }
+    if (a.kind === 'discardDraft') { this.setState(s => ({ alert: null, drafts: s.drafts.filter(x => x.id !== a.id) })); this.toast('Draft discarded'); }
+    if (a.kind === 'signout') { this._k = null; this.setState(this.fresh(false, 'home')); this.toast('Signed out'); }
+  }
+
+  routeInfo() {
+    const s = this.state, st = s.stacks[s.tab], t = st[st.length - 1], g = !s.signedIn;
+    const crumbs = st.map(e => e.s === 'discussion' ? 'Discussion ' + e.id + (e.focus ? ' #' + e.focus : '') : e.s === 'profile' ? '@' + e.u : this.title(e)).join(' › ');
+    const c = t.id && this.cats()[t.id];
+    const tr = { feed: g ? 'H01g' : 'H01m', directory: g ? 'CO01g' : 'CO01', search: 'SE01', notifs: g ? 'N01g' : 'N01', me: g ? 'ME01g' : 'ME01', saved: 'B01', drafts: 'DR01', unavailable: 'N01x', denied: 'AD01', profile: t.u === 'jonah.w' ? 'U01' : 'U01o' };
+    let trace = tr[t.s];
+    if (t.s === 'directory' && (t.fq || '').trim()) trace += ' · Find communities (proposal)';
+    if (t.s === 'community') trace = g ? (c.parent ? 'CO02' : 'CO02pg') : (s.tab === 'home' ? (c.parent ? 'CO02h' : 'CO02hp') : (c.parent ? 'CO02s' : 'CO02m'));
+    if (t.s === 'discussion') trace = t.focusLabel === 'From your notification' ? 'LK01' : g ? 'D01' : ({ home: 'D01mh', communities: 'D01s', notifications: 'LK01', me: 'D01mb' })[s.tab];
+    let overlay = '';
+    const cm = s.composer;
+    if (cm) overlay = (cm.kind === 'reply' ? (cm.quote ? 'Quote composer · C04q' : 'Reply composer · C04 / C10') : 'New discussion · C01 / C03') + (({ rejected: ' · rejected C13', unconfirmed: ' · unconfirmed CU02', expired: ' · session expired C19e' })[cm.status] || '') + (cm && cm.photo && cm.photo.st !== 'done' ? (cm.photo.st === 'failed' ? ' · photo upload failed' : ' · photo uploading') : '');
+    if (s.sheet === 'chooser') overlay = 'Destination chooser · C02';
+    if (s.sheet === 'keep') overlay = 'Keep draft? · KD';
+    if (s.sheet === 'signin') overlay = 'Sign-in gate · C19';
+    if (s.alert && s.alert.kind === 'postAgain') overlay = 'Duplicate warning · CU02';
+    if (s.notice && s.notice.key === this.topKey()) overlay = 'Pending review notice · C17 (proposal)';
+    if (s.menu && t.s === 'discussion') overlay = 'Discussion menu · Save / Share';
+    return { tab: s.tab, crumbs, trace, overlay: overlay.replace('undefined', ''), signedIn: s.signedIn };
+  }
+
+  photoSrc(id) { return ({ 'ph-walnut': './assets/photos/ph-walnut.jpg', 'ph-scope': './assets/photos/ph-scope.jpg', 'ph-fig': './assets/photos/ph-fig.jpg' })[id] || ''; }
+  photoFlags(id) { const src = this.photoSrc(id), slots = !!this.props.photoSlots; return { src, hasSrc: !!src, showSlot: !src && slots, showIcon: !src && !slots }; }
+
+  topicRow(tp, showCat) {
+    const p1 = tp.posts[0], n = tp.posts.length - 1, cl = this.catLabel(tp.cat);
+    return { title: tp.title, catLabel: cl, showCat, excerpt: p1.body, author: p1.author, replies: n + (n === 1 ? ' reply' : ' replies'), act: tp.actL, hasPhoto: !!p1.photo, photo: p1.photo || '', photoShort: 'Photo', img: p1.img || 'ph-none', ...this.photoFlags(p1.img),
+      catAria: 'Open community ' + cl, aria: tp.title + ', in ' + cl + ', by ' + p1.author + ', ' + n + ' replies, active ' + tp.actL,
+      open: () => this.push({ s: 'discussion', id: tp.id }), openCat: () => this.push({ s: 'community', id: tp.cat }) };
+  }
+
+  renderVals() {
+    const s = this.state, t = this.top(), CATS = this.cats(), guest = !s.signedIn;
+    const dark = this.props.theme === 'dark', reduced = this.props.transparency === 'reduced';
+    const T = this.themeVars(), dev = this.props.device || 'iphone', xl = T.ts >= 2;
+    const v = { T, scrollRef: this.scrollRef, guest, member: !guest, loading: s.loading, skeleton: [1, 2, 3, 4], wmFilter: dark ? 'invert(1)' : 'none',
+      devW: dev === 'narrow' ? 375 : dev === 'split' ? (this.props.frameW || 540) : 393, devH: dev === 'narrow' ? 667 : dev === 'split' ? (this.props.frameH || 834) : 852, devR: dev === 'split' ? 18 : dev === 'narrow' ? 44 : 56,
+      devSh: dev === 'split' ? '0 0 0 .5px rgba(27,26,31,.2)' : '0 0 0 10px #1B1A1F,0 0 0 11px #3A3842,0 40px 90px -40px rgba(27,26,31,.45)', hasIsland: dev === 'iphone',
+      rowDir: xl ? 'column' : 'row', rowAlign: xl ? 'stretch' : 'flex-start', rowGap: xl ? 10 : 14, thumbW: xl ? '100%' : '72px', thumbH: xl ? 180 : 72, thumbMt: xl ? 0 : 20,
+      alertCols: xl ? '1fr' : '1fr 1fr', dirIndent: xl ? 20 : 76, slots: !!this.props.photoSlots, noSlots: !this.props.photoSlots, catM: xl ? '-4px 0' : '-12px 0 -12px', dCatM: xl ? '-4px 0' : '-10px 0 -10px', dirClamp: xl ? 'none' : 2, lostDir: xl ? 'column' : 'row' };
+    const regular = dev === 'split' && v.devW >= 700, sheetL = regular ? Math.round((v.devW - 640) / 2) : 0;
+    Object.assign(v, { colMax: regular ? '620px' : 'none', replyL: regular ? Math.round((v.devW - 580) / 2) : 20, sheetL, sheetB: regular ? 24 : 0, sheetR: regular ? '38px' : '38px 38px 0 0', keepL: sheetL + 14 });
+    const root = this.state.stacks[s.tab].length === 1;
+    const prev = root ? null : s.stacks[s.tab][s.stacks[s.tab].length - 2];
+    const bl = prev ? this.title(prev) : '';
+    const grouped = t.s === 'me' && !guest;
+    const base = grouped && !dark ? '244,243,247' : dark ? '0,0,0' : '255,255,255';
+    Object.assign(v, {
+      pageBg: grouped ? 'var(--grp)' : 'var(--bg)',
+      edgeTop: reduced ? 'linear-gradient(rgb(' + base + ') 0%, rgb(' + base + ') 80%, rgba(' + base + ',0) 100%)' : 'linear-gradient(rgba(' + base + ',.94) 0%, rgba(' + base + ',.8) 55%, rgba(' + base + ',0) 100%)',
+      edgeBottom: 'linear-gradient(rgba(' + base + ',0) 0%, rgba(' + base + ',' + (reduced ? '.95' : '.78') + ') 72%)',
+      edgeH: t.s === 'search' ? 120 : 116, edgeBH: t.s === 'discussion' ? 170 : 110,
+      padTop: t.s === 'search' ? 112 : 106, padBottom: (t.s === 'discussion' ? 166 : 104) - (this.props.hideTabs ? 74 : 0),
+      showTabs: !this.props.hideTabs, replyBottom: this.props.hideTabs ? 24 : 96,
+      showNav: t.s !== 'search', navRoot: root, navPushed: !root, navBrand: root && t.s === 'feed', navBlank: root && t.s !== 'feed',
+      showLargeTitle: root && t.s !== 'feed', rootTitle: this.title(t), navTitle: t.s === 'discussion' || t.s === 'community' ? '' : this.title(t),
+      backAria: 'Back to ' + bl, onBack: () => this.back(),
+      navSearch: ['feed', 'directory', 'notifs', 'me', 'community'].includes(t.s), navCompose: ['feed', 'directory'].includes(t.s), navMore: t.s === 'discussion',
+      openSearch: () => this.push({ s: 'search', q: '' }), onGlobalCreate: () => this.openCreate(null), openMenu: () => this.setState({ menu: true }),
+      openSignIn: () => this.setState({ sheet: 'signin', gate: { action: 'signin' } }),
+      isFeed: t.s === 'feed', isDirectory: t.s === 'directory', isCommunity: t.s === 'community', isDiscussion: t.s === 'discussion', isSearch: t.s === 'search',
+      isNotifs: t.s === 'notifs', isMe: t.s === 'me', isProfile: t.s === 'profile', isSaved: t.s === 'saved', isDrafts: t.s === 'drafts', isUnavailable: t.s === 'unavailable', isDenied: t.s === 'denied',
+      showOffline: this.offline() && t.s === 'discussion'
+    });
+    v.navTools = v.navSearch || v.navCompose;
+    const nt = s.notice && s.notice.key === this.topKey();
+    v.showNotice = !!nt;
+    v.noticeBody = nt ? (s.notice.kind === 'reply' ? 'Your reply isn’t published yet. It has no post number and doesn’t count as a reply until a moderator approves it.' : 'Your discussion in ' + this.cat(s.notice.cat).name + ' isn’t published yet. A moderator needs to approve it first.') : '';
+    v.dismissNotice = () => this.setState({ notice: null });
+
+    v.feedRows = s.loading ? [] : [...s.topics].sort((a, b) => a.act - b.act).map(tp => this.topicRow(tp, true));
+
+    v.dirGroups = []; Object.assign(v, { fq: '', onFq: () => {}, fqHas: false, fqStatus: '', clearFq: () => {}, dirNoMatch: false, dirNoMatchTitle: '', searchFromFq: () => {}, searchFromFqLabel: '' });
+    if (t.s === 'directory') {
+      const raw = t.fq || '', q = raw.trim().toLowerCase(), hit = x => x.name.toLowerCase().includes(q) || (x.desc || '').toLowerCase().includes(q), LIM = 2, exp = t.exp || {};
+      ['woodworking', 'electronics', 'gardening', 'council'].forEach(id => {
+        const c = CATS[id], kids = c.children || [], self = !q || hit(c), kidHits = q ? kids.filter(k => hit(CATS[k])) : kids;
+        if (q && !self && !kidHits.length) return;
+        const pool = q && !self ? kidHits : kids, open = !!exp[id] || (q && !self), vis = open ? pool : pool.slice(0, LIM), more = pool.length - vis.length;
+        const rc = c.restricted ? null : [...s.topics].filter(tp => tp.cat === id || kids.includes(tp.cat)).sort((a, b) => a.act - b.act)[0];
+        v.dirGroups.push({ name: c.name, desc: c.desc, mono: c.name[0], restricted: !!c.restricted, aria: c.name + (c.restricted ? ', restricted' : '') + '. ' + c.desc,
+          open: () => this.push(c.restricted ? { s: 'denied' } : { s: 'community', id }),
+          hasRecent: !!rc, recentTitle: rc ? rc.title : '', recentMeta: rc ? 'Latest · ' + this.cat(rc.cat).name + ' · ' + rc.actL : '',
+          recentAria: rc ? 'Latest in ' + c.name + ': ' + rc.title + ', active ' + rc.actL : '', openRecent: () => { if (rc) this.push({ s: 'discussion', id: rc.id }); },
+          hasKids: pool.length > 0, kids: vis.map(k => ({ name: CATS[k].name, aria: CATS[k].name + ', subcommunity of ' + c.name, open: () => this.push({ s: 'community', id: k }) })),
+          hasMore: more > 0, moreLabel: more + ' more', moreAria: 'Show all ' + pool.length + ' subcommunities of ' + c.name, onMore: () => this.updTop({ exp: { ...exp, [id]: true } }),
+          hasLess: !q && !!exp[id] && pool.length > LIM, onLess: () => this.updTop({ exp: { ...exp, [id]: false } }) });
+      });
+      const n = v.dirGroups.length, qt = raw.trim();
+      Object.assign(v, { fq: raw, onFq: e => this.updTop({ fq: e.target.value }), fqHas: !!q, clearFq: () => this.updTop({ fq: '' }),
+        fqStatus: q && n ? n + (n === 1 ? ' community matches' : ' communities match') + ' “' + qt + '”. This filters the list below only.' : '',
+        dirNoMatch: !!q && !n, dirNoMatchTitle: 'No communities match “' + qt + '”', searchFromFqLabel: 'Search discussions for “' + qt + '”',
+        searchFromFq: () => this.push({ s: 'search', q: qt }) });
+    }
+
+    if (t.s === 'community') {
+      const c = CATS[t.id], kids = c.children || [];
+      const tps = [...s.topics].filter(tp => tp.cat === t.id || kids.includes(tp.cat)).sort((a, b) => a.act - b.act);
+      Object.assign(v, { comMono: c.name[0], comName: c.name, comDesc: c.desc, comHasParent: !!c.parent, comParentLabel: c.parent ? 'in ' + CATS[c.parent].name : '',
+        comOpenParent: () => this.push({ s: 'community', id: c.parent }), comHasChildren: kids.length > 0,
+        comChildren: kids.map((k, i) => ({ name: CATS[k].name, aria: CATS[k].name + ', in ' + c.name, border: i ? '.5px solid var(--sep)' : '0', open: () => this.push({ s: 'community', id: k }) })),
+        comRows: tps.map(tp => this.topicRow(tp, tp.cat !== t.id)), comEmpty: tps.length === 0, comEmptyBody: 'Start the first discussion in ' + c.name + '.',
+        comCreate: () => this.openCreate(t.id), comCreateAria: 'New discussion in ' + c.name });
+    }
+
+    if (t.s === 'discussion') {
+      const tp = this.topic(t.id), n = tp.posts.length - 1;
+      const collapsed = t.focus && t.focus > 2 && !t.showAll;
+      const visible = collapsed ? tp.posts.filter(p => p.n >= t.focus) : tp.posts;
+      Object.assign(v, { dTitle: tp.title, dCatLabel: this.catLabel(tp.cat), dCatAria: 'Open community ' + this.catLabel(tp.cat), dOpenCat: () => this.push({ s: 'community', id: tp.cat }),
+        dMeta: tp.posts[0].author + ' · ' + n + (n === 1 ? ' reply' : ' replies') + ' · Active ' + tp.actL, gapShow: !!collapsed, gapLabel: collapsed ? 'Show earlier posts (#1–#' + (t.focus - 1) + ')' : '',
+        gapOpen: () => this.updTop({ showAll: true }),
+        posts: visible.map(p => {
+          const k = tp.id + '-' + p.n, liked = !!s.liked[k], mine = p.author === 'jonah.w', cnt = p.likes + (liked ? 1 : 0), hl = t.focus === p.n && !!t.focusLabel;
+          return { n: p.n, author: p.author, age: p.age, body: p.body, initials: this.initials(p.author), hasPhoto: !!p.photo, photo: p.photo || '', img: p.img || 'ph-none', ...this.photoFlags(p.img),
+            hasQuote: !!p.quote, qHead: p.quote ? p.quote.author + ' · #' + p.quote.n : '', qText: p.quote ? p.quote.text : '',
+            hl, hlLabel: t.focusLabel || '', bg: hl ? 'var(--sel)' : 'transparent', aria: (p.n === 1 ? 'Opening post' : 'Reply ' + p.n) + ' by ' + p.author,
+            canLike: !mine, ownLikes: mine && cnt > 0, liked, likeText: mine ? cnt + (cnt === 1 ? ' like' : ' likes') : (cnt ? String(cnt) : 'Like'),
+            likeAria: (liked ? 'Unlike' : 'Like') + ' post by ' + p.author + ', ' + cnt + ' likes', likeColor: liked ? 'var(--love)' : 'var(--ink2)', heartFill: liked ? 'var(--love)' : 'none',
+            onLike: () => this.like(tp.id, p.n), onQuote: () => this.openReply(tp.id, null, p.n), quoteAria: 'Quote ' + p.author + '’s post',
+            onAuthor: () => this.push({ s: 'profile', u: p.author }), authorAria: 'View profile, ' + p.author };
+        }),
+        onReply: () => this.openReply(tp.id, t.focusLabel === 'From your notification' ? t.focus : null, null),
+        replyAria: 'Reply to ' + tp.title,
+        menuSaveLabel: this.isSaved(tp.id) ? 'Remove from Saved' : 'Save', saveFill: this.isSaved(tp.id) ? 'currentColor' : 'none',
+        onMenuSave: () => this.toggleSave(tp.id), onMenuShare: () => this.setState({ menu: false, sheet: 'share' }) });
+    }
+    v.menuOpen = !!(s.menu && t.s === 'discussion'); v.closeMenu = () => this.setState({ menu: false });
+
+    if (t.s === 'search') {
+      const q = (t.q || '').trim().toLowerCase();
+      const res = [];
+      if (q.length > 1) s.topics.forEach(tp => {
+        const inTitle = tp.title.toLowerCase().includes(q);
+        const hit = inTitle ? null : tp.posts.find(p => p.body.toLowerCase().includes(q));
+        if (!inTitle && !hit) return;
+        const src = hit || tp.posts[0], b = src.body, i = b.toLowerCase().indexOf(q);
+        let pre = b, mid = '', post = '';
+        if (i >= 0) { pre = (i > 40 ? '…' : '') + b.slice(Math.max(0, i - 40), i); mid = b.slice(i, i + q.length); post = b.slice(i + q.length, i + q.length + 70) + '…'; }
+        else pre = b.length > 110 ? b.slice(0, 110) + '…' : b;
+        res.push({ title: tp.title, catLabel: this.catLabel(tp.cat), pre, mid, post, label: hit && hit.n > 1 ? 'Reply #' + hit.n + ' by ' + hit.author : 'Opening post by ' + src.author,
+          aria: tp.title + ', ' + (hit && hit.n > 1 ? 'match in reply ' + hit.n : 'match in discussion'),
+          open: () => this.push({ s: 'discussion', id: tp.id, focus: hit && hit.n > 1 ? hit.n : null, focusLabel: hit && hit.n > 1 ? 'Search match' : null }) });
+      });
+      Object.assign(v, { q: t.q || '', onQ: e => this.updTop({ q: e.target.value }), results: res, hasResults: res.length > 0, searchHint: q.length < 2, noResults: q.length > 1 && !res.length, noResultsTitle: 'No results for “' + (t.q || '').trim() + '”' });
+    } else Object.assign(v, { q: '', onQ: () => {}, results: [], hasResults: false, searchHint: false, noResults: false });
+
+    v.notifRows = guest ? [] : s.notifs.map(n => {
+      const tp = n.topic ? this.topic(n.topic) : null, title = tp ? tp.title : n.title;
+      const text = n.who + (n.type === 'reply' ? ' replied to you' : ' mentioned you');
+      return { text, sub: title, meta: (n.unread ? 'Unread · ' : '') + '#' + n.post + ' · ' + n.age, glyph: n.type === 'reply' ? '↩' : '@', dot: n.unread ? 'var(--accent)' : 'transparent', weight: n.unread ? 600 : 400,
+        aria: (n.unread ? 'Unread. ' : '') + text + ' in ' + title + ', post ' + n.post + ', ' + n.age, open: () => this.openNotif(n) };
+    });
+    const unread = guest ? 0 : s.notifs.filter(n => n.unread).length;
+
+    Object.assign(v, { savedCount: s.saved.length, draftsCount: s.drafts.length, openOwnProfile: () => this.push({ s: 'profile', u: 'jonah.w' }),
+      openSaved: () => this.push({ s: 'saved' }), openDrafts: () => this.push({ s: 'drafts' }), askSignOut: () => this.setState({ alert: { kind: 'signout' } }) });
+
+    if (t.s === 'profile') {
+      const u = this.user(t.u), tps = s.topics.filter(tp => tp.posts[0].author === t.u);
+      Object.assign(v, { prName: u.name, prHandle: '@' + t.u + (u.joined ? ' · Joined ' + u.joined : ''), prBio: u.bio, prHasBio: !!u.bio, prInitials: this.initials(t.u),
+        prEmpty: !tps.length, prRows: tps.map(tp => ({ title: tp.title, catLabel: this.catLabel(tp.cat), meta: (tp.posts.length - 1) + ' replies · ' + tp.actL, aria: tp.title + ', in ' + this.catLabel(tp.cat), open: () => this.push({ s: 'discussion', id: tp.id }) })) });
+    }
+
+    v.savedRows = s.saved.map(x => {
+      const tp = this.topic(x.topic), p = x.post ? tp.posts.find(y => y.n === x.post) : null;
+      return { kind: p ? 'Reply #' + p.n + ' by ' + p.author : 'Discussion', title: tp.title, meta: this.catLabel(tp.cat), aria: (p ? 'Saved reply ' + p.n + ' in ' : 'Saved discussion ') + tp.title,
+        open: () => this.push({ s: 'discussion', id: tp.id, focus: x.post, focusLabel: x.post ? 'Saved reply' : null }) };
+    });
+    v.savedEmpty = !s.saved.length;
+    v.draftRows = s.drafts.map(d => {
+      const tp = d.topic ? this.topic(d.topic) : null;
+      const kind = d.kind === 'reply' ? (d.quote ? 'Quote reply' : 'Reply') + ' · ' + this.catLabel(tp.cat) : 'New discussion · ' + (d.cat ? this.catLabel(d.cat) : 'No community chosen');
+      const title = d.kind === 'reply' ? tp.title : (d.title || 'Untitled discussion');
+      return { kind, title, excerpt: d.body || 'No text yet', age: d.age, lostPhoto: !!d.lostPhoto, aria: 'Resume draft: ' + kind + ', ' + title, discardAria: 'Discard draft: ' + title,
+        resume: () => this.resume(d), discard: () => this.setState({ alert: { kind: 'discardDraft', id: d.id } }) };
+    });
+    v.draftsEmpty = !s.drafts.length;
+
+    const c = s.composer;
+    v.cOpen = !!c;
+    v.kbShow = !!c && !c.status && c.kb !== false;
+    if (c) {
+      const tp = c.topic ? this.topic(c.topic) : null, tgt = tp && c.target ? tp.posts.find(p => p.n === c.target) : null, ok = this.canPost(c), ph = c.photo || null;
+      Object.assign(v, { cTitle: c.kind === 'reply' ? 'Reply' : 'New discussion', cIsReply: c.kind === 'reply', cIsNew: c.kind === 'new', cNoun: c.kind === 'reply' ? 'reply' : 'discussion',
+        cCtxTitle: tp ? tp.title : '', cCtxSub: c.quote ? 'Quoting ' + c.quote.author + ' · #' + c.quote.n : tgt ? 'Replying to ' + tgt.author + ' · #' + tgt.n : 'Replying to the discussion' + (tp ? ' · ' + this.catLabel(tp.cat) : ''),
+        cHasQuote: !!c.quote, cQuoteHead: c.quote ? c.quote.author + ' · #' + c.quote.n : '', cQuoteText: c.quote ? c.quote.text : '',
+        cDestLabel: c.cat ? this.catLabel(c.cat) : 'Choose a community', cDestAction: c.cat ? 'Change' : 'Required', cDestColor: c.cat ? 'var(--ink)' : 'var(--ink2)', cDestRing: c.cat ? 'none' : 'inset 0 0 0 1.5px var(--accent)',
+        cDestAria: c.cat ? 'Posting in ' + this.catLabel(c.cat) + '. Change community' : 'Choose a community, required', onDest: () => this.setState({ sheet: 'chooser', chooseFor: 'composer' }),
+        cTitleVal: c.title, onTitle: e => this.setC({ title: e.target.value, status: c.status === 'rejected' ? null : c.status }),
+        cBody: c.body, onBody: e => this.setC({ body: e.target.value, status: c.status === 'rejected' ? null : c.status }),
+        cBodyLabel: c.kind === 'reply' ? 'Reply text' : 'Opening post', cBodyPh: c.kind === 'reply' ? 'Write your reply' : 'Write the opening post', cBodyMin: v.kbShow ? 120 : 200, cAccPad: v.kbShow ? 8 : 34,
+        cPhoto: !!ph, cCanAdd: !ph && !c.lostPhoto, onFieldFocus: () => { if (c.kb === false) this.setC({ kb: true }); }, cPhotoUploading: !!ph && ph.st === 'uploading', cPhotoFailed: !!ph && ph.st === 'failed', cPhotoPct: ph ? ph.pct : 0, cPhotoPctW: (ph ? ph.pct : 0) + '%',
+        cPhotoLabel: !ph ? '' : ph.st === 'uploading' ? 'Uploading photo · ' + ph.pct + '%' : ph.st === 'failed' ? 'Photo didn’t upload' : 'Photo attached',
+        cPhotoColor: ph && ph.st === 'failed' ? 'var(--danger)' : 'var(--ink)', cPhotoOp: ph && ph.st !== 'done' ? .55 : 1,
+        cPhotoHelp: !ph ? '' : ph.st === 'uploading' ? 'Post becomes available when the upload finishes.' : ph.st === 'failed' ? 'Your writing is kept. Retry, or remove the photo to post without it.' : 'One photo per post in this version.',
+        cRemoveLabel: ph && ph.st === 'uploading' ? 'Cancel upload' : 'Remove photo',
+        addPhoto: () => this.startUpload(), retryPhoto: () => this.startUpload(), removePhoto: () => { clearInterval(this._up); this.setC({ photo: false }); },
+        cHeadTitle: !xl, cInlineTitle: xl,
+        cLost: !!c.lostPhoto && !ph, cLostBody: 'It hadn’t finished uploading. ' + (c.kind === 'new' ? 'Title, text and community are restored.' : 'Your text is restored.'), dismissLost: () => this.setC({ lostPhoto: false }),
+        cPostDisabled: !ok, cPostBg: ok ? 'var(--glTint)' : 'var(--gl)', cPostFg: ok ? 'var(--onAccent)' : 'var(--ink3)', cPostSh: ok ? 'var(--glTintSh)' : 'var(--glSh)',
+        onPost: () => this.post(), onCancel: () => this.cancel(),
+        cRejected: c.status === 'rejected', cRejectMsg: c.kind === 'reply' ? 'Body is too short (minimum is 20 characters).' : 'Title seems unclear, is it a complete sentence?',
+        cUnconfirmed: c.status === 'unconfirmed', cExpired: c.status === 'expired', cOffline: this.offline(),
+        checkAgain: () => this.publish(c, 'Found it. Your ' + (c.kind === 'reply' ? 'reply' : 'discussion') + ' was posted.'),
+        backUnconfirmed: () => this.keepDraft('Kept as a draft. Check the discussion before posting again.'), cBackLabel: c.kind === 'reply' ? 'Back to discussion' : 'Keep as draft',
+        askPostAgain: () => this.setState({ alert: { kind: 'postAgain' } }),
+        onReauth: () => { this.setC({ status: null }); this.toast('Signed in again. Tap Post when you’re ready.'); } });
+    }
+
+    v.sheetChooser = s.sheet === 'chooser';
+    const sel = c && c.cat;
+    v.chooserGroups = ['woodworking', 'electronics', 'gardening'].map(id => ({ items: [id, ...(CATS[id].children || [])].map((k, i) => ({
+      name: CATS[k].name, pad: i ? 34 : 18, weight: i ? 400 : 600, border: i ? '.5px solid var(--sep)' : '0', selected: sel === k,
+      aria: (CATS[k].parent ? CATS[k].name + ', in ' + CATS[CATS[k].parent].name : CATS[k].name) + (sel === k ? ', selected' : ''), pick: () => this.pick(k) })) }));
+    v.closeChooser = () => this.setState({ sheet: null, chooseFor: null });
+
+    v.sheetKeep = s.sheet === 'keep' && !!c;
+    v.keepMsg = c ? (c.draftId ? 'You changed this draft.' : c.kind === 'reply' ? 'Keep this reply as a draft?' : 'Keep this discussion as a draft?') : '';
+    v.discardLabel = c && c.draftId ? 'Discard draft' : 'Discard';
+    const unfinished = !!c && !!c.photo && c.photo.st !== 'done';
+    v.keepPhotoWarn = unfinished; v.keepLabel = unfinished ? 'Keep draft without photo' : 'Keep draft'; v.keepW = xl ? 'calc(100% - 28px)' : '286px';
+    v.keepPhotoText = unfinished ? (c.photo.st === 'failed' ? 'The photo didn’t upload, so it won’t be kept. ' : 'The photo is still uploading. Keeping the draft stops the upload and the photo won’t be kept. ') + 'Your ' + (c.kind === 'new' ? 'title, text and community' : 'text') + ' will be kept.' : '';
+    v.onKeepDraft = () => this.keepDraft(); v.onDiscard = () => this.discard(); v.onKeepEditing = () => this.setState({ sheet: null });
+
+    const g = s.gate || {};
+    const gt = { reply: 'Sign in to reply', quote: 'Sign in to quote', like: 'Sign in to like posts', save: 'Sign in to save discussions', create: 'Sign in to start a discussion', signin: 'Sign in' };
+    v.sheetSignin = s.sheet === 'signin';
+    v.gateTitle = gt[g.action] || 'Sign in';
+    v.gateBody = g.action === 'reply' || g.action === 'quote' ? 'You’ll come back to this discussion with your reply open. Nothing is posted until you tap Post.'
+      : g.action === 'create' ? (g.cat ? 'You’ll come back with a new discussion in ' + this.cat(g.cat).name + ' open. Nothing is posted until you tap Post.' : 'You’ll come back and choose a community. Nothing is posted until you tap Post.')
+      : g.action === 'like' || g.action === 'save' ? 'You’ll come back to this post. Nothing is applied until you tap it again.'
+      : 'Reply to discussions, save them for later and get notified when someone replies to you.';
+    v.onSignIn = () => this.signIn(); v.onNotNow = () => this.setState({ sheet: null, gate: null });
+    v.sheetShare = s.sheet === 'share'; v.closeShare = () => this.setState({ sheet: null });
+
+    const a = s.alert;
+    v.alertOpen = !!a;
+    v.alertTitle = a ? ({ postAgain: 'Post again?', discardDraft: 'Discard this draft?', signout: 'Sign out of jonah.w?' })[a.kind] : '';
+    v.alertMsg = a ? ({ postAgain: 'If your first ' + (c && c.kind === 'new' ? 'discussion' : 'reply') + ' went through, this will create a duplicate.', discardDraft: 'This can’t be undone.', signout: 'You can sign in again at any time.' })[a.kind] : '';
+    v.alertOkLabel = a ? ({ postAgain: 'Post again', discardDraft: 'Discard', signout: 'Sign out' })[a.kind] : '';
+    v.alertOk = () => this.alertOk(); v.alertCancel = () => this.setState({ alert: null });
+
+    v.toast = s.toast; v.toastBottom = (t.s === 'discussion' ? 158 : 96) - (this.props.hideTabs ? 72 : 0);
+    const tabs = { home: 'home', communities: 'com', notifications: 'not', me: 'me' };
+    Object.keys(tabs).forEach(k => { const on = s.tab === k; v[tabs[k] + 'Color'] = on ? 'var(--accent)' : 'var(--ink)'; v[tabs[k] + 'Fill'] = on ? 'currentColor' : 'none'; v[tabs[k] + 'Cur'] = on ? 'page' : 'false'; v[tabs[k] + 'Lens'] = on ? 'var(--glSel)' : 'transparent'; });
+    v.badge = unread || 0; v.notifTabAria = 'Notifications' + (unread ? ', ' + unread + ' unread' : '');
+    v.tabHome = () => this.tabTo('home'); v.tabCommunities = () => this.tabTo('communities'); v.tabNotifications = () => this.tabTo('notifications'); v.tabMe = () => this.tabTo('me');
+    return v;
+  }
+}
+</script>
+</body>
+</html>

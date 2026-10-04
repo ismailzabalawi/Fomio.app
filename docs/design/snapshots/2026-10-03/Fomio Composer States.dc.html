@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Patrick+Hand&amp;display=swap"><style>body{margin:0;background:#f0eee9;font-family:'Patrick Hand',system-ui,sans-serif;color:#1a1a1a}a{color:#1a1a1a;text-decoration:none}a:hover{outline:2px dashed #2a78d6;outline-offset:1px}.dv-turn{padding:36px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px}.dv-tname{font:400 24px/1.2 'Patrick Hand',system-ui,sans-serif;color:#1a1a1a}.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 16px/1.3 'Patrick Hand',system-ui,sans-serif;color:#333}.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}.dv-opt:target>div:nth-child(2){box-shadow:0 0 0 4px #2a78d6}.dv-next{margin:22px 0 0;font:12px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.55)}</style></helmet>
+<header style="padding:28px 44px 4px;display:flex;flex-direction:column;gap:10px">
+<div style="font:11px ui-monospace,monospace;color:#666">FOMIO iOS — IA &amp; WIREFRAMES · BASELINE 2026-10-02 · LOW-FI, NOT A VISUAL DESIGN</div>
+<h1 style="margin:0;font-weight:400;font-size:42px;line-height:1">Composer &amp; states</h1>
+<nav style="display:flex;flex-wrap:wrap;gap:8px;font:13px system-ui,sans-serif"><a href="Fomio%20Overview.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">Overview &amp; register</a><a href="Fomio%20Core%20Flows.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">Core flows</a><a href="Fomio%20Flow%20Completion.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">Flow completion</a><a href="Fomio%20Screens.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">Supporting screens</a><a href="Fomio%20Composer%20States.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#1a1a1a;color:#fff">Composer &amp; states</a><a href="Fomio%20iPad%20Accessibility.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">iPad &amp; accessibility</a></nav>
+<div style="max-width:900px;padding:10px 12px;border:1.5px solid #1a1a1a;border-radius:8px;background:#fff;font:12px/1.5 system-ui,sans-serif;color:#333"><b>Composer state model.</b> Six independent axes, each with its own indicator: <b>intent</b> (new discussion · reply · quote · edit · resume) × <b>presentation</b> (full screen · sheet · iPad form) × <b>editor mode</b> (unresolved) × <b>draft status</b> (not saved · saving · saved on this device · saved to your account · couldn't save) × <b>per-upload status</b> (queued · uploading % · done · failed) × <b>submission status</b> (idle · sending · published · pending review · rejected · unconfirmed). Resize, rotation and backgrounding never reset any axis. No idempotency or guaranteed offline sync is promised.</div>
+<div style="max-width:900px;font:12px/1.5 system-ui,sans-serif;color:#444"><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#ddd;border-radius:3px">SAMPLE-ONLY</span> marks a link to a generic frame whose topic or tab differs from the origin. This is a linked frame board: it doesn't prove editable inputs, draft recovery, tab-stack persistence or device accessibility.</div>
+</header>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">S</a><span class="dv-tname">Screen states — loading, empty, error, access denied, offline, exact reply link</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="L01"><div class="dv-olabel"><a class="dv-oid" href="#L01">L01</a>Loading · Home</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;padding:2px 14px 6px;display:flex;flex-direction:column;gap:2px"><div style="display:flex;justify-content:flex-end;gap:14px;font-size:14px"><span>Search</span><span>+ Create</span></div><div style="font-size:30px;line-height:1.05">Home</div></div>
+<div style="flex:1;padding:6px 14px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;flex-direction:column;gap:6px"><span style="width:40%;height:9px;background:#e4e4e4;border-radius:4px"></span><span style="width:90%;height:14px;background:#d6d6d6;border-radius:4px"></span><span style="width:70%;height:9px;background:#e4e4e4;border-radius:4px"></span></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="width:35%;height:9px;background:#e4e4e4;border-radius:4px"></span><span style="width:80%;height:14px;background:#d6d6d6;border-radius:4px"></span><span style="width:60%;height:9px;background:#e4e4e4;border-radius:4px"></span></div>
+<div style="display:flex;flex-direction:column;gap:6px"><span style="width:45%;height:9px;background:#e4e4e4;border-radius:4px"></span><span style="width:85%;height:14px;background:#d6d6d6;border-radius:4px"></span></div>
+</div>
+<dc-import name="TabBar" active="home" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333">Nav, tabs and Search stay usable while loading. VoiceOver announces "Loading discussions". Cached content shown instead when available.</div>
+</div>
+
+<div class="dv-opt" id="E01"><div class="dv-olabel"><a class="dv-oid" href="#E01">E01</a>Empty · community with no discussions</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><span>‹ Woodworking</span><span>Joinery</span><span>Search</span></div>
+<div style="flex:none;padding:12px 14px 0;font-size:22px">Joinery</div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:0 28px;text-align:center">
+<div style="font-size:20px">No discussions yet</div>
+<div style="font-size:14px;color:#555">Be the first to start one.</div>
+<a href="Fomio%20Core%20Flows.dc.html#C01" style="padding:8px 16px;border:2px dashed #1a1a1a;border-radius:10px;font-size:15px">Start a discussion</a>
+</div>
+<dc-import name="TabBar" active="communities" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333">Action <span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px dashed #1a1a1a;border-radius:3px">CONDITIONAL</span> on create permission; guests get the sign-in gate.</div>
+</div>
+
+<div class="dv-opt" id="ER01"><div class="dv-olabel"><a class="dv-oid" href="#ER01">ER01</a>Error · load failed</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;padding:2px 14px 6px;display:flex;flex-direction:column;gap:2px"><div style="display:flex;justify-content:flex-end;gap:14px;font-size:14px"><span>Search</span><span>+ Create</span></div><div style="font-size:30px;line-height:1.05">Home</div></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:0 28px;text-align:center">
+<div style="font-size:20px;line-height:1.1">Couldn't load discussions</div>
+<div style="font-size:14px;color:#555;line-height:1.25">The community server didn't respond. Check your connection and try again.</div>
+<span style="padding:8px 16px;border:2px solid #1a1a1a;border-radius:10px;font-size:15px">Try again</span>
+</div>
+<dc-import name="TabBar" active="home" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333">Plain-language error, no codes in UI. Rate-limit and maintenance variants use the same frame with server-provided message.</div>
+</div>
+
+<div class="dv-opt" id="AD01"><div class="dv-olabel"><a class="dv-oid" href="#AD01">AD01</a>Access denied · community</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;align-items:center;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><span>‹ Back</span></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:0 28px;text-align:center">
+<span style="width:56px;height:56px;border:1.5px dashed #999;border-radius:12px"></span>
+<div style="font-size:20px;line-height:1.1">You don't have access to this community</div>
+<div style="font-size:14px;color:#555;line-height:1.25">Signing in may help if your account has access.</div>
+<a href="Fomio%20Core%20Flows.dc.html#AUTH" style="padding:8px 16px;border:2px solid #1a1a1a;border-radius:10px;font-size:15px">Sign in</a>
+<a href="Fomio%20Screens.dc.html#CO01" style="font-size:14px;padding:6px">Browse communities</a>
+</div>
+<dc-import name="TabBar" active="communities" guest="{{ true }}" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333">Signed-in variant drops Sign in. Name and description not revealed.</div>
+</div>
+
+<div class="dv-opt" id="OF01"><div class="dv-olabel"><a class="dv-oid" href="#OF01">OF01</a>Offline · cached discussion</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><span>‹ Finishing</span><span>•••</span></div>
+<div style="flex:none;padding:7px 14px;background:#1a1a1a;color:#fff;font-size:13px">You're offline. Showing what loaded earlier (9:20).</div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:10px 14px;display:flex;flex-direction:column;gap:8px">
+<div style="font-size:21px;line-height:1.05">Oil vs. hardwax on a walnut desk top?</div>
+<div style="font-size:14px;line-height:1.2;color:#444">Sanded to 220. It's a daily desk…</div>
+<div style="font-size:14px;line-height:1.2;color:#444">devon · #2 · Hardwax oil is easier to spot-repair.</div>
+</div>
+<div style="flex:none;padding:8px 14px;border-top:1px solid #ddd"><a href="#C14" style="display:flex;align-items:center;justify-content:center;min-height:38px;border:2px solid #1a1a1a;border-radius:10px;font-size:15px">Write a reply — send when you're online</a></div>
+<dc-import name="TabBar" active="home" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333"><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f5d77a;border-radius:3px">ASSUMPTION</span> Read cache exists. Like/Bookmark disabled offline. Writing allowed. <b>No queued auto-send</b>: nothing is sent until the user is back online and taps Post (<a href="#C14" style="text-decoration:underline">C14</a>).</div>
+</div>
+
+<div class="dv-opt" id="LK01"><div class="dv-olabel"><a class="dv-oid" href="#LK01">LK01</a>Exact reply link arrival</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><a href="Fomio%20Screens.dc.html#N01">‹ Notifications</a><span>•••</span></div>
+<div style="flex:none;padding:8px 14px;display:flex;flex-direction:column;gap:3px;border-bottom:1px solid #e2e2e2"><span style="font-size:12px;color:#555">Repairs · Electronics</span><span style="font-size:17px;line-height:1.05">Bench PSU hums after a fuse swap</span></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:8px 14px;display:flex;flex-direction:column;gap:8px">
+<div style="font-size:12px;color:#888;display:flex;justify-content:space-between"><span>… replies 1–13 above</span><span style="text-decoration:underline">Go to start</span></div>
+<div style="display:flex;flex-direction:column;gap:4px;padding:8px;border:2.5px solid #1a1a1a;border-radius:8px;background:#f4f4f4"><span style="font:10px ui-monospace,monospace">LINKED REPLY</span><div style="display:flex;gap:7px;align-items:center;font-size:13px"><span style="width:22px;height:22px;border-radius:50%;border:1.5px solid #1a1a1a"></span>devon<span style="color:#777">· 5m · #14</span></div><div style="font-size:14px;line-height:1.2">Check the bridge rectifier, a cracked diode will hum exactly like that.</div><div style="display:flex;gap:6px;font-size:13px"><span style="padding:3px 8px;border:1.5px dashed #1a1a1a;border-radius:6px">Like</span><a href="Fomio%20Flow%20Completion.dc.html#C04lk" style="padding:3px 8px;border:1.5px solid #1a1a1a;border-radius:6px">Reply</a></div></div>
+<div style="display:flex;gap:7px;align-items:center;font-size:13px"><span style="width:22px;height:22px;border-radius:50%;border:1.5px solid #1a1a1a"></span>theo<span style="color:#777">· 2m · #15</span></div>
+</div>
+<dc-import name="TabBar" active="notifications" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><b>In</b> notification, Activity, bookmark, shared URL, universal link · <b>Out</b> back to origin; Reply on #14 → <a href="Fomio%20Flow%20Completion.dc.html#C04lk" style="text-decoration:underline">C04lk</a> (same topic 4190, Notifications tab).</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Route keeps <b>topic ID</b> and <b>post number</b> (e.g. 4190 / 14) distinct from post ID. Earlier replies load upward on scroll. VoiceOver focus lands on the linked reply.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Go to start scrolls this same topic (4190) to #1 in place; it is not a separate frame. <span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#ddd;border-radius:3px">SAMPLE-ONLY</span> Activity and Bookmarks reuse this frame; on device it pushes in their own tab.</div>
+</div></div>
+
+<div class="dv-opt" id="LK02"><div class="dv-olabel"><a class="dv-oid" href="#LK02">LK02</a>Link · reply missing, topic available</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><span>‹ Back</span><span>•••</span></div>
+<div style="flex:none;margin:8px 12px 0;padding:7px 9px;border:2px solid #1a1a1a;border-radius:8px;font-size:13px;line-height:1.2">Reply #14 isn't available anymore. Showing the discussion from the start.</div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:10px 14px;display:flex;flex-direction:column;gap:8px">
+<div style="font-size:21px;line-height:1.05">Bench PSU hums after a fuse swap</div>
+<div style="font-size:14px;line-height:1.2">devon · #1 · Replaced the 2A fuse with the same rating…</div>
+</div>
+<dc-import name="TabBar" active="home" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333">Topic missing entirely → <a href="Fomio%20Screens.dc.html#N01x" style="text-decoration:underline">N01x</a> / <a href="Fomio%20Screens.dc.html#D01x" style="text-decoration:underline">D01x</a>.</div>
+</div>
+
+</div>
+<p class="dv-next">Try next: "LK01 arriving cold from a universal link with no app stack" · "skeleton for D01"</p>
+</section>
+
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">C</a><span class="dv-tname">Composer — writing, editor modes, link, advanced, edit, drafts, guided form</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="C04"><div class="dv-olabel"><a class="dv-oid" href="#C04">C04</a>Baseline writing frame</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:42</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><a href="Fomio%20Core%20Flows.dc.html#KDr">Cancel</a><span>Reply</span><a href="Fomio%20Core%20Flows.dc.html#C16" style="padding:3px 12px;border:2px solid #1a1a1a;border-radius:8px;background:#1a1a1a;color:#fff">Post</a></div>
+<div style="flex:none;margin:8px 12px 0;padding:6px 10px;background:#f1f1f1;border-radius:8px;font-size:13px">Replying to Oil vs. hardwax on a walnut desk top?</div>
+<div style="flex:1;padding:10px 14px;font-size:15px;line-height:1.35">Two things that helped:<br>1. Wipe on thin, buff off after 15 min<br>2. Wait a full week before mugs<br><br>The <b>first coat</b> soaks in most.</div>
+<div style="flex:none;padding:6px 14px;font-size:12px;color:#555">Saved on this device · 9:42</div>
+<div style="flex:none;border-top:1px solid #ddd;padding:8px 10px;display:flex;justify-content:space-between;font-size:14px"><span>B</span><span>I</span><span>List</span><a href="#C07">Link</a><a href="Fomio%20Core%20Flows.dc.html#C06">Image</a><span>Quote</span><a href="#C08" style="border:1.5px dashed #1a1a1a;border-radius:5px;padding:0 5px">More</a></div>
+<div style="flex:none;height:30px"></div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><b>In</b> Reply on D01m / D01rl · <b>Out</b> Cancel → <a href="Fomio%20Core%20Flows.dc.html#KDr" style="text-decoration:underline">KDr</a>, Post → <a href="Fomio%20Core%20Flows.dc.html#C16" style="text-decoration:underline">C16</a> (other outcomes as C10r)</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> One writing surface, one toolbar, shared by Create/Reply/Quote/Edit/Resume.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span> Whether bold renders inline (rich) or as markup (Markdown). See <a href="#C05" style="text-decoration:underline">C05</a>.</div>
+</div></div>
+
+<div class="dv-opt" id="C05"><div class="dv-olabel"><a class="dv-oid" href="#C05">C05</a>UNRESOLVED · editor mode alternatives</div>
+<div style="width:280px;height:600px;border:2px dashed #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="flex:none;padding:5px;background:#f0a99a;font:700 10px ui-monospace,monospace;text-align:center">ALTERNATIVES · NOT DECIDED</div>
+<div style="flex:1;padding:10px 12px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;flex-direction:column;gap:5px;padding:8px;border:1.5px solid #1a1a1a;border-radius:8px"><span style="font:10px ui-monospace,monospace">A · RICH TEXT</span><div style="font-size:14px;line-height:1.3">The <b>first coat</b> soaks in most.</div><span style="font-size:12px;color:#555">Formatting shown as formatting. Needs a reliable round-trip to Discourse Markdown.</span></div>
+<div style="display:flex;flex-direction:column;gap:5px;padding:8px;border:1.5px solid #1a1a1a;border-radius:8px"><span style="font:10px ui-monospace,monospace">B · MARKDOWN + PREVIEW</span><div style="display:flex;border:1.5px solid #1a1a1a;border-radius:7px;overflow:hidden;font-size:12px;align-self:flex-start"><span style="padding:2px 10px;background:#1a1a1a;color:#fff">Write</span><span style="padding:2px 10px">Preview</span></div><div style="font:12px/1.4 ui-monospace,monospace">The **first coat** soaks in most.</div><span style="font-size:12px;color:#555">Faithful to server format; preview fidelity unverified.</span></div>
+<div style="display:flex;flex-direction:column;gap:5px;padding:8px;border:1.5px dashed #1a1a1a;border-radius:8px"><span style="font:10px ui-monospace,monospace">C · BOTH, USER TOGGLE</span><span style="font-size:12px;color:#555">Switching may not convert cleanly; must warn before any lossy switch.</span></div>
+</div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333">No conversion between modes is guaranteed. Decision needs an iOS editor capability spike.</div>
+</div>
+
+<div class="dv-opt" id="C07"><div class="dv-olabel"><a class="dv-oid" href="#C07">C07</a>Insert link · preview / plain fallback</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#9a9a9a;overflow:hidden;display:flex;flex-direction:column;position:relative">
+<div style="flex:1;margin:40px 0 0;background:#c9c9c9;border-radius:14px 14px 0 0;padding:14px;font-size:14px;color:#555">Composer (text kept)</div>
+<div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;border-top:2px solid #1a1a1a;padding:10px 16px 24px;display:flex;flex-direction:column;gap:8px">
+<span style="align-self:center;width:36px;height:4px;border-radius:2px;background:#bbb"></span>
+<div style="display:flex;justify-content:space-between;font-size:15px"><a href="#C04">Cancel</a><span>Add link</span><a href="#C04">Insert</a></div>
+<div style="padding:7px 10px;border:1.5px solid #1a1a1a;border-radius:8px;font-size:14px">https://example.com/finish-guide</div>
+<div style="padding:7px 10px;border:1.5px solid #1a1a1a;border-radius:8px;font-size:14px;color:#888">Text to show (optional)</div>
+<div style="display:flex;gap:8px;padding:6px;border:1.5px dashed #999;border-radius:8px"><span style="width:44px;height:44px;flex:none;background:repeating-linear-gradient(45deg,#e8e8e8 0 4px,#f8f8f8 4px 8px)"></span><span style="font-size:12px;color:#555;line-height:1.25">Preview loading… If it doesn't load, the link posts as plain text. Server decides the final preview.</span></div>
+</div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333">Preview is a hint, never a promise of how Discourse will render the link.</div>
+</div>
+
+<div class="dv-opt" id="C08"><div class="dv-olabel"><a class="dv-oid" href="#C08">C08</a>Advanced tools (conditional)</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#9a9a9a;overflow:hidden;display:flex;flex-direction:column;position:relative">
+<div style="flex:1;margin:40px 0 0;background:#c9c9c9;border-radius:14px 14px 0 0;padding:14px;font-size:14px;color:#555">Composer (text kept)</div>
+<div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;border-top:2px solid #1a1a1a;padding:10px 16px 24px;display:flex;flex-direction:column;gap:2px">
+<span style="align-self:center;width:36px;height:4px;border-radius:2px;background:#bbb;margin-bottom:6px"></span>
+<div style="font-size:18px;margin-bottom:4px">More</div>
+<div style="padding:9px 0;border-bottom:1px solid #e2e2e2;font-size:15px">Code block</div>
+<div style="padding:9px 0;border-bottom:1px solid #e2e2e2;font-size:15px">Hide details (collapsible)</div>
+<div style="padding:9px 8px;margin:4px -8px;border:1.5px dashed #1a1a1a;border-radius:7px;font-size:15px;display:flex;justify-content:space-between"><span>Poll</span><span style="font-size:12px;color:#555">only if site supports</span></div>
+<div style="padding:9px 8px;margin:4px -8px;border:1.5px dashed #1a1a1a;border-radius:7px;font-size:15px;display:flex;justify-content:space-between"><span>Other site tools</span><span style="font-size:12px;color:#555">detected, not assumed</span></div>
+</div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333"><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px dashed #1a1a1a;border-radius:3px">CONDITIONAL</span> Entire "More" entry hidden if nothing is available. No poll or plugin controls promised.</div>
+</div>
+
+<div class="dv-opt" id="C11"><div class="dv-olabel"><a class="dv-oid" href="#C11">C11</a>Edit own reply</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">10:05</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><a href="Fomio%20Core%20Flows.dc.html#KDe">Cancel</a><span>Edit reply #9</span><a href="#C16e" style="padding:3px 12px;border:2px solid #1a1a1a;border-radius:8px;background:#1a1a1a;color:#fff">Save</a></div>
+<div style="flex:none;margin:8px 12px 0;padding:6px 10px;background:#f1f1f1;border-radius:8px;display:flex;flex-direction:column;font-size:13px"><span>In Oil vs. hardwax on a walnut desk top?</span><span style="color:#555">Editing version 1 · posted 9:43</span></div>
+<div style="flex:1;padding:10px 14px;font-size:15px;line-height:1.3">I used a hardwax oil on white oak two years ago. Mug rings wiped off with a damp cloth. <u>Edit: brand was in the can's datasheet, not a recommendation.</u></div>
+<div style="flex:none;margin:0 12px 8px;padding:6px 10px;border:1.5px dashed #1a1a1a;border-radius:8px;font-size:13px;color:#555">Reason for edit (optional)</div>
+<div style="flex:none;padding:6px 14px 30px;font-size:12px;color:#555">Unsaved changes</div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Loads the current server version. Only eligible metadata: replies edit body only; opening post may show title/destination if permitted.</div>
+<div>Edit reason <span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px dashed #1a1a1a;border-radius:3px">CONDITIONAL</span>. Cancel with changes → <a href="Fomio%20Core%20Flows.dc.html#KDe" style="text-decoration:underline">KDe</a>. Conflict → <a href="#C15" style="text-decoration:underline">C15</a>.</div>
+</div></div>
+
+<div class="dv-opt" id="C16e"><div class="dv-olabel"><a class="dv-oid" href="#C16e">C16e</a>Edit saved · return</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">10:06</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><span>‹ Finishing</span><span>•••</span></div>
+<div style="flex:1;padding:10px 14px;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;flex-direction:column;gap:4px;padding:8px;border:2.5px solid #1a1a1a;border-radius:8px"><div style="font-size:13px">jonah.w <span style="color:#777">· #9 · edited</span></div><div style="font-size:14px;line-height:1.2">I used a hardwax oil on white oak two years ago… Edit: brand was in the can's datasheet…</div></div>
+</div>
+<div style="flex:none;margin:0 14px 10px;padding:8px 10px;background:#1a1a1a;color:#fff;border-radius:10px;font-size:14px">Changes saved</div>
+<dc-import name="TabBar" active="home" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Returns to the same post in place. "Changes saved" only when Discourse confirms the edit.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f5d77a;border-radius:3px">ASSUMPTION</span> Unverified prototype proposal: if an edit can be held for review, show a <a href="Fomio%20Core%20Flows.dc.html#C17" style="text-decoration:underline">C17</a>-style pending treatment instead of "Changes saved". Whether edits go to review, how that is signalled, and which version others see meanwhile are not verified.</div>
+</div>
+</div>
+
+<div class="dv-opt" id="C12"><div class="dv-olabel"><a class="dv-oid" href="#C12">C12</a>Draft lifecycle · status &amp; discard</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#9a9a9a;overflow:hidden;display:flex;flex-direction:column;position:relative">
+<div style="flex:1;margin:40px 0 0;background:#c9c9c9;border-radius:14px 14px 0 0;padding:14px;font-size:14px;color:#555">Reply composer (text kept)</div>
+<div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;border-top:2px solid #1a1a1a;padding:10px 16px 24px;display:flex;flex-direction:column;gap:8px">
+<span style="align-self:center;width:36px;height:4px;border-radius:2px;background:#bbb"></span>
+<div style="font-size:18px">Draft</div>
+<div style="display:flex;flex-direction:column;gap:4px;font-size:14px"><span style="display:flex;justify-content:space-between"><span>On this device</span><span>Saved 9:42</span></span><span style="display:flex;justify-content:space-between"><span>To your account</span><span>Not yet</span></span></div>
+<div style="display:flex;flex-direction:column;gap:3px;padding:8px;background:#f1f1f1;border-radius:8px;font:11px/1.5 ui-monospace,monospace"><span>Not saved yet</span><span>Saving…</span><span>Saved on this device</span><span>Saved to your account</span><span>Couldn't save · Retry</span></div>
+<a href="Fomio%20Screens.dc.html#DR01" style="display:flex;align-items:center;justify-content:center;min-height:40px;border:2px solid #1a1a1a;border-radius:10px;font-size:15px">Discard draft…</a>
+<span style="font-size:12px;color:#555">Asks to confirm. Discard is the only path that deletes writing.</span>
+</div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Draft status independent of submission. Cancel offers Keep draft / Discard.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span> Draft storage, cross-device behavior, sign-out policy. The two status lines stay separate until decided.</div>
+</div></div>
+
+<div class="dv-opt" id="C18"><div class="dv-olabel"><a class="dv-oid" href="#C18">C18</a>UNRESOLVED · guided form</div>
+<div style="width:280px;height:600px;border:2px dashed #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="flex:none;padding:5px;background:#f0a99a;font:700 10px ui-monospace,monospace;text-align:center">CONDITIONAL · UNRESOLVED</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><span>Cancel</span><span>New discussion</span><span style="padding:3px 12px;border:2px solid #bbb;border-radius:8px;color:#aaa">Post</span></div>
+<div style="flex:1;padding:10px 14px;display:flex;flex-direction:column;gap:8px;font-size:14px">
+<span style="font-size:13px;color:#555">Post in: Repairs · this community uses a form</span>
+<div style="display:flex;flex-direction:column;gap:3px"><span>Device make and model *</span><span style="padding:6px 8px;border:1.5px solid #1a1a1a;border-radius:7px;color:#888">e.g. bench PSU, 30V 5A</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span>What have you tried?</span><span style="height:60px;border:1.5px solid #1a1a1a;border-radius:7px"></span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span>Photos</span><span style="padding:6px 8px;border:1.5px dashed #1a1a1a;border-radius:7px">+ Add</span></div>
+</div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333">Only if the destination defines a form and native support is confirmed. Otherwise fall back to C03 or hand off to the web. Field types illustrative.</div>
+</div>
+
+</div>
+</section>
+
+<section class="dv-turn" id="t3">
+<div class="dv-thd"><a class="dv-tid" href="#t3">F</a><span class="dv-tname">Composer failure &amp; recovery — writing is always kept</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="C06f"><div class="dv-olabel"><a class="dv-oid" href="#C06f">C06f</a>Upload failed</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:54</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><span>Cancel</span><span>New discussion</span><span style="padding:3px 12px;border:2px solid #1a1a1a;border-radius:8px;background:#1a1a1a;color:#fff">Post</span></div>
+<div style="flex:1;padding:10px 14px;display:flex;flex-direction:column;gap:8px;font-size:15px;line-height:1.3">
+<span>Followed the advice from last week. Two thin coats, buffed between.</span>
+<div style="display:flex;flex-direction:column;gap:5px;padding:8px;border:2.5px solid #1a1a1a;border-radius:8px"><span style="font-size:14px">desk-top.jpg couldn't upload</span><span style="font-size:12px;color:#555">"File is too large (max 4 MB)." · from site settings</span><div style="display:flex;gap:8px;font-size:14px"><a href="Fomio%20Core%20Flows.dc.html#C06" style="padding:4px 12px;border:1.5px solid #1a1a1a;border-radius:7px">Retry</a><span style="padding:4px 12px">Remove</span></div></div>
+<div style="display:flex;gap:8px;align-items:center;padding:6px;border:1.5px solid #1a1a1a;border-radius:8px;font-size:13px">edge-detail.jpg · uploaded</div>
+</div>
+<div style="flex:none;padding:6px 14px 30px;font-size:12px;color:#555">Draft saved to your account · 9:54</div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333">Failure is per-upload; text and other uploads untouched. Post with a failed upload asks: remove it or keep waiting.</div>
+</div>
+
+<div class="dv-opt" id="C13r"><div class="dv-olabel"><a class="dv-oid" href="#C13r">C13r</a>Restriction · can't post here</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:42</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><a href="Fomio%20Core%20Flows.dc.html#D01m">Close</a><span>Reply</span><span style="padding:3px 12px;border:2px solid #bbb;border-radius:8px;color:#aaa">Post</span></div>
+<div style="flex:none;margin:10px 12px 0;padding:9px 10px;border:2.5px solid #1a1a1a;border-radius:8px;display:flex;flex-direction:column;gap:4px"><span style="font-size:16px">You can't reply to this discussion</span><span style="font-size:13px;line-height:1.2;color:#444">Your account doesn't have permission here. Anything you wrote is kept on this device.</span><div style="display:flex;gap:8px;font-size:14px;margin-top:2px"><span style="padding:4px 10px;border:1.5px solid #1a1a1a;border-radius:7px">Copy text</span><a href="Fomio%20Core%20Flows.dc.html#D01m" style="padding:4px 10px">Back to discussion</a></div></div>
+<div style="flex:1;padding:10px 14px;font-size:15px;color:#666">(composer body, read-only)</div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><b>In</b> permission recheck after sign-in, or server rejection mid-write (topic closed, category changed, silenced).</div>
+<div>New-discussion variants: <a href="Fomio%20Core%20Flows.dc.html#C13nh" style="text-decoration:underline">C13nh</a> (Home), <a href="Fomio%20Core%20Flows.dc.html#C13na" style="text-decoration:underline">C13na</a> (Communities).</div>
+</div></div>
+
+<div class="dv-opt" id="C14"><div class="dv-olabel"><a class="dv-oid" href="#C14">C14</a>Offline while writing</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:42</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><span>Cancel</span><span>Reply</span><span style="padding:3px 12px;border:2px solid #bbb;border-radius:8px;color:#aaa">Post</span></div>
+<div style="flex:none;padding:7px 14px;background:#1a1a1a;color:#fff;font-size:13px;line-height:1.2">You're offline. Keep writing; post when you're back online.</div>
+<div style="flex:1;padding:10px 14px;font-size:15px;line-height:1.3">Mine survived at 0°C wrapped in burlap, watered once a month…</div>
+<div style="flex:none;padding:6px 14px 30px;font-size:12px;color:#555;display:flex;flex-direction:column"><span>Saved on this device · 9:42</span><span>Not saved to your account (offline)</span></div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333"><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> No queued auto-send. Post re-enables when online; user taps it. Uploads pause with their own status.</div>
+</div>
+
+<div class="dv-opt" id="C15"><div class="dv-olabel"><a class="dv-oid" href="#C15">C15</a>Conflict · edited elsewhere</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">10:07</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><span>Cancel</span><span>Edit reply #9</span><span style="width:40px"></span></div>
+<div style="flex:none;margin:10px 12px 0;padding:9px 10px;border:2.5px solid #1a1a1a;border-radius:8px;font-size:14px;line-height:1.2">This reply changed since you started editing (on another device or by a moderator). Nothing has been overwritten.</div>
+<div style="flex:1;padding:10px 12px;display:flex;flex-direction:column;gap:8px">
+<div style="padding:8px;border:1.5px solid #1a1a1a;border-radius:8px;display:flex;flex-direction:column;gap:3px"><span style="font:10px ui-monospace,monospace">CURRENT ON SERVER · v2 · 10:04</span><span style="font-size:13px;line-height:1.2">I used a hardwax oil on white oak two years ago. (Brand removed by moderator.)</span></div>
+<div style="padding:8px;border:1.5px dashed #1a1a1a;border-radius:8px;display:flex;flex-direction:column;gap:3px"><span style="font:10px ui-monospace,monospace">YOUR VERSION · based on v1</span><span style="font-size:13px;line-height:1.2">I used a hardwax oil on white oak… Edit: brand was in the datasheet…</span></div>
+<span style="display:flex;align-items:center;justify-content:center;min-height:38px;border:2px solid #1a1a1a;border-radius:10px;font-size:14px">Edit on top of current version</span>
+<span style="display:flex;align-items:center;justify-content:center;min-height:38px;border:2px solid #1a1a1a;border-radius:10px;font-size:14px">Copy my text and close</span>
+</div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333">Same pattern for a draft changed on another device. No silent overwrite in either direction.</div>
+</div>
+
+<div class="dv-opt" id="CU01"><div class="dv-olabel"><a class="dv-oid" href="#CU01">CU01</a>Uncertain submit · reconciling</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:43</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><span style="color:#aaa">Cancel</span><span>Reply</span><span style="padding:3px 12px;border:2px solid #bbb;border-radius:8px;color:#aaa">Post</span></div>
+<div style="flex:none;margin:10px 12px 0;padding:9px 10px;border:2.5px solid #1a1a1a;border-radius:8px;display:flex;flex-direction:column;gap:4px"><span style="font-size:16px">We didn't get a response</span><span style="font-size:13px;line-height:1.2;color:#444">Your reply may or may not have posted. Checking the discussion before you try again…</span><span style="height:6px;border:1px solid #1a1a1a;border-radius:3px;background:linear-gradient(90deg,#1a1a1a 40%,#fff 40%)"></span></div>
+<div style="flex:1;padding:10px 14px;font-size:15px;line-height:1.3;color:#555">I used a hardwax oil on white oak two years ago…</div>
+<div style="flex:none;height:46px;background:#e4e4e4;display:flex;gap:6px;align-items:center;justify-content:center;font:10px ui-monospace,monospace;color:#666"><a href="Fomio%20Core%20Flows.dc.html#C16" style="padding:4px 6px;background:#fff">→ found</a><a href="#CU02" style="padding:4px 6px;background:#fff">→ not found</a></div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Timeout/connection drop after send. Post disabled during reconciliation; no automatic retry.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span> Reconciliation method (e.g. check user's latest posts in topic). Idempotency not promised.</div>
+</div></div>
+
+<div class="dv-opt" id="CU02"><div class="dv-olabel"><a class="dv-oid" href="#CU02">CU02</a>Uncertain submit · still unconfirmed</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:44</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><span>Cancel</span><span>Reply</span><span style="padding:3px 12px;border:2px solid #bbb;border-radius:8px;color:#aaa">Post</span></div>
+<div style="flex:none;margin:10px 12px 0;padding:9px 10px;border:2.5px solid #1a1a1a;border-radius:8px;display:flex;flex-direction:column;gap:4px"><span style="font-size:16px;line-height:1.15">We couldn't confirm whether your reply posted.</span><span style="font-size:13px;line-height:1.2;color:#444">Our check didn't find it in the discussion yet. That doesn't mean it failed. Your text is kept here.</span><div style="display:flex;gap:8px;font-size:14px;margin-top:2px"><a href="#CU01" style="padding:4px 10px;border:1.5px solid #1a1a1a;border-radius:7px;background:#1a1a1a;color:#fff">Check again</a><a href="Fomio%20Core%20Flows.dc.html#D01m" style="padding:4px 10px">Back to discussion</a></div></div>
+<div style="flex:none;margin:8px 12px 0;padding:8px 10px;border:1.5px dashed #1a1a1a;border-radius:8px;display:flex;flex-direction:column;gap:4px"><span style="font-size:13px;line-height:1.2">Posting again could create a duplicate if the first reply went through.</span><a href="Fomio%20Core%20Flows.dc.html#C16" style="align-self:flex-start;font-size:13px;padding:2px 0;text-decoration:underline">Post again anyway</a></div>
+<div style="flex:1;padding:10px 14px;font-size:15px;line-height:1.3">I used a hardwax oil on white oak two years ago…</div>
+<div style="flex:none;padding:6px 14px 30px;font-size:12px;color:#555">Saved on this device · 9:44</div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><b>In</b> <a href="#CU01" style="text-decoration:underline">CU01</a> check didn't find the reply · <b>Out</b> Check again → CU01, Back to discussion → <a href="Fomio%20Core%20Flows.dc.html#D01m" style="text-decoration:underline">D01m</a> (text kept as a draft), Post again anyway → normal outcomes</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> A not-found check is not proof of failure; status stays unconfirmed. No automatic retry or queued send. The header Post is disabled; posting again is a separate, explicit action shown with the duplicate warning first.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span> Reconciliation method. No idempotency or duplicate prevention is promised, and the app doesn't offer to delete duplicates (that depends on the user's permissions).</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#ddd;border-radius:3px">SAMPLE-ONLY</span> Post again anyway links to C16; on device it follows the same published / pending / error / uncertain outcomes as C10r.</div>
+</div>
+</div>
+
+<div class="dv-opt" id="C19e"><div class="dv-olabel"><a class="dv-oid" href="#C19e">C19e</a>Session expired while writing</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:43</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><span>Cancel</span><span>Reply</span><span style="padding:3px 12px;border:2px solid #bbb;border-radius:8px;color:#aaa">Post</span></div>
+<div style="flex:none;margin:10px 12px 0;padding:9px 10px;border:2.5px solid #1a1a1a;border-radius:8px;display:flex;flex-direction:column;gap:6px"><span style="font-size:16px">You've been signed out</span><span style="font-size:13px;line-height:1.2;color:#444">Sign in again to post. Your reply is kept on this device and won't be sent automatically.</span><a href="Fomio%20Core%20Flows.dc.html#AUTH" style="display:flex;align-items:center;justify-content:center;min-height:36px;border:2px solid #1a1a1a;border-radius:9px;background:#1a1a1a;color:#fff;font-size:14px">Sign in</a></div>
+<div style="flex:1;padding:10px 14px;font-size:15px;line-height:1.3">I used a hardwax oil on white oak two years ago…</div>
+<div style="flex:none;padding:6px 14px 30px;font-size:12px;color:#555">Saved on this device · 9:43</div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333">After sign-in: same account → composer restored, permission rechecked. Different account → ask before attaching the draft (<span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span>).</div>
+</div>
+
+</div>
+<p class="dv-next">Try next: "draft-changed-on-another-device variant of <a class="dv-oid" href="#C15">C15</a>" · "multiple failed uploads + offline at once"</p>
+</section>
+</x-dc>
+</body>
+</html>

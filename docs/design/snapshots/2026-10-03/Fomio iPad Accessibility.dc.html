@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Patrick+Hand&amp;display=swap"><style>body{margin:0;background:#f0eee9;font-family:'Patrick Hand',system-ui,sans-serif;color:#1a1a1a}a{color:#1a1a1a;text-decoration:none}a:hover{outline:2px dashed #2a78d6;outline-offset:1px}.dv-turn{padding:36px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px}.dv-tname{font:400 24px/1.2 'Patrick Hand',system-ui,sans-serif;color:#1a1a1a}.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px;max-width:100%}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 16px/1.3 'Patrick Hand',system-ui,sans-serif;color:#333}.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}.dv-opt:target>div:nth-child(2){box-shadow:0 0 0 4px #2a78d6}.dv-next{margin:22px 0 0;font:12px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.55)}</style></helmet>
+<header style="padding:28px 44px 4px;display:flex;flex-direction:column;gap:10px">
+<div style="font:11px ui-monospace,monospace;color:#666">FOMIO iOS — IA &amp; WIREFRAMES · BASELINE 2026-10-02 · LOW-FI, NOT A VISUAL DESIGN</div>
+<h1 style="margin:0;font-weight:400;font-size:42px;line-height:1">iPad &amp; accessibility</h1>
+<nav style="display:flex;flex-wrap:wrap;gap:8px;font:13px system-ui,sans-serif"><a href="Fomio%20Overview.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">Overview &amp; register</a><a href="Fomio%20Core%20Flows.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">Core flows</a><a href="Fomio%20Flow%20Completion.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">Flow completion</a><a href="Fomio%20Screens.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">Supporting screens</a><a href="Fomio%20Composer%20States.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">Composer &amp; states</a><a href="Fomio%20iPad%20Accessibility.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#1a1a1a;color:#fff">iPad &amp; accessibility</a></nav>
+</header>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">IP</a><span class="dv-tname">iPad core-flow adaptation <span style="font:700 10px ui-monospace,monospace;padding:2px 5px;background:#f0a99a;border-radius:3px;vertical-align:middle">iPAD PRESENTATION UNRESOLVED</span></span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="IP01"><div class="dv-olabel"><a class="dv-oid" href="#IP01">IP01</a>iPad landscape · sidebar + list + Discussion</div>
+<div style="width:900px;height:620px;border:2px solid #1a1a1a;border-radius:22px;background:#fff;overflow:hidden;display:grid;grid-template-columns:170px 270px minmax(0,1fr)">
+<div style="border-right:1.5px solid #1a1a1a;background:#f6f6f6;padding:18px 12px;display:flex;flex-direction:column;gap:4px;font-size:16px">
+<span style="font:11px ui-monospace,monospace;color:#888;margin-bottom:8px">9:41</span>
+<span style="padding:7px 10px;border:1.5px solid #1a1a1a;border-radius:8px;color:#888;font-size:14px;margin-bottom:6px">Search</span>
+<span style="padding:7px 10px;border-radius:8px">Home</span>
+<span style="padding:7px 10px;border-radius:8px;background:#1a1a1a;color:#fff">Communities</span>
+<span style="padding:3px 10px 3px 24px;font-size:14px">Woodworking</span>
+<span style="padding:3px 10px 3px 24px;font-size:14px;text-decoration:underline">Finishing</span>
+<span style="padding:3px 10px 3px 24px;font-size:14px">Repairs</span>
+<span style="padding:7px 10px;border-radius:8px">Notifications</span>
+<span style="padding:7px 10px;border-radius:8px">Me</span>
+<a href="#IP02" style="margin-top:auto;display:flex;align-items:center;justify-content:center;min-height:38px;border:2px solid #1a1a1a;border-radius:10px;font-size:15px">+ Create</a>
+</div>
+<div style="border-right:1.5px solid #1a1a1a;padding:18px 14px;display:flex;flex-direction:column;gap:8px">
+<span style="font-size:24px;line-height:1">Finishing</span><span style="font-size:13px;color:#555">in Woodworking · Tracking ▾</span>
+<div style="display:flex;border:1.5px solid #1a1a1a;border-radius:8px;overflow:hidden;font-size:13px;align-self:flex-start"><span style="padding:3px 10px;background:#1a1a1a;color:#fff">Latest</span><span style="padding:3px 10px;border-left:1.5px dashed #1a1a1a">Hot</span><span style="padding:3px 10px;border-left:1.5px dashed #1a1a1a">About</span></div>
+<div style="display:flex;flex-direction:column;padding:8px;background:#ececec;border-radius:8px"><span style="font-size:16px;line-height:1.1">Oil vs. hardwax on a walnut desk top?</span><span style="font-size:12px;color:#555">mara_k · 2h · 8 replies</span></div>
+<div style="display:flex;flex-direction:column;padding:8px"><span style="font-size:16px;line-height:1.1">Blotchy cherry: can gel stain save it?</span><span style="font-size:12px;color:#555">theo · 6h · 5 replies</span></div>
+<div style="display:flex;flex-direction:column;padding:8px"><span style="font-size:16px;line-height:1.1">Dewaxed shellac under water-based poly</span><span style="font-size:12px;color:#555">sunil.p · 2d · 11 replies</span></div>
+</div>
+<div style="padding:18px 26px;display:flex;flex-direction:column;gap:10px;min-width:0">
+<div style="display:flex;justify-content:flex-end;gap:16px;font-size:15px"><span>Share</span><span>Bookmark</span><span>•••</span></div>
+<span style="font-size:13px;color:#555">Finishing · Woodworking</span>
+<span style="font-size:28px;line-height:1.05">Oil vs. hardwax on a walnut desk top?</span>
+<span style="font-size:13px;color:#666">Open · 8 replies</span>
+<div style="display:flex;flex-direction:column;gap:6px;max-width:520px"><span style="font-size:14px">mara_k · 2h · #1</span><span style="font-size:16px;line-height:1.25">Sanded to 220. It's a daily desk, coffee mugs and a laptop. Rubbing oil looks great but I'm worried about rings.</span><span style="height:120px;background:repeating-linear-gradient(45deg,#e8e8e8 0 4px,#f8f8f8 4px 8px);border:1px solid #ccc"></span><div style="display:flex;gap:8px;font-size:14px"><span style="padding:4px 10px;border:1.5px dashed #1a1a1a;border-radius:7px">Like 12</span><a href="#IP02" style="padding:4px 10px;border:1.5px solid #1a1a1a;border-radius:7px">Reply</a><span style="padding:4px 10px;border:1.5px solid #1a1a1a;border-radius:7px">Quote</span></div></div>
+<span style="font-size:14px;color:#555">devon · 1h · #2 · Hardwax oil is easier to spot-repair…</span>
+</div>
+</div>
+<div style="width:900px;max-width:100%;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f5d77a;border-radius:3px">ASSUMPTION</span> Regular width uses a sidebar with the same four named destinations + Search + Create; tracked/watched communities nest under Communities. Detail column stays readable (max line length).</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Each destination keeps its own selection and scroll when switching. Adapts by size class, not CSS breakpoints.</div>
+</div></div>
+
+<div class="dv-opt" id="IP02"><div class="dv-olabel"><a class="dv-oid" href="#IP02">IP02</a>iPad · reply composer as sheet over context</div>
+<div style="width:900px;height:620px;border:2px solid #1a1a1a;border-radius:22px;background:#9a9a9a;overflow:hidden;position:relative">
+<div style="position:absolute;inset:0;display:grid;grid-template-columns:170px 270px minmax(0,1fr);opacity:.45;background:#fff"><div style="border-right:1.5px solid #1a1a1a;background:#eee"></div><div style="border-right:1.5px solid #1a1a1a"></div><div style="padding:30px;font-size:24px">Oil vs. hardwax on a walnut desk top?</div></div>
+<div style="position:absolute;left:190px;right:190px;top:50px;bottom:50px;background:#fff;border:2px solid #1a1a1a;border-radius:16px;display:flex;flex-direction:column">
+<div style="display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #ddd;font-size:16px"><a href="#IP01">Cancel</a><span>Reply</span><span style="padding:3px 14px;border:2px solid #1a1a1a;border-radius:8px;background:#1a1a1a;color:#fff">Post</span></div>
+<div style="margin:12px 16px 0;padding:8px 10px;background:#f1f1f1;border-radius:8px;font-size:14px">Replying to Oil vs. hardwax on a walnut desk top? · mara_k #1</div>
+<div style="flex:1;padding:14px 16px;font-size:16px;line-height:1.35">I used a hardwax oil on white oak two years ago. Mug rings wiped off with a damp cloth…</div>
+<div style="padding:6px 16px;font-size:12px;color:#555">Saved on this device · 9:42</div>
+<div style="border-top:1px solid #ddd;padding:10px 16px;display:flex;gap:22px;font-size:15px"><span>B</span><span>I</span><span>Link</span><span>Image</span><span>Quote</span><span style="border:1.5px dashed #1a1a1a;border-radius:5px;padding:0 5px">More</span></div>
+</div>
+</div>
+<div style="width:900px;max-width:100%;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span> Sheet vs. inline-in-detail vs. separate window. Hardware keyboard shortcuts (⌘↩ to post) to be defined. Resizing into compact width must keep the draft, uploads and submission state.</div>
+</div></div>
+
+<div class="dv-opt" id="IP03"><div class="dv-olabel"><a class="dv-oid" href="#IP03">IP03</a>iPad split view · compact width</div>
+<div style="width:900px;height:620px;border:2px solid #1a1a1a;border-radius:22px;background:#fff;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr) 10px 320px">
+<div style="background:repeating-linear-gradient(45deg,#e8e8e8 0 5px,#f8f8f8 5px 10px);display:flex;align-items:center;justify-content:center;font:12px ui-monospace,monospace;color:#777">another app</div>
+<div style="background:#1a1a1a"></div>
+<div style="display:flex;flex-direction:column">
+<div style="padding:16px 14px 8px;display:flex;justify-content:space-between;font-size:15px;border-bottom:1px solid #ddd"><span>‹ Finishing</span><span>•••</span></div>
+<div style="flex:1;padding:12px 14px;display:flex;flex-direction:column;gap:8px"><span style="font-size:21px;line-height:1.05">Oil vs. hardwax on a walnut desk top?</span><span style="font-size:14px;line-height:1.2">mara_k · #1 · Sanded to 220…</span></div>
+<div style="padding:8px 14px"><span style="display:flex;align-items:center;justify-content:center;min-height:38px;border:2px solid #1a1a1a;border-radius:10px;background:#1a1a1a;color:#fff;font-size:15px">Reply to discussion</span></div>
+<div style="height:54px;border-top:1.5px solid #1a1a1a;display:grid;grid-template-columns:repeat(4,1fr);font-size:11px;text-align:center;padding-top:8px"><span>Home</span><b style="font-weight:700">Communities</b><span>Notifications</span><span>Me</span></div>
+</div>
+</div>
+<div style="width:900px;max-width:100%;font:12px/1.4 system-ui,sans-serif;color:#333">Compact width collapses sidebar into the iPhone tab bar and the columns into a stack, keeping the selected discussion on top. Return to regular width restores columns without losing position.</div>
+</div>
+
+</div>
+</section>
+
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">AX</a><span class="dv-tname">iPhone large text, keyboard-visible composer, RTL</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="AX01"><div class="dv-olabel"><a class="dv-oid" href="#AX01">AX01</a>Discussion · accessibility text size</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:22px"><span>‹ Back</span><span>•••</span></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:10px 14px;display:flex;flex-direction:column;gap:10px">
+<span style="font-size:18px;color:#555">Finishing · Woodworking</span>
+<span style="font-size:32px;line-height:1.05">Oil vs. hardwax on a walnut desk top?</span>
+<span style="font-size:20px">mara_k<br>2h · #1</span>
+<span style="font-size:22px;line-height:1.2">Sanded to 220. It's a daily desk, coffee mugs and a…</span>
+</div>
+<div style="flex:none;padding:8px 14px"><span style="display:flex;align-items:center;justify-content:center;min-height:52px;border:2px solid #1a1a1a;border-radius:10px;background:#1a1a1a;color:#fff;font-size:22px">Reply</span></div>
+<div style="flex:none;height:56px;border-top:1.5px solid #1a1a1a;display:grid;grid-template-columns:repeat(4,1fr);align-items:center;justify-items:center"><span style="width:22px;height:22px;border:1.5px solid #1a1a1a;border-radius:5px;background:#1a1a1a"></span><span style="width:22px;height:22px;border:1.5px solid #1a1a1a;border-radius:5px"></span><span style="width:22px;height:22px;border:1.5px solid #1a1a1a;border-radius:5px"></span><span style="width:22px;height:22px;border:1.5px solid #1a1a1a;border-radius:5px"></span></div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333">Metadata stacks instead of truncating; Share/Bookmark move into •••. Tab labels shown via long-press large content viewer. Acceptance requirement, not tested.</div>
+</div>
+
+<div class="dv-opt" id="AX02"><div class="dv-olabel"><a class="dv-oid" href="#AX02">AX02</a>Composer · keyboard visible</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:42</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><span>Cancel</span><span>Reply</span><span style="padding:3px 12px;border:2px solid #1a1a1a;border-radius:8px;background:#1a1a1a;color:#fff">Post</span></div>
+<div style="flex:none;margin:6px 12px 0;padding:5px 10px;background:#f1f1f1;border-radius:8px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Replying to Oil vs. hardwax on a walnut…</div>
+<div style="flex:1;padding:8px 14px;font-size:15px;line-height:1.3">I used a hardwax oil on white oak two years ago.<span style="display:inline-block;width:1.5px;height:16px;background:#1a1a1a;vertical-align:middle"></span></div>
+<div style="flex:none;padding:4px 14px;font-size:12px;color:#555">Saved on this device · 9:42</div>
+<div style="flex:none;border-top:1px solid #ddd;padding:7px 10px;display:flex;justify-content:space-between;font-size:14px;background:#f7f7f7"><span>B</span><span>I</span><span>Link</span><span>Image</span><span>Quote</span><span>More</span></div>
+<div style="flex:none;height:230px;background:#d4d4d4;display:flex;align-items:center;justify-content:center;font:11px ui-monospace,monospace;color:#666">system keyboard</div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333">Post stays in the nav bar (reachable above keyboard). Toolbar rides the keyboard; context collapses to one line. Draft status remains visible.</div>
+</div>
+
+<div class="dv-opt" id="AX03"><div class="dv-olabel"><a class="dv-oid" href="#AX03">AX03</a>Composer · large text + keyboard</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:42</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:20px"><span>Cancel</span><span style="padding:3px 12px;border:2px solid #1a1a1a;border-radius:8px;background:#1a1a1a;color:#fff">Post</span></div>
+<div style="flex:none;margin:6px 12px 0;padding:5px 10px;background:#f1f1f1;border-radius:8px;font-size:18px">Replying ▸</div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:8px 14px;font-size:24px;line-height:1.2">I used a hardwax oil on white oak two</div>
+<div style="flex:none;padding:4px 14px;font-size:16px;color:#555">Saved on device</div>
+<div style="flex:none;border-top:1px solid #ddd;padding:7px 10px;display:flex;justify-content:space-between;font-size:18px;background:#f7f7f7"><span>B</span><span>I</span><span>Image</span><span>More ▸</span></div>
+<div style="flex:none;height:230px;background:#d4d4d4;display:flex;align-items:center;justify-content:center;font:11px ui-monospace,monospace;color:#666">system keyboard</div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333">Title text drops ("Reply" announced to VoiceOver only); toolbar overflows into More; context expands on tap. Writing area must keep ≥ 3 lines visible.</div>
+</div>
+
+<div class="dv-opt" id="AX04"><div class="dv-olabel"><a class="dv-oid" href="#AX04">AX04</a>RTL mirror · Home</div>
+<div dir="rtl" style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column;font-family:system-ui,sans-serif">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;padding:2px 14px 6px;display:flex;flex-direction:column;gap:2px"><div style="display:flex;justify-content:flex-end;gap:14px;font-size:13px"><span>بحث</span><span>+ إنشاء</span></div><div style="font-size:26px">الرئيسية</div></div>
+<div style="flex:none;padding:0 14px 8px;display:flex;gap:8px;font-size:12px"><div style="display:flex;border:1.5px solid #1a1a1a;border-radius:8px;overflow:hidden"><span style="padding:3px 12px;background:#1a1a1a;color:#fff">الأحدث</span><span style="padding:3px 12px">الرائج</span></div></div>
+<div style="flex:1;padding:0 14px">
+<div style="display:flex;flex-direction:column;gap:3px;padding:8px 0;border-bottom:1px solid #e2e2e2"><span style="font-size:11px;color:#555">التشطيب · النجارة</span><div style="display:flex;gap:8px"><span style="flex:1;font-size:15px;line-height:1.2">زيت أم شمع صلب لسطح مكتب من خشب الجوز؟</span><span style="width:44px;height:44px;flex:none;background:repeating-linear-gradient(45deg,#e8e8e8 0 4px,#f8f8f8 4px 8px);border:1px solid #ccc"></span></div><span style="font-size:11px;color:#666">mara_k · ٢س · ٨ ردود</span></div>
+<div style="display:flex;flex-direction:column;gap:3px;padding:8px 0"><span style="font-size:11px;color:#555">البستنة</span><span style="font-size:15px;line-height:1.2">حماية أشجار التين في الشتاء</span><span style="font-size:11px;color:#666">ines.r · ١ي · ٢٢ ردًا</span></div>
+</div>
+<div style="flex:none;height:54px;border-top:1.5px solid #1a1a1a;display:grid;grid-template-columns:repeat(4,1fr);font-size:11px;text-align:center;padding-top:6px"><b>الرئيسية</b><span>المجتمعات</span><span>الإشعارات</span><span>أنا</span></div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333">Illustrative translation only. Layout, back chevrons, thumbnails and tab order mirror; usernames and numerals follow locale. Mixed-direction content (English post in Arabic UI) must be checked.</div>
+</div>
+
+</div>
+</section>
+
+<section class="dv-turn" id="t3">
+<div class="dv-thd"><a class="dv-tid" href="#t3">QA</a><span class="dv-tname">Acceptance requirements — none tested yet</span></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;max-width:1300px;font:13px/1.45 system-ui,sans-serif;color:#222">
+<div style="background:#fff;border:1.5px solid #1a1a1a;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px"><b style="font:400 20px 'Patrick Hand',system-ui">VoiceOver order · D01</b><ol style="margin:0;padding-left:18px"><li>Back (“Finishing”)</li><li>Community: Finishing in Woodworking</li><li>Title (heading)</li><li>Status: open, 8 replies</li><li>Post #1: author, age, body, image description</li><li>Post actions (custom actions rotor: Like, Reply, Quote)</li><li>Each reply as one element with actions</li><li>Reply to discussion</li><li>Tab bar</li></ol><span style="font:10px ui-monospace,monospace;color:#888">STATUS: NOT TESTED</span></div>
+<div style="background:#fff;border:1.5px solid #1a1a1a;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px"><b style="font:400 20px 'Patrick Hand',system-ui">Touch targets &amp; text</b><ul style="margin:0;padding-left:18px"><li>All controls ≥ 44×44 pt, incl. card category links and segmented items</li><li>Dynamic Type through the largest accessibility size without truncating titles or hiding Post</li><li>Contrast ≥ 4.5:1 for body text in light and dark</li><li>Reduce Motion respected for sheet and scroll-to-post transitions</li></ul><span style="font:10px ui-monospace,monospace;color:#888">STATUS: NOT TESTED</span></div>
+<div style="background:#fff;border:1.5px solid #1a1a1a;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px"><b style="font:400 20px 'Patrick Hand',system-ui">RTL &amp; localisation</b><ul style="margin:0;padding-left:18px"><li>Full mirror in an RTL language (see <a href="#AX04" style="text-decoration:underline">AX04</a>)</li><li>Mixed-direction post bodies render correctly</li><li>Relative dates and counts localised</li><li>Long German-length labels in tab bar and sidebar</li></ul><span style="font:10px ui-monospace,monospace;color:#888">STATUS: NOT TESTED</span></div>
+<div style="background:#fff;border:1.5px solid #1a1a1a;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px"><b style="font:400 20px 'Patrick Hand',system-ui">Split view, resize, lifecycle</b><ul style="margin:0;padding-left:18px"><li>Regular ↔ compact transitions keep stack, selection and scroll (<a href="#IP03" style="text-decoration:underline">IP03</a>)</li><li>Composer survives resize, rotation, Stage Manager window changes and backgrounding with draft, uploads and submission state intact</li><li>Tab switches preserve per-tab navigation and scroll</li></ul><span style="font:10px ui-monospace,monospace;color:#888">STATUS: NOT TESTED</span></div>
+<div style="background:#fff;border:1.5px solid #1a1a1a;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px"><b style="font:400 20px 'Patrick Hand',system-ui">Physical-device checks</b><ul style="margin:0;padding-left:18px"><li>Smallest supported iPhone, largest iPhone, an iPad with hardware keyboard</li><li>Real network loss mid-submit (<a href="Fomio%20Composer%20States.dc.html#CU01" style="text-decoration:underline">CU01</a>) and mid-upload</li><li>Universal link cold start to exact reply (<a href="Fomio%20Composer%20States.dc.html#LK01" style="text-decoration:underline">LK01</a>)</li><li>Device list and OS versions to be set by the team</li></ul><span style="font:10px ui-monospace,monospace;color:#888">STATUS: NOT TESTED</span></div>
+</div>
+</section>
+</x-dc>
+</body>
+</html>

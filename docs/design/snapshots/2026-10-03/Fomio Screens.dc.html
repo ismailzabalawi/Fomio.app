@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Patrick+Hand&amp;display=swap"><style>body{margin:0;background:#f0eee9;font-family:'Patrick Hand',system-ui,sans-serif;color:#1a1a1a}a{color:#1a1a1a;text-decoration:none}a:hover{outline:2px dashed #2a78d6;outline-offset:1px}.dv-turn{padding:36px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px}.dv-tname{font:400 24px/1.2 'Patrick Hand',system-ui,sans-serif;color:#1a1a1a}.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 16px/1.3 'Patrick Hand',system-ui,sans-serif;color:#333}.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}.dv-opt:target>div:nth-child(2){box-shadow:0 0 0 4px #2a78d6}.dv-next{margin:22px 0 0;font:12px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.55)}</style></helmet>
+<header style="padding:28px 44px 4px;display:flex;flex-direction:column;gap:10px">
+<div style="font:11px ui-monospace,monospace;color:#666">FOMIO iOS — IA &amp; WIREFRAMES · BASELINE 2026-10-02 · LOW-FI, NOT A VISUAL DESIGN</div>
+<h1 style="margin:0;font-weight:400;font-size:42px;line-height:1">Supporting screens</h1>
+<nav style="display:flex;flex-wrap:wrap;gap:8px;font:13px system-ui,sans-serif"><a href="Fomio%20Overview.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">Overview &amp; register</a><a href="Fomio%20Core%20Flows.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">Core flows</a><a href="Fomio%20Flow%20Completion.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">Flow completion</a><a href="Fomio%20Screens.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#1a1a1a;color:#fff">Supporting screens</a><a href="Fomio%20Composer%20States.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">Composer &amp; states</a><a href="Fomio%20iPad%20Accessibility.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">iPad &amp; accessibility</a></nav>
+<div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;font:12px system-ui,sans-serif;color:#444"><span style="display:flex;gap:5px;align-items:center"><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span>established</span><span style="display:flex;gap:5px;align-items:center"><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f5d77a;border-radius:3px">ASSUMPTION</span>prototype assumption</span><span style="display:flex;gap:5px;align-items:center"><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span>open decision</span><span style="display:flex;gap:5px;align-items:center"><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px dashed #1a1a1a;border-radius:3px">CONDITIONAL</span>dashed = permission/site dependent</span><span style="display:flex;gap:5px;align-items:center"><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#ddd;border-radius:3px">SAMPLE-ONLY</span>link reuses a generic frame; identity or tab differs on device</span><span>Linked frame board: not evidence of editable inputs, tab-stack persistence, draft recovery or tested accessibility.</span></div>
+</header>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">H</a><span class="dv-tname">Home — member, Tracked filter, Hot</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="H01m"><div class="dv-olabel"><a class="dv-oid" href="#H01m">H01m</a>Home · member · Latest</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;padding:2px 14px 6px;display:flex;flex-direction:column;gap:2px"><div style="display:flex;justify-content:flex-end;gap:14px;font-size:14px"><a href="#SE01">Search</a><a href="Fomio%20Core%20Flows.dc.html#C02g">+ Create</a></div><div style="font-size:30px;line-height:1.05">Home</div></div>
+<div style="flex:none;padding:0 14px 8px;display:flex;gap:8px;align-items:center;font-size:13px"><div style="display:flex;border:1.5px solid #1a1a1a;border-radius:8px;overflow:hidden"><span style="padding:3px 12px;background:#1a1a1a;color:#fff">Latest</span><a href="#H01h" style="padding:3px 12px">Hot</a></div><a href="#H01t" style="padding:3px 10px;border:1.5px solid #1a1a1a;border-radius:14px">Tracked</a></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:0 14px">
+<div style="display:flex;flex-direction:column;gap:3px;padding:8px 0;border-bottom:1px solid #e2e2e2"><span style="font-size:12px;color:#555">Finishing · Woodworking</span><a href="Fomio%20Flow%20Completion.dc.html#D01mh" style="font-size:16px;line-height:1.1">Oil vs. hardwax on a walnut desk top?</a><span style="font-size:12px;color:#777;line-height:1.15">Sanded to 220 and stuck…</span><div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#666"><span>mara_k · 2h · 8 replies</span><span style="padding:2px 7px;border:1.5px dashed #1a1a1a;border-radius:6px;color:#1a1a1a">Like 12</span></div></div>
+<div style="display:flex;flex-direction:column;gap:3px;padding:8px 0;border-bottom:1px solid #e2e2e2"><span style="font-size:12px;color:#555">Microcontrollers · Electronics</span><span style="font-size:16px;line-height:1.1">Deep sleep current on a dev board: 40 mA?</span><div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#666"><span>priya · 3h · 9 replies</span><span style="padding:2px 7px;border:1.5px dashed #1a1a1a;border-radius:6px;color:#1a1a1a">Like 4</span></div></div>
+<div style="display:flex;flex-direction:column;gap:3px;padding:8px 0"><span style="font-size:12px;color:#555">Gardening</span><span style="font-size:16px;line-height:1.1">Overwintering figs in a 5 gal pot</span><div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#666"><span>ines.r · 1d · 22 replies</span><span style="padding:2px 7px;border:1.5px dashed #1a1a1a;border-radius:6px;color:#1a1a1a">Like 31</span></div></div>
+</div>
+<dc-import name="TabBar" active="home" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><b>Out</b> card → <a href="Fomio%20Flow%20Completion.dc.html#D01mh" style="text-decoration:underline">D01mh</a> (member, Back → Home), Tracked → <a href="#H01t" style="text-decoration:underline">H01t</a>, Hot → <a href="#H01h" style="text-decoration:underline">H01h</a>, + Create (no inherited destination) → <a href="Fomio%20Core%20Flows.dc.html#C02g" style="text-decoration:underline">C02g</a></div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px dashed #1a1a1a;border-radius:3px">CONDITIONAL</span> Card like only when like permission is verified for that post; otherwise show count as text.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Tracked is a separate filter, not a third sort.</div>
+</div></div>
+
+<div class="dv-opt" id="H01t"><div class="dv-olabel"><a class="dv-oid" href="#H01t">H01t</a>Home · Tracked on Latest</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;padding:2px 14px 6px;display:flex;flex-direction:column;gap:2px"><div style="display:flex;justify-content:flex-end;gap:14px;font-size:14px"><a href="#SE01">Search</a><span>+ Create</span></div><div style="font-size:30px;line-height:1.05">Home</div></div>
+<div style="flex:none;padding:0 14px 4px;display:flex;gap:8px;align-items:center;font-size:13px"><div style="display:flex;border:1.5px solid #1a1a1a;border-radius:8px;overflow:hidden"><span style="padding:3px 12px;background:#1a1a1a;color:#fff">Latest</span><span style="padding:3px 12px;color:#aaa">Hot</span></div><a href="#H01m" style="padding:3px 10px;border:1.5px solid #1a1a1a;border-radius:14px;background:#1a1a1a;color:#fff">Tracked ✓</a></div>
+<div style="flex:none;padding:0 14px 6px;font-size:12px;color:#555">From communities you track or watch</div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:0 14px">
+<div style="display:flex;flex-direction:column;gap:3px;padding:8px 0;border-bottom:1px solid #e2e2e2"><span style="font-size:12px;color:#555">Finishing · Woodworking</span><span style="font-size:16px;line-height:1.1">Oil vs. hardwax on a walnut desk top?</span><span style="font-size:12px;color:#666">mara_k · 2h · 8 replies · 3 new</span></div>
+<div style="display:flex;flex-direction:column;gap:3px;padding:8px 0;border-bottom:1px solid #e2e2e2"><span style="font-size:12px;color:#555">Repairs · Electronics</span><span style="font-size:16px;line-height:1.1">Bench PSU hums after a fuse swap</span><span style="font-size:12px;color:#666">devon · 5h · 14 replies</span></div>
+<div style="display:flex;flex-direction:column;gap:3px;padding:8px 0"><span style="font-size:12px;color:#555">Finishing · Woodworking</span><span style="font-size:16px;line-height:1.1">Dewaxed shellac under water-based poly</span><span style="font-size:12px;color:#666">sunil.p · 2d · 11 replies</span></div>
+</div>
+<dc-import name="TabBar" active="home" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Tracked prototyped on Latest only. Hot is disabled while Tracked is on, so filtered and unfiltered results never mix.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Scope is community/category notification level (Tracking or Watching), not individually tracked discussions.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span> Tracked + Hot support. Empty → <a href="#H01te" style="text-decoration:underline">H01te</a></div>
+</div></div>
+
+<div class="dv-opt" id="H01te"><div class="dv-olabel"><a class="dv-oid" href="#H01te">H01te</a>Home · Tracked empty</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;padding:2px 14px 6px;display:flex;flex-direction:column;gap:2px"><div style="display:flex;justify-content:flex-end;gap:14px;font-size:14px"><span>Search</span><span>+ Create</span></div><div style="font-size:30px;line-height:1.05">Home</div></div>
+<div style="flex:none;padding:0 14px 8px;display:flex;gap:8px;align-items:center;font-size:13px"><div style="display:flex;border:1.5px solid #1a1a1a;border-radius:8px;overflow:hidden"><span style="padding:3px 12px;background:#1a1a1a;color:#fff">Latest</span><span style="padding:3px 12px;color:#aaa">Hot</span></div><a href="#H01m" style="padding:3px 10px;border:1.5px solid #1a1a1a;border-radius:14px;background:#1a1a1a;color:#fff">Tracked ✓</a></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:0 28px;text-align:center">
+<span style="width:56px;height:56px;border:1.5px dashed #999;border-radius:12px"></span>
+<div style="font-size:20px;line-height:1.1">Nothing tracked yet</div>
+<div style="font-size:14px;color:#555;line-height:1.25">Track or watch a community and its new discussions show up here.</div>
+<a href="#CO01" style="padding:8px 16px;border:2px solid #1a1a1a;border-radius:10px;font-size:15px">Browse communities</a>
+<a href="#H01m" style="font-size:14px;padding:6px">Show all Latest</a>
+</div>
+<dc-import name="TabBar" active="home" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> No interest picker or forced onboarding. Empty state points to Communities.</div>
+</div></div>
+
+<div class="dv-opt" id="H01h"><div class="dv-olabel"><a class="dv-oid" href="#H01h">H01h</a>Home · Hot (Tracked unavailable)</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;padding:2px 14px 6px;display:flex;flex-direction:column;gap:2px"><div style="display:flex;justify-content:flex-end;gap:14px;font-size:14px"><span>Search</span><span>+ Create</span></div><div style="font-size:30px;line-height:1.05">Home</div></div>
+<div style="flex:none;padding:0 14px 4px;display:flex;gap:8px;align-items:center;font-size:13px"><div style="display:flex;border:1.5px solid #1a1a1a;border-radius:8px;overflow:hidden"><a href="#H01m" style="padding:3px 12px">Latest</a><span style="padding:3px 12px;background:#1a1a1a;color:#fff">Hot</span></div><span style="padding:3px 10px;border:1.5px solid #bbb;border-radius:14px;color:#aaa">Tracked</span></div>
+<div style="flex:none;padding:0 14px 6px;font-size:12px;color:#555">Tracked filter works with Latest</div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:0 14px">
+<div style="display:flex;flex-direction:column;gap:3px;padding:8px 0;border-bottom:1px solid #e2e2e2"><span style="font-size:12px;color:#555">Gardening</span><span style="font-size:16px;line-height:1.1">Overwintering figs in a 5 gal pot</span><span style="font-size:12px;color:#666">ines.r · 1d · 31 likes · 22 replies</span></div>
+<div style="display:flex;flex-direction:column;gap:3px;padding:8px 0;border-bottom:1px solid #e2e2e2"><span style="font-size:12px;color:#555">Repairs · Electronics</span><span style="font-size:16px;line-height:1.1">Bench PSU hums after a fuse swap</span><span style="font-size:12px;color:#666">devon · 5h · 3 likes · 14 replies</span></div>
+<div style="display:flex;flex-direction:column;gap:3px;padding:8px 0"><span style="font-size:12px;color:#555">Joinery · Woodworking</span><span style="font-size:16px;line-height:1.1">First drawbored mortise and tenon</span><span style="font-size:12px;color:#666">alex.h · 4h · 9 likes · 6 replies</span></div>
+</div>
+<dc-import name="TabBar" active="home" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span> Whether Hot can be filtered to tracked. Until verified, Tracked is disabled on Hot and the reason is shown.</div>
+</div></div>
+
+</div>
+<p class="dv-next">Try next: "Tracked as a separate segmented control" · "pull-to-refresh and new-items pill on <a class="dv-oid" href="#H01m">H01m</a>"</p>
+</section>
+
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">CO</a><span class="dv-tname">Communities — directory, restricted, notification level, About</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="CO01"><div class="dv-olabel"><a class="dv-oid" href="#CO01">CO01</a>Communities · member</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;padding:2px 14px 6px;display:flex;flex-direction:column;gap:2px"><div style="display:flex;justify-content:flex-end;gap:14px;font-size:14px"><a href="#SE01">Search</a><a href="Fomio%20Flow%20Completion.dc.html#C02gc">+ Create</a></div><div style="font-size:30px;line-height:1.05">Communities</div></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:0 14px;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;flex-direction:column;gap:5px;padding:6px 8px;border:1.5px dashed #1a1a1a;border-radius:8px"><span style="font-size:12px;color:#555">Tracked &amp; watched</span><div style="display:flex;gap:6px;font-size:13px"><a href="Fomio%20Core%20Flows.dc.html#CO02s" style="padding:3px 9px;border:1.5px solid #1a1a1a;border-radius:14px">Finishing · Watching</a><span style="padding:3px 9px;border:1.5px solid #1a1a1a;border-radius:14px">Repairs · Tracking</span></div></div>
+<span style="font-size:12px;color:#555">All communities</span>
+<div style="display:flex;flex-direction:column;font-size:15px">
+<a href="Fomio%20Core%20Flows.dc.html#CO02m" style="display:flex;flex-direction:column;padding:7px 0;border-bottom:1px solid #e2e2e2"><span style="display:flex;justify-content:space-between"><span>Woodworking</span><span>▾</span></span><span style="font-size:12px;color:#666">Furniture, tools and techniques</span></a>
+<div style="padding:6px 0 6px 16px;border-bottom:1px solid #e2e2e2">Hand Tools</div>
+<a href="Fomio%20Core%20Flows.dc.html#CO02s" style="padding:6px 0 6px 16px;border-bottom:1px solid #e2e2e2">Finishing</a>
+<div style="padding:6px 0 6px 16px;border-bottom:1px solid #e2e2e2">Joinery</div>
+<div style="display:flex;flex-direction:column;padding:7px 0;border-bottom:1px solid #e2e2e2"><span style="display:flex;justify-content:space-between"><span>Electronics</span><span>2 ›</span></span><span style="font-size:12px;color:#666">Repairs, microcontrollers, test gear</span></div>
+<div style="display:flex;flex-direction:column;padding:7px 0;border-bottom:1px solid #e2e2e2"><span>Gardening</span><span style="font-size:12px;color:#666">Growing food and flowers</span></div>
+<a href="#CO02r" style="display:flex;justify-content:space-between;align-items:center;padding:7px 0"><span>Makers Council</span><span style="font:10px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">RESTRICTED</span></a>
+</div>
+</div>
+<dc-import name="TabBar" active="communities" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Parent/child hierarchy from Discourse. "2 ›" = number of subcommunities, not members. No follower or growth counts.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px dashed #1a1a1a;border-radius:3px">CONDITIONAL</span> Tracked shortcuts appear only when the user has tracked/watched categories.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f5d77a;border-radius:3px">ASSUMPTION</span> Inline expand for parents; tapping a name opens CO02m (parent) or CO02s (child) in the Communities stack, signed in.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> + Create opens <a href="Fomio%20Flow%20Completion.dc.html#C02gc" style="text-decoration:underline">C02gc</a>, the Communities-tab chooser; its Cancel and Keep draft / Discard return here.</div>
+</div></div>
+
+<div class="dv-opt" id="CO01g"><div class="dv-olabel"><a class="dv-oid" href="#CO01g">CO01g</a>Communities · guest / nothing tracked</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;padding:2px 14px 6px;display:flex;flex-direction:column;gap:2px"><div style="display:flex;justify-content:flex-end;gap:14px;font-size:14px"><a href="#SE01">Search</a><a href="Fomio%20Flow%20Completion.dc.html#C19gc">+ Create</a></div><div style="font-size:30px;line-height:1.05">Communities</div></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:0 14px;display:flex;flex-direction:column;gap:8px">
+<div style="padding:7px 9px;border:1.5px solid #1a1a1a;border-radius:8px;font-size:13px;line-height:1.2;display:flex;gap:8px;align-items:center"><span style="flex:1">Sign in to track communities. Tracked ones get their own filter on Home.</span><a href="Fomio%20Core%20Flows.dc.html#AUTH" style="padding:3px 8px;border:1.5px solid #1a1a1a;border-radius:6px">Sign in</a></div>
+<div style="display:flex;flex-direction:column;font-size:15px">
+<div style="display:flex;flex-direction:column;padding:7px 0;border-bottom:1px solid #e2e2e2"><span style="display:flex;justify-content:space-between"><span>Woodworking</span><span>3 ›</span></span><span style="font-size:12px;color:#666">Furniture, tools and techniques</span></div>
+<div style="display:flex;flex-direction:column;padding:7px 0;border-bottom:1px solid #e2e2e2"><span style="display:flex;justify-content:space-between"><span>Electronics</span><span>2 ›</span></span><span style="font-size:12px;color:#666">Repairs, microcontrollers, test gear</span></div>
+<div style="display:flex;flex-direction:column;padding:7px 0;border-bottom:1px solid #e2e2e2"><span>Gardening</span><span style="font-size:12px;color:#666">Growing food and flowers</span></div>
+<div style="display:flex;flex-direction:column;padding:7px 0"><span>Announcements</span><span style="font-size:12px;color:#666">News from the site team</span></div>
+</div>
+</div>
+<dc-import name="TabBar" active="communities" guest="{{ true }}" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Guests see only categories the site exposes to anonymous users. Restricted ones simply don't appear.</div>
+<div>Same layout serves a member with nothing tracked (banner text changes, no sign-in).</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#ddd;border-radius:3px">SAMPLE-ONLY</span> + Create → C19gc (Communities gate; Not now returns here, sign-in opens C02gc). Banner Sign in has no stored action and returns to CO01. Search opens SE01, drawn for a member.</div>
+</div></div>
+
+<div class="dv-opt" id="CO02r"><div class="dv-olabel"><a class="dv-oid" href="#CO02r">CO02r</a>Community · restricted cue</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><a href="#CO01">‹ Communities</a><span>Makers Council</span><span>Search</span></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:10px 14px;display:flex;flex-direction:column;gap:9px">
+<div style="display:flex;gap:10px;align-items:center"><span style="width:40px;height:40px;flex:none;border:1.5px solid #1a1a1a;border-radius:9px"></span><span style="font-size:22px;line-height:1">Makers Council</span></div>
+<div style="padding:7px 9px;border:1.5px solid #1a1a1a;border-radius:8px;font-size:13px;line-height:1.2;display:flex;flex-direction:column;gap:2px"><span style="font:10px ui-monospace,monospace">RESTRICTED</span><span>Only some groups on this site can see this community. You're seeing it because you're in one of them.</span></div>
+<div style="font-size:13px;color:#444">Planning space for workshop volunteers.</div>
+<div style="display:flex;gap:8px;font-size:13px"><a href="#CO02n" style="padding:4px 10px;border:1.5px solid #1a1a1a;border-radius:7px">Normal ▾</a><span style="padding:4px 10px;border:1.5px dashed #1a1a1a;border-radius:7px">+ New discussion</span></div>
+<div style="display:flex;flex-direction:column"><div style="padding:8px 0;border-bottom:1px solid #e2e2e2;font-size:16px">Saturday open shop rota</div><div style="padding:8px 0;font-size:16px">Dust collector replacement quotes</div></div>
+</div>
+<dc-import name="TabBar" active="communities" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Cue derived only from Discourse's read-restricted flag. Never label "Private" or list groups unless the API returns them.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f5d77a;border-radius:3px">ASSUMPTION</span> Copy wording.</div>
+</div></div>
+
+<div class="dv-opt" id="CO02n"><div class="dv-olabel"><a class="dv-oid" href="#CO02n">CO02n</a>Notification level sheet</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#9a9a9a;overflow:hidden;display:flex;flex-direction:column;position:relative">
+<div style="flex:1;margin:40px 0 0;background:#c9c9c9;border-radius:14px 14px 0 0;padding:14px;font-size:14px;color:#555">Woodworking</div>
+<div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;border-top:2px solid #1a1a1a;padding:10px 16px 24px;display:flex;flex-direction:column;gap:2px">
+<span style="align-self:center;width:36px;height:4px;border-radius:2px;background:#bbb;margin-bottom:6px"></span>
+<div style="font-size:20px;margin-bottom:4px">Notifications for Woodworking</div>
+<a href="Fomio%20Core%20Flows.dc.html#CO02m" style="display:flex;flex-direction:column;padding:7px 0;border-bottom:1px solid #e2e2e2"><span style="font-size:15px">Watching</span><span style="font-size:12px;color:#555">Notified of every new reply in every discussion</span></a>
+<a href="Fomio%20Core%20Flows.dc.html#CO02m" style="display:flex;flex-direction:column;padding:7px 0;border-bottom:1px solid #e2e2e2"><span style="font-size:15px">Watching first post</span><span style="font-size:12px;color:#555">Notified of new discussions only</span></a>
+<a href="Fomio%20Core%20Flows.dc.html#CO02m" style="display:flex;justify-content:space-between;padding:7px 10px;margin:0 -10px;border:2px solid #1a1a1a;border-radius:8px"><span style="display:flex;flex-direction:column"><span style="font-size:15px">Tracking</span><span style="font-size:12px;color:#555">Unread counts shown; notified if mentioned or replied to</span></span><span>✓</span></a>
+<a href="Fomio%20Core%20Flows.dc.html#CO02m" style="display:flex;flex-direction:column;padding:7px 0;border-bottom:1px solid #e2e2e2"><span style="font-size:15px">Normal</span><span style="font-size:12px;color:#555">Notified only if mentioned or replied to</span></a>
+<a href="Fomio%20Core%20Flows.dc.html#CO02m" style="display:flex;flex-direction:column;padding:7px 0"><span style="font-size:15px">Muted</span><span style="font-size:12px;color:#555">Hidden from Latest; no notifications</span></a>
+</div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Levels are Discourse category notification levels; Tracking and Watching clearly distinguished. Write-through to server; show failure if it doesn't save.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f5d77a;border-radius:3px">ASSUMPTION</span> All five levels exposed; descriptions to be confirmed against site behavior.</div>
+</div></div>
+
+<div class="dv-opt" id="CO02a"><div class="dv-olabel"><a class="dv-oid" href="#CO02a">CO02a</a>Community · About (conditional)</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><a href="#H01m">‹ Home</a><span>Finishing</span><span>Search</span></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:10px 14px;display:flex;flex-direction:column;gap:9px">
+<span style="font-size:22px;line-height:1">Finishing</span>
+<div style="display:flex;border:1.5px solid #1a1a1a;border-radius:8px;overflow:hidden;font-size:13px;align-self:flex-start"><a href="Fomio%20Core%20Flows.dc.html#CO02h" style="padding:3px 10px">Latest</a><span style="padding:3px 10px;border-left:1.5px dashed #1a1a1a">Hot</span><span style="padding:3px 10px;background:#1a1a1a;color:#fff">About</span></div>
+<div style="font-size:14px;line-height:1.3">Stains, oils, film finishes and fixing blotchy results.</div>
+<div style="font-size:14px;line-height:1.3">Post your species, prep grit and product. Photos in daylight help others diagnose problems.</div>
+<span style="font-size:13px;padding:6px 10px;border:1.5px solid #1a1a1a;border-radius:7px;align-self:flex-start">Read the full About discussion ›</span>
+</div>
+<dc-import name="TabBar" active="home" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px dashed #1a1a1a;border-radius:3px">CONDITIONAL</span> Only when the category has description/about content. Source is the category's own Discourse content.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#ddd;border-radius:3px">SAMPLE-ONLY</span> Drawn for a member in the Home stack (Latest → CO02h). Guest CO02 links here too; the guest version is the same with guest tab bar and Latest → CO02.</div>
+</div></div>
+
+</div>
+<p class="dv-next">Try next: "communities directory as grouped sections instead of inline expand" · "<a class="dv-oid" href="#CO02n">CO02n</a> with only 3 levels"</p>
+</section>
+
+<section class="dv-turn" id="t3">
+<div class="dv-thd"><a class="dv-tid" href="#t3">D</a><span class="dv-tname">Discussion variants — closed, inaccessible, exploratory nested</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="D01c"><div class="dv-olabel"><a class="dv-oid" href="#D01c">D01c</a>Discussion · closed</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><span>‹ Repairs</span><span style="display:flex;gap:14px"><span>Share</span><span>Bookmark</span><span>•••</span></span></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:10px 14px;display:flex;flex-direction:column;gap:8px">
+<span style="font-size:12px;color:#555">Repairs · Electronics</span>
+<div style="font-size:21px;line-height:1.05">Bench PSU hums after a fuse swap</div>
+<div style="padding:7px 9px;border:2px solid #1a1a1a;border-radius:8px;font-size:14px;line-height:1.2">Closed. New replies are turned off.</div>
+<div style="display:flex;gap:7px;align-items:center;font-size:13px"><span style="width:22px;height:22px;border-radius:50%;border:1.5px solid #1a1a1a"></span>devon<span style="color:#777">· 3d · #1</span></div>
+<div style="font-size:14px;line-height:1.2">Replaced the 2A fuse with the same rating, now there's a 50 Hz hum…</div>
+<div style="display:flex;gap:6px;font-size:13px"><span style="padding:3px 8px;border:1.5px dashed #1a1a1a;border-radius:6px">Like 3</span><span style="padding:3px 8px;border:1.5px solid #1a1a1a;border-radius:6px">Share</span></div>
+</div>
+<dc-import name="TabBar" active="home" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Reply/Quote removed, not just disabled. Bookmark/Share remain. Status from Discourse (closed/archived).</div>
+</div></div>
+
+<div class="dv-opt" id="D01x"><div class="dv-olabel"><a class="dv-oid" href="#D01x">D01x</a>Discussion · inaccessible</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;align-items:center;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><a href="#N01">‹ Back</a></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:0 28px;text-align:center">
+<span style="width:56px;height:56px;border:1.5px dashed #999;border-radius:12px"></span>
+<div style="font-size:20px;line-height:1.1">You can't open this discussion</div>
+<div style="font-size:14px;color:#555;line-height:1.25">It may have been removed, or it's in a community you don't have access to.</div>
+<a href="Fomio%20Core%20Flows.dc.html#AUTH" style="padding:8px 16px;border:2px solid #1a1a1a;border-radius:10px;font-size:15px">Sign in (guests only)</a>
+<a href="#H01m" style="font-size:14px;padding:6px">Go to Home</a>
+</div>
+<dc-import name="TabBar" active="home" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Doesn't reveal title or community. Same copy for 403 and 404 unless Discourse distinguishes safely.</div>
+</div></div>
+
+<div class="dv-opt" id="D01n"><div class="dv-olabel"><a class="dv-oid" href="#D01n">D01n</a>EXPLORATORY · nested replies</div>
+<div style="width:280px;height:600px;border:2px dashed #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="flex:none;padding:5px;background:#f0a99a;font:700 10px ui-monospace,monospace;text-align:center">EXPLORATORY · NOT AN APPROVED iOS DECISION</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><a href="Fomio%20Core%20Flows.dc.html#CO02">‹ Finishing</a><span>•••</span></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:10px 14px;display:flex;flex-direction:column;gap:7px;font-size:14px;line-height:1.2">
+<div style="font-size:19px;line-height:1.05">Oil vs. hardwax on a walnut desk top?</div>
+<div><span style="color:#666;font-size:12px">mara_k · #1</span><br>Sanded to 220. It's a daily desk…</div>
+<div style="display:flex;flex-direction:column;gap:6px;padding-left:10px;border-left:2px solid #1a1a1a"><div><span style="color:#666;font-size:12px">devon · #2</span><br>Hardwax oil is easier to spot-repair.</div>
+<div style="display:flex;flex-direction:column;gap:6px;padding-left:10px;border-left:2px solid #999"><div><span style="color:#666;font-size:12px">mara_k · #4 → devon</span><br>Which brand?</div><div><span style="color:#666;font-size:12px">devon · #5 → mara_k</span><br>Any of the big ones, follow the can.</div></div>
+<span style="font-size:13px;text-decoration:underline">Show 2 more replies</span></div>
+<div style="display:flex;flex-direction:column;gap:6px;padding-left:10px;border-left:2px solid #1a1a1a"><div><span style="color:#666;font-size:12px">ines.r · #3</span><br>Rubbing oil + paste wax worked for me.</div></div>
+<div style="display:flex;gap:6px;font-size:13px;margin-top:auto"><a href="Fomio%20Core%20Flows.dc.html#D01" style="padding:4px 9px;border:1.5px solid #1a1a1a;border-radius:6px">Compare: chronological D01</a></div>
+</div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span> Tracks the latest web direction, but native presentation and API support for nesting are unverified. Post numbers stay visible so exact-post links still resolve.</div>
+<div>Open questions: depth cap, reply-to-reply target in C10, VoiceOver hierarchy.</div>
+</div></div>
+
+</div>
+<p class="dv-next">Try next: "a third reply presentation: chronological with reply-to chips" · "show the ••• overflow sheet on D01"</p>
+</section>
+
+<section class="dv-turn" id="t4">
+<div class="dv-thd"><a class="dv-tid" href="#t4">SE</a><span class="dv-tname">Search — global utility</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="SE01"><div class="dv-olabel"><a class="dv-oid" href="#SE01">SE01</a>Search · results</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;gap:8px;align-items:center;padding:4px 12px 8px"><div style="flex:1;padding:6px 10px;border:1.5px solid #1a1a1a;border-radius:9px;font-size:15px">walnut finish</div><a href="#H01m" style="font-size:15px">Cancel</a></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:0 14px;display:flex;flex-direction:column;gap:6px">
+<span style="font-size:12px;color:#555">Discussions</span>
+<a href="Fomio%20Flow%20Completion.dc.html#D01mse" style="display:flex;flex-direction:column;padding:6px 0;border-bottom:1px solid #e2e2e2"><span style="font-size:15px;line-height:1.1">Oil vs. hardwax on a walnut desk top?</span><span style="font-size:12px;color:#666">Finishing · "…on <b>walnut</b>, which <b>finish</b> survives…"</span></a>
+<div style="display:flex;flex-direction:column;padding:6px 0;border-bottom:1px solid #e2e2e2"><span style="font-size:15px;line-height:1.1">Walnut darkening under water-based finish</span><span style="font-size:12px;color:#666">Finishing · 1y</span></div>
+<span style="align-self:center;font-size:13px;padding:5px 12px;border:1.5px solid #1a1a1a;border-radius:7px">Load more discussions</span>
+<span style="font-size:12px;color:#555">Communities</span>
+<a href="Fomio%20Core%20Flows.dc.html#CO02h" style="padding:6px 0;border-bottom:1px solid #e2e2e2;font-size:15px">Finishing <span style="font-size:12px;color:#666">in Woodworking</span></a>
+<span style="font-size:12px;color:#555">Members</span>
+<a href="#U01o" style="display:flex;gap:8px;align-items:center;padding:6px 0;font-size:15px"><span style="width:22px;height:22px;border-radius:50%;border:1.5px solid #1a1a1a"></span>walnut_works</a>
+</div>
+<dc-import name="TabBar" active="home" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><b>In</b> Search in any tab's nav bar · <b>Out</b> result → <a href="Fomio%20Flow%20Completion.dc.html#D01mse" style="text-decoration:underline">D01mse</a> / <a href="Fomio%20Core%20Flows.dc.html#CO02h" style="text-decoration:underline">CO02h</a> / <a href="#U01o" style="text-decoration:underline">U01o</a>; back restores query, scroll and loaded pages.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#ddd;border-radius:3px">SAMPLE-ONLY</span> Drawn for a member in the Home stack. Guest search (from H01g, CO02, CO02pg, CO01g) uses this layout with the guest tab bar and guest destinations D01 / CO02; not drawn. Cancel is wired to H01m; on device it returns to the screen that opened Search.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Only result types Discourse returns. No filter UI until supported filters are confirmed (<span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span>).</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f5d77a;border-radius:3px">ASSUMPTION</span> Search pushes within the current tab's stack; Members section may require sign-in per site settings.</div>
+</div></div>
+
+<div class="dv-opt" id="SE01e"><div class="dv-olabel"><a class="dv-oid" href="#SE01e">SE01e</a>Search · no results</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;gap:8px;align-items:center;padding:4px 12px 8px"><div style="flex:1;padding:6px 10px;border:1.5px solid #1a1a1a;border-radius:9px;font-size:15px">walnut finsh shellack</div><span style="font-size:15px">Cancel</span></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:0 28px;text-align:center">
+<div style="font-size:20px;line-height:1.1">No results for "walnut finsh shellack"</div>
+<div style="font-size:14px;color:#555;line-height:1.25">Check spelling or try fewer words.</div>
+</div>
+<dc-import name="TabBar" active="home" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div>Query stays in the field. Error variant uses <a href="Fomio%20Composer%20States.dc.html#ER01" style="text-decoration:underline">ER01</a>.</div>
+</div></div>
+
+</div>
+</section>
+
+<section class="dv-turn" id="t5">
+<div class="dv-thd"><a class="dv-tid" href="#t5">N</a><span class="dv-tname">Notifications</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="N01"><div class="dv-olabel"><a class="dv-oid" href="#N01">N01</a>Notifications · unread / read</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;padding:2px 14px 6px;display:flex;flex-direction:column;gap:2px"><div style="display:flex;justify-content:flex-end;gap:14px;font-size:14px"><span>Mark all read</span><a href="#SE01">Search</a><span>+ Create</span></div><div style="font-size:30px;line-height:1.05">Notifications</div></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:0 14px;display:flex;flex-direction:column">
+<a href="Fomio%20Composer%20States.dc.html#LK01" style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #e2e2e2"><span style="width:8px;height:8px;margin-top:6px;border-radius:50%;background:#1a1a1a;flex:none"></span><span style="display:flex;flex-direction:column"><span style="font-size:15px;line-height:1.15"><b style="font-weight:400;text-decoration:underline">devon</b> replied to your post</span><span style="font-size:12px;color:#666">Bench PSU hums after a fuse swap · reply #14 · 5m</span></span></a>
+<div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #e2e2e2"><span style="width:8px;height:8px;margin-top:6px;border-radius:50%;background:#1a1a1a;flex:none"></span><span style="display:flex;flex-direction:column"><span style="font-size:15px;line-height:1.15">priya mentioned you</span><span style="font-size:12px;color:#666">Deep sleep current on a dev board · #6 · 1h</span></span></div>
+<a href="#N01x" style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid #e2e2e2;color:#555"><span style="width:8px;flex:none"></span><span style="display:flex;flex-direction:column"><span style="font-size:15px;line-height:1.15">ines.r liked your reply</span><span style="font-size:12px;color:#777">Overwintering figs in a 5 gal pot · 1d</span></span></a>
+<div style="display:flex;gap:8px;padding:8px 0;color:#555"><span style="width:8px;flex:none"></span><span style="display:flex;flex-direction:column"><span style="font-size:15px;line-height:1.15">New discussion in Finishing (Watching)</span><span style="font-size:12px;color:#777">Blotchy cherry: can gel stain save it? · 2d</span></span></div>
+</div>
+<dc-import name="TabBar" active="notifications" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><b>Out</b> row → exact target (topic ID + post number) → <a href="Fomio%20Composer%20States.dc.html#LK01" style="text-decoration:underline">LK01</a>; missing → <a href="#N01x" style="text-decoration:underline">N01x</a>. Marked read on open.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span> Push delivery (provider, opt-in timing, payload). This list is in-app only.</div>
+</div></div>
+
+<div class="dv-opt" id="N01e"><div class="dv-olabel"><a class="dv-oid" href="#N01e">N01e</a>Notifications · empty</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;padding:2px 14px 6px"><div style="font-size:30px;line-height:1.05;margin-top:18px">Notifications</div></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:0 28px;text-align:center">
+<div style="font-size:20px">No notifications yet</div>
+<div style="font-size:14px;color:#555;line-height:1.25">Replies, mentions and likes on your posts show up here.</div>
+</div>
+<dc-import name="TabBar" active="notifications" hint-size="100%,54px"></dc-import>
+</div>
+</div>
+
+<div class="dv-opt" id="N01x"><div class="dv-olabel"><a class="dv-oid" href="#N01x">N01x</a>Notification · target missing</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;align-items:center;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><a href="#N01">‹ Notifications</a></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:0 28px;text-align:center">
+<div style="font-size:20px;line-height:1.1">This post isn't available</div>
+<div style="font-size:14px;color:#555;line-height:1.25">It may have been deleted, or moved somewhere you can't access.</div>
+<a href="#N01" style="padding:8px 16px;border:2px solid #1a1a1a;border-radius:10px;font-size:15px">Back to Notifications</a>
+</div>
+<dc-import name="TabBar" active="notifications" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div>If the topic exists but the post doesn't, open the topic with notice instead → <a href="Fomio%20Composer%20States.dc.html#LK02" style="text-decoration:underline">LK02</a>.</div>
+</div></div>
+
+<div class="dv-opt" id="N01g"><div class="dv-olabel"><a class="dv-oid" href="#N01g">N01g</a>Notifications · guest</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;padding:2px 14px 6px"><div style="font-size:30px;line-height:1.05;margin-top:18px">Notifications</div></div>
+<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:0 28px;text-align:center">
+<div style="font-size:20px">Sign in to see notifications</div>
+<div style="font-size:14px;color:#555;line-height:1.25">Get told when someone replies to you or mentions you.</div>
+<a href="Fomio%20Core%20Flows.dc.html#AUTH" style="padding:8px 16px;border:2px solid #1a1a1a;border-radius:10px;font-size:15px;background:#1a1a1a;color:#fff">Sign in</a>
+</div>
+<dc-import name="TabBar" active="notifications" guest="{{ true }}" hint-size="100%,54px"></dc-import>
+</div>
+</div>
+
+</div>
+</section>
+
+<section class="dv-turn" id="t6">
+<div class="dv-thd"><a class="dv-tid" href="#t6">ME</a><span class="dv-tname">Me — profile, activity, bookmarks, drafts, conditional messages &amp; settings</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="ME01"><div class="dv-olabel"><a class="dv-oid" href="#ME01">ME01</a>Me · member</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;padding:2px 14px 6px;display:flex;flex-direction:column;gap:2px"><div style="display:flex;justify-content:flex-end;gap:14px;font-size:14px"><a href="#SE01">Search</a><span>+ Create</span></div><div style="font-size:30px;line-height:1.05">Me</div></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:0 14px;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;gap:10px;align-items:center;padding:6px 0"><span style="width:46px;height:46px;border-radius:50%;border:1.5px solid #1a1a1a;flex:none"></span><span style="display:flex;flex-direction:column"><span style="font-size:18px">Jonah Wells</span><span style="font-size:13px;color:#555">@jonah.w</span></span></div>
+<div style="display:flex;flex-direction:column;font-size:16px">
+<a href="#U01" style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #e2e2e2"><span>Profile</span><span>›</span></a>
+<a href="#A01" style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #e2e2e2"><span>Activity</span><span>›</span></a>
+<a href="#B01" style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #e2e2e2"><span>Bookmarks</span><span>›</span></a>
+<a href="#DR01" style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #e2e2e2"><span>Drafts</span><span>2 ›</span></a>
+<a href="#PM01" style="display:flex;justify-content:space-between;padding:9px 6px;margin:4px -6px;border:1.5px dashed #1a1a1a;border-radius:7px"><span>Private Messages</span><span>›</span></a>
+<a href="#ST01" style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #e2e2e2"><span>Settings</span><span>›</span></a>
+</div>
+<span style="font-size:15px;padding:8px 0">Sign out</span>
+</div>
+<dc-import name="TabBar" active="me" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px dashed #1a1a1a;border-radius:3px">CONDITIONAL</span> Private Messages only if the site enables them for this user. Separate from chat (none in baseline).</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span> Launch depth of PM and Settings. Sign-out effect on local drafts.</div>
+</div></div>
+
+<div class="dv-opt" id="ME01g"><div class="dv-olabel"><a class="dv-oid" href="#ME01g">ME01g</a>Me · guest</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;padding:2px 14px 6px"><div style="font-size:30px;line-height:1.05;margin-top:18px">Me</div></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:10px;padding:20px 20px">
+<div style="font-size:20px;line-height:1.1">Sign in to post, track communities and save discussions</div>
+<a href="Fomio%20Core%20Flows.dc.html#AUTH" style="display:flex;align-items:center;justify-content:center;min-height:42px;border:2px solid #1a1a1a;border-radius:10px;background:#1a1a1a;color:#fff;font-size:16px">Sign in</a>
+<a href="Fomio%20Core%20Flows.dc.html#AUTH" style="display:flex;align-items:center;justify-content:center;min-height:42px;border:2px solid #1a1a1a;border-radius:10px;font-size:16px">Create account</a>
+<a href="#ST01" style="display:flex;justify-content:space-between;padding:10px 0;margin-top:auto;border-top:1px solid #e2e2e2;font-size:16px"><span>Device settings</span><span>›</span></a>
+</div>
+<dc-import name="TabBar" active="me" guest="{{ true }}" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f5d77a;border-radius:3px">ASSUMPTION</span> Device-only settings reachable as guest.</div>
+</div></div>
+
+<div class="dv-opt" id="U01"><div class="dv-olabel"><a class="dv-oid" href="#U01">U01</a>Profile · own</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><a href="#ME01">‹ Me</a><span>Profile</span><a href="#ST01">Edit</a></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:12px 14px;display:flex;flex-direction:column;gap:9px">
+<div style="display:flex;gap:10px;align-items:center"><span style="width:56px;height:56px;border-radius:50%;border:1.5px solid #1a1a1a;flex:none"></span><span style="display:flex;flex-direction:column"><span style="font-size:20px">Jonah Wells</span><span style="font-size:13px;color:#555">@jonah.w · joined Mar 2024</span></span></div>
+<div style="font-size:14px;line-height:1.25">Weekend furniture maker in a one-car garage. Mostly walnut and oak, hand tools where I can… <span style="text-decoration:underline">More</span></div>
+<div style="display:flex;border:1.5px solid #1a1a1a;border-radius:8px;overflow:hidden;font-size:13px;align-self:flex-start"><span style="padding:3px 12px;background:#1a1a1a;color:#fff">Overview</span><a href="#A01" style="padding:3px 12px">Activity</a></div>
+<span style="font-size:12px;color:#555">Recent discussions</span>
+<div style="padding:6px 0;border-bottom:1px solid #e2e2e2;font-size:15px">First hardwax finish on a walnut desk: results</div>
+<div style="padding:6px 0;font-size:15px">Spoon carving knives for a beginner?</div>
+</div>
+<dc-import name="TabBar" active="me" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Readable labeled segments, expandable bio, no follower counts. Fields render only if present.</div>
+</div></div>
+
+<div class="dv-opt" id="U01o"><div class="dv-olabel"><a class="dv-oid" href="#U01o">U01o</a>Profile · other member</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><a href="#SE01">‹ Search</a><span>mara_k</span><span>•••</span></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:12px 14px;display:flex;flex-direction:column;gap:9px">
+<div style="display:flex;gap:10px;align-items:center"><span style="width:56px;height:56px;border-radius:50%;border:1.5px solid #1a1a1a;flex:none"></span><span style="display:flex;flex-direction:column"><span style="font-size:20px">Mara K.</span><span style="font-size:13px;color:#555">@mara_k · joined 2021</span></span></div>
+<a href="#PM01" style="align-self:flex-start;padding:5px 14px;border:1.5px dashed #1a1a1a;border-radius:8px;font-size:14px">Message</a>
+<div style="font-size:14px;line-height:1.25">Restoring mid-century pieces, one veneer patch at a time.</div>
+<div style="display:flex;border:1.5px solid #1a1a1a;border-radius:8px;overflow:hidden;font-size:13px;align-self:flex-start"><span style="padding:3px 12px;background:#1a1a1a;color:#fff">Overview</span><span style="padding:3px 12px">Activity</span></div>
+<a href="Fomio%20Flow%20Completion.dc.html#D01mu" style="padding:6px 0;border-bottom:1px solid #e2e2e2;font-size:15px">Oil vs. hardwax on a walnut desk top?</a>
+<div style="padding:6px 0;font-size:15px">Veneer bubbles after 40 years: iron or inject?</div>
+</div>
+<dc-import name="TabBar" active="home" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px dashed #1a1a1a;border-radius:3px">CONDITIONAL</span> Message only when PMs are enabled and the user may message this member.</div>
+<div>••• holds report/mute only if permitted by Discourse.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#ddd;border-radius:3px">SAMPLE-ONLY</span> Drawn as opened from SE01 (Home stack). From an author tap it pushes in the current tab and Back returns there.</div>
+</div></div>
+
+<div class="dv-opt" id="A01"><div class="dv-olabel"><a class="dv-oid" href="#A01">A01</a>Activity</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><a href="#ME01">‹ Me</a><span>Activity</span><span style="width:30px"></span></div>
+<div style="flex:none;padding:8px 14px"><div style="display:flex;border:1.5px solid #1a1a1a;border-radius:8px;overflow:hidden;font-size:13px;align-self:flex-start"><span style="padding:3px 12px;background:#1a1a1a;color:#fff">All</span><span style="padding:3px 12px">Discussions</span><span style="padding:3px 12px">Replies</span></div></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:0 14px;display:flex;flex-direction:column">
+<a href="Fomio%20Composer%20States.dc.html#LK01" style="display:flex;flex-direction:column;padding:8px 0;border-bottom:1px solid #e2e2e2"><span style="font-size:12px;color:#666">Replied · reply #9 · 9:43</span><span style="font-size:15px;line-height:1.1">Oil vs. hardwax on a walnut desk top?</span><span style="font-size:12px;color:#777">"I used a hardwax oil on white oak…"</span></a>
+<a href="Fomio%20Core%20Flows.dc.html#C16n" style="display:flex;flex-direction:column;padding:8px 0;border-bottom:1px solid #e2e2e2"><span style="font-size:12px;color:#666">Started discussion · 9:55</span><span style="font-size:15px;line-height:1.1">First hardwax finish on a walnut desk: results</span></a>
+<div style="display:flex;flex-direction:column;padding:8px 0"><span style="font-size:12px;color:#666">Replied · reply #3 · 3d</span><span style="font-size:15px;line-height:1.1">Spoon carving knives for a beginner?</span></div>
+</div>
+<dc-import name="TabBar" active="me" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Reply rows open the exact post (topic ID + post number), not the topic top, inside the Me stack.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#ddd;border-radius:3px">DEFERRED</span> Outside the completed core journeys. Reply #9 opens LK01, the exact-post pattern drawn for a different topic (Bench PSU #14, Notifications tab). Started discussion opens C16n, drawn as a post-publish outcome in the Communities tab.</div>
+</div></div>
+
+<div class="dv-opt" id="B01"><div class="dv-olabel"><a class="dv-oid" href="#B01">B01</a>Bookmarks · incl. missing target</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><a href="#ME01">‹ Me</a><span>Bookmarks</span><span style="width:30px"></span></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:0 14px;display:flex;flex-direction:column">
+<a href="Fomio%20Flow%20Completion.dc.html#D01mb" style="display:flex;flex-direction:column;padding:8px 0;border-bottom:1px solid #e2e2e2"><span style="font-size:12px;color:#666">Discussion · Finishing</span><span style="font-size:15px;line-height:1.1">Oil vs. hardwax on a walnut desk top?</span></a>
+<a href="Fomio%20Composer%20States.dc.html#LK01" style="display:flex;flex-direction:column;padding:8px 0;border-bottom:1px solid #e2e2e2"><span style="font-size:12px;color:#666">Reply #14 by devon · Repairs</span><span style="font-size:15px;line-height:1.1">Bench PSU hums after a fuse swap</span></a>
+<div style="display:flex;flex-direction:column;gap:4px;padding:8px;margin-top:8px;border:1.5px dashed #999;border-radius:8px;color:#555"><span style="font-size:15px">This bookmarked post is no longer available</span><span style="font-size:13px;padding:4px 0;text-decoration:underline">Remove bookmark</span></div>
+</div>
+<dc-import name="TabBar" active="me" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Bookmarks may target a topic or a specific post; label says which.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span> Reminder/expiry options.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#ddd;border-radius:3px">SAMPLE-ONLY</span> The discussion opens D01mb (Me tab, Back → Bookmarks). Reply #14 opens LK01, drawn in the Notifications tab; on device it pushes inside the Me stack.</div>
+</div></div>
+
+<div class="dv-opt" id="DR01"><div class="dv-olabel"><a class="dv-oid" href="#DR01">DR01</a>Drafts · resume / discard</div>
+<div style="width:280px;height:600px;border:2px solid #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="height:22px;flex:none;padding:6px 24px 0;font:11px ui-monospace,monospace;color:#888">9:41</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:4px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><a href="#ME01">‹ Me</a><span>Drafts</span><span style="width:30px"></span></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:0 14px;display:flex;flex-direction:column">
+<div style="display:flex;flex-direction:column;gap:4px;padding:9px 0;border-bottom:1px solid #e2e2e2"><span style="font-size:12px;color:#666">Reply · Overwintering figs in a 5 gal pot</span><span style="font-size:14px;line-height:1.15">"Mine survived at 0°C wrapped in burlap…"</span><span style="font-size:12px;font-family:ui-monospace,monospace">ON THIS DEVICE ONLY · 1h</span><div style="display:flex;gap:8px;font-size:14px"><a href="Fomio%20Core%20Flows.dc.html#DRr" style="padding:4px 12px;border:1.5px solid #1a1a1a;border-radius:7px">Resume</a><a href="Fomio%20Composer%20States.dc.html#C12" style="padding:4px 12px">Discard</a></div></div>
+<div style="display:flex;flex-direction:column;gap:4px;padding:9px 0"><span style="font-size:12px;color:#666">New discussion · Hand Tools</span><span style="font-size:14px;line-height:1.15">Spoon carving knives for a beginner?</span><span style="font-size:12px;font-family:ui-monospace,monospace">SAVED TO YOUR ACCOUNT · 2d</span><div style="display:flex;gap:8px;font-size:14px"><a href="Fomio%20Core%20Flows.dc.html#DRn" style="padding:4px 12px;border:1.5px solid #1a1a1a;border-radius:7px">Resume</a><span style="padding:4px 12px">Discard</span></div></div>
+</div>
+<dc-import name="TabBar" active="me" hint-size="100%,54px"></dc-import>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Truthful save location per draft. A local save is never labeled as saved to the account.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span> Draft storage, cross-device sync, retention on sign-out.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Resume opens the matching draft: figs reply → DRr, Hand Tools discussion → DRn. Not proof that drafts are recoverable.</div>
+</div></div>
+
+<div class="dv-opt" id="PM01"><div class="dv-olabel"><a class="dv-oid" href="#PM01">PM01</a>CONDITIONAL · Private Messages</div>
+<div style="width:280px;height:600px;border:2px dashed #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="flex:none;padding:5px;background:#f0a99a;font:700 10px ui-monospace,monospace;text-align:center">CONDITIONAL SCOPE · LAUNCH DEPTH UNRESOLVED</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><a href="#ME01">‹ Me</a><span>Messages</span><span style="border:1.5px dashed #1a1a1a;border-radius:5px;padding:0 5px">New</span></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:0 14px;display:flex;flex-direction:column">
+<div style="display:flex;gap:8px;padding:9px 0;border-bottom:1px solid #e2e2e2"><span style="width:8px;height:8px;margin-top:6px;border-radius:50%;background:#1a1a1a;flex:none"></span><span style="display:flex;flex-direction:column"><span style="font-size:15px">Workshop key pickup</span><span style="font-size:12px;color:#666">mara_k, you · 2h</span></span></div>
+<div style="display:flex;gap:8px;padding:9px 0;border-bottom:1px solid #e2e2e2"><span style="width:8px;flex:none"></span><span style="display:flex;flex-direction:column"><span style="font-size:15px">Re: your flagged post</span><span style="font-size:12px;color:#666">moderators, you · 5d</span></span></div>
+</div>
+<div style="flex:none;padding:8px 14px 16px;font:10px/1.4 ui-monospace,monospace;color:#666">conversation view reuses D01 + C10</div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span> Inbox types (personal/group), recipient picking and who-can-message permissions are unverified. Not chat.</div>
+</div></div>
+
+<div class="dv-opt" id="ST01"><div class="dv-olabel"><a class="dv-oid" href="#ST01">ST01</a>CONDITIONAL · Settings</div>
+<div style="width:280px;height:600px;border:2px dashed #1a1a1a;border-radius:30px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
+<div style="flex:none;padding:5px;background:#f0a99a;font:700 10px ui-monospace,monospace;text-align:center">LAUNCH DEPTH UNRESOLVED</div>
+<div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:6px 12px 8px;border-bottom:1px solid #ddd;font-size:15px"><a href="#ME01">‹ Me</a><span>Settings</span><span style="width:30px"></span></div>
+<div style="flex:1;min-height:0;overflow:hidden;padding:8px 14px;display:flex;flex-direction:column;gap:4px;font-size:15px">
+<span style="font-size:12px;color:#555;font-family:ui-monospace,monospace">YOUR ACCOUNT · SAVED ON THE SERVER</span>
+<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e2e2e2"><span>Profile &amp; bio</span><span>›</span></div>
+<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e2e2e2"><span>Email notifications</span><span>›</span></div>
+<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e2e2e2"><span>Default notification levels</span><span>›</span></div>
+<div style="display:flex;justify-content:space-between;padding:7px 0;color:#555"><span>More account options on the web</span><span>↗</span></div>
+<span style="font-size:12px;color:#555;font-family:ui-monospace,monospace;margin-top:8px">THIS DEVICE ONLY</span>
+<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e2e2e2"><span>Open links in app</span><span>On</span></div>
+<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e2e2e2"><span>Drafts on this device</span><span>›</span></div>
+<div style="display:flex;justify-content:space-between;padding:7px 0"><span>Text size</span><span style="color:#555">System</span></div>
+</div>
+</div>
+<div style="width:280px;font:12px/1.4 system-ui,sans-serif;color:#333;display:flex;flex-direction:column;gap:5px">
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span> Server preferences and device preferences in separate, labeled groups.</div>
+<div><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span> Which account settings are native vs. web. Moderation/admin may stay web-only; destination URL not defined.</div>
+</div></div>
+
+</div>
+<p class="dv-next">Try next: "PM01 conversation + recipient picker" · "<a class="dv-oid" href="#U01">U01</a> with Activity segment selected"</p>
+</section>
+</x-dc>
+</body>
+</html>

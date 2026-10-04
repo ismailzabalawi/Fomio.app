@@ -1,0 +1,14 @@
+date,method,route,status,trigger,evidence,notes
+2026-09-28,GET,/composer_messages,200,Open new topic/Reply/Edit,CDP Network events,Query keys composer_action and conditional topic_id/post_id
+2026-09-28,POST,/drafts.json,200,Type/save and close/edit initialization,CDP Network events,Response keys success and draft_sequence
+2026-09-28,GET,/drafts.json,200,Open latest drafts menu,CDP Network events,Query offset/limit; response drafts; research draft restored
+2026-09-28,DELETE,/drafts/:research_new_topic_key.json,200,Discard research draft,CDP Network events,Only the newly created inspection draft
+2026-09-28,DELETE,/drafts/:inspected_topic_key.json,200,Close inspected reply/edit,CDP Network events,No topic/post published or edited
+2026-09-28,PUT,/u/:current_username.json,200,Switch rich text then restore Markdown,CDP Network events,Initial composition_mode 0 restored
+2026-09-28,GET,/similar_topics,200,Type title/body,CDP Network events,Query keys title/raw; UI suggestions visible
+2026-09-28,GET,/u/search/users,200,Type mention prefix,CDP Network events,Query term/category_id/include_groups/limit; response users/groups
+2026-09-28,GET,/hashtags/search.json,200,Type hashtag prefix,CDP Network events,Query term/order[]; response success/results
+2026-09-28,GET,/hashtags,200,Render hashtag preview,CDP Network events,Query slugs[]/order[]
+2026-09-28,GET,/onebox,200,Paste standalone public URL,CDP Network events,Query url/refresh; link preview rendered
+2026-09-28,GET,/posts/:inspected_post_id,200,Open edit,CDP Network events,Raw/cooked/version/permission fields observed; save not submitted
+2026-09-28,GET,/presence/get,200,Open topic/reply/edit,CDP Network events,Reply-topic and edit-post presence channel keys

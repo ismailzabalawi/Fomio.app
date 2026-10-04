@@ -1,0 +1,145 @@
+# Discourse API reference
+
+## Source baseline
+
+- Inspected: 2026-10-02.
+- Local checkout: `/Volumes/Develop/Projects/Dicourse` (exact supplied path).
+- Git HEAD: `efbd165d6182b1c31cd8afd224625aef300689bd`.
+- An untracked `docs/sidebar-outlet-discovery.md` was present; it was not used to establish API behavior.
+- Backend project instructions: `AGENTS.md`, which links to `AI-AGENTS.md`.
+- No backend files were changed. No server was started and no HTTP contracts were tested.
+
+This baseline establishes source access, not a working deployment or a match with production. Recheck HEAD and relevant local changes when updating contracts. Local paths are developer-specific; update this document if the checkout moves.
+
+## Where to establish a contract
+
+### MVP design status — 2026-10-03
+
+The [finalized MVP mockups](design/mvp-design-handoff.md) passed a representative 117-render browser layout matrix with zero flags. This provides presentation evidence only. Community previews, photo uploads, drafts, Likes/Saved, notification targets and posting outcomes remain simulated; no new backend revision check, source contract review or live request was performed in the design/documentation pass. All endpoint verification statuses below remain unchanged. Deployment resources, enabled features, per-user scopes, draft persistence and pending-review visibility remain unresolved. Recheck backend HEAD before implementing.
+
+### Imported research status — 2026-10-02
+
+The [rebuilt IA](information-architecture.md) adds explicit review gates for profile/activity, bookmark management, private messages, category hierarchy resolution, tracked-sort combinations, nested replies, editor modes and draft recovery. These remain **unverified for the native app**. Backend HEAD was rechecked and unchanged while rebuilding the map; no new contract review or live request was performed. Historical browser success and web user-session permissions are not evidence of user-API-key access.
+
+Prior Fomio research is preserved in the [IA build guide and reference snapshot](ia-build-guide.md), with file hashes and checkout provenance. Backend HEAD was rechecked during import: `efbd165d6182b1c31cd8afd224625aef300689bd`, matching the initial baseline. This import performs no new endpoint contract review or live verification.
+
+The imported composer audits include a different backend revision, `7b4f0970506fb0ce7d4b6a851d252ace418330c8`, and historical browser-session observations. They do not prove availability with per-user API keys on the eventual app deployment. Existing endpoint statuses remain unchanged.
+
+Additional audit candidates from imported research: composer messages, similar topics, draft list/show/save/delete (sequence and owner handling), mention/hashtag autocomplete, Onebox, first-post topic metadata edits, upload lookup/direct-storage flows, presence, and conditional form templates. Status: **historical reference imported; current contracts and deployment availability unverified**. Inspect routes, controllers, serializers, authorization and request specs before implementing each. AI/poll/forms/chat and other plugin or setting-dependent behavior remain unresolved for the iOS deployment.
+
+Paths below are relative to the backend checkout.
+
+| Concern | Source |
+| --- | --- |
+| Core routes and HTTP methods | `config/routes.rb` |
+| Dynamic feed filters | `lib/discourse.rb`, `Discourse.filters` |
+| Inputs and response behavior | `app/controllers/` |
+| JSON fields and conditional fields | `app/serializers/` |
+| Permissions | `lib/guardian.rb`, `lib/guardian/`, controller checks |
+| Per-user key authentication | `app/controllers/user_api_keys_controller.rb`, `lib/auth/default_current_user_provider.rb`, `app/models/user_api_key.rb` |
+| Request examples and expected behavior | `spec/requests/` |
+| Plugin endpoints | `plugins/*/config/routes.rb`, plugin registration and controllers |
+| Feature availability | `config/site_settings.yml`, plugin settings, deployed site configuration |
+
+Useful serializers include `topic_list_serializer.rb`, `topic_view_serializer.rb`, and `post_serializer.rb`. Useful request specs include `topics_controller_spec.rb` and `user_api_keys_controller_spec.rb`.
+
+## Initial route inventory
+
+Status for every row: **source route identified; full contract and live behavior unverified**. Paths below use the JSON form where appropriate. A site's relative URL root must also be respected. Do not treat this table as a complete client specification.
+
+| App capability | Method and path | Controller / notes |
+| --- | --- | --- |
+| Latest feed | `GET /latest.json` | `list#latest`; generated from `Discourse.filters` |
+| Hot feed | `GET /hot.json` | `list#hot`; `hot` exists in this checkout's filter list |
+| Community directory | `GET /categories.json` | `categories#index` |
+| Community details | `GET /c/:id/show.json` | `categories#show` |
+| Community feed | `GET /c/<category_slug_path_with_id>/l/latest.json` | Dynamic category filter route; verify slug/ID resolution |
+| Community tracking | `POST /category/:category_id/notifications` | `categories#set_notifications`; reads `notification_level` |
+| Discussion | `GET /t/:slug/:topic_id.json` | `topics#show` |
+| Specific reply | `GET /t/:slug/:topic_id/:post_number.json` | `topics#show`; distinguish post number from post ID |
+| Additional discussion posts | `GET /t/:topic_id/posts.json` | `topics#posts`; batch parameters still need inspection |
+| Create discussion or reply | `POST /posts.json` | `posts#create`; controller supports `raw`, `topic_id`, `category`, and `reply_to_post_number`; inspect complete title and creation requirements |
+| Edit post | `PUT /posts/:id.json` | `posts#update`; inspect update payload separately |
+| Media upload | `POST /uploads.json` | `uploads#create`; multipart and external-upload contracts need audit |
+| Search | `GET /search.json`, `GET /search/query.json` | `search#show`, `search#query`; choose contract after inspection |
+| Notifications | `GET /notifications.json` | `notifications#index` |
+| Mark notifications read | `PUT /notifications/mark-read` | Collection route to `notifications#mark_read`; verify targeting parameters |
+| Bookmarks | `POST /bookmarks.json` | `bookmarks#create`; inspect bookmarkable type and ID requirements |
+| Request user API authorization | `GET /user-api-key/new` | `user_api_keys#new`; browser authorization flow, not direct credential collection |
+
+Reactions and chat each have local plugin routes under `plugins/discourse-reactions/` and `plugins/chat/`. Their presence on disk does not establish that Fomio enables them.
+
+## Authentication observations
+
+The current-user provider reads `User-Api-Key` and `User-Api-Client-Id` headers. It looks up an active hashed user key, enforces key scopes and rate limits, and rejects suspended or inactive users. These observations come from source inspection; the browser authorization flow is now implemented, but remains unverified against a deployed site.
+
+Before implementing authentication, verify allowed groups, scopes, callback rules, key issuance/encryption, expiry/revocation behavior, and client identification. Store member secrets in Keychain. Never ship an administrator key.
+
+## Contract verification workflow
+
+For each endpoint:
+
+1. Confirm route, method, format, and any plugin mount prefix.
+2. Read controller inputs, validation, service/model behavior, and Guardian checks.
+3. Inspect serializers for response envelope, optional fields, and permission-dependent actions.
+4. Read relevant request specs for anonymous, authenticated, and denied cases.
+5. Verify against the supplied running instance and record deployment version, settings, and enabled plugins that affect behavior.
+6. Save sanitized fixtures and document pagination, error responses, rate limits, and retry behavior before implementing Swift models and calls.
+
+Use explicit statuses: source identified, contract reviewed, live verified, or blocked. Record evidence and unresolved questions; do not promote a source observation to live verified without a real request.
+
+Priority audits: authentication → feeds/categories → discussion post-stream pagination → composer/create/edit → uploads → tracking → notifications and links. Check pending moderation responses and ambiguous write failures before implementing automatic retries. Draft recovery and duplicate-post prevention need their own design; route discovery alone does not solve them.
+
+## Deployment snapshot — 2026-10-04
+
+Observed read-only from `https://meta.fomio.app` through an admin browser session and public JSON requests. No settings were changed.
+
+- Version: `Discourse 2026.8.0-latest`, commit `7b4f0970506fb0ce7d4b6a851d252ace418330c8`. The local reference (`d4296c5e`) is 1,469 commits ahead; the deployed commit is its ancestor. Diffs in the posts, user-API-key, nested-topics, list and uploads controllers between the two revisions do not change the requests this app makes (user-API-key redirect now preserves an existing callback query; nested redirects respect the relative root; edit/whisper authorization tightened).
+- Nested replies exist at the deployed commit (`nested_topics_controller.rb`, `/children/:post_number` route, `nested_post` in `PostsController`). Settings: `nested_replies_enabled` true, `nested_replies_default` true, `nested_replies_max_depth` 3, `nested_replies_cap_nesting_depth` true, `nested_replies_default_sort` top, hot sort disabled.
+- User API keys: `allowed_user_api_auth_redirects` includes `fomio://auth_redirect` and `fomio://*`; `allow_user_api_key_scopes` = read, write, message_bus, push, notifications, session_info, one_time_password; `user_api_key_allowed_groups` = 1, 2, 0 (everyone); `revoke_user_api_keys_unused_days` 180.
+- Access/posting: `login_required` false, `invite_only` false, local logins enabled, `allow_uncategorized_topics` false, `default_composer_category` 4, `tagging_enabled` false, `min_topic_title_length` 5, `min_first_post_length` 20, `min_post_length` 2, `approve_post_count` 0.
+- Uploads: local storage (`enable_s3_uploads` false), `secure_uploads` false, `max_image_size_kb` 10240, image extensions only.
+- Enabled plugins: checklist, details, lazy videos, local dates, poll, presence, reactions, solved, spoiler alert, templates, topic voting. Chat and AI are disabled.
+- Anonymous `GET /latest.json`, `/categories.json`, `/t/:id.json` and `/n/:slug/:id.json` returned 200 with the fields the adapters decode (`topic_list.topics`, `more_topics_url`, `users`; `topic`, `op_post`, `roots`, `has_more_roots`, `page`). This is a guest read check only; no endpoint is promoted to live verified until the app itself makes the request.
+
+## Native implementation source review — 2026-10-03
+
+Current reference HEAD: `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`, rechecked before implementation and again during the documentation handoff on 2026-10-03. Only the unrelated untracked `docs/sidebar-outlet-discovery.md` is present. Backend unchanged; no backend server or request specs were run. Deployed verification was blocked pending base URL, version alignment, settings/plugins, callback/scopes and test users; see the 2026-10-04 deployment snapshot above for the resolved items. Test users remain pending. Swift tests use local fictional data, not live-response recordings.
+
+| Contract | Source evidence reviewed | Implementation / verification status |
+| --- | --- | --- |
+| Browser user key | `user_api_keys_controller.rb` new/create/redirect validation; `app/services/user_api_key/device_auth/crypto.rb`; `user_api_key_scope.rb`; `auth/default_current_user_provider.rb`; `spec/requests/user_api_keys_controller_spec.rb` RSA/padding/callback/group/scopes cases | Contract reviewed for classic browser flow: RSA 2048 OAEP SHA-1, nonce, client ID, encrypted callback payload. Read/write scopes and `session_info` depend on deployed allowlists. Keychain implementation is not live verified. |
+| Latest/category feeds | Dynamic routes in `config/routes.rb`; `list_controller.rb`; `TopicListSerializer`, `TopicListItemSerializer`, `ListableTopicSerializer`; `Guardian`; list/category request specs | Source-informed adapter uses `topic_list.topics`, user mapping and `more_topics_url`. Feed excerpt/media are optional. Live availability and site-specific required fields blocked. |
+| Categories | `categories_controller.rb#index/fetch_category_list`; `CategoryList`, `CategoryListSerializer`, `CategoryDetailedSerializer`, `BasicCategorySerializer`; category request specs for hidden/permitted subcategories | Contract reviewed: `include_subcategories=true` includes recursive `subcategory_list`; `parent_category_id` preserves hierarchy. Global `can_create_topic` plus category permission 1 (full) gates new-topic choices. Server still validates group/trust/tag rules. |
+| Nested replies | `/n/:slug/:topic_id` show/children/context routes; `NestedTopicsController`; `NestedTopic::ListRoots/ListChildren/ShowContext`; `NestedReplies::PostTreeSerializer/TreeLoader/Sort`; nested controller request specs | Contract reviewed at source: `nested_replies_enabled` and Guardian visibility required; JSON roots include initial topic/OP, subsequent pages omit metadata; child/context fields documented below. User-key `read`/`write` match GET at source, but no live user-key request verified. Release requires nested capability. |
+| Posting/moderation | `PostsController#create/create_params/backwards_compatible_json`; `NewPostManager`; `NewPostResultSerializer`; Guardian; post request specs for nested result/queue | Contract reviewed for raw/title/category/topic/reply target with `nested_post=true`. `action=enqueued` is distinct from a published post. API memoization is not treated as a client idempotency guarantee. Live per-user posting and pending visibility blocked. |
+| Upload | `UploadsController#create`, UploadCreator/serializer and Guardian, upload request specs for composer/error/anonymous | Multipart adapter uses upload_type composer, file and returned short URL. Deployment limits, secure media, direct storage and actual upload permissions remain unverified. |
+| Likes | `PostActionsController`, PostActionCreator/Destroyer, PostSerializer actions_summary, Guardian and post-action request specs | Contract reviewed: action type 2 is Like; create/destroy use post ID; count/acted/can_act are optional permission fields. No votes. |
+| Saved | `BookmarksController`, BookmarkManager, UsersController#bookmarks, user post/topic bookmark serializers, bookmark/users request specs | Source-informed create/delete/list adapters; bookmarks use bookmarkable type Post and post ID, returned bookmark ID for deletion; list linked_post_number is separate. Plugin bookmark types may not resolve to discussion destinations and are omitted from this MVP list. |
+| Notifications | `NotificationsController#index/mark_read`; NotificationSerializer; Guardian; notification request specs including user API access | Contract reviewed: offset/limit, total rows, explicit id mark-read. The client filters replied/mentioned locally because server type filtering depends on the recent-notification branch. Notification route resolution occurs before marking read. Live exact-target and read-state behavior blocked. |
+| Search/profile | search/users/list controllers, search/basic-user/profile serializers and related request specs | Source-informed adapters only; full deployment-specific search result order/content and profile access are pending. Profiles use native plain bio and recent created discussions. |
+
+### Nested response shape and guardrails
+
+- Roots: `roots`, `has_more_roots`, `page`; page 0 adds `topic`, `op_post`, `sort`, `effective_sort`. Roots/children are PostSerializer data plus `children`, `direct_reply_count`, `total_descendant_count`.
+- Children: `/children/:post_number.json`, params `page`, `sort`, `depth`; response `children`, `has_more`, `page`. Site depth-cap settings may flatten descendants; never infer a missing ancestor or hierarchy from a post number.
+- Context: `/context/:post_number.json`, optional `context=0` for focused thread; `topic`, `op_post`, `ancestor_chain`, `ancestors_truncated`, `siblings`, `target_post`, `effective_sort`. Private/inaccessible and disabled cases can all return 404, so a single 404 is not proof that the site capability is disabled.
+- Deleted placeholders may omit `topic_id`, author and raw; decoder must keep inherited topic identity and show the placeholder instead of failing the whole page.
+- Native default `sort=new`; backend `effective_sort` may differ. No ranking or vote UI is introduced.
+- Native read requests do not set `track_visit`; this avoids assuming the source's broad catch-up behavior matches viewport reading. Production read-tracking semantics remain pending.
+
+### Screen Pack fields — 2026-10-03
+
+The Screen Pack parity pass mapped these optional fields from source-reviewed serializers. None are live verified:
+
+- Post `name` and `created_at` (display name for initials, relative age). An empty name falls back to the username.
+- Notification `created_at` for the age, plus type 1 (mentioned) and 2 (replied) for the glyph and wording.
+- User `created_at` for “Joined”.
+- Search post `username` for “Reply #n by …”.
+- Quotes are sent as `[quote="author, post:n, topic:id"]` BBCode ahead of the writing in `raw`.
+
+These are deliberately not mapped and display only in fixtures: directory “Latest” previews (no per-category latest topic is requested), the Restricted badge (a visible Discourse category is accessible; denial surfaces from a 403/404), and bookmark category/post-author labels in Saved. Confirm the bookmark list serializer fields before adding them.
+
+### Unresolved integration requirements
+
+No live endpoint is marked live verified. Remaining work includes real config and callback registration, signing/icon, deployed nested capability, user-key permissions, site text/tag/required-field posting constraints, secure media retrieval, search exact-result behavior, pending-author visibility, and a provable uncertain-write reconciliation contract. The live reconcile adapter deliberately returns unresolved. No administrator credentials or production URL were invented.

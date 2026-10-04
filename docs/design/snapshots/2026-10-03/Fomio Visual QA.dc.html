@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><style>body{margin:0;background:#F4F3F7;color:#1B1A1F;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}a{color:#5B3FD6}a:hover{color:#4A2FBF}button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left}</style></helmet>
+<div style="min-height:100vh;box-sizing:border-box;padding:28px 24px 60px;display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start">
+<aside aria-label="QA controls" style="flex:1 1 300px;max-width:380px;display:flex;flex-direction:column;gap:18px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<span style="font:600 11px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.04em;color:#5E5C67">FOMIO iOS 26+ · VISUAL QA HARNESS · ONE CASE AT A TIME · NOT APP UI</span>
+<h1 style="margin:0;font-size:28px;line-height:1.15;font-weight:700">Visual QA</h1>
+<p style="margin:0;font-size:13px;line-height:1.5;color:#45434D;text-wrap:pretty">Renders one live FomioPhone at a time with the chosen setting, then measures it in the browser: controls under 44 pt, overlapping text lines, horizontal overflow, clipped boxes, truncation, and whether the last row stays reachable above Reply, the tab bar or the keyboard. Browser measurement only; it is not native Dynamic Type, VoiceOver or Liquid Glass evidence.</p>
+<nav style="display:flex;flex-wrap:wrap;gap:12px;font-size:13px"><a href="Fomio%20MVP%20Prototype.dc.html">Prototype</a><a href="Fomio%20MVP%20Review%20Index.dc.html#qa">Review index · QA results</a><a href="Fomio%20MVP%20Visual%20System.dc.html">Visual system</a></nav>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#5E5C67">Case</span>
+<div style="display:flex;flex-direction:column;gap:2px"><sc-for list="{{ cases }}" as="c" hint-placeholder-count="12"><button onClick="{{ c.pick }}" aria-pressed="{{ c.on }}" style="display:flex;gap:8px;align-items:baseline;padding:7px 10px;border-radius:9px;font-size:13px;background:{{ c.bg }};color:{{ c.fg }}"><span style="font:700 11px ui-monospace,Menlo,monospace;min-width:34px">{{ c.id }}</span><span>{{ c.name }}</span></button></sc-for></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#5E5C67">Setting</span>
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="5"><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ g.opts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="padding:6px 10px;border-radius:9px;font-size:12.5px;font-weight:600;background:{{ o.bg }};color:{{ o.fg }};border:1px solid #D3D0DC">{{ o.label }}</button></sc-for></div></sc-for>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button onClick="{{ run }}" style="padding:9px 14px;border-radius:10px;background:#5B3FD6;color:#FFFFFF;font-size:14px;font-weight:600">Measure this case</button><button onClick="{{ runSet }}" style="padding:9px 14px;border-radius:10px;background:#FFFFFF;border:1px solid #D3D0DC;font-size:14px;font-weight:600">Measure this setting × all cases</button><button onClick="{{ runAll }}" style="padding:9px 14px;border-radius:10px;background:#FFFFFF;border:1px solid #D3D0DC;font-size:14px;font-weight:600">Measure all cases × all settings</button></div>
+<span role="status" style="font-size:12.5px;line-height:1.45;color:#45434D">{{ status }}</span>
+</aside>
+
+<main style="flex:1 1 560px;min-width:0;display:flex;flex-direction:column;gap:18px">
+<div style="display:flex;flex-direction:column;gap:4px"><span style="font:700 12px ui-monospace,Menlo,monospace;color:#5B3FD6">{{ caseId }} · {{ settingLabel }}</span><span style="font-size:17px;font-weight:600">{{ caseName }}</span><span style="font-size:13px;line-height:1.45;color:#45434D;text-wrap:pretty">{{ caseCheck }}</span></div>
+<div style="overflow:auto;max-width:100%;padding:14px;border-radius:14px;background:#E9E7EF;box-sizing:border-box">
+<div ref="{{ stageRef }}" style="display:flex;gap:0;width:max-content;border-radius:{{ ipadR }};box-shadow:{{ ipadSh }};overflow:hidden;background:{{ ipadBg }}">
+<sc-if value="{{ sidebar }}" hint-placeholder-val="{{ false }}"><div aria-label="Sidebar (iPad regular width)" style="flex:none;width:290px;height:834px;box-sizing:border-box;padding:10px 0 10px 10px;background:{{ sbPage }}"><div style="height:100%;border-radius:30px;padding:22px 12px;box-sizing:border-box;display:flex;flex-direction:column;gap:4px;background:{{ sbBg }};box-shadow:{{ sbSh }}"><img src="./assets/logo-wordmark-mono.png" alt="fomio" style="width:69px;height:32px;margin:0 0 16px 12px;filter:{{ sbLogo }}"></img><sc-for list="{{ sbTabs }}" as="t" hint-placeholder-count="4"><button onClick="{{ t.pick }}" aria-current="{{ t.cur }}" style="display:flex;align-items:center;gap:12px;min-height:46px;padding:0 12px;border-radius:23px;font-size:{{ sbFont }};font-weight:{{ t.weight }};background:{{ t.bg }};color:{{ t.fg }}"><span style="flex:1">{{ t.label }}</span></button></sc-for></div></div></sc-if>
+<dc-import name="FomioPhone" journey="{{ preset }}" nonce="{{ n }}" theme="{{ theme }}" transparency="{{ tr }}" contrast="{{ ct }}" text-size="{{ ts }}" device="{{ device }}" frame-w="{{ frameW }}" frame-h="{{ frameH }}" hide-tabs="{{ sidebar }}" tab-cmd="{{ tabCmd }}" photo-slots="{{ true }}" on-route="{{ onRoute }}" hint-size="393px,852px"></dc-import>
+</div>
+</div>
+<span style="font-size:12px;line-height:1.45;color:#5E5C67;max-width:760px">The grey stage scrolls when a frame is wider than this pane; that is canvas cropping, not app clipping. Clipping inside the app is what the measurement reports.</span>
+
+<sc-if value="{{ hasReport }}" hint-placeholder-val="{{ false }}"><section style="display:flex;flex-direction:column;gap:8px;padding:14px 16px;border-radius:14px;background:#FFFFFF;border:1px solid #E2E0E8">
+<span style="font-size:15px;font-weight:600">Measurement · {{ repLabel }}</span>
+<sc-for list="{{ repRows }}" as="r" hint-placeholder-count="6"><div style="display:grid;grid-template-columns:minmax(0,170px) 56px minmax(0,1fr);gap:10px;font-size:12.5px;line-height:1.45;border-top:1px solid #EEEBFA;padding-top:6px"><b style="font-weight:600">{{ r.k }}</b><span style="font:700 11px ui-monospace,monospace;color:{{ r.c }}">{{ r.v }}</span><span style="color:#45434D;word-break:break-word">{{ r.d }}</span></div></sc-for>
+</section></sc-if>
+
+<sc-if value="{{ hasMatrix }}" hint-placeholder-val="{{ false }}"><section style="display:flex;flex-direction:column;gap:6px;padding:14px 16px;border-radius:14px;background:#FFFFFF;border:1px solid #E2E0E8;overflow-x:auto">
+<span style="font-size:15px;font-weight:600">All cases × settings ({{ matrixCount }} renders)</span>
+<span style="font-size:12px;color:#5E5C67">Counts per render: small targets · text overlaps · horizontal overflow · clipped boxes · last-row gap (pt, negative = hidden behind a bar).</span>
+<div style="min-width:760px;display:flex;flex-direction:column"><sc-for list="{{ matrix }}" as="m" hint-placeholder-count="8"><div style="display:grid;grid-template-columns:44px minmax(0,1fr) 150px 70px minmax(0,1.2fr);gap:8px;font-size:12px;line-height:1.4;border-top:1px solid #EEEBFA;padding:4px 0;color:{{ m.c }}"><span style="font:700 11px ui-monospace,monospace">{{ m.id }}</span><span>{{ m.setting }}</span><span style="font-family:ui-monospace,Menlo,monospace">{{ m.counts }}</span><span style="font-weight:700">{{ m.verdict }}</span><span style="color:#45434D;word-break:break-word">{{ m.detail }}</span></div></sc-for></div>
+</section></sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  stageRef = React.createRef();
+  state = { c: 'H', theme: 'light', tr: 'regular', ct: 'standard', ts: 'default', dev: 'iphone', n: 1, tabCmd: '', route: null, report: null, matrix: null, status: 'Pick a case and a setting, then Measure.' };
+  onRoute = r => { if (!this.state.route || this.state.route.tab !== r.tab) this.setState({ route: r }); };
+  CASES = [
+    ['H', 'Home · photo rows + long title', 'home', 'Long title (4199) and photo thumbnails wrap without truncation; last feed row clears the tab bar.'],
+    ['CF', 'Communities · filter “fin”', 'findcom', 'Filter field, status line, matched subcommunity chips wrap; Clear is 44 pt.'],
+    ['CX', 'Communities · children expanded', 'comexp', 'All four Woodworking subcommunities visible with Show fewer; nothing overlaps the tile column.'],
+    ['D14', 'Notification → topic 4190 #14', 'linked', 'Lands on #14 with earlier posts collapsed; last reply clears Reply and tab bar.'],
+    ['RK', 'Reply composer + keyboard', 'reply', 'Context, body and Add photo stay above the simulated keyboard; Post is 44 pt.'],
+    ['UP', 'New discussion · photo uploading', 'uploading', 'Progress bar, Cancel upload, Post disabled.'],
+    ['UF', 'New discussion · photo failed', 'uploadfail', 'Retry upload / Remove photo at 44 pt; Post disabled; failure carried by icon + text.'],
+    ['KP', 'Keep draft? · unfinished photo', 'keepphoto', 'Photo loss is stated before the choice; button reads Keep draft without photo.'],
+    ['DL', 'Me › Drafts · photo not included', 'draftlost', 'Draft row says the photo was not included; Resume / Discard at 44 pt.'],
+    ['RL', 'Resumed draft · photo recovery', 'resumelost', 'Title, body and Finishing restored; notice offers Add photo again.'],
+    ['CH', 'Destination chooser', 'chooser', 'Only postable communities; rows 50 pt; last group reachable.'],
+    ['NO', 'Notifications', 'notifications', 'Unread state carried by text + dot + weight; last row clears the tab bar.'],
+    ['ME', 'Me', 'me', 'Grouped rows, Saved and Drafts counts.']
+  ];
+  SET = {
+    theme: [['light', 'Light'], ['dark', 'Dark AMOLED']], tr: [['regular', 'Glass'], ['reduced', 'Reduce Transparency']],
+    ct: [['standard', 'Std contrast'], ['increased', 'Increase Contrast']], ts: [['default', 'Default text'], ['large', '~135%'], ['xl', '~200%']],
+    dev: [['iphone', 'iPhone 393×852'], ['narrow', 'iPhone 375×667'], ['ipadc', 'iPad compact 590×834'], ['ipadr', 'iPad regular 1194×834']]
+  };
+  MODES = [
+    { theme: 'light', tr: 'regular', ct: 'standard', ts: 'default', dev: 'iphone' },
+    { theme: 'dark', tr: 'regular', ct: 'standard', ts: 'default', dev: 'iphone' },
+    { theme: 'light', tr: 'reduced', ct: 'increased', ts: 'default', dev: 'iphone' },
+    { theme: 'dark', tr: 'reduced', ct: 'increased', ts: 'default', dev: 'iphone' },
+    { theme: 'light', tr: 'regular', ct: 'standard', ts: 'xl', dev: 'iphone' },
+    { theme: 'light', tr: 'regular', ct: 'standard', ts: 'default', dev: 'narrow' },
+    { theme: 'dark', tr: 'regular', ct: 'standard', ts: 'xl', dev: 'narrow' },
+    { theme: 'light', tr: 'regular', ct: 'standard', ts: 'default', dev: 'ipadc' },
+    { theme: 'light', tr: 'regular', ct: 'standard', ts: 'large', dev: 'ipadr' }
+  ];
+  setLabel(m) { const f = (k, v) => (this.SET[k].find(x => x[0] === v) || [, v])[1]; return [f('theme', m.theme), m.tr === 'reduced' ? 'Reduce Transparency' : '', m.ct === 'increased' ? 'Increase Contrast' : '', f('ts', m.ts), f('dev', m.dev)].filter(Boolean).join(' · '); }
+  wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+  frames() { return new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))); }
+
+  async measure() {
+    const host = this.stageRef.current; const root = host && host.querySelector('[data-screen-label="Fomio iPhone"]');
+    if (!root) return null;
+    const R = root.getBoundingClientRect();
+    const csC = new Map(); const gcs = e => { let c = csC.get(e); if (!c) { c = getComputedStyle(e); csC.set(e, c); } return c; };
+    const label = el => (el.getAttribute('aria-label') || el.getAttribute('placeholder') || el.textContent || el.tagName).trim().replace(/\s+/g, ' ').slice(0, 40);
+    const hidden = el => !!el.closest('[aria-hidden="true"]');
+    const shown = el => { const r = el.getBoundingClientRect(); const cs = gcs(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && cs.opacity !== '0'; };
+    const inView = r => r.bottom > R.top + 1 && r.top < R.bottom - 1 && r.right > R.left + 1 && r.left < R.right - 1;
+    const layerOf = el => { let e = el; while (e && e.parentElement && e.parentElement !== root) e = e.parentElement; return e; };
+    // Visible part of a box: intersect with every clipping ancestor (overflow != visible, clip, line clamp), stopping before root unless asked.
+    const isect = (a, b) => { const l = Math.max(a.left, b.left), t = Math.max(a.top, b.top), r = Math.min(a.right, b.right), btm = Math.min(a.bottom, b.bottom); return r - l > 0.5 && btm - t > 0.5 ? { left: l, top: t, right: r, bottom: btm, width: r - l, height: btm - t } : null; };
+    const clipOf = (el, rect, withRoot) => { let v = rect; for (let e = el; e && v; e = e.parentElement) { if (e === root && !withRoot) break; const cs = gcs(e); if (cs.overflowX !== 'visible' || cs.overflowY !== 'visible' || (cs.clip && cs.clip !== 'auto')) v = isect(v, e.getBoundingClientRect()); if (e === root) break; } return v; };
+    // Active surface: when a modal is open, only the topmost modal layer (and toasts) are measured.
+    const modals = [...root.querySelectorAll('[role="alertdialog"],[role="dialog"],[role="menu"]')].filter(el => shown(el) && !hidden(el));
+    const z = el => parseInt(gcs(el).zIndex) || 0;
+    const top = modals.sort((x, y) => z(layerOf(y)) - z(layerOf(x)))[0];
+    const active = el => { if (!top) return true; const L = layerOf(el); return L === layerOf(top) || !!el.closest('[role="status"]'); };
+    const ex = { clipped: 0, inactive: 0 };
+    const small = [];
+    root.querySelectorAll('button,input,textarea,a,[role="menuitem"]').forEach(el => {
+      if (hidden(el) || !shown(el)) return; const r = el.getBoundingClientRect(); if (!inView(r)) return;
+      if (!active(el)) return; if (!clipOf(el, r, true)) return;
+      if (r.height < 43.5 || r.width < 43.5) small.push(label(el) + ' ' + Math.round(r.width) + '×' + Math.round(r.height));
+    });
+    const lines = []; let raw = 0; const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let nd; while ((nd = tw.nextNode())) {
+      const pe = nd.parentElement; if (!nd.textContent.trim() || !pe || hidden(pe) || !shown(pe)) continue;
+      const rg = document.createRange(); rg.selectNodeContents(nd);
+      [...rg.getClientRects()].forEach(r0 => { if (!(r0.width > 1 && r0.height > 1 && inView(r0))) return; raw++;
+        if (!active(pe)) { ex.inactive++; return; }
+        const r = clipOf(pe, r0, true); if (!r || r.width < 2 || r.height < 2) { ex.clipped++; return; }
+        lines.push({ r, r0, n: nd, L: layerOf(pe) }); });
+    }
+    const over = []; let rawOver = 0;
+    for (let i = 0; i < lines.length; i++) for (let j = i + 1; j < lines.length; j++) {
+      const a = lines[i], b = lines[j]; if (a.n === b.n || a.L !== b.L) continue;
+      const w = Math.min(a.r.right, b.r.right) - Math.max(a.r.left, b.r.left), h = Math.min(a.r.bottom, b.r.bottom) - Math.max(a.r.top, b.r.top);
+      if (w > 2 && h > 3) over.push('“' + a.n.textContent.trim().slice(0, 24) + '” × “' + b.n.textContent.trim().slice(0, 24) + '” at y' + Math.round(a.r.top - R.top));
+    }
+    const hov = [], clip = [], trunc = [];
+    root.querySelectorAll('*').forEach(el => {
+      if (hidden(el) || !shown(el) || !active(el)) return; const r = el.getBoundingClientRect(); const cs = gcs(el);
+      if (inView(r) && el.textContent.trim() && !el.closest('[data-hscroll]') && clipOf(el, r, true)) { let A = null; for (let e = el.parentElement; e; e = e.parentElement) { const c = gcs(e); if (c.overflowX === 'hidden' || c.overflowX === 'clip' || e === root) { A = e.getBoundingClientRect(); break; } if (c.overflowX === 'auto' || c.overflowX === 'scroll') break; } if (A && (r.right > A.right + 1 || r.left < A.left - 1) && !(cs.clip && cs.clip !== 'auto')) hov.push(label(el) + ' (x' + Math.round(r.left - R.left) + '…' + Math.round(r.right - R.left) + ', container x' + Math.round(A.left - R.left) + '…' + Math.round(A.right - R.left) + ')'); }
+      const clamp = cs.webkitLineClamp && cs.webkitLineClamp !== 'none';
+      if (cs.textOverflow === 'ellipsis' && el.scrollWidth > el.clientWidth + 1) trunc.push(label(el));
+      else if (clamp && el.scrollHeight > el.clientHeight + 1) trunc.push(label(el) + ' (line clamp)');
+      else if (cs.overflowY === 'hidden' && cs.overflowX !== 'auto' && el !== root && el.scrollHeight > el.clientHeight + 2 && el.textContent.trim() && el.children.length < 40 && r.height > 2 && inView(r) && !(cs.clip && cs.clip !== 'auto')) clip.push(label(el) + ' (' + el.scrollHeight + '>' + el.clientHeight + ')');
+    });
+    const reach = [];
+    const scrollers = [...root.querySelectorAll('*')].filter(el => { const cs = gcs(el); return (cs.overflowY === 'auto' || cs.overflowY === 'scroll') && shown(el) && !hidden(el) && active(el); });
+    const blockers = [...root.querySelectorAll('nav[aria-label="Tabs"], button[aria-label^="Reply to"]')].filter(shown);
+    for (const sc of scrollers) {
+      const isMain = sc.parentElement === root && !sc.matches('[role="dialog"],[role="alertdialog"]');
+      const prev = sc.scrollTop; sc.scrollTop = sc.scrollHeight; await this.frames();
+      const S = sc.getBoundingClientRect(); let bottom = -1e9, last = '';
+      const w = document.createTreeWalker(sc, NodeFilter.SHOW_TEXT); let t;
+      while ((t = w.nextNode())) { if (!t.textContent.trim() || hidden(t.parentElement) || !shown(t.parentElement)) continue; const rg = document.createRange(); rg.selectNodeContents(t); const rs = [...rg.getClientRects()].map(x => clipOf(t.parentElement, x, false)).filter(Boolean); const r = rs[rs.length - 1]; if (r && r.bottom > bottom) { bottom = r.bottom; last = t.textContent.trim().slice(0, 30); } }
+      sc.querySelectorAll('button,input,textarea').forEach(b => { if (hidden(b) || !shown(b)) return; const r = b.getBoundingClientRect(); if (r.bottom > bottom) { bottom = r.bottom; last = label(b); } });
+      let limit = Math.min(S.bottom, R.bottom);
+      if (isMain) blockers.forEach(b => { const r = b.getBoundingClientRect(); if (r.top < limit) limit = r.top; });
+      reach.push({ name: isMain ? 'Main list' : (sc.matches('[role="dialog"]') ? (sc.getAttribute('aria-label') || 'Sheet') + ' (popover)' : sc.closest('[role="dialog"]') ? (sc.closest('[role="dialog"]').getAttribute('aria-label') || 'Sheet') : 'Scroller'), gap: Math.round(limit - bottom), last, first: Math.round(S.height) });
+      sc.scrollTop = prev; await this.frames();
+    }
+    return { small, over, hov, clip, trunc, reach, ex, raw, surface: top ? (top.getAttribute('aria-label') || top.getAttribute('role')) : 'page' };
+  }
+  summarize(rep) {
+    const minGap = rep.reach.length ? Math.min(...rep.reach.map(x => x.gap)) : null;
+    const bad = rep.small.length || rep.over.length || rep.hov.length || rep.clip.length || (minGap !== null && minGap < 0);
+    return { minGap, bad };
+  }
+  async run() {
+    this.setState({ status: 'Measuring…' }); await this.wait(250);
+    const rep = await this.measure();
+    this.setState({ report: rep, status: rep ? 'Measured ' + this.state.c + ' · ' + this.setLabel(this.state) : 'Frame not found.' });
+  }
+  async runAll(only) {
+    const out = []; const keep = { c: this.state.c, theme: this.state.theme, tr: this.state.tr, ct: this.state.ct, ts: this.state.ts, dev: this.state.dev };
+    const modes = only ? [only] : this.MODES;
+    for (const m of modes) for (const cs of this.CASES) {
+      this.setState(s => ({ ...m, c: cs[0], n: s.n + 1, status: 'Measuring ' + cs[0] + ' · ' + this.setLabel(m) + ' (' + (out.length + 1) + '/' + modes.length * this.CASES.length + ')' }));
+      await this.wait(450); await this.frames();
+      const rep = await this.measure(); if (!rep) continue;
+      const { minGap, bad } = this.summarize(rep);
+      out.push({ id: cs[0], setting: this.setLabel(m), counts: [rep.small.length, rep.over.length, rep.hov.length, rep.clip.length, minGap === null ? '–' : minGap].join(' · '), verdict: bad ? 'CHECK' : 'pass', c: bad ? '#C62D3A' : '#1B1A1F',
+        detail: [...rep.small.map(x => 'target ' + x), ...rep.over.map(x => 'overlap ' + x), ...rep.hov.map(x => 'overflow ' + x), ...rep.clip.map(x => 'clip ' + x), ...rep.reach.filter(x => x.gap < 0).map(x => x.name + ' last row hidden ' + x.gap)].slice(0, 4).join('; ') + ' [surface ' + rep.surface + '; ' + rep.raw + ' line boxes, excluded ' + rep.ex.clipped + ' clipped, ' + rep.ex.inactive + ' behind sheet]' });
+    }
+    window.__fomioQA = out;
+    this.setState(s => ({ ...keep, n: s.n + 1, matrix: out, status: 'Done: ' + out.length + ' renders, ' + out.filter(x => x.verdict !== 'pass').length + ' flagged.' }));
+  }
+
+  renderVals() {
+    const s = this.state, cs = this.CASES.find(x => x[0] === s.c);
+    const seg = (k) => ({ opts: this.SET[k].map(([v, l]) => ({ label: l, on: s[k] === v, bg: s[k] === v ? '#1B1A1F' : '#FFFFFF', fg: s[k] === v ? '#FFFFFF' : '#1B1A1F', pick: () => this.setState({ [k]: v, report: null }) })) });
+    const ipadr = s.dev === 'ipadr', ipadc = s.dev === 'ipadc', dark = s.theme === 'dark', reduced = s.tr === 'reduced', inc = s.ct === 'increased';
+    const tab = (s.route && s.route.tab) || 'home';
+    const rep = s.report, rows = [];
+    if (rep) {
+      const row = (k, arr, d) => rows.push({ k, v: arr.length ? String(arr.length) : '0', c: arr.length ? '#C62D3A' : '#1B1A1F', d: arr.length ? arr.slice(0, 8).join('; ') : d });
+      row('Controls under 44 pt', rep.small, 'All visible buttons, fields and links are at least 44 × 44.');
+      row('Overlapping text lines', rep.over, 'No two text lines in the same layer intersect.');
+      row('Horizontal overflow', rep.hov, 'Nothing extends past the frame edges.');
+      row('Clipped boxes', rep.clip, 'No overflow-hidden box cuts off its text.');
+      rows.push({ k: 'Truncated (by design?)', v: String(rep.trunc.length), c: '#5E5C67', d: rep.trunc.length ? rep.trunc.slice(0, 8).join('; ') : 'None.' });
+      rows.push({ k: 'Measured surface', v: '', c: '#5E5C67', d: rep.surface + ' · ' + rep.raw + ' text line boxes in view; excluded ' + rep.ex.clipped + ' clipped by a scroller, line clamp or visually-hidden box, ' + rep.ex.inactive + ' behind the open sheet or alert.' });
+      rep.reach.forEach(x => rows.push({ k: 'Last row · ' + x.name, v: x.gap + ' pt', c: x.gap < 0 ? '#C62D3A' : '#1B1A1F', d: (x.gap < 0 ? 'Hidden behind a bar: ' : 'Clear above bars/keyboard: ') + '“' + x.last + '”' }));
+    }
+    const fontScale = s.ts === 'xl' ? 2 : s.ts === 'large' ? 1.35 : 1;
+    return {
+      stageRef: this.stageRef, onRoute: this.onRoute,
+      cases: this.CASES.map(([id, name]) => ({ id, name, on: s.c === id, bg: s.c === id ? '#1B1A1F' : 'transparent', fg: s.c === id ? '#FFFFFF' : '#1B1A1F', pick: () => this.setState(st => ({ c: id, n: st.n + 1, report: null })) })),
+      groups: ['theme', 'tr', 'ct', 'ts', 'dev'].map(seg),
+      run: () => this.run(), runAll: () => this.runAll(), runSet: () => this.runAll({ theme: s.theme, tr: s.tr, ct: s.ct, ts: s.ts, dev: s.dev }), status: s.status,
+      caseId: cs[0], caseName: cs[1], caseCheck: cs[3], settingLabel: this.setLabel(s),
+      preset: cs[2], n: s.n, theme: s.theme, tr: s.tr, ct: s.ct, ts: s.ts,
+      device: ipadr || ipadc ? 'split' : s.dev, frameW: ipadr ? 904 : ipadc ? 590 : null, frameH: ipadr || ipadc ? 834 : null,
+      sidebar: ipadr, tabCmd: s.tabCmd,
+      ipadR: ipadr || ipadc ? '34px' : '0', ipadSh: ipadr || ipadc ? '0 0 0 10px #1B1A1F' : 'none', ipadBg: dark ? '#000000' : '#FFFFFF',
+      sbPage: dark ? '#000000' : '#FFFFFF', sbBg: reduced ? (dark ? '#1E1D24' : '#F4F3F7') : (dark ? 'rgba(40,39,48,.74)' : 'rgba(246,245,250,.74)'),
+      sbSh: inc ? '0 0 0 1px ' + (dark ? '#8E8C98' : '#706E79') : '0 0 0 .5px rgba(27,26,31,.13),0 12px 28px -10px rgba(27,26,31,.26)', sbLogo: dark ? 'invert(1)' : 'none', sbFont: (17 * fontScale) + 'px',
+      sbTabs: [['home', 'Home'], ['communities', 'Communities'], ['notifications', 'Notifications'], ['me', 'Me']].map(([k, l]) => ({ label: l, cur: tab === k ? 'page' : 'false', weight: tab === k ? 600 : 400,
+        bg: tab === k ? (dark ? 'rgba(255,255,255,.12)' : 'rgba(27,26,31,.07)') : 'transparent', fg: tab === k ? (dark ? (inc ? '#BFAFFF' : '#A58FFF') : '#5B3FD6') : (dark ? '#ECEBF0' : '#1B1A1F'),
+        pick: () => this.setState({ tabCmd: k + ':' + Date.now() }) })),
+      hasReport: !!rep, repLabel: cs[0] + ' · ' + this.setLabel(s), repRows: rows,
+      hasMatrix: !!s.matrix, matrix: s.matrix || [], matrixCount: s.matrix ? s.matrix.length : 0
+    };
+  }
+}
+</script>
+</body>
+</html>

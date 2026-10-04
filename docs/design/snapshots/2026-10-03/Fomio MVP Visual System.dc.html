@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><style>body{margin:0;background:#F4F3F7;color:#1B1A1F;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}a{color:#5B3FD6}a:hover{color:#4A2FBF}code{font:12.5px ui-monospace,Menlo,monospace}</style></helmet>
+<main style="max-width:1120px;margin:0 auto;padding:44px 28px 80px;display:flex;flex-direction:column;gap:48px">
+<header style="display:flex;flex-direction:column;gap:10px">
+<span style="font:600 11px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.04em;color:#5E5C67">FOMIO iOS 26+ · MVP UI MOCKUPS · VISUAL SYSTEM REVIEW · 2026-10-03 · NOT PART OF THE APP</span>
+<h1 style="margin:0;font-size:38px;line-height:1.1;font-weight:700">Visual system: Fomio colors on Liquid Glass</h1>
+<p style="margin:0;font-size:15px;line-height:1.55;color:#45434D;max-width:800px;text-wrap:pretty">This page covers palette and source, where glass is used, how the accessibility settings change it, and what was actually checked. Updated 2026-10-03: system font for all app text, legibility adjustments to the glass shell, ~200% text and narrow-width checks.</p>
+<div style="align-self:flex-start;display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:#FFFFFF;box-shadow:inset 0 0 0 1px #D3D0DC;max-width:800px"><span style="flex:none;font:700 10px ui-monospace,monospace;padding:3px 6px;border-radius:4px;background:#1B1A1F;color:#FFFFFF">SIMULATION</span><span style="font-size:13px;line-height:1.5;color:#45434D">Liquid Glass in these mockups is approximated with CSS translucency, blur, inner highlights and shadows. It does not reproduce refraction, lensing, adaptive tint or motion, and proves nothing about native fidelity. The SwiftUI build uses system TabView, NavigationStack toolbars, menus, sheets and the .glass / .glassProminent button styles.</span></div>
+<nav style="display:flex;flex-wrap:wrap;gap:16px;font-size:14px"><a href="Fomio%20MVP%20Prototype.dc.html">Prototype</a><a href="Fomio%20MVP%20Screen%20Pack.dc.html#pairs">Light / dark pairs</a><a href="Fomio%20MVP%20Screen%20Pack.dc.html#adapt">Accessibility frames</a><a href="Fomio%20MVP%20Review%20Index.dc.html">Review index</a><a href="Fomio%20Overview.dc.html">Wireframe register</a></nav>
+</header>
+
+<section id="source" style="display:flex;flex-direction:column;gap:12px">
+<h2 style="margin:0;font-size:22px;font-weight:600">1 · Source precedence</h2>
+<ol style="margin:0;padding-left:20px;font-size:14px;line-height:1.6;color:#45434D;max-width:860px">
+<li><b style="color:#1B1A1F">Fomio web color tokens</b>, as supplied in the brief from <code>docs/composer-v4-stage-0-r1/composer-v4-reference/2026-09-30-r1/tokens/color-schemes.css</code>. Snapshot of 2026-09-30, not a statement about the deployed site. Used verbatim for every brand, text, surface and status role.</li>
+<li><b style="color:#1B1A1F">Neutral ramps derived from those tokens</b> (secondary and tertiary text, grouped background, fills, separators, glass tints). Marked “derived” below; they are proposals.</li>
+<li><b style="color:#1B1A1F">Fomio Design System project</b> for the logo only: the existing wordmark PNGs. Its cream / terracotta colors and Raleway are not used. Lora, used for reading text in the previous pass, was removed in the 2026-10-03 correction pass.</li>
+<li><b style="color:#1B1A1F">Apple platform conventions</b> for structure, chrome and type: the system font (SF Pro on device, <code>-apple-system</code> / <code>system-ui</code> in the browser) with semantic text styles for all app text, SF Symbols-style outline icons, iOS 26 control shapes.</li>
+</ol>
+</section>
+
+<section id="palette" style="display:flex;flex-direction:column;gap:14px">
+<h2 style="margin:0;font-size:22px;font-weight:600">2 · Palette</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:16px">
+<sc-for list="{{ schemes }}" as="sc" hint-placeholder-count="2">
+<div style="border-radius:20px;overflow:hidden;background:#FFFFFF;border:1px solid #E2E0E8">
+<div style="padding:14px 16px;display:flex;align-items:baseline;gap:8px;border-bottom:1px solid #E2E0E8"><span style="font-size:16px;font-weight:600">{{ sc.name }}</span><span style="font-size:13px;color:#5E5C67">{{ sc.sub }}</span></div>
+<sc-for list="{{ sc.rows }}" as="r" hint-placeholder-count="13">
+<div style="display:grid;grid-template-columns:40px minmax(0,1fr) 84px;gap:12px;align-items:center;padding:7px 16px;border-top:1px solid #F4F3F7">
+<span style="width:40px;height:28px;border-radius:8px;background:{{ r.hex }};box-shadow:inset 0 0 0 1px rgba(27,26,31,.14)"></span>
+<span style="display:flex;flex-direction:column;min-width:0"><span style="font-size:13px;font-weight:600">{{ r.role }}</span><span style="font-size:12px;line-height:1.35;color:#5E5C67">{{ r.use }}</span></span>
+<span style="font:12px ui-monospace,Menlo,monospace;text-align:right">{{ r.hex }}</span>
+</div>
+</sc-for>
+<div style="padding:10px 16px 6px;font-size:12px;font-weight:700;color:#5E5C67;border-top:1px solid #E2E0E8">Derived</div>
+<sc-for list="{{ sc.derived }}" as="r" hint-placeholder-count="7">
+<div style="display:grid;grid-template-columns:40px minmax(0,1fr) 84px;gap:12px;align-items:center;padding:6px 16px">
+<span style="width:40px;height:22px;border-radius:7px;background:{{ r.hex }};box-shadow:inset 0 0 0 1px rgba(27,26,31,.14)"></span>
+<span style="font-size:12px;line-height:1.35;color:#45434D">{{ r.role }}</span>
+<span style="font:12px ui-monospace,Menlo,monospace;text-align:right">{{ r.hex }}</span>
+</div>
+</sc-for>
+<div style="height:10px"></div>
+</div>
+</sc-for>
+</div>
+<p style="margin:0;font-size:13px;line-height:1.5;color:#45434D;max-width:860px;text-wrap:pretty">Hierarchy: text and surfaces carry the page; violet is reserved for community labels, selected tab, links and the one prominent action per screen (Reply, Post, New discussion, Sign in). Love is the liked-heart only. Danger is destructive actions and errors. Success has no MVP surface yet. Highlight marks a linked or search-matched post label; Selected tints avatars and the highlighted post.</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:16px">
+<div style="padding:16px;border-radius:20px;background:#FFFFFF;border:1px solid #E2E0E8;display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;font-weight:700;color:#5E5C67">Reading and interface · system font, semantic styles</span><span style="font-size:22px;font-weight:700;line-height:1.25;letter-spacing:-.01em">Oil vs. hardwax on a walnut desk top?</span><span style="font-size:17px;line-height:1.47">Discussion title 22 bold (Title 2). Feed title 17 semibold (Headline). Post body 17 at about 1.47 line height (Body). Excerpt 15 (Subheadline), metadata 13 (Footnote). Rows stay compact enough to show four to five discussions per iPhone screen.</span><span style="font-size:13px;line-height:1.45;color:#5E5C67">Natively these map to SwiftUI text styles, so Dynamic Type scaling needs no custom font registration.</span></div>
+<div style="padding:16px;border-radius:20px;background:#FFFFFF;border:1px solid #E2E0E8;display:flex;flex-direction:column;gap:10px"><span style="font-size:12px;font-weight:700;color:#5E5C67">Interface · system font · wordmark</span><span style="font-size:34px;font-weight:700;line-height:1.2">Communities</span><span style="font-size:15px;line-height:1.4;color:#45434D">Large title 34, body 17, subhead 15, footnote 13. The existing wordmark asset appears on Home and the sign-in sheet; no new logo or mascot.</span><span style="display:flex;gap:12px;align-items:center"><img src="./assets/logo-wordmark-mono.png" alt="fomio wordmark, light" style="width:69px;height:32px;padding:6px 10px;border-radius:10px;background:#FFFFFF;box-shadow:inset 0 0 0 1px #E2E0E8"></img><img src="./assets/logo-wordmark-mono.png" alt="fomio wordmark, dark" style="width:69px;height:32px;padding:6px 10px;border-radius:10px;background:#000000;filter:invert(1)"></img></span></div>
+</div>
+</section>
+
+<section id="glass" style="display:flex;flex-direction:column;gap:14px">
+<h2 style="margin:0;font-size:22px;font-weight:600">3 · Liquid Glass placement</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:14px">
+<div style="padding:16px;border-radius:20px;background:#FFFFFF;border:1px solid #E2E0E8;display:flex;flex-direction:column;gap:8px"><span style="font-size:15px;font-weight:600">Regular glass · navigation and controls</span><ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.55;color:#45434D"><sc-for list="{{ glassYes }}" as="g" hint-placeholder-count="6"><li>{{ g }}</li></sc-for></ul></div>
+<div style="padding:16px;border-radius:20px;background:#FFFFFF;border:1px solid #E2E0E8;display:flex;flex-direction:column;gap:8px"><span style="font-size:15px;font-weight:600">No glass · content layer</span><ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.55;color:#45434D"><sc-for list="{{ glassNo }}" as="g" hint-placeholder-count="5"><li>{{ g }}</li></sc-for></ul></div>
+<div style="padding:16px;border-radius:20px;background:#FFFFFF;border:1px solid #E2E0E8;display:flex;flex-direction:column;gap:8px"><span style="font-size:15px;font-weight:600">Clear glass · not used</span><span style="font-size:13px;line-height:1.55;color:#45434D">Clear glass suits controls over media. The MVP has no full-bleed media surface (photos are inline thumbnails), so every control uses regular glass. If a photo viewer is added later, its close and share controls are the candidates.</span></div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start">
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:600">Contextual menu from ••• · light</span><div style="padding:12px"><dc-import name="FomioPhone" preset="menu" hint-size="393px,852px"></dc-import></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:600">Keep draft? anchored to ✕ · dark</span><div style="padding:12px"><dc-import name="FomioPhone" preset="keep" theme="dark" hint-size="393px,852px"></dc-import></div></div>
+<ul style="flex:1 1 260px;margin:34px 0 0;padding-left:18px;font-size:13px;line-height:1.6;color:#45434D;max-width:360px"><li>Toolbar items are grouped by function: Search and New discussion share one capsule; Back and ••• stand alone.</li><li>Menus and action sheets grow from the control that opened them, per the iOS 26 action-sheet guidance.</li><li>A scroll edge effect sits under the top controls and above the tab bar, so content fades instead of hitting a hard bar edge.</li><li>Glass never stacks on glass, except the Reply capsule sitting above the tab bar with a gap.</li><li>Legibility over scrolling content: regular tab bar tint raised to 80% (light) / 66% (dark); the unread badge has a 2 pt background-colored ring so it reads over photos; selected tab uses a lens, filled icon and accent label, not color alone.</li><li>Bottom padding is 104 pt on lists and 166 pt on discussions, so the last row and its actions scroll clear of the tab bar and Reply.</li><li>Tab bar minimise-on-scroll is available natively (.tabBarMinimizeBehavior) and is not simulated here.</li></ul>
+</div>
+</section>
+
+<section id="a11y" style="display:flex;flex-direction:column;gap:14px">
+<h2 style="margin:0;font-size:22px;font-weight:600">4 · Settings and accessibility treatment</h2>
+<div style="overflow-x:auto;overflow-y:hidden;border-radius:16px;border:1px solid #E2E0E8;background:#FFFFFF">
+<div style="min-width:760px;display:grid;grid-template-columns:170px minmax(0,1fr) 110px;font:700 11px ui-monospace,Menlo,monospace;background:#1B1A1F;color:#FFFFFF"><span style="padding:8px 12px">SETTING</span><span style="padding:8px 12px">MOCKUP TREATMENT</span><span style="padding:8px 12px">FRAME</span></div>
+<sc-for list="{{ settings }}" as="t" hint-placeholder-count="5"><div style="min-width:760px;display:grid;grid-template-columns:170px minmax(0,1fr) 110px;font-size:13px;line-height:1.45;border-top:1px solid #EEEBFA"><span style="padding:9px 12px;font-weight:600">{{ t.name }}</span><span style="padding:9px 12px;color:#45434D">{{ t.how }}</span><a href="{{ t.href }}" style="padding:9px 12px;font:600 12px ui-monospace,Menlo,monospace">{{ t.frame }}</a></div></sc-for>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:600">Calculated contrast of token pairs (WCAG ratio, from hex)</span>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px"><sc-for list="{{ contrast }}" as="c" hint-placeholder-count="12"><span style="display:flex;align-items:center;gap:8px;padding:6px 10px 6px 6px;border-radius:10px;background:#FFFFFF;border:1px solid #E2E0E8;font-size:12px"><span style="padding:3px 7px;border-radius:6px;background:{{ c.bg }};color:{{ c.fg }};font-weight:600">Aa</span><span style="font-family:ui-monospace,Menlo,monospace">{{ c.label }}</span><b style="font-weight:700">{{ c.ratio }}</b></span></sc-for></div>
+<span style="font-size:12px;line-height:1.5;color:#5E5C67;max-width:860px">Text on glass is not listed: its contrast depends on what scrolls underneath. The scroll edge effect and the opaque fallbacks are the mitigation; it needs on-device checking.</span></div>
+</section>
+
+<section id="verify" style="display:flex;flex-direction:column;gap:12px">
+<h2 style="margin:0;font-size:22px;font-weight:600">5 · What was checked</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px">
+<div style="padding:16px;border-radius:20px;background:#FFFFFF;border:1px solid #E2E0E8;display:flex;flex-direction:column;gap:8px"><span style="align-self:flex-start;font:700 10px ui-monospace,monospace;padding:3px 6px;border-radius:4px;background:#1B1A1F;color:#FFFFFF">DONE IN THE BROWSER</span><ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.55;color:#45434D"><sc-for list="{{ done }}" as="d" hint-placeholder-count="5"><li>{{ d }}</li></sc-for></ul></div>
+<div style="padding:16px;border-radius:20px;background:#FFFFFF;border:1px solid #E2E0E8;display:flex;flex-direction:column;gap:8px"><span style="align-self:flex-start;font:700 10px ui-monospace,monospace;padding:3px 6px;border-radius:4px;background:#FDECEE;color:#C62D3A">NOT DONE · STILL REQUIRED</span><ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.55;color:#45434D"><sc-for list="{{ notDone }}" as="d" hint-placeholder-count="5"><li>{{ d }}</li></sc-for></ul></div>
+</div>
+<p style="margin:0;font-size:12px;line-height:1.5;color:#5E5C67;max-width:860px">Sources, checked 2026-10-03: <a href="https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass">Adopting Liquid Glass</a> read in full through its Markdown version (applied: glass only on the navigation layer, avoid overuse and stacking, group toolbar items by function, scroll edge effect for legibility, test Reduce Transparency and other settings, full-height sheets more opaque, action sheets from their source, sidebarAdaptable tabs). <a href="https://developer.apple.com/design/human-interface-guidelines/materials">Materials</a> returned only a JavaScript shell. <a href="https://developer.apple.com/design/human-interface-guidelines/layout">Layout</a>, <a href="https://developer.apple.com/design/human-interface-guidelines/tab-bars">Tab bars</a> and <a href="https://developer.apple.com/design/human-interface-guidelines/accessibility">Accessibility</a> could not be fetched this pass. Guidance attributed to those four pages comes from prior knowledge and needs rechecking against the live pages.</p>
+</section>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const SP = 'Fomio%20MVP%20Screen%20Pack.dc.html#';
+    const light = [['Primary text', '#1B1A1F', 'Titles, body, icons'], ['Secondary / background', '#FFFFFF', 'Page and sheet background'], ['Tertiary / brand accent', '#5B3FD6', 'Community labels, links, selected tab, prominent actions'], ['Quaternary', '#4A2FBF', 'Pressed accent, avatar initials, Increase Contrast accent'], ['Header background', '#FFFFFF', 'Behind scroll edge at top'], ['Header text', '#1B1A1F', 'Nav titles'], ['Highlight', '#E7E0FF', 'Linked-post label, search match'], ['Selected', '#EEEBFA', 'Highlighted post, avatar tint, guest note'], ['Hover', '#F4F3F7', 'Grouped background, fills, quotes'], ['Danger', '#C62D3A', 'Discard, sign out, errors'], ['Success', '#1D7F4A', 'Reserved'], ['Love', '#D6245C', 'Liked heart'], ['On accent', '#FFFFFF', 'Labels on accent']];
+    const dark = [['Primary text', '#ECEBF0', 'Titles, body, icons'], ['Secondary / background', '#000000', 'AMOLED page background'], ['Tertiary / brand accent', '#A58FFF', 'Community labels, links, selected tab, prominent actions'], ['Quaternary', '#BFAFFF', 'Avatar initials, Increase Contrast accent'], ['Header background', '#000000', 'Behind scroll edge at top'], ['Header text', '#ECEBF0', 'Nav titles'], ['Highlight', '#2B2257', 'Linked-post label, search match'], ['Selected', '#1B1826', 'Highlighted post, avatar tint'], ['Hover', '#111114', 'Grouped cells, sheet surface'], ['Danger', '#FF6B78', 'Discard, sign out, errors'], ['Success', '#4CD48A', 'Reserved'], ['Love', '#FF5C8D', 'Liked heart'], ['On accent', '#000000', 'Labels on accent (black on violet)']];
+    const dl = [['Secondary text (#5E5C67 · 6.6:1)', '#5E5C67'], ['Tertiary text (#706E79 · 5.0:1)', '#706E79'], ['Separator', '#E2E0E8'], ['Glass tint, regular', '#F6F5FA'], ['Reduced-transparency control', '#F4F3F7'], ['Increase Contrast separator', '#A9A6B4']];
+    const dd = [['Secondary text (9.4:1)', '#AEACB8'], ['Tertiary text (6.4:1)', '#8F8D99'], ['Fill', '#17161C'], ['Separator', '#2A2831'], ['Glass tint, regular', '#26252C'], ['Reduced-transparency control', '#1E1D24'], ['Increase Contrast separator', '#5A5863']];
+    const m = a => a.map(([role, hex, use]) => ({ role, hex, use }));
+    const C = [['#1B1A1F', '#FFFFFF', '17.3'], ['#5E5C67', '#FFFFFF', '6.6'], ['#5B3FD6', '#FFFFFF', '6.7'], ['#FFFFFF', '#5B3FD6', '6.7'], ['#4A2FBF', '#E7E0FF', '6.7'], ['#C62D3A', '#FFFFFF', '5.5'], ['#D6245C', '#FFFFFF', '4.9'], ['#ECEBF0', '#000000', '17.7'], ['#AEACB8', '#000000', '9.4'], ['#A58FFF', '#000000', '8.0'], ['#000000', '#A58FFF', '8.0'], ['#BFAFFF', '#2B2257', '7.3'], ['#FF6B78', '#000000', '7.6'], ['#FF5C8D', '#000000', '7.2']];
+    return {
+      schemes: [{ name: 'Light', sub: 'Fomio web tokens · 13 roles', rows: m(light), derived: m(dl) }, { name: 'Dark · Fomio AMOLED', sub: 'Fomio web tokens · 13 roles', rows: m(dark), derived: m(dd) }],
+      glassYes: ['Floating tab bar: Home, Communities, Notifications, Me. Selected tab sits in a glass lens; badge on Notifications.', 'Top toolbar controls: Back, grouped Search + New discussion, ••• on discussions.', 'Search field and its cancel control.', 'Reply: prominent tinted glass (.glassProminent) above the tab bar.', 'Composer chrome: ✕ and Post in the sheet header, Add photo on the accessory row.', 'Menus, the Keep draft action sheet, alerts, the sign-in and share sheets, toasts.'],
+      glassNo: ['Feed rows, community headers and post bodies: flat on the background with hairline separators.', 'Grouped lists (Me, destination chooser): opaque cells with iOS 26 corner radii. The Communities directory is flat on the page background.', 'Status notices (offline, pending, rejected, unconfirmed): opaque fills so the message stays legible.', 'Full-height composer sheet surface: opaque for focus, matching the system’s full-height sheet behaviour.', 'Photos and photo slots.'],
+      settings: [
+        { name: 'Regular (default)', how: 'Translucent tint (light rgba(246,245,250,.72), dark rgba(38,37,44,.6)) with backdrop blur 18 px, a top inner highlight and a soft drop shadow. Scroll edge blurs and fades content under the controls.', frame: 'P01–P04', href: SP + 'pairs' },
+        { name: 'Reduce Transparency', how: 'Blur removed; controls become opaque #F4F3F7 / #1E1D24 with a hairline edge; Reply and Post become solid accent; scroll edge becomes an opaque fade.', frame: 'A01', href: SP + 'A01' },
+        { name: 'Increase Contrast', how: 'Glass tint near-opaque; 1 px outline on every control (#6E6C78 light, #8E8C98 dark); secondary text, separators and accent step to stronger values (#45434D, #A9A6B4, #4A2FBF light; #CFCDD8, #5A5863, #BFAFFF dark).', frame: 'A02', href: SP + 'A02' },
+        { name: 'Larger Text', how: 'All app text scales together (~135% shown). Layout reflows; tab labels stay fixed and use the Large Content Viewer natively.', frame: 'A03', href: SP + 'A03' },
+        { name: 'Accessibility size (~200%)', how: 'Rows switch from side-by-side to stacked (photo below text), metadata and action rows wrap, the composer title moves into the sheet body, alert buttons stack. Hit areas stay at least 44 pt.', frame: 'X01–X06', href: SP + 'stress' },
+        { name: 'Narrow width / iPad compact', how: '375 × 667 pt viewport and a half-width iPad composition reuse the iPhone layouts; the sidebar is only used at regular width.', frame: 'N01, N02, A06', href: SP + 'stress' },
+        { name: 'Light / Dark', how: 'Switching appearance in the prototype keeps tab, stack, open composer and typed text.', frame: 'Prototype', href: 'Fomio%20MVP%20Prototype.dc.html' }
+      ],
+      contrast: C.map(([fg, bg, ratio]) => ({ fg, bg, ratio: ratio + ':1', label: fg + ' / ' + bg })),
+      done: ['Final pass, 2026-10-03: revised Visual QA checker (visible line boxes clipped by scroll and clamp ancestors, active modal surface only, dialogs measured as popovers, overflow measured against the clipping container). Light default iPhone 13 / 13 and Dark ~200% 375 × 667 13 / 13 pass. Independent reviewer run: 117 renders, 2 flags (KP, DL), shown to be checker artefacts with live scroll and click evidence; see the review index, 0.0.', 'Fixed this pass: 44 × 44 toolbar targets; large titles wrap at ~200%; directory clamps lift at ~200%; concise draft-photo recovery notice with stacked actions and the keyboard down on resume; destination row wraps at ~200%; 620 pt reading column centred at iPad regular width.', 'Three licensed Commons photos bundled locally with author, license and source recorded in the review index.', 'Clicked through J2 and J3 in an earlier pass, including Find communities, photo upload failure and ~200% text.', 'Calculated the token contrast ratios above from hex values.'], donePrev: ['Clicked through J2 and J3 in the live prototype after this pass, including Find communities, photo upload failure and ~200% text; see the review index for details.', 'Measured rendered line boxes of the live prototype phone for overlapping text at ~200% (none found).', 'Removed Lora from all mockup pages by source search; wireframe files were not edited.', 'Calculated the token contrast ratios above from hex values.'],
+      notDone: ['Full 117-render rerun on the latest code (destination-row wrap, stricter overflow rule, iPad 620 pt column) has not been completed; it was stopped while running.', 'Regression click-through of every journey in this pass; only Drafts Discard and Keep editing were clicked.', 'Screenshot renderer limits: inner scroll positions are not kept and clamped text can be drawn over the next line, so screenshots are not overlap evidence.', 'No native SwiftUI build, so no evidence about real Liquid Glass rendering, refraction, adaptive tint or motion.', 'No VoiceOver, Voice Control, Dynamic Type, Reduce Motion or Switch Control testing on a device.', 'Glass-over-content contrast was not measured.', 'No Discourse backend, posting, moderation queue, upload or draft sync was exercised; all outcomes are simulated switches.', 'Apple HIG pages were not re-fetched in the final pass.'], notDonePrev: ['Finishing pass (later session): the Visual QA page and draft photo-recovery states were built but could not be loaded or measured; the preview and script tools timed out throughout. Results belong on the Visual QA page and review index once run.', 'Screenshots of every Screen Pack frame in dark, Reduce Transparency, Increase Contrast, narrow and iPad compact were not captured this pass: the preview tools stopped responding on the large Screen Pack.', 'No native SwiftUI build, so no evidence about real Liquid Glass rendering, refraction, adaptive tint or motion.', 'No VoiceOver, Voice Control, Dynamic Type, Reduce Motion or Switch Control testing on a device.', 'Glass-over-content contrast was not measured.', 'No Discourse backend, posting, moderation queue, upload or draft sync was exercised; all outcomes are simulated switches.', 'iPad frames are static compositions, not a working split view.']
+    };
+  }
+}
+</script>
+</body>
+</html>

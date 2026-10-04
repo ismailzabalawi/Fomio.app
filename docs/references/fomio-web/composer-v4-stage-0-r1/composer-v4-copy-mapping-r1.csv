@@ -1,0 +1,104 @@
+design_string,handoff_class,used_in,mapping,core_key_7b4f0970,core_wording_7b4f0970,note_or_decision,r1_mockup_wording,r1_status
+Photo,proposed,"strip, all frames",CORE-NEAR,composer.upload_title,Upload,Relabel needs a site-text override of composer.upload_title (global) or a scoped theme key with reason — user decision.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Format,proposed,"strip, all frames",NONE,—,—,"No core concept of a Format group. New theme key with reason, or redesign — user decision.",(unchanged),"Pending (intentional choice, Sections C/D)"
+More,proposed,"strip; C05b, C08-1/2, TAB-8",CORE-NEAR,composer.options,Options,D2 (pending). Generic js.more 'More' exists but is not the composer menu key.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Bold (visible label),proposed,Format tray,CORE-NEAR,composer.bold_title,Strong,Core toolbar title differs; keyboard_shortcuts_help.composing.bold = 'Bold' exists (help surface). User decision.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Italic (visible label),proposed,Format tray,CORE-NEAR,composer.italic_title,Emphasis,keyboard_shortcuts_help.composing.italic = 'Italic' exists (help surface).,(unchanged),"Pending (intentional choice, Sections C/D)"
+Bullets,proposed,Format tray,CORE-DIFFERENT,composer.ulist_title,Bulleted list,,(unchanged),"Pending (intentional choice, Sections C/D)"
+Numbers,proposed,Format tray,CORE-DIFFERENT,composer.olist_title,Numbered list,,(unchanged),"Pending (intentional choice, Sections C/D)"
+Quote (Format tray),proposed,Format tray,CORE-DIFFERENT,composer.blockquote_title,Blockquote,"post.quote_reply 'Quote' is the post-selection Quote button, a different action.",(unchanged),"Pending (intentional choice, Sections C/D)"
+Link (Format tray),proposed,Format tray,CORE-EXACT,composer.link_title,Link,,(unchanged),"Pending (intentional choice, Sections C/D)"
+Subheading,proposed,Format tray,CORE-DIFFERENT,composer.heading_level_n,Heading %{levelNumber},Rich-editor heading levels; Paragraph = composer.heading_level_paragraph.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Public,proposed,destination audience line,CORE-EXACT,category.visibility.public,Public,Key belongs to category settings UI; reuse in composer is a scoping choice.,(unchanged),"Pending (intentional choice, Sections C/D)"
+[Groups] only,proposed,"L1, L2, destination line",CORE-DIFFERENT,category.visibility.group_restricted,Private,Core has no group-naming phrase; naming groups needs a theme key with reason — user decision.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Add edit reason,proposed,"C11, C11b",CORE-NEAR,table_builder.edit.modal.trigger_reason,Add reason for edit,Only in table builder. Field placeholder stays composer.edit_reason 'Why are you editing?' (observed).,(unchanged),"Pending (intentional choice, Sections C/D)"
+Hide keyboard,proposed,strip (aria),NONE,—,—,Needs theme key with reason if kept.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Edit link,proposed,"C07-5, C07-7",CORE-EXACT,composer.link_toolbar.edit,Edit link,Also composer.link_edit_title.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Remove link,proposed,"C07-5, C07-7",CORE-EXACT,composer.link_toolbar.remove,Remove link,,(unchanged),"Pending (intentional choice, Sections C/D)"
+Alt text,proposed,"C06-5, C06-6",CORE-DIFFERENT,composer.image_toolbar.alt_text,Add image description,aria: composer.image_alt_text.aria_label 'Alt text for image'.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Remove (image),proposed,C06-5,CORE-DIFFERENT,composer.image_toolbar.remove,Remove image,,(unchanged),"Pending (intentional choice, Sections C/D)"
+Remove (upload failure / block),proposed,"M4b, C06-4, C08-9",CORE-NEAR,drafts.remove,Remove,Wording matches but key is for drafts list; scoping decision.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Edit (block),proposed,C08-9,CORE-EXACT,edit,Edit,Generic core key.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Describe the photo,proposed,C06-6 field,CORE-DIFFERENT,composer.image_alt_text.title,Add image description,,(unchanged),"Pending (intentional choice, Sections C/D)"
+Writing in rich text / Writing in Markdown source,proposed,C05b,CORE-DIFFERENT,composition_mode.rich / composition_mode.markdown,Rich text / Markdown,Sub-line wording has no key.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Finish or remove uploads first,proposed,"C05b, C06-9",NONE,—,—,Native blocking behaviour not traced (stage 1).,(unchanged),"Pending (intentional choice, Sections C/D)"
+Upload failed / … was not added.,proposed,"M4b, C06-4",CORE-DIFFERENT,post.errors.upload,"Sorry, there was an error uploading %{file_name}. Please try again.",Core shows it in dialog.alert (lib/uploads.js).,(unchanged),"Pending (intentional choice, Sections C/D)"
+Drop images to upload,proposed,C06-7,CORE-NEAR,upload_selector.select_file,Click to upload or drag & drop file,Different surface (upload selector).,(unchanged),"Pending (intentional choice, Sections C/D)"
+Preview unavailable. The link will be posted as written.,proposed,C07-4,CORE-DIFFERENT,composer.link_toolbar.preview_failed,Could not load preview,D7 (pending). Core toast only on forced retry.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Try again (preview),proposed,C07-4,CORE-NEAR,composer.link_toolbar.load_preview,Load preview,D7.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Wait for the photos to finish uploading.,proposed,C06-9,NONE,—,—,Composer-level Uploading… exists (composer.uploading).,(unchanged),"Pending (intentional choice, Sections C/D)"
+Offline. Draft not saved,proposed,"M6b, C14-2 (status)",CORE-DIFFERENT,composer.drafts_offline,drafts offline,LT (pending). Core uses it for every non-409 draft failure.,(unchanged),Pending P-3 / LT / D4
+Draft not saved,proposed,"C12-4, C15-1 (status)",CORE-DIFFERENT,composer.drafts_offline,drafts offline,LT. No distinct failed/offline core status.,(unchanged),Pending P-3 / LT
+You’re offline. Draft not saved. + body,proposed,C12-5 banner,NONE,—,—,D4 (pending).,(unchanged),"Pending (intentional choice, Sections C/D)"
+Draft not saved. + bodies (saveFailed/closeFailed),proposed,C12-4 banner,NONE,—,—,D4.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Retry save,proposed,C12-4,NONE,—,—,,(unchanged),"Pending (intentional choice, Sections C/D)"
+Copy text / Copy my text,proposed,"M6b, C12-*, C13-4, C15-1, C19-*, C13-6",CORE-NEAR,composer.link_toolbar.copy,Copy link,No native copy-text action. D3.,(unchanged),Pending (Section C; D3/D4)
+Text copied,proposed,after Copy,CORE-NEAR,composer.link_toolbar.link_copied,Link copied!,,(unchanged),"Pending (intentional choice, Sections C/D)"
+This draft changed somewhere else. + body,proposed,C15-1,CORE-DIFFERENT,draft.sequence_conflict_error.description (server),Draft is being edited in another window. Please reload this page.,D3. Native alert title draft.sequence_conflict_error.title 'draft error'.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Save mine over it,proposed,C15-1,CORE-DIFFERENT,composer.ignore,Ignore,D3. Native Ignore sets draftForceSave.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Use the other version,proposed,C15-1,CORE-DIFFERENT,composer.reload,Reload,D3. Native reloads the page.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Replace your text with the other version? + body / Replace,proposed,C15-2,NONE,—,—,D3.,(unchanged),"Pending (intentional choice, Sections C/D)"
+You can no longer post in [category]. + body,proposed,C13-4,CORE-NEAR,invalid_access (server),You are not permitted to view the requested resource.,Server error text is generic.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Choose another category,proposed,C13-4/5,NONE,—,—,composer.error.category_missing 'You must choose a category' is the nearest.,(unchanged),"Pending (intentional choice, Sections C/D)"
+You can no longer reply here. + body,proposed,C13-6 (framed in r1; FMC4 noReply banner),NONE,—,—,Also an un-framed subcase.,(unchanged),Now framed as C13-6 (A6); copy pending (Section D)
+This topic was closed while you were writing. + body,proposed,C19-3,CORE-NEAR,topic_statuses.locked.help,This topic is closed; it no longer accepts new replies,,(unchanged),"Pending (intentional choice, Sections C/D)"
+You were logged out. + body,proposed,C19-4,CORE-EXACT,logout,You were logged out.,Title exact; body has no key. D10.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Not posted. / Not posted yet.,proposed,"C13-2/3, C16-5, M6b",NONE,—,—,"Bodies reuse core: generic_error, rate_limiter.too_many_requests.",(unchanged),"Pending (intentional choice, Sections C/D)"
+Switch to [category]? + bodies / Switch and keep answers/text,proposed,C18-4,NONE,—,—,"D5, D8.",(unchanged),"Pending (intentional choice, Sections C/D)"
+Add (n),proposed,C06-2,NONE,—,—,Picker is OS-native in production; may be moot.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Summary (details),proposed,C08-4,CORE-EXACT,composer.details_title (discourse-details),Summary,,(unchanged),"Pending (intentional choice, Sections C/D)"
+Hidden text,proposed,C08-4,CORE-DIFFERENT,composer.details_text (discourse-details),This text will be hidden,"Placeholder text, not a label.",(unchanged),"Pending (intentional choice, Sections C/D)"
+Text to blur,proposed,C08-6,NONE,—,—,D6.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Code / Language,proposed,C08-7,NONE,—,—,D6. composer.code_title 'Preformatted text' is the tool name.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Timezone,proposed,C08-5,CORE-EXACT,discourse_local_dates.create.form.timezone,Timezone,,(unchanged),"Pending (intentional choice, Sections C/D)"
+Date,proposed,C08-5,CORE-EXACT,discourse_local_dates.create.form.date_title,Date,,(unchanged),"Pending (intentional choice, Sections C/D)"
+Time,proposed,C08-5,CORE-EXACT,discourse_local_dates.create.form.time_title,Time,,(unchanged),"Pending (intentional choice, Sections C/D)"
+Options (one per line),proposed,C08-8,CORE-EXACT,poll.ui_builder.poll_options.label,Options (one per line),,(unchanged),"Pending (intentional choice, Sections C/D)"
+Add row / Add column,proposed,C08-3,CORE-DIFFERENT,table_builder.spreadsheet.context_menu.row.after / col.after,Insert a new row after / Insert a new column after,Native table builder is a spreadsheet modal.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Add at least one column heading.,proposed,C08-3,NONE,—,—,,(unchanged),"Pending (intentional choice, Sections C/D)"
+Add a summary. / Choose a date. / Add the text to blur. / Add the code or text to preformat.,proposed,C08-4..7,CORE-NEAR,discourse_local_dates.create.form.invalid_date (date only),"Invalid date, make sure date and time are correct",D6.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Suggestions,proposed,mentions list label,NONE,—,—,,(unchanged),"Pending (intentional choice, Sections C/D)"
+Edit saved,proposed,C16-4 announcement,NONE,—,—,reviewables.actions.edit_post.complete 'Post edited' is reviewable-only.,(unchanged),"Pending (intentional choice, Sections C/D)"
+Simulated keyboard,proposed,prototype only,NOT-UI,—,—,Never shipped.,(unchanged),n/a
+Saving draft…,core fixture (claimed),C12-1,CORE-EXACT,composer.saving,Saving,Misattributed as core.,Saving,Fixed in r1 (A1)
+Draft saved,core fixture (claimed),C12-2,CORE-DIFFERENT,composer.draft_saved,Draft saved!,Core shows it as a toast.,(unchanged),Unchanged in r1
+Edit conflict,core fixture (claimed),C15-3,CORE-DIFFERENT,composer.edit_conflict,edit conflict,Lower case in core.,(unchanged),Unchanged in r1
+Overwrite Edits,core fixture (claimed),C15-3,CORE-EXACT,composer.overwrite_edit,Overwrite Edit,Singular in core.,Overwrite Edit,Fixed in r1 (A1)
+Keep editing,core fixture (claimed),"C12-*, C15-*, C13-3",NONE,—,—,Not core; native discard dialog uses Discard + Cancel.,Keep editing (unchanged),Reclassified proposed (A3); pending P-1 / Section D
+Save draft for later,core fixture (claimed),discard flow,NONE,—,—,Not core.,Save draft for later (unchanged),Reclassified proposed (A3); pending P-1
+Unable to connect.,core fixture (claimed),M6b,CORE-DIFFERENT,errors.reasons.network / errors.desc.network,Network Error / Please check your connection.,Misattributed.,Unable to connect. (unchanged),Reclassified proposed; pending P-2
+Insert Hyperlink,core fixture (claimed),C07-6,CORE-EXACT,composer.link_dialog_title,Insert link,,Insert link,Fixed in r1 (A1)
+Link text (optional),core fixture (claimed),C07-6,CORE-EXACT,composer.link_text_label,Link text,Also composer.link_optional_text 'Text'.,Link text,Fixed in r1 (A1)
+Build Poll,core fixture (claimed),C08,CORE-EXACT,poll.ui_builder.title,Build poll,Case differs.,Build poll,Fixed in r1 (A1)
+Insert date,core fixture (claimed),C08-5,CORE-EXACT,discourse_local_dates.title,Insert date / time,,Insert date / time,Fixed in r1 (A1)
+Poll must have at least 2 options.,core fixture (claimed),C08-8,CORE-EXACT,poll.ui_builder.help.options_min_count / default_poll_must_have_at_least_1_option (server),Enter at least 1 option. / Poll must have at least 1 option.,Builder vs server timing unverified (stage 1).,Enter at least 1 option.,Fixed in r1 (A2); rule now min 1
+Poll options must be unique.,core fixture (claimed),C08-8,CORE-EXACT,default_poll_must_have_different_options (server),Poll must have different options.,Server string; builder-time check unverified.,Poll must have different options.,Fixed in r1 (A2)
+This field is required,core fixture (claimed),"C18-2, D-3",CORE-EXACT,form_templates.errors.value_missing.default,Please fill out this field.,,Please fill out this field.,Fixed in r1 (A1)
+Search categories,core fixture (claimed),C03,CORE-EXACT,select_kit.filter_placeholder,Search…,P-4 pending.,Search… (placeholder); 'Search categories' kept as accessible name,Placeholder fixed in r1; accessible name pending P-4
+Searching…,core fixture (claimed),C08-11,NONE,—,—,Not found as a standalone core string.,Searching… (unchanged),Reclassified proposed; pending (Section D)
+Post Needs Approval (title),core fixture,C17,CORE-EXACT,review.approval.title,Post Needs Approval,,(unchanged),No change needed
+"Your post was submitted but it needs to be approved… (body, FMC4/S30)",core fixture,C17,CORE-EXACT,review.approval.description,We've received your new post but it needs to be approved by a moderator before it will appear. Please be patient.,Found in captured S30.,We've received your new post but it needs to be approved by a moderator before it will appear. Please be patient.,Fixed in r1 (A1)
+You have 1 post pending.,core fixture,C17,CORE-EXACT,review.approval.pending_posts.one,You have <strong>%{count}</strong> post pending.,,(unchanged),No change needed
+Try Again,core fixture,"C16-5, M6b",CORE-EXACT,errors.buttons.again,Try Again,,(unchanged),No change needed
+"Sorry, an error has occurred.",core fixture,C16-5,CORE-EXACT,generic_error,"Sorry, an error has occurred.",,(unchanged),No change needed
+rate-limit message,core fixture,C13-2,CORE-EXACT,rate_limiter.too_many_requests (server),You’ve performed this action too many times. Please wait %{time_left} before trying again.,,(unchanged),No change needed
+Body is too similar to what you recently posted,core fixture,C13-3,CORE-EXACT,just_posted_that (server attribute message),is too similar to what you recently posted,Prefixed by attribute name at runtime.,(unchanged),No change needed
+Title must be at least 5 characters / Post must be at least 2 characters,core fixture,M6,CORE-EXACT,composer.error.title_too_short / composer.error.post_length,Title must be at least %{count} characters / Post must be at least %{count} characters,Count from site settings.,(unchanged),No change needed
+Title is required,core fixture,M6,CORE-EXACT,composer.error.title_missing,Title is required,,(unchanged),No change needed
+Reply as linked topic,core fixture,"C19-3, C13-6",CORE-EXACT,composer.composer_actions.reply_as_new_topic.label,Reply as linked topic,,(unchanged),No change needed
+Continuing the discussion from,core fixture,C19-3,CORE-EXACT,post.continue_discussion,Continuing the discussion from %{postLink}:,,(unchanged),No change needed
+Drafts / Resume,core fixture,"C12-8, M5b",CORE-EXACT,drafts.label / drafts.resume,Drafts / Resume,,(unchanged),No change needed
+Paragraph / Heading,core fixture,Format tray,CORE-EXACT,composer.heading_level_paragraph / composer.heading_text,Paragraph / Heading,,(unchanged),No change needed
+Uploading…,core fixture,C06-3,CORE-EXACT,composer.uploading,Uploading…,,(unchanged),No change needed
+Your topic is similar to…,core fixture,C09,CORE-EXACT,composer.similar_topics,Your topic is similar to…,,(unchanged),No change needed
+No matches found,core fixture,"C08-12, C03",CORE-EXACT,select_kit.no_content,No matches found,,(unchanged),No change needed
+Insert table,core fixture,C08-3,CORE-EXACT,composer.insert_table,Insert table,,(unchanged),No change needed
+Hide details / Blur spoiler / Preformatted text,core fixture,C08-4/6/7,CORE-EXACT,details.title / spoiler.title / composer.code_title,Hide details / Blur spoiler / Preformatted text,,(unchanged),No change needed
+Single choice / Multiple choice,core fixture,C08-8,CORE-EXACT,poll.ui_builder.poll_type.regular / .multiple,Single Choice / Multiple Choice,Case differs.,Single Choice / Multiple Choice,Fixed in r1 (A1)
+Quote,core fixture,C10-3,CORE-EXACT,post.quote_reply,Quote,,(unchanged),No change needed
+Log In / Sign Up,core fixture,C19-1/5,CORE-EXACT,log_in / sign_up,Log In / Sign Up,,(unchanged),No change needed
+Markdown,core fixture,C05b,CORE-EXACT,composition_mode.markdown,Markdown,,(unchanged),No change needed
+Cancel / Retry / OK,core fixture,various,CORE-NEAR,composer.cancel / — / composer.modal_ok,Cancel / — / OK,No standalone composer 'Retry' key found.,(unchanged),Unchanged in r1
+Edited,core fixture,C16-4,CORE-NEAR,notifications.titles.edited,edited,Edit marker in post is an icon plus revision count natively.,(unchanged),Unchanged in r1
+Discard changes (edit discard button),core fixture (r1 correction),C12-9 (edit intent),CORE-EXACT,post.cancel_composer.discard_edit,Discard changes,Replaced 'Cancel edit' inside the discard dialog; 'Cancel edit' remains the observed composer cancel label (composer.cancel_edit).,Discard changes,Fixed in r1 (A1)
+Your permission to reply in this topic changed. Your reply is still here. (C13-6 body),proposed,C13-6,NONE,—,—,New framed copy (A6); no core key found. Needs theme key with reason or redesign.,"(unchanged, now framed)","Pending (Section D, submission outcomes)"

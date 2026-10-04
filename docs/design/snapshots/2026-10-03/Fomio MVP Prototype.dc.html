@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><style>body{margin:0;background:#F4F3F7;color:#1B1A1F;font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}a{color:#5B3FD6}a:hover{color:#4A2FBF}button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left}</style></helmet>
+<div style="min-height:100vh;box-sizing:border-box;padding:40px 32px 64px;display:flex;flex-wrap:wrap;gap:56px;justify-content:center;align-items:flex-start">
+<aside aria-label="Review controls" style="flex:1 1 300px;max-width:400px;display:flex;flex-direction:column;gap:22px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<span style="font:600 11px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.04em;color:#5E5C67">FOMIO iOS 26 · MVP UI MOCKUP · REVIEW CONTROLS, NOT APP UI</span>
+<h1 style="margin:0;font-size:30px;line-height:1.15;font-weight:700">Core journeys prototype</h1>
+<p style="margin:0;font-size:14px;line-height:1.5;color:#45434D;text-wrap:pretty">Clickable iPhone mockup built from the wireframe pack. Tab stacks, origin, topic, post identity and any writing are kept in state as you move, including when you switch appearance below. Content, usernames and IDs are fictional.</p>
+<span style="align-self:flex-start;font:600 11px/1.4 ui-monospace,Menlo,monospace;padding:4px 8px;border-radius:6px;background:#E7E0FF;color:#4A2FBF">BROWSER SIMULATION OF LIQUID GLASS · NATIVE BUILD USES SWIFTUI SYSTEM MATERIALS</span>
+<nav style="display:flex;flex-wrap:wrap;gap:12px;font-size:13px"><a href="Fomio%20MVP%20Visual%20System.dc.html">Visual system review →</a><a href="Fomio%20MVP%20Screen%20Pack.dc.html">Screen pack &amp; states →</a><a href="Fomio%20MVP%20Review%20Index.dc.html">Review index →</a><a href="Fomio%20Overview.dc.html">Wireframe register →</a></nav>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<span style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#5E5C67">Start a journey</span>
+<sc-for list="{{ journeys }}" as="j" hint-placeholder-count="5">
+<button onClick="{{ j.start }}" style="display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:14px;background:{{ j.bg }};border:1px solid {{ j.border }}">
+<span style="display:flex;gap:8px;align-items:baseline"><span style="font:700 11px ui-monospace,Menlo,monospace;color:#5B3FD6">{{ j.id }}</span><span style="font-size:15px;font-weight:600">{{ j.name }}</span></span>
+<sc-if value="{{ j.active }}" hint-placeholder-val="{{ false }}"><ol style="margin:0;padding-left:18px;font-size:13px;line-height:1.5;color:#45434D"><sc-for list="{{ j.steps }}" as="s" hint-placeholder-count="3"><li>{{ s }}</li></sc-for></ol></sc-if>
+</button>
+</sc-for>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<span style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#5E5C67">Appearance (keeps your place)</span>
+<div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ themes }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="padding:7px 12px;border-radius:9px;font-size:13px;font-weight:600;background:{{ o.bg }};color:{{ o.fg }};border:1px solid #D3D0DC">{{ o.label }}</button></sc-for></div>
+<div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ transp }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="padding:7px 12px;border-radius:9px;font-size:13px;font-weight:600;background:{{ o.bg }};color:{{ o.fg }};border:1px solid #D3D0DC">{{ o.label }}</button></sc-for></div>
+<div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ sizes }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="padding:7px 12px;border-radius:9px;font-size:13px;font-weight:600;background:{{ o.bg }};color:{{ o.fg }};border:1px solid #D3D0DC">{{ o.label }}</button></sc-for></div>
+<div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ contrasts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="padding:7px 12px;border-radius:9px;font-size:13px;font-weight:600;background:{{ o.bg }};color:{{ o.fg }};border:1px solid #D3D0DC">{{ o.label }}</button></sc-for></div>
+<div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ devices }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="padding:7px 12px;border-radius:9px;font-size:13px;font-weight:600;background:{{ o.bg }};color:{{ o.fg }};border:1px solid #D3D0DC">{{ o.label }}</button></sc-for></div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px">
+<span style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#5E5C67">Simulate</span>
+<span style="font-size:13px;color:#45434D">Account (resets the app)</span>
+<div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ accounts }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="padding:7px 12px;border-radius:9px;font-size:13px;font-weight:600;background:{{ o.bg }};color:{{ o.fg }};border:1px solid #D3D0DC">{{ o.label }}</button></sc-for></div>
+<span style="font-size:13px;color:#45434D;margin-top:6px">Result of the next Post</span>
+<div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ outcomes }}" as="o" hint-placeholder-count="5"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="padding:7px 12px;border-radius:9px;font-size:13px;font-weight:600;background:{{ o.bg }};color:{{ o.fg }};border:1px solid #D3D0DC">{{ o.label }}</button></sc-for></div>
+<span style="font-size:13px;color:#45434D;margin-top:6px">Photo upload (Add photo in a composer)</span>
+<div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ uploads }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="padding:7px 12px;border-radius:9px;font-size:13px;font-weight:600;background:{{ o.bg }};color:{{ o.fg }};border:1px solid #D3D0DC">{{ o.label }}</button></sc-for></div>
+<span style="font-size:13px;color:#45434D;margin-top:6px">Network</span>
+<div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ networks }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.pick }}" aria-pressed="{{ o.on }}" style="padding:7px 12px;border-radius:9px;font-size:13px;font-weight:600;background:{{ o.bg }};color:{{ o.fg }};border:1px solid #D3D0DC">{{ o.label }}</button></sc-for></div>
+<span style="font-size:12px;line-height:1.45;color:#5E5C67">Check again on an unconfirmed post is simulated as found. Discourse decides the real result; these switches only choose which response the mock shows. Nothing is posted or signed in for real.</span>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:6px;padding:14px;border-radius:14px;background:#FFFFFF;border:1px solid #E2E0E8">
+<span style="font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#5E5C67">Current route</span>
+<span style="font-size:13px;line-height:1.45"><b style="font-weight:600">Tab</b> {{ rTab }} · {{ rAcct }}</span>
+<span style="font-size:13px;line-height:1.45"><b style="font-weight:600">Stack</b> {{ rCrumbs }}</span>
+<span style="font-size:13px;line-height:1.45"><b style="font-weight:600">Wireframe</b> <span style="font-family:ui-monospace,Menlo,monospace">{{ rTrace }}</span></span>
+<sc-if value="{{ rHasOverlay }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;line-height:1.45"><b style="font-weight:600">Over it</b> {{ rOverlay }}</span></sc-if>
+</div>
+</aside>
+
+<div style="flex:none;padding:12px">
+<dc-import name="FomioPhone" journey="{{ journey }}" nonce="{{ nonce }}" account="{{ account }}" outcome="{{ outcome }}" offline="{{ offline }}" theme="{{ theme }}" transparency="{{ transparency }}" contrast="{{ contrast }}" text-size="{{ textSize }}" device="{{ device }}" upload="{{ upload }}" photo-slots="{{ true }}" on-route="{{ onRoute }}" hint-size="393px,852px"></dc-import>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { journey: 'j1', nonce: 0, account: 'member', outcome: 'published', offline: false, route: null, theme: this.props.theme ?? 'light', transparency: 'regular', contrast: 'standard', textSize: 'default', device: 'iphone', upload: 'ok' };
+  onRoute = r => this.setState({ route: r });
+  renderVals() {
+    const s = this.state;
+    const J = [
+      ['j1', 'J1', 'Home → discussion → reply / cancel', ['Tap “Oil vs. hardwax on a walnut desk top?”', 'Tap Reply (above the tab bar) and type a sentence', 'Close ✕ → Keep editing, Keep draft or Discard', 'Or Post → your reply opens highlighted in the same discussion; Back → Home']],
+      ['j2', 'J2', 'Communities → child → contextual Create', ['Optional: type “fin” in Find communities to filter the directory', 'Woodworking → Finishing (or tap the Finishing chip)', 'New discussion: Finishing is already chosen; Change keeps your writing', 'Add a title and body; Add photo shows upload progress, and failure if you pick Fails below', 'Post → the new discussion opens in the Communities stack; Back → Finishing']],
+      ['j3', 'J3', 'Notifications → exact reply', ['Tap “devon replied to you”', 'Lands on reply #14 of Bench PSU, earlier posts collapsed', 'Reply targets devon · #14', 'The sunil.p row shows the unavailable target']],
+      ['j4', 'J4', 'Me → draft resume / discard', ['Drafts → Resume the figs reply', 'Edit, then ✕ → Keep draft or Discard draft', 'Or Discard from the list, with confirmation', 'Resume the Hand Tools draft → Post → it opens in the Me stack']],
+      ['guest', 'G', 'Guest Home → reply after sign-in', ['Open a discussion and tap Reply', 'Sign-in sheet explains nothing is posted', 'Sign in → the reply composer opens for the same discussion, empty and unsent']]
+    ];
+    const start = (id) => this.setState(st => ({ journey: id, nonce: st.nonce + 1, account: id === 'guest' ? 'guest' : (st.account === 'guest' ? 'member' : st.account) }));
+    const seg = (cur, list, key) => list.map(([val, label]) => ({ label, on: cur === val, bg: cur === val ? '#1B1A1F' : '#FFFFFF', fg: cur === val ? '#FFFFFF' : '#1B1A1F', pick: () => this.setState(key === 'account' ? (st => ({ account: val, journey: val === 'guest' ? 'guest' : 'j1', nonce: st.nonce + 1 })) : { [key]: val }) }));
+    const r = s.route || {};
+    const tabN = { home: 'Home', communities: 'Communities', notifications: 'Notifications', me: 'Me' };
+    return {
+      journeys: J.map(([k, id, name, steps]) => ({ id, name, steps, active: s.journey === k, bg: s.journey === k ? '#FFFFFF' : 'rgba(255,255,255,.55)', border: s.journey === k ? '#5B3FD6' : '#E2E0E8', start: () => start(k) })),
+      themes: seg(s.theme, [['light', 'Light'], ['dark', 'Dark (AMOLED)']], 'theme'),
+      transp: seg(s.transparency, [['regular', 'Regular glass'], ['reduced', 'Reduce Transparency']], 'transparency'),
+      contrasts: seg(s.contrast, [['standard', 'Standard contrast'], ['increased', 'Increase Contrast']], 'contrast'),
+      sizes: seg(s.textSize, [['default', 'Default text'], ['large', 'Larger (~135%)'], ['xl', 'Accessibility size (~200%)']], 'textSize'),
+      devices: seg(s.device, [['iphone', 'iPhone 393 pt'], ['narrow', 'Narrow 375 × 667 pt']], 'device'),
+      uploads: seg(s.upload, [['ok', 'Uploads'], ['fail', 'Fails at 60%']], 'upload'),
+      accounts: seg(s.account, [['member', 'Signed in'], ['guest', 'Guest']], 'account'),
+      outcomes: seg(s.outcome, [['published', 'Published'], ['pending', 'Pending review'], ['rejected', 'Rejected'], ['unconfirmed', 'No response'], ['expired', 'Signed out']], 'outcome'),
+      networks: seg(s.offline, [[false, 'Online'], [true, 'Offline']], 'offline'),
+      journey: s.journey, nonce: s.nonce, account: s.account, outcome: s.outcome, offline: s.offline, theme: s.theme, transparency: s.transparency, contrast: s.contrast, textSize: s.textSize, device: s.device, upload: s.upload, onRoute: this.onRoute,
+      rTab: tabN[r.tab] || '—', rAcct: r.signedIn === false ? 'guest' : 'signed in', rCrumbs: r.crumbs || '—', rTrace: r.trace || '—', rOverlay: r.overlay || '', rHasOverlay: !!r.overlay
+    };
+  }
+}
+</script>
+</body>
+</html>

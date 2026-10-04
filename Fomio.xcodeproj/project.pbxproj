@@ -1,0 +1,655 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2C571587508B93763F071635 /* Network.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAC55DC30A8ADFB07896ED28 /* Network.swift */; };
+		3354C5CE8E79E735E08488A6 /* ComposerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4CA36CC3F0410DC642A97BB /* ComposerState.swift */; };
+		39BF0A203BC71D5CE78CF483 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BC22B3DE7F60DEF7DB4526DA /* Assets.xcassets */; };
+		3BDA54481F30C0C1D16FBF0A /* ComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB98F1E6E54D3868704EE4CE /* ComposerView.swift */; };
+		3E64383A44E0938646D41635 /* Repositories.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3C75FC2625C010CC0457309 /* Repositories.swift */; };
+		42643AC0B066D900B26B8922 /* DiscourseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95DC655A4FB879A2C76C0C0E /* DiscourseService.swift */; };
+		44A5FF8518A1F6512C3C8F10 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29E2F1008D7B8F31C7114C5F /* Models.swift */; };
+		45AA61A638961A875F1A8D39 /* FomioUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 216CD5DBF1E4AD300C6D71E6 /* FomioUITests.swift */; };
+		51436E3C08B16838E4579AE3 /* ContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 540EC63262ABFDA7AD8DFC8B /* ContractTests.swift */; };
+		688FAF2BDB660452D2F69260 /* CookedContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B91D592354060A725BB2B9E /* CookedContent.swift */; };
+		6B2B013858769EBDFB16EAF8 /* fixture-photo.jpg in Resources */ = {isa = PBXBuildFile; fileRef = DB21FF85AD61800519D8FC79 /* fixture-photo.jpg */; };
+		6EAF68CDD0DD1D55825C5F6D /* DiscussionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74321B4CF303EA4DBF3996FC /* DiscussionView.swift */; };
+		6FBCF2D217F2CA45A6631506 /* DevelopmentPresets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D5A387B068E96B70CAAB451 /* DevelopmentPresets.swift */; };
+		712F31430C05424A67AA5FE8 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C5F26590846B1AB513D8EE7 /* AppState.swift */; };
+		749FBCA0742157AB8A580819 /* Connectivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2ADA20B8CDDE10C4F25E925 /* Connectivity.swift */; };
+		77AA1C1121AB0D621B9D984F /* FixtureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A5CA6A94493A35AEB523A0 /* FixtureService.swift */; };
+		7BE7474A92B8FE9BE095C83F /* DiscussionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ED0C3508EAB319A3CC257F2 /* DiscussionState.swift */; };
+		A13663D8617648B36F6E09D7 /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3E04A3335B529423DF96F5 /* Authentication.swift */; };
+		BA9B834D08C3A95CF90B5E70 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 36A8C29BF94A4A0719F5CF1A /* AppIcon.icon */; };
+		BD3FAE7FE34829467928AFDD /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8D72B14D60A13FEA7EB3A6E /* FeedView.swift */; };
+		BFD047366CD6B2C22863CA19 /* FomioApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B69571EE27877EAEC79598A9 /* FomioApp.swift */; };
+		D523B3A64E261860FF5C9118 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34669362D70C9736215EB26 /* Theme.swift */; };
+		DA30C8FD55B64AB32DEF4C51 /* FomioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF9D3CD324603F2AF7FC12A5 /* FomioTests.swift */; };
+		F0F6F702F6C93A31CB44F048 /* DraftStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD88FE6146A8E950E2222F61 /* DraftStore.swift */; };
+		FEDBBD6AF65287BA56F577C0 /* AccountViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0DBF9E2C16D64A5EB580076 /* AccountViews.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		6FFF3C599ECD0E0A6B47B730 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 16C1689EC89150FE5F34B057 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 33D66838DFF61321603B118C;
+			remoteInfo = Fomio;
+		};
+		AFE195BA5FF242E097CB35FA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 16C1689EC89150FE5F34B057 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 33D66838DFF61321603B118C;
+			remoteInfo = Fomio;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		05A5CA6A94493A35AEB523A0 /* FixtureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureService.swift; sourceTree = "<group>"; };
+		216CD5DBF1E4AD300C6D71E6 /* FomioUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FomioUITests.swift; sourceTree = "<group>"; };
+		29E2F1008D7B8F31C7114C5F /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		2C5F26590846B1AB513D8EE7 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		36A8C29BF94A4A0719F5CF1A /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = AppIcon.icon; sourceTree = "<group>"; };
+		3ED0C3508EAB319A3CC257F2 /* DiscussionState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscussionState.swift; sourceTree = "<group>"; };
+		4D5A387B068E96B70CAAB451 /* DevelopmentPresets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevelopmentPresets.swift; sourceTree = "<group>"; };
+		4E3E04A3335B529423DF96F5 /* Authentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
+		540EC63262ABFDA7AD8DFC8B /* ContractTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContractTests.swift; sourceTree = "<group>"; };
+		54D983A4990762D7B6E858EE /* FomioUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = FomioUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		74321B4CF303EA4DBF3996FC /* DiscussionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscussionView.swift; sourceTree = "<group>"; };
+		7742E54A2AFF205443C31612 /* FomioTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = FomioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8B91D592354060A725BB2B9E /* CookedContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookedContent.swift; sourceTree = "<group>"; };
+		95DC655A4FB879A2C76C0C0E /* DiscourseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscourseService.swift; sourceTree = "<group>"; };
+		A3C75FC2625C010CC0457309 /* Repositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Repositories.swift; sourceTree = "<group>"; };
+		AAC55DC30A8ADFB07896ED28 /* Network.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Network.swift; sourceTree = "<group>"; };
+		AD88FE6146A8E950E2222F61 /* DraftStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftStore.swift; sourceTree = "<group>"; };
+		AF9D3CD324603F2AF7FC12A5 /* FomioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FomioTests.swift; sourceTree = "<group>"; };
+		B69571EE27877EAEC79598A9 /* FomioApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FomioApp.swift; sourceTree = "<group>"; };
+		BC22B3DE7F60DEF7DB4526DA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		C0DBF9E2C16D64A5EB580076 /* AccountViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountViews.swift; sourceTree = "<group>"; };
+		C34669362D70C9736215EB26 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		CE25323914F9EC277460BEE2 /* Fomio.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Fomio.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D2ADA20B8CDDE10C4F25E925 /* Connectivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connectivity.swift; sourceTree = "<group>"; };
+		DB21FF85AD61800519D8FC79 /* fixture-photo.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = "fixture-photo.jpg"; sourceTree = "<group>"; };
+		DB98F1E6E54D3868704EE4CE /* ComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerView.swift; sourceTree = "<group>"; };
+		F088773CA9440D2826FD67C0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F4CA36CC3F0410DC642A97BB /* ComposerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerState.swift; sourceTree = "<group>"; };
+		F8D72B14D60A13FEA7EB3A6E /* FeedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		237C91C8F0D490841D7DD95A /* Fomio */ = {
+			isa = PBXGroup;
+			children = (
+				F088773CA9440D2826FD67C0 /* Info.plist */,
+				8B38BD3B1C04B07D59FCCC00 /* App */,
+				55E547C40E5C8C1D7AF23E31 /* Data */,
+				DB4D82ED653672B92CB9A21F /* Design */,
+				D549E645720A2F41E2B90122 /* Domain */,
+				AEA3B80D8DCCE073C0656C84 /* Features */,
+				A3F00EB03141BE7D5D408A61 /* Resources */,
+			);
+			path = Fomio;
+			sourceTree = "<group>";
+		};
+		55E547C40E5C8C1D7AF23E31 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				4E3E04A3335B529423DF96F5 /* Authentication.swift */,
+				D2ADA20B8CDDE10C4F25E925 /* Connectivity.swift */,
+				95DC655A4FB879A2C76C0C0E /* DiscourseService.swift */,
+				AD88FE6146A8E950E2222F61 /* DraftStore.swift */,
+				05A5CA6A94493A35AEB523A0 /* FixtureService.swift */,
+				AAC55DC30A8ADFB07896ED28 /* Network.swift */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		607F5AE1DF21517844A48037 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CE25323914F9EC277460BEE2 /* Fomio.app */,
+				7742E54A2AFF205443C31612 /* FomioTests.xctest */,
+				54D983A4990762D7B6E858EE /* FomioUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		65851EEBA6FF5B33148D6C70 /* FomioUITests */ = {
+			isa = PBXGroup;
+			children = (
+				216CD5DBF1E4AD300C6D71E6 /* FomioUITests.swift */,
+			);
+			path = FomioUITests;
+			sourceTree = "<group>";
+		};
+		88CD9CB02525AFEDB25813BF /* FomioTests */ = {
+			isa = PBXGroup;
+			children = (
+				540EC63262ABFDA7AD8DFC8B /* ContractTests.swift */,
+				AF9D3CD324603F2AF7FC12A5 /* FomioTests.swift */,
+			);
+			path = FomioTests;
+			sourceTree = "<group>";
+		};
+		8B38BD3B1C04B07D59FCCC00 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				2C5F26590846B1AB513D8EE7 /* AppState.swift */,
+				4D5A387B068E96B70CAAB451 /* DevelopmentPresets.swift */,
+				B69571EE27877EAEC79598A9 /* FomioApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A3F00EB03141BE7D5D408A61 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				36A8C29BF94A4A0719F5CF1A /* AppIcon.icon */,
+				BC22B3DE7F60DEF7DB4526DA /* Assets.xcassets */,
+				DB21FF85AD61800519D8FC79 /* fixture-photo.jpg */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		AEA3B80D8DCCE073C0656C84 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				C0DBF9E2C16D64A5EB580076 /* AccountViews.swift */,
+				F4CA36CC3F0410DC642A97BB /* ComposerState.swift */,
+				DB98F1E6E54D3868704EE4CE /* ComposerView.swift */,
+				8B91D592354060A725BB2B9E /* CookedContent.swift */,
+				3ED0C3508EAB319A3CC257F2 /* DiscussionState.swift */,
+				74321B4CF303EA4DBF3996FC /* DiscussionView.swift */,
+				F8D72B14D60A13FEA7EB3A6E /* FeedView.swift */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		D549E645720A2F41E2B90122 /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				29E2F1008D7B8F31C7114C5F /* Models.swift */,
+				A3C75FC2625C010CC0457309 /* Repositories.swift */,
+			);
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		DB4D82ED653672B92CB9A21F /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				C34669362D70C9736215EB26 /* Theme.swift */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
+		EC59D6DF2B499BE8352EEB4F = {
+			isa = PBXGroup;
+			children = (
+				237C91C8F0D490841D7DD95A /* Fomio */,
+				88CD9CB02525AFEDB25813BF /* FomioTests */,
+				65851EEBA6FF5B33148D6C70 /* FomioUITests */,
+				607F5AE1DF21517844A48037 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0EECE4325DA600607C97C993 /* FomioTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1034DDBF1F2CB6DA03241C5B /* Build configuration list for PBXNativeTarget "FomioTests" */;
+			buildPhases = (
+				A0B405AC5F551DA7DCBE38BA /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9B8CE5BFA4DD707568A3040B /* PBXTargetDependency */,
+			);
+			name = FomioTests;
+			packageProductDependencies = (
+			);
+			productName = FomioTests;
+			productReference = 7742E54A2AFF205443C31612 /* FomioTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		33D66838DFF61321603B118C /* Fomio */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7ED632115C8875A551B7A2F0 /* Build configuration list for PBXNativeTarget "Fomio" */;
+			buildPhases = (
+				9FA66DC7A9481705577476B2 /* Sources */,
+				1B9AADA206FD975992A12823 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Fomio;
+			packageProductDependencies = (
+			);
+			productName = Fomio;
+			productReference = CE25323914F9EC277460BEE2 /* Fomio.app */;
+			productType = "com.apple.product-type.application";
+		};
+		98045232B4B14CB242721699 /* FomioUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C40347AB8DCC3B5EC22C9137 /* Build configuration list for PBXNativeTarget "FomioUITests" */;
+			buildPhases = (
+				E870A92E48A17DD1F9588EA6 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2F7ADD04A364F0B72026D027 /* PBXTargetDependency */,
+			);
+			name = FomioUITests;
+			packageProductDependencies = (
+			);
+			productName = FomioUITests;
+			productReference = 54D983A4990762D7B6E858EE /* FomioUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		16C1689EC89150FE5F34B057 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					0EECE4325DA600607C97C993 = {
+						DevelopmentTeam = "";
+					};
+					33D66838DFF61321603B118C = {
+						DevelopmentTeam = "";
+					};
+					98045232B4B14CB242721699 = {
+						DevelopmentTeam = "";
+						TestTargetID = 33D66838DFF61321603B118C;
+					};
+				};
+			};
+			buildConfigurationList = 4ADAD6983D178C95B92B5E6C /* Build configuration list for PBXProject "Fomio" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = EC59D6DF2B499BE8352EEB4F;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 607F5AE1DF21517844A48037 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				33D66838DFF61321603B118C /* Fomio */,
+				0EECE4325DA600607C97C993 /* FomioTests */,
+				98045232B4B14CB242721699 /* FomioUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1B9AADA206FD975992A12823 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BA9B834D08C3A95CF90B5E70 /* AppIcon.icon in Resources */,
+				39BF0A203BC71D5CE78CF483 /* Assets.xcassets in Resources */,
+				6B2B013858769EBDFB16EAF8 /* fixture-photo.jpg in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9FA66DC7A9481705577476B2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FEDBBD6AF65287BA56F577C0 /* AccountViews.swift in Sources */,
+				712F31430C05424A67AA5FE8 /* AppState.swift in Sources */,
+				A13663D8617648B36F6E09D7 /* Authentication.swift in Sources */,
+				3354C5CE8E79E735E08488A6 /* ComposerState.swift in Sources */,
+				3BDA54481F30C0C1D16FBF0A /* ComposerView.swift in Sources */,
+				749FBCA0742157AB8A580819 /* Connectivity.swift in Sources */,
+				688FAF2BDB660452D2F69260 /* CookedContent.swift in Sources */,
+				6FBCF2D217F2CA45A6631506 /* DevelopmentPresets.swift in Sources */,
+				42643AC0B066D900B26B8922 /* DiscourseService.swift in Sources */,
+				7BE7474A92B8FE9BE095C83F /* DiscussionState.swift in Sources */,
+				6EAF68CDD0DD1D55825C5F6D /* DiscussionView.swift in Sources */,
+				F0F6F702F6C93A31CB44F048 /* DraftStore.swift in Sources */,
+				BD3FAE7FE34829467928AFDD /* FeedView.swift in Sources */,
+				77AA1C1121AB0D621B9D984F /* FixtureService.swift in Sources */,
+				BFD047366CD6B2C22863CA19 /* FomioApp.swift in Sources */,
+				44A5FF8518A1F6512C3C8F10 /* Models.swift in Sources */,
+				2C571587508B93763F071635 /* Network.swift in Sources */,
+				3E64383A44E0938646D41635 /* Repositories.swift in Sources */,
+				D523B3A64E261860FF5C9118 /* Theme.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A0B405AC5F551DA7DCBE38BA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				51436E3C08B16838E4579AE3 /* ContractTests.swift in Sources */,
+				DA30C8FD55B64AB32DEF4C51 /* FomioTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E870A92E48A17DD1F9588EA6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				45AA61A638961A875F1A8D39 /* FomioUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		2F7ADD04A364F0B72026D027 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 33D66838DFF61321603B118C /* Fomio */;
+			targetProxy = 6FFF3C599ECD0E0A6B47B730 /* PBXContainerItemProxy */;
+		};
+		9B8CE5BFA4DD707568A3040B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 33D66838DFF61321603B118C /* Fomio */;
+			targetProxy = AFE195BA5FF242E097CB35FA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0DA94C2076CE0B0B9FB7697D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Fomio/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Fomio;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.fomio.mobile;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3CFF91384572A412E3694FDE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				"CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]" = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		468126299AA9770AF86221C7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Fomio;
+			};
+			name = Debug;
+		};
+		4AEF7DA4706B2CF13A2F2702 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				"CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]" = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		5615A4D2223DA935B0BA0521 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Fomio;
+			};
+			name = Release;
+		};
+		880338AC528D33347A254413 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Fomio.app/Fomio";
+			};
+			name = Debug;
+		};
+		A251394CFFD45DBF167DA23D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Fomio.app/Fomio";
+			};
+			name = Release;
+		};
+		B1283F09F973680717A72E21 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Fomio/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Fomio;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.fomio.mobile;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1034DDBF1F2CB6DA03241C5B /* Build configuration list for PBXNativeTarget "FomioTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				880338AC528D33347A254413 /* Debug */,
+				A251394CFFD45DBF167DA23D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		4ADAD6983D178C95B92B5E6C /* Build configuration list for PBXProject "Fomio" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3CFF91384572A412E3694FDE /* Debug */,
+				4AEF7DA4706B2CF13A2F2702 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		7ED632115C8875A551B7A2F0 /* Build configuration list for PBXNativeTarget "Fomio" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0DA94C2076CE0B0B9FB7697D /* Debug */,
+				B1283F09F973680717A72E21 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C40347AB8DCC3B5EC22C9137 /* Build configuration list for PBXNativeTarget "FomioUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				468126299AA9770AF86221C7 /* Debug */,
+				5615A4D2223DA935B0BA0521 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 16C1689EC89150FE5F34B057 /* Project object */;
+}

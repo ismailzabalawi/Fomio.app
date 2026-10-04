@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-03",
+  "project": "https://claude.ai/design/p/4e5074c6-0b81-4e0d-a216-04b839117fec",
+  "scope": "Fomio iOS 26+ MVP browser mockup baseline",
+  "layoutHarness": { "renders": 117, "flagged": 0, "status": "independently run on final layout files" },
+  "observed": [
+    "Local walnut tabletop and fig sample images render in prototype",
+    "Notification opens discussion 4190 at reply 14",
+    "Unfinished photo warning appears before Keep draft without photo",
+    "Keeping draft without photo returns to community with explicit notice",
+    "Resumed sample draft restores title, body and destination with attachment recovery notice"
+  ],
+  "limitations": [
+    "Harness results are browser diagnostics, not proof of native accessibility or HIG compliance",
+    "Native Dynamic Type, VoiceOver, Liquid Glass, keyboard and iPad behavior require SwiftUI/device verification",
+    "Not every interaction regression was independently clicked in this final pass",
+    "Discourse deployment and backend contracts remain subject to project verification requirements"
+  ],
+  "sampleAssets": {
+    "claudeProject": "Licensed walnut tabletop, oscilloscope and fig images bundled with provenance in project Review Index",
+    "localGeneratedFallback": "assets/walnut-tabletop-generated-demo.png",
+    "fallbackUsedInMockup": false
+  }
+}

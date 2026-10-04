@@ -1,0 +1,264 @@
+{
+  "imported_on": "2026-10-02",
+  "source_directory": "/Volumes/Develop/Projects/Rebuilding Discourse/fomio-web/docs",
+  "source_head": "5fb77cab4088767b5dfeee56d36ef74b21c36a4b",
+  "source_worktree_status": [
+    " M about.json",
+    " M common/common.scss",
+    " M docs/03-implementation.md",
+    " M docs/04-workflow.md",
+    " M docs/12-composer-v4-implementation-roadmap.md",
+    " M docs/13-composer-agent-guide.md",
+    " M docs/README.md",
+    " D javascripts/discourse/api-initializers/fomio-composer-preview.js",
+    " M javascripts/discourse/api-initializers/fomio-tracked-filter.js",
+    " M javascripts/discourse/lib/fomio-composer-format.js",
+    " M locales/en.yml",
+    " M scripts/check-duplication.sh",
+    " M test/native-composer-format.test.mjs",
+    "?? .DS_Store",
+    "?? docs/14-composer-v4-stage-0-lock.md",
+    "?? docs/15-composer-v4-copy-and-corrections-sheet.md",
+    "?? docs/16-composer-v4-stage-0-r1.md",
+    "?? docs/17-composer-v4-decision-update.md",
+    "?? docs/18-composer-v4-r1-reconciliation.md",
+    "?? docs/19-composer-v4-native-audit-and-proposed-build-reference.md",
+    "?? docs/20-composer-v4-implementation-start.md",
+    "?? docs/21-composer-v4-native-implementation-and-qa.md",
+    "?? docs/22-composer-v4-review-handoff.md",
+    "?? docs/23-home-concept-implementation.md",
+    "?? docs/24-search-concept-implementation.md",
+    "?? docs/25-profile-concept-implementation.md",
+    "?? docs/composer-v4-implementation/",
+    "?? docs/composer-v4-r1-disposition/",
+    "?? docs/composer-v4-stage-0-r1/",
+    "?? docs/composer-v4-stage-0/",
+    "?? javascripts/discourse/api-initializers/fomio-composer-audience.gjs",
+    "?? javascripts/discourse/api-initializers/fomio-composer-category-search.js",
+    "?? javascripts/discourse/api-initializers/fomio-composer-feedback.gjs",
+    "?? javascripts/discourse/api-initializers/fomio-composer.js",
+    "?? javascripts/discourse/api-initializers/fomio-home.js",
+    "?? test/acceptance/fomio-composer-audience-test.js",
+    "?? test/acceptance/fomio-composer-feedback-test.js",
+    "?? test/acceptance/fomio-composer-format-test.js"
+  ],
+  "source_chat": "codex://threads/01a0f732-c96f-7c43-8c9c-033fe8205704",
+  "scope": "Documentation and tabular records only; screenshots, mockup assets, tooling, runtime code and review ZIP remain in original checkout. Snapshot includes working-tree content, not solely committed content.",
+  "files": [
+    {
+      "path": "00-roadmap.md",
+      "sha256": "179c04b3f144d429fc64443757cb469338b56167596c9b58dcb8c91a8032e045",
+      "bytes": 15390
+    },
+    {
+      "path": "01-context-and-decisions.md",
+      "sha256": "11f80b661e005a88140ddb1cebbb9d6848ec678c2dfec22de593856077952d01",
+      "bytes": 7077
+    },
+    {
+      "path": "02-discourse-core-reference.md",
+      "sha256": "503a1f84ef52148e5d29996345513f0c7837d2453afb0b1459adeb87f91c2a43",
+      "bytes": 28301
+    },
+    {
+      "path": "03-implementation.md",
+      "sha256": "f6cdd0418c5a8df62e1dc0b75e669a1d34b2cc0c5a15be3d0eecf6a38d78fa68",
+      "bytes": 21764
+    },
+    {
+      "path": "04-workflow.md",
+      "sha256": "749e8e0245b4fea4e64f4dc08b9edde52bea709d739e5050ca57ab6f9634137d",
+      "bytes": 10961
+    },
+    {
+      "path": "05-phase-1-configuration.md",
+      "sha256": "dc7d5d30f3970252ab142d9949bfb46976538f9f4e042b5c53386eaa5e165076",
+      "bytes": 15942
+    },
+    {
+      "path": "06-information-architecture.md",
+      "sha256": "5af8be442db7216154ba69094d1c5a65ebd3b5f65e16b99e262840aef375b29a",
+      "bytes": 6461
+    },
+    {
+      "path": "07-production-implementation-plan.md",
+      "sha256": "47f91b5f969ef1519c05b6f536cf43247bf42f52eb827de6178a1ae68c6100b8",
+      "bytes": 53366
+    },
+    {
+      "path": "08-mockup-core-map.md",
+      "sha256": "8289fd1f8cf8154eff1f10a31a54d4acf263df2ab177c8293999697fe4ee6290",
+      "bytes": 19269
+    },
+    {
+      "path": "09-composer-research.md",
+      "sha256": "1a5848221c26af40cdcb9e5c1e9136000f3d94ee395d33d0a809d84fee5508d3",
+      "bytes": 36593
+    },
+    {
+      "path": "10-composer-ia-map.md",
+      "sha256": "67ddf6e89476b06317f1a1c1328a9847cfc24e8a81f8cece17f80e642248efd8",
+      "bytes": 15426
+    },
+    {
+      "path": "11-composer-native-feasibility.md",
+      "sha256": "37a08d306f22db7717d5034f805940d5bb9842f5a4302c3bcc056822be1ac03f",
+      "bytes": 6792
+    },
+    {
+      "path": "12-composer-v4-implementation-roadmap.md",
+      "sha256": "25925b5659a1589542b9a18e3c46792d374fd8581b79f58d5571b1a8ce3f69fe",
+      "bytes": 17513
+    },
+    {
+      "path": "13-composer-agent-guide.md",
+      "sha256": "7b1c69c3b510223ec747fb54989ac7c9e7fabe9685f4578ed56aa48056cfcad2",
+      "bytes": 12612
+    },
+    {
+      "path": "14-composer-v4-stage-0-lock.md",
+      "sha256": "b23ff74d926e60a5714d10e57c1c0d2f5924f0a4a6dfa187ef7863efce371351",
+      "bytes": 17700
+    },
+    {
+      "path": "15-composer-v4-copy-and-corrections-sheet.md",
+      "sha256": "0aa4034a32f47e8c282b92803c32c0d73616581d2780239e81776b876feb598a",
+      "bytes": 7431
+    },
+    {
+      "path": "16-composer-v4-stage-0-r1.md",
+      "sha256": "699c162c89d165256c019c8824ae6d5ac446f7ef74d6723a8e568c1fa2cc4df9",
+      "bytes": 1510
+    },
+    {
+      "path": "17-composer-v4-decision-update.md",
+      "sha256": "220e5fc9cb7c74d56859ebbc0dd8ba518a7b24cbba7ad60feae8d3c27ae26799",
+      "bytes": 4025
+    },
+    {
+      "path": "18-composer-v4-r1-reconciliation.md",
+      "sha256": "0e091764b630699910751fd944ad7b3358ca55c1a2441f02b38b0a2ad6b5e8a9",
+      "bytes": 12382
+    },
+    {
+      "path": "19-composer-v4-native-audit-and-proposed-build-reference.md",
+      "sha256": "005745f25117a1f05ec6685eec35a8312d463a7c61de3d0a33f92551f1aca06f",
+      "bytes": 13484
+    },
+    {
+      "path": "20-composer-v4-implementation-start.md",
+      "sha256": "a0b5d1f4f14f47adabe5608ff9aa6f89ea9d5a81f519214739602c56b45c0c91",
+      "bytes": 8363
+    },
+    {
+      "path": "21-composer-v4-native-implementation-and-qa.md",
+      "sha256": "43505bacee1b63b1b308d328cff9ec71c8a45c785dd04dc6cc2fdb152c181e9b",
+      "bytes": 14278
+    },
+    {
+      "path": "22-composer-v4-review-handoff.md",
+      "sha256": "a4146a3817e8d0e23fb4b5397573b78977b0e0919143f304cbec9e8f1ec96cfe",
+      "bytes": 7525
+    },
+    {
+      "path": "23-home-concept-implementation.md",
+      "sha256": "6f7e31e70467ffd1a8dccb851aee329fe3a84d84db079248a4d3d64fb16717bd",
+      "bytes": 2832
+    },
+    {
+      "path": "24-search-concept-implementation.md",
+      "sha256": "eac69535ea2bf9d141bc4bbd23a0ccf497cca4b8b55cd67394ad8be74bdc85f2",
+      "bytes": 2370
+    },
+    {
+      "path": "25-profile-concept-implementation.md",
+      "sha256": "9efb40923aae416a916614404a1862fa2d11a6b4a4116640dd5a23b72672b8e4",
+      "bytes": 2732
+    },
+    {
+      "path": "README.md",
+      "sha256": "93b8f33fe12d8cf97acb568ff1ccad61b1c9cbb20dcc440e857699d0ff05cfc5",
+      "bytes": 5556
+    },
+    {
+      "path": "composer-claude-design-prompt.md",
+      "sha256": "c1bc20e639808f86055634515e873573bb21b5acb4c243ccd3bba654eed3f01b",
+      "bytes": 5096
+    },
+    {
+      "path": "composer-design-context.md",
+      "sha256": "a4b60dff2f9261e0ade4cd586049ca07e3c05c2a28e88744bbbdc67bb43fea08",
+      "bytes": 6463
+    },
+    {
+      "path": "route-inventory.md",
+      "sha256": "54f3d8394a01272904c5ba58c19e9a2631744e2f81c2bdd9b867a6f7ac1cbabc",
+      "bytes": 6663
+    },
+    {
+      "path": "composer-network-observations.csv",
+      "sha256": "99147a1bb56bcb70b5a4d1c4e32cce4f60a7a71709c46076dd57676d8279242d",
+      "bytes": 1727
+    },
+    {
+      "path": "composer-v4-stage-0/composer-v4-acceptance-records.csv",
+      "sha256": "8f660a16ae0098da77c07f12f8031f5881496a481ec4cf208604e2822f04945c",
+      "bytes": 104983
+    },
+    {
+      "path": "composer-v4-stage-0/composer-v4-copy-mapping.csv",
+      "sha256": "a8c98d6125b30e8f7e32f3296b4eb9f1b1a88750496caade37c31d0fa0f3af70",
+      "bytes": 13234
+    },
+    {
+      "path": "composer-v4-stage-0/composer-v4-screenshot-plan.csv",
+      "sha256": "872332a7f9f490398b779227a3d85e5b651f0925631ab4d08640f782d2d43bc2",
+      "bytes": 15158
+    },
+    {
+      "path": "composer-v4-stage-0/RECORDS.sha256",
+      "sha256": "a0a22ab8033f4ac8ec02cd9301a3d9735b511d59ac4a9b914f7261475980fdcd",
+      "bytes": 1088
+    },
+    {
+      "path": "composer-v4-stage-0-r1/composer-v4-stage-0-r1-lock.md",
+      "sha256": "3d4de84989bd0575eb33659585b56fe37dcaa42439f29d122c0566d0e3787d65",
+      "bytes": 5816
+    },
+    {
+      "path": "composer-v4-stage-0-r1/composer-v4-acceptance-records-r1.csv",
+      "sha256": "e3691134212a357174ba43ad6d76b20621daaff658dfaca311ec3dc66c29ce79",
+      "bytes": 116811
+    },
+    {
+      "path": "composer-v4-stage-0-r1/composer-v4-copy-mapping-r1.csv",
+      "sha256": "fe2f11e72c522a0b0fe1761cefdeabdf9904a0eaee61660089ac361cd7cf3914",
+      "bytes": 18852
+    },
+    {
+      "path": "composer-v4-stage-0-r1/composer-v4-screenshot-plan-r1.csv",
+      "sha256": "1398e4e2dc72299f9fd92795247cd842fdd0130162b16118be15429504ba6181",
+      "bytes": 26211
+    },
+    {
+      "path": "composer-v4-stage-0-r1/RECORDS-r1.sha256",
+      "sha256": "5b44df7a6baec28f0d195ac9101bd8d92e779bbd1343dac68706d969fd2d1dc6",
+      "bytes": 11202
+    },
+    {
+      "path": "composer-v4-r1-disposition/README.md",
+      "sha256": "43fa188e513545ff9fb2a227a1fa107d2270dac7a04dec41cf6a95948b983be7",
+      "bytes": 1266
+    },
+    {
+      "path": "composer-v4-r1-disposition/acceptance-disposition.csv",
+      "sha256": "fe2c0a6b4f169fd4ffb0908c5784aeab06face7eb2c57a5f9f934a445d3cf4a8",
+      "bytes": 11868
+    },
+    {
+      "path": "composer-v4-r1-disposition/copy-disposition.csv",
+      "sha256": "8208db3dbce5a2cc743f8cd5d4423375b1d8426dbbc86ac91e5af466eda2526d",
+      "bytes": 12778
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="height:54px;border-top:1.5px solid #1a1a1a;display:grid;grid-template-columns:repeat(4,1fr);background:#fff;padding-top:6px;box-sizing:border-box">
+<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+<a href="{{ t.href }}" aria-label="{{ t.label }}" style="display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:{{ t.weight }};color:#1a1a1a;text-decoration:none"><span style="width:18px;height:18px;border:1.5px solid #1a1a1a;border-radius:5px;background:{{ t.fill }}"></span>{{ t.label }}</a>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:280,&quot;height&quot;:54},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;communities&quot;,&quot;notifications&quot;,&quot;me&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;guest&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const C = 'Fomio%20Core%20Flows.dc.html', S = 'Fomio%20Screens.dc.html';
+    const g = !!this.props.guest, a = this.props.active ?? 'home';
+    const tabs = [
+      ['home', 'Home', g ? C + '#H01g' : S + '#H01m'],
+      ['communities', 'Communities', S + (g ? '#CO01g' : '#CO01')],
+      ['notifications', 'Notifications', S + (g ? '#N01g' : '#N01')],
+      ['me', 'Me', S + (g ? '#ME01g' : '#ME01')]
+    ];
+    return { tabs: tabs.map(([k, l, h]) => ({ label: l, href: h, fill: k === a ? '#1a1a1a' : '#fff', weight: k === a ? 700 : 400 })) };
+  }
+}
+</script>
+</body>
+</html>

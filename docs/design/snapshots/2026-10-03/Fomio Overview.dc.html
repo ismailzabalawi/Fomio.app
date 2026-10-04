@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="design_doc_mode" content="canvas"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Patrick+Hand&amp;display=swap"><style>body{margin:0;background:#f0eee9;font-family:'Patrick Hand',system-ui,sans-serif;color:#1a1a1a}a{color:#1a1a1a;text-decoration:none}a:hover{outline:2px dashed #2a78d6;outline-offset:1px}.dv-turn{padding:32px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 18px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px}.dv-tname{font:400 26px/1.2 'Patrick Hand',system-ui,sans-serif;color:#1a1a1a}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px}</style></helmet>
+<header style="padding:32px 44px 8px;display:flex;flex-direction:column;gap:12px;max-width:1200px">
+<div style="font:11px ui-monospace,monospace;color:#666">FOMIO iOS — IA &amp; WIREFRAMES · CONSOLIDATED BASELINE 2026-10-02 · COMPLETION PASS 2026-10-03 · LOW-FI</div>
+<h1 style="margin:0;font-weight:400;font-size:52px;line-height:1">Fomio iOS — IA &amp; Wireframes</h1>
+<p style="margin:0;font:15px/1.5 system-ui,sans-serif;color:#333;max-width:820px;text-wrap:pretty">Low-fidelity, clickable wireframe pack for a native SwiftUI iPhone/iPad client backed by Discourse. Community = category, subcommunity = child category, discussion = topic, opening post and replies = posts. Discourse is authoritative for data, permissions, tracking/watching, validation and moderation. Labels "community", "discussion", "reply" and "Me" are working labels.</p>
+<nav style="display:flex;flex-wrap:wrap;gap:8px;font:13px system-ui,sans-serif"><a href="Fomio%20Overview.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#1a1a1a;color:#fff">Overview &amp; register</a><a href="Fomio%20Core%20Flows.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">Core flows</a><a href="Fomio%20Flow%20Completion.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">Flow completion</a><a href="Fomio%20Screens.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">Supporting screens</a><a href="Fomio%20Composer%20States.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">Composer &amp; states</a><a href="Fomio%20iPad%20Accessibility.dc.html" style="padding:5px 10px;border:1px solid #1a1a1a;border-radius:6px;background:#fff">iPad &amp; accessibility</a></nav>
+<div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;font:12px system-ui,sans-serif;color:#444"><span style="display:flex;gap:5px;align-items:center"><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px solid #1a1a1a;border-radius:3px">EST</span>established direction</span><span style="display:flex;gap:5px;align-items:center"><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f5d77a;border-radius:3px">ASSUMPTION</span>prototype assumption, replaceable</span><span style="display:flex;gap:5px;align-items:center"><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;background:#f0a99a;border-radius:3px">UNRESOLVED</span>open decision, not settled by these frames</span><span style="display:flex;gap:5px;align-items:center"><span style="font:700 9px ui-monospace,monospace;padding:1px 4px;border:1px dashed #1a1a1a;border-radius:3px">CONDITIONAL</span>dashed UI = shown only when Discourse permits</span></div>
+</header>
+
+<section class="dv-turn" id="ia">
+<div class="dv-thd"><a class="dv-tid" href="#ia">1</a><span class="dv-tname">IA graph — click any box to open its frame</span></div>
+<div style="display:flex;flex-direction:column;gap:14px;max-width:1240px">
+<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+<span style="padding:8px 14px;border:2px solid #1a1a1a;border-radius:10px;background:#1a1a1a;color:#fff;font-size:18px">Fomio app</span>
+<span style="font:12px system-ui,sans-serif;color:#555">always available from every destination →</span>
+<a href="Fomio%20Screens.dc.html#SE01" style="padding:6px 12px;border:2px solid #1a1a1a;border-radius:10px;background:#fff;font-size:16px">Search (utility) <span style="font:10px ui-monospace,monospace">SE01</span></a>
+<a href="Fomio%20Core%20Flows.dc.html#C02g" style="padding:6px 12px;border:2px solid #1a1a1a;border-radius:10px;background:#fff;font-size:16px">+ Create (action, not a tab) <span style="font:10px ui-monospace,monospace">C01–C03</span></a>
+<a href="Fomio%20Core%20Flows.dc.html#C19" style="padding:6px 12px;border:2px dashed #1a1a1a;border-radius:10px;background:#fff;font-size:16px">Sign-in gates <span style="font:10px ui-monospace,monospace">C19 · C19l/b/t/c · AUTH</span></a>
+</div>
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px">
+<div style="display:flex;flex-direction:column;gap:6px;padding:10px;border:2px solid #1a1a1a;border-radius:12px;background:#fff">
+<a href="Fomio%20Screens.dc.html#H01m" style="font-size:20px">Home <span style="font:10px ui-monospace,monospace">H01</span></a>
+<span style="font:11px/1.35 system-ui,sans-serif;color:#555">Latest / Hot sort + separate Tracked filter</span>
+<div style="display:flex;flex-direction:column;gap:5px;padding-left:10px;border-left:2px solid #1a1a1a">
+<a href="Fomio%20Core%20Flows.dc.html#H01g" style="padding:4px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Guest Home · H01g</a>
+<a href="Fomio%20Screens.dc.html#H01t" style="padding:4px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Tracked · H01t / H01te</a>
+<a href="Fomio%20Core%20Flows.dc.html#D01" style="padding:4px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px;background:#f1f1f1">Discussion · D01 ↗</a>
+<a href="Fomio%20Core%20Flows.dc.html#CO02" style="padding:4px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px;background:#f1f1f1">Community · CO02 / CO02pg (guest) · CO02h (member) ↗</a>
+</div></div>
+<div style="display:flex;flex-direction:column;gap:6px;padding:10px;border:2px solid #1a1a1a;border-radius:12px;background:#fff">
+<a href="Fomio%20Screens.dc.html#CO01" style="font-size:20px">Communities <span style="font:10px ui-monospace,monospace">CO01</span></a>
+<span style="font:11px/1.35 system-ui,sans-serif;color:#555">Directory, parent/child, tracked shortcuts</span>
+<div style="display:flex;flex-direction:column;gap:5px;padding-left:10px;border-left:2px solid #1a1a1a">
+<a href="Fomio%20Core%20Flows.dc.html#CO02m" style="padding:4px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Community · CO02m</a>
+<a href="Fomio%20Core%20Flows.dc.html#CO02s" style="padding:4px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Subcommunity · CO02s</a>
+<a href="Fomio%20Screens.dc.html#CO02n" style="padding:4px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Notification level · CO02n / CO02ns</a>
+<a href="Fomio%20Screens.dc.html#CO02a" style="padding:4px 8px;border:1.5px dashed #1a1a1a;border-radius:7px;font-size:14px">About · CO02a</a>
+<a href="Fomio%20Screens.dc.html#CO02r" style="padding:4px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Restricted cue · CO02r</a>
+<a href="Fomio%20Core%20Flows.dc.html#D01m" style="padding:4px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px;background:#f1f1f1">Discussion · D01m ↗</a>
+</div></div>
+<div style="display:flex;flex-direction:column;gap:6px;padding:10px;border:2px solid #1a1a1a;border-radius:12px;background:#fff">
+<a href="Fomio%20Screens.dc.html#N01" style="font-size:20px">Notifications <span style="font:10px ui-monospace,monospace">N01</span></a>
+<span style="font:11px/1.35 system-ui,sans-serif;color:#555">Guest → sign-in entry</span>
+<div style="display:flex;flex-direction:column;gap:5px;padding-left:10px;border-left:2px solid #1a1a1a">
+<a href="Fomio%20Composer%20States.dc.html#LK01" style="padding:4px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Exact reply target · LK01</a>
+<a href="Fomio%20Screens.dc.html#N01x" style="padding:4px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Missing target · N01x</a>
+<a href="Fomio%20Screens.dc.html#N01e" style="padding:4px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Empty · N01e</a>
+<a href="Fomio%20Screens.dc.html#N01g" style="padding:4px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Guest · N01g</a>
+</div></div>
+<div style="display:flex;flex-direction:column;gap:6px;padding:10px;border:2px solid #1a1a1a;border-radius:12px;background:#fff">
+<a href="Fomio%20Screens.dc.html#ME01" style="font-size:20px">Me <span style="font:10px ui-monospace,monospace">ME01</span></a>
+<span style="font:11px/1.35 system-ui,sans-serif;color:#555">Guest → sign-in (ME01g)</span>
+<div style="display:flex;flex-direction:column;gap:5px;padding-left:10px;border-left:2px solid #1a1a1a">
+<a href="Fomio%20Screens.dc.html#U01" style="padding:4px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Profile · U01 / U01o</a>
+<a href="Fomio%20Screens.dc.html#A01" style="padding:4px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Activity · A01</a>
+<a href="Fomio%20Screens.dc.html#B01" style="padding:4px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Bookmarks · B01</a>
+<a href="Fomio%20Screens.dc.html#DR01" style="padding:4px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Drafts · DR01</a>
+<a href="Fomio%20Screens.dc.html#PM01" style="padding:4px 8px;border:1.5px dashed #1a1a1a;border-radius:7px;font-size:14px">Private Messages · PM01</a>
+<a href="Fomio%20Screens.dc.html#ST01" style="padding:4px 8px;border:1.5px dashed #1a1a1a;border-radius:7px;font-size:14px">Settings · ST01</a>
+</div></div>
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:10px;border:2px solid #1a1a1a;border-radius:12px;background:#fff">
+<span style="font-size:18px">Composer (shared)</span>
+<span style="font:11px system-ui,sans-serif;color:#555">intents:</span>
+<a href="Fomio%20Core%20Flows.dc.html#C01" style="padding:3px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">New · C01–C03</a>
+<a href="Fomio%20Core%20Flows.dc.html#C10r" style="padding:3px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Reply/Quote · C10</a>
+<a href="Fomio%20Composer%20States.dc.html#C11" style="padding:3px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Edit · C11</a>
+<a href="Fomio%20Screens.dc.html#DR01" style="padding:3px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Resume · DR01</a>
+<span style="font:11px system-ui,sans-serif;color:#555">outcomes:</span>
+<a href="Fomio%20Core%20Flows.dc.html#C16" style="padding:3px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Published C16</a>
+<a href="Fomio%20Core%20Flows.dc.html#C17" style="padding:3px 8px;border:1.5px dashed #1a1a1a;border-radius:7px;font-size:14px">Pending C17</a>
+<a href="Fomio%20Core%20Flows.dc.html#C13" style="padding:3px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Error C13</a>
+<a href="Fomio%20Composer%20States.dc.html#CU01" style="padding:3px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px">Unconfirmed CU01</a>
+<a href="Fomio%20Flow%20Completion.dc.html" style="padding:3px 8px;border:1.5px solid #1a1a1a;border-radius:7px;font-size:14px;background:#f1f1f1">Per-context outcome sets · Flow completion ↗</a>
+</div>
+</div>
+</section>
+
+<section class="dv-turn" id="decisions">
+<div class="dv-thd"><a class="dv-tid" href="#decisions">2</a><span class="dv-tname">Established vs. assumption vs. unresolved</span></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;max-width:1240px;font:13px/1.45 system-ui,sans-serif;color:#222">
+<div style="background:#fff;border:1.5px solid #1a1a1a;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px"><span style="align-self:flex-start;font:700 10px ui-monospace,monospace;padding:2px 5px;border:1px solid #1a1a1a;border-radius:3px">ESTABLISHED</span><ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px"><li>Four destinations: Home, Communities, Notifications, Me; global Search; Create is an action</li><li>Discourse categories/topics/posts; no Join or membership model, no recommendations</li><li>Guests browse Home, Communities, Search where site allows</li><li>Member-only actions authenticate, restore intent, recheck permission, never auto-post</li><li>One composer for Create/Reply/Quote/Edit/Resume, six independent state axes</li><li>Tracked is a separate Home filter; never active with unfiltered results</li><li>Tracking vs Watching = Discourse notification levels</li><li>Restricted cue only from Discourse data; no inferred Public/Private</li><li>Exact links keep topic ID and post number distinct</li><li>Local save never labeled as server-saved; pending ≠ published</li><li>No follower counts, chat, AI, paywall, interest picker or Explore</li></ul></div>
+<div style="background:#fff;border:1.5px solid #1a1a1a;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px"><span style="align-self:flex-start;font:700 10px ui-monospace,monospace;padding:2px 5px;background:#f5d77a;border-radius:3px">PROTOTYPE ASSUMPTIONS</span><ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px"><li>Latest as initial Home sort (<a href="Fomio%20Core%20Flows.dc.html#H01g" style="text-decoration:underline">H01g</a>)</li><li>Search and + Create in each tab's nav bar</li><li>Chronological replies as the D01 baseline</li><li>Full-screen composer on iPhone; sheet on iPad (<a href="Fomio%20iPad%20Accessibility.dc.html#IP02" style="text-decoration:underline">IP02</a>)</li><li>iPad: sidebar + list + detail (<a href="Fomio%20iPad%20Accessibility.dc.html#IP01" style="text-decoration:underline">IP01</a>)</li><li>All five notification levels exposed (<a href="Fomio%20Screens.dc.html#CO02n" style="text-decoration:underline">CO02n</a>)</li><li>Post disabled while uploads are in flight</li><li>Ineligible destinations shown disabled with reason</li><li>Read cache available offline (<a href="Fomio%20Composer%20States.dc.html#OF01" style="text-decoration:underline">OF01</a>)</li><li>Device settings reachable as guest</li><li>Illustrative content, usernames and IDs are fictional</li></ul></div>
+<div style="background:#fff;border:1.5px solid #1a1a1a;border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:8px"><span style="align-self:flex-start;font:700 10px ui-monospace,monospace;padding:2px 5px;background:#f0a99a;border-radius:3px">UNRESOLVED — FLAGGED</span><ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:3px"><li><b>Home sort</b> default</li><li><b>Tracked on Hot</b> support (<a href="Fomio%20Screens.dc.html#H01h" style="text-decoration:underline">H01h</a>)</li><li><b>Reply presentation</b>: chronological vs nested (<a href="Fomio%20Screens.dc.html#D01n" style="text-decoration:underline">D01n</a>)</li><li><b>Editor modes</b>: rich vs Markdown (<a href="Fomio%20Composer%20States.dc.html#C05" style="text-decoration:underline">C05</a>)</li><li><b>Draft policy</b>: storage, cross-device, sign-out (<a href="Fomio%20Composer%20States.dc.html#C12" style="text-decoration:underline">C12</a>)</li><li><b>PM launch depth</b> and permissions (<a href="Fomio%20Screens.dc.html#PM01" style="text-decoration:underline">PM01</a>)</li><li><b>Settings launch depth</b>; web-only scope (<a href="Fomio%20Screens.dc.html#ST01" style="text-decoration:underline">ST01</a>)</li><li><b>iPad presentation</b> incl. composer (<a href="Fomio%20iPad%20Accessibility.dc.html#IP02" style="text-decoration:underline">IP02</a>)</li><li>Sign-in mechanism and account creation (<a href="Fomio%20Core%20Flows.dc.html#AUTH" style="text-decoration:underline">AUTH</a>)</li><li>Push delivery (<a href="Fomio%20Screens.dc.html#N01" style="text-decoration:underline">N01</a>)</li><li>Guided form support (<a href="Fomio%20Composer%20States.dc.html#C18" style="text-decoration:underline">C18</a>)</li><li>Submit reconciliation method (<a href="Fomio%20Composer%20States.dc.html#CU01" style="text-decoration:underline">CU01</a>)</li><li>Search filters exposed natively</li><li>Pending-post persistence; account switch with open draft</li><li><b>Pending inline card</b>, its visibility and persistence; whether edits can go to review (<a href="Fomio%20Core%20Flows.dc.html#C17" style="text-decoration:underline">C17</a>, <a href="Fomio%20Composer%20States.dc.html#C16e" style="text-decoration:underline">C16e</a>)</li><li>Whether Like / Bookmark / Track apply automatically after sign-in (<a href="Fomio%20Core%20Flows.dc.html#t1b" style="text-decoration:underline">A2</a> shows ready-to-tap)</li></ul></div>
+</div>
+</section>
+
+<section class="dv-turn" id="checklist">
+<div class="dv-thd"><a class="dv-tid" href="#checklist">2b</a><span class="dv-tname">Wireframe completion checklist</span></div>
+<p style="margin:-6px 0 14px;max-width:900px;font:12px/1.5 system-ui,sans-serif;color:#444">Status key: <b>code-traced</b> = every link target in the path was checked in the source and resolves to the intended frame; <b>click-tested</b> = also clicked in a browser (none yet); <b>deferred</b> = not drawn, outside the completed path. All seven gaps listed by the previous pass are now linked paths (Flow completion page, sections Q–B); none is marked deferred. Completion means the link path exists on the board. It does not mean the capability is implemented, persistent or accessible.</p>
+<div style="display:grid;grid-template-columns:minmax(160px,1fr) minmax(240px,2.2fr) 110px minmax(200px,1.6fr);max-width:1400px;background:#fff;border:1.5px solid #1a1a1a;border-radius:10px;overflow:hidden;font:12px/1.4 system-ui,sans-serif">
+<span style="padding:8px 10px;background:#1a1a1a;color:#fff;font:700 11px ui-monospace,monospace">PATH</span><span style="padding:8px 10px;background:#1a1a1a;color:#fff;font:700 11px ui-monospace,monospace">FRAMES</span><span style="padding:8px 10px;background:#1a1a1a;color:#fff;font:700 11px ui-monospace,monospace">STATUS</span><span style="padding:8px 10px;background:#1a1a1a;color:#fff;font:700 11px ui-monospace,monospace">DEFERRED IN THIS PATH</span>
+<span style="padding:8px 10px;border-top:1px solid #e2e2e2">Guest read → reply authorization</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2"><a href="Fomio%20Core%20Flows.dc.html#H01g" style="text-decoration:underline">H01g</a> → CO02 ↔ CO02pg → D01 → C19 → AUTH → C10r → C16 / C17 / C13 / CU01; cancel C19 → D01, AUTH → D01; denied → C13r; Cancel C10r → KDra</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2">code-traced (unchanged this pass)</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2;color:#555">H01g Repairs / Gardening cards open the Finishing sample</span>
+<span style="padding:8px 10px;border-top:1px solid #e2e2e2">Guest action gates (Create / Track / Like / Bookmark / Quote)</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2"><a href="Fomio%20Core%20Flows.dc.html#t1b" style="text-decoration:underline">A2</a>, <a href="Fomio%20Core%20Flows.dc.html#t1f" style="text-decoration:underline">A3</a>: C19l → D01rl, C19b → D01rb, C19t → CO02rt, C19tw → CO02rtw, C19c → C01r, C19cw → C01hp, C19q → C04q, global C19g → C02g, Communities <a href="Fomio%20Flow%20Completion.dc.html#C19gc" style="text-decoration:underline">C19gc</a> → C02gc; each Not now → its origin</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2">code-traced</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2;color:#555">—</span>
+<span style="padding:8px 10px;border-top:1px solid #e2e2e2">Member Home / category → create</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2"><a href="Fomio%20Screens.dc.html#H01m" style="text-decoration:underline">H01m</a> → CO02h ↔ CO02hp → D01m; CO02h → C01h ↔ C02h, Cancel → KDh, Post → C16nh / C17nh / C13nh / CU02nh; CO02hp → <a href="Fomio%20Core%20Flows.dc.html#C01hp" style="text-decoration:underline">C01hp</a> (typed) → KDhp / C02hp / C16nhp / C17nhp / C13nhp / CU02nhp; global H01m → C02g → <a href="Fomio%20Core%20Flows.dc.html#C01g" style="text-decoration:underline">C01g</a> (typed) → KDg → H01m / C02gb / C16ng / C17ng / C13ng / CU02ng</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2">code-traced</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2;color:#555">—</span>
+<span style="padding:8px 10px;border-top:1px solid #e2e2e2">Communities hierarchy → create</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2"><a href="Fomio%20Screens.dc.html#CO01" style="text-decoration:underline">CO01</a> → CO02m ↔ CO02s → D01s; CO02m → C01 → C02 → C03 ↔ C02f → C06 → C09 → C16n / C17na / C13na / CU02na, Cancel → KDa; CO02s → <a href="Fomio%20Core%20Flows.dc.html#C01s" style="text-decoration:underline">C01s</a> (typed) → KDs / C02s / C16ns / C17ns / C13ns / CU02ns; CO01 + Create → <a href="Fomio%20Flow%20Completion.dc.html#C02gc" style="text-decoration:underline">C02gc</a> (Cancel → CO01) → C01gc → KDgc → CO01 / C02gcb / C16ngc / C17ngc / C13ngc / CU02ngc</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2">code-traced</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2;color:#555">—</span>
+<span style="padding:8px 10px;border-top:1px solid #e2e2e2">Notification level in every stack</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2">CO02m → CO02n; CO02h → <a href="Fomio%20Flow%20Completion.dc.html#CO02nh" style="text-decoration:underline">CO02nh</a>; CO02hp → CO02nhp; CO02s → CO02ns; every pick / dismiss → the same screen and tab</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2">code-traced</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2;color:#555">—</span>
+<span style="padding:8px 10px;border-top:1px solid #e2e2e2">Reply / Quote from Communities discussion</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2">D01s → <a href="Fomio%20Flow%20Completion.dc.html#C04s" style="text-decoration:underline">C04s</a> → KDrs → D01s / C16s / C17s / C13s / CU02s; D01s → C04qs → KDqs / C16qs / C17qs / C13qs / CU02qs; all back → CO02s or D01s</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2">code-traced</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2;color:#555">—</span>
+<span style="padding:8px 10px;border-top:1px solid #e2e2e2">Alternate destination picks</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2">C02h → C01hj, C02hp → C01hpj, C02f → C03j, C02s → C01sj, C02gb → C01gj, C02gcb → C01gcj, C02dn → DRnj; each → its own published frame (<a href="Fomio%20Flow%20Completion.dc.html#p" style="text-decoration:underline">P</a>)</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2">code-traced</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2;color:#555">Rejected / unconfirmed / Keep editing reuse base frames (SAMPLE-ONLY)</span>
+<span style="padding:8px 10px;border-top:1px solid #e2e2e2">Discussion Back keeps origin</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2">CO02h → D01m; H01m → <a href="Fomio%20Flow%20Completion.dc.html#D01mh" style="text-decoration:underline">D01mh</a>; CO02hp → D01mp; SE01 → D01mse; U01o → D01mu; B01 → D01mb (Me tab); each Back → its origin</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2">code-traced</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2;color:#555">Composer exits from variants return to D01m (SAMPLE-ONLY)</span>
+<span style="padding:8px 10px;border-top:1px solid #e2e2e2">Quote / edit / draft cancel and discard</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2">D01m → C04 → KDr; D01m → C04q → KDq; C16 → C11 → KDe; C10r / C13 → KDra; <a href="Fomio%20Screens.dc.html#DR01" style="text-decoration:underline">DR01</a> → DRr → KDdr / <a href="Fomio%20Flow%20Completion.dc.html#C16dr" style="text-decoration:underline">C16dr</a> / C17dr / C13dr / CU02dr; DR01 → DRn → KDdn / C02dn / C16dn / C17dn / C13dn / CU02dn; all → DR01</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2">code-traced</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2;color:#555">C04q error → C13 → KDra returns to a reply (C10r), not the quote (pre-existing)</span>
+<span style="padding:8px 10px;border-top:1px solid #e2e2e2">Notifications → exact reply / missing target</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2"><a href="Fomio%20Screens.dc.html#N01" style="text-decoration:underline">N01</a> → LK01 (Bench PSU #14) → N01; LK01 Reply → <a href="Fomio%20Flow%20Completion.dc.html#C04lk" style="text-decoration:underline">C04lk</a> → KDlk / C16lk / C17lk / C13lk / CU02lk (topic 4190); Go to start scrolls in place; N01 → N01x → N01; LK02 → N01x / D01x</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2">code-traced</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2;color:#555">A01 / B01 rows open LK01 in the Notifications tab (SAMPLE-ONLY)</span>
+<span style="padding:8px 10px;border-top:1px solid #e2e2e2">Recovery</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2">C10r → C13 / CU01 → CU02 (Check again, Back, warned retry); CU02nh / CU02na; C06 → C06f; C14; C15; C19e; OF01 → C14</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2">code-traced</span><span style="padding:8px 10px;border-top:1px solid #e2e2e2;color:#555">C14, C15 have no outgoing links</span>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;max-width:1400px;margin-top:14px">
+<div style="padding:12px;background:#fff;border:1.5px solid #1a1a1a;border-radius:10px"><div style="font:700 11px ui-monospace,monospace;margin-bottom:6px">PRODUCT / BACKEND DECISIONS (NOT WIREFRAME GAPS)</div><ul style="margin:0;padding-left:18px;font:12px/1.5 system-ui,sans-serif;color:#333"><li>Initial Home sort; Tracked + Hot support (Tracked stays category-scoped)</li><li>Reply presentation (chronological vs nested)</li><li>Editor mode; draft storage, sync, sign-out retention; whether edit drafts exist</li><li>Sign-in method; whether Like / Bookmark / Track apply automatically after sign-in</li><li>How a queued-for-review result is signalled; pending card visibility and persistence; edit review</li><li>Reconciliation method for unconfirmed posts; no idempotency assumed</li><li>Offline: no queued auto-send (decided); read cache scope open</li><li>Launch scope of Private Messages and Settings; PMs stay distinct from chat, which is not designed</li><li>Whether a draft stays listed while its submission is pending (C17dr, C17dn)</li><li>Whether child categories follow a parent's notification level (CO02nhp)</li></ul></div>
+<div style="padding:12px;background:#fff;border:1.5px solid #1a1a1a;border-radius:10px"><div style="font:700 11px ui-monospace,monospace;margin-bottom:6px">REMAINING WIREFRAME GAPS (THE SEVEN ABOVE ARE CLOSED)</div><ul style="margin:0;padding-left:18px;font:12px/1.5 system-ui,sans-serif;color:#333"><li>Quote error path: C04q → C13 → KDra → Keep editing returns to C10r (a reply), not the quote (found in this audit; pre-existing)</li><li>DR01: Discard on the Hand Tools draft row is not linked (the figs row links C12)</li><li>C14 and C15 have no outgoing links</li><li>H01g Repairs / Gardening cards open the Finishing sample</li><li>Guest Search not drawn (SE01 is member, Home stack)</li><li>CO02hp About / Hand Tools / Joinery and the Hot / About segments on CO02s are not wired</li></ul><div style="font:700 11px ui-monospace,monospace;margin:10px 0 6px">SAMPLE-ONLY REUSE (LINKED, WORDING OR RETURN DIFFERS)</div><ul style="margin:0;padding-left:18px;font:12px/1.5 system-ui,sans-serif;color:#333"><li>Composer exits from D01mh / mp / mse / mu / mb return to D01m</li><li>Alternate-pick composers reuse their base rejected, unconfirmed and Keep draft frames</li><li>A01 / B01 open LK01 in the Notifications tab</li></ul></div>
+</div>
+</section>
+
+<section class="dv-turn" id="journeys">
+<div class="dv-thd"><a class="dv-tid" href="#journeys">3</a><span class="dv-tname">Acceptance journeys</span></div>
+<p style="margin:-6px 0 14px;max-width:900px;font:12px/1.5 system-ui,sans-serif;color:#444">Journeys walk a linked frame board. Passing a journey here shows the intended route and states only; it is not evidence of editable inputs, tab-stack persistence, draft recovery or device accessibility. Links marked SAMPLE-ONLY reuse a generic frame whose topic or tab differs from the origin. Every step chip below resolves to a frame in the register.</p>
+<div style="display:flex;flex-direction:column;gap:10px;max-width:1240px">
+<sc-for list="{{ journeys }}" as="j" hint-placeholder-count="9">
+<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;background:#fff;border:1.5px solid #1a1a1a;border-radius:10px">
+<span style="font:700 11px ui-monospace,monospace;padding:3px 6px;background:#1a1a1a;color:#fff;border-radius:4px">{{ j.id }}</span>
+<span style="font-size:17px;min-width:220px">{{ j.name }}</span>
+<sc-for list="{{ j.steps }}" as="s" hint-placeholder-count="5"><a href="{{ s.href }}" style="font:11px ui-monospace,monospace;padding:3px 7px;border:1.5px solid #1a1a1a;border-radius:5px">{{ s.id }}</a></sc-for>
+<span style="font:12px system-ui,sans-serif;color:#555;flex-basis:100%">{{ j.check }}</span>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section class="dv-turn" id="register">
+<div class="dv-thd"><a class="dv-tid" href="#register">4</a><span class="dv-tname">Frame register</span></div>
+<div style="max-width:1400px;overflow-x:auto;background:#fff;border:1.5px solid #1a1a1a;border-radius:10px">
+<div style="display:grid;grid-template-columns:80px minmax(160px,1.2fr) minmax(160px,1.3fr) minmax(160px,1.3fr) minmax(150px,1.1fr) 80px;font:700 11px ui-monospace,monospace;background:#1a1a1a;color:#fff"><span style="padding:8px 10px">ID</span><span style="padding:8px 10px">FRAME</span><span style="padding:8px 10px">ENTRY</span><span style="padding:8px 10px">EXIT</span><span style="padding:8px 10px">PERMISSIONS / CONDITIONS</span><span style="padding:8px 10px">JOURNEY</span></div>
+<sc-for list="{{ frames }}" as="f" hint-placeholder-count="12">
+<div style="display:grid;grid-template-columns:80px minmax(160px,1.2fr) minmax(160px,1.3fr) minmax(160px,1.3fr) minmax(150px,1.1fr) 80px;font:12px/1.35 system-ui,sans-serif;border-top:1px solid #e2e2e2">
+<a href="{{ f.href }}" style="padding:7px 10px;font:700 11px ui-monospace,monospace;text-decoration:underline">{{ f.id }}</a>
+<span style="padding:7px 10px">{{ f.name }}</span>
+<span style="padding:7px 10px;color:#444">{{ f.entry }}</span>
+<span style="padding:7px 10px;color:#444">{{ f.exit }}</span>
+<span style="padding:7px 10px;color:#444">{{ f.perm }}</span>
+<span style="padding:7px 10px;font:11px ui-monospace,monospace">{{ f.j }}</span>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section class="dv-turn" id="notes">
+<div class="dv-thd"><a class="dv-tid" href="#notes">5</a><span class="dv-tname">Technical verification notes (annotation layer only)</span></div>
+<ul style="margin:0;padding-left:20px;max-width:900px;font:13px/1.6 system-ui,sans-serif;color:#333">
+<li>No deployment URL, credentials, API availability or enabled plugins are assumed. Every CONDITIONAL element needs a source field or capability check identified before build.</li>
+<li>Verify per-post like/bookmark/reply/edit permission fields before showing actions on cards or posts.</li>
+<li>Verify whether Hot and Tracked can be combined server-side; verify nested-reply data availability for the native client.</li>
+<li>Verify draft endpoints and their sequencing semantics before labeling anything "saved to your account".</li>
+<li>Verify whether and how Discourse signals a reply or edit queued for review. Until then the C17 inline card, who sees it, its persistence, and C16e edit-review handling are unverified prototype proposals; only "pending is not published" is established.</li>
+<li>A not-found reconciliation check (CU02) is shown as unconfirmed, never as failed. Retry is explicit and warned; no idempotency or duplicate cleanup is promised.</li>
+<li>Guest and member frames are kept separate: guest links stay on guest frames (H01g, CO02, CO02pg, D01), member links go to member frames (Home stack: H01m, CO02h, CO02hp, D01m; Communities stack: CO01, CO02m, CO02s, D01s). Each sign-in gate restores its own action (A2, A3).</li>
+<li>This is a linked frame board. Static frames can't carry the stored intent, origin tab or back stack; where a generic frame is reused, the link is annotated SAMPLE-ONLY. Nothing here proves editable inputs, tab-stack persistence, draft recovery or device accessibility.</li>
+<li>Define how a post number resolves to a post when posts are deleted or hidden (LK02).</li>
+<li>Accessibility, RTL, split-view and device checks on the <a href="Fomio%20iPad%20Accessibility.dc.html#t3" style="text-decoration:underline">acceptance page</a> are requirements; none have been tested.</li>
+</ul>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const F = { X: 'Fomio%20Flow%20Completion.dc.html', C: 'Fomio%20Core%20Flows.dc.html', S: 'Fomio%20Screens.dc.html', X: 'Fomio%20Composer%20States.dc.html', P: 'Fomio%20iPad%20Accessibility.dc.html' };
+    const loc = {};
+    const rows = [
+      ['H01g','C','Home · guest · Latest','App launch, no session','D01, CO02, AUTH, C19c, SE01','Public read where site allows; no Tracked','J1'],
+      ['H01m','S','Home · member · Latest','Launch signed in, Home tab','D01mh, H01t, H01h, C02g, SE01','Card like if verified','J12'],
+      ['H01t','S','Home · Tracked on Latest','Tracked filter on','H01m, H01te','Signed in; tracked/watched communities (category scope)','—'],
+      ['H01te','S','Home · Tracked empty','Tracked on, nothing tracked','CO01, H01m','Signed in','—'],
+      ['H01h','S','Home · Hot, Tracked unavailable','Hot sort','H01m, D01','Tracked+Hot unresolved','—'],
+      ['CO01','S','Communities · member','Communities tab','CO02m, CO02s, CO02r, C02gc','Lists only visible categories','J2'],
+      ['CO01g','S','Communities · guest','Communities tab as guest','AUTH, C19gc','Anonymous-visible categories','J8'],
+      ['CO02','C','Subcommunity · guest','H01g category, CO02pg child','D01, CO02pg, C19t, C19c','Hot/About conditional','J1'],
+      ['CO02pg','C','Community parent · guest','CO02 parent link','CO02, D01, C19t, C19c','Guest state and Home stack kept','J1'],
+      ['CO02m','C','Community parent · member · Communities','CO01, CO02s','C01, CO02n, CO02s, D01s','Create if permitted','J2'],
+      ['CO02s','C','Subcommunity · member · Communities','CO02m child, CO01, C16n','CO02m, D01s, C01s, CO02ns','Level → CO02ns','J2'],
+      ['CO02h','C','Subcommunity · member · Home stack','H01m path, C16/C17/D01m back, CO02rt, C01r, SE01','H01m, CO02hp, D01m, C01h, CO02nh','Level → CO02nh','J9'],
+      ['CO02hp','C','Community parent · member · Home stack','CO02h parent, CO02rtw','CO02h, D01mp, C01hp, CO02nhp','Level → CO02nhp; About not wired','J9'],
+      ['CO02r','S','Community · restricted cue','CO01','CO02n','Read-restricted flag from Discourse','—'],
+      ['CO02n','S','Notification level sheet','Level button on CO02m, CO02r*','CO02m','Signed in; server write-through; other stacks use CO02nh / CO02nhp / CO02ns','J10'],
+      ['CO02a','S','Community About','About segment','CO02h, H01m','If category has about content; member drawn','—'],
+      ['D01','C','Discussion · guest · chronological','H01g, CO02, CO02pg','C19, C19l, C19b','Actions per permission','J1'],
+      ['D01m','C','Discussion · member · Home stack','CO02h, C17nh, KD* / CU02 exits','C04, C04q, CO02h','Back → CO02h; other origins use D01mh / mp / mse / mu / mb','J4'],
+      ['D01s','C','Discussion · member · Communities','CO02s, CO02m, C09, C17na, C17ns, KDrs, KDqs','CO02s, C04s, C04qs','Communities tab kept','J11'],
+      ['D01c','S','Discussion · closed','Any topic link','Share, Bookmark','Reply removed when closed','—'],
+      ['D01x','S','Discussion · inaccessible','Link, notification','AUTH, Home','403/404, no metadata leak','J3'],
+      ['D01n','S','Nested replies (exploratory)','Prototype only','D01','Unverified API support','—'],
+      ['C19','C','Reply sign-in gate','Reply/Quote as guest','AUTH, D01','Stores reply intent; no auto-post','J1'],
+      ['C19l','C','Like sign-in gate','Like on D01','D01rl, D01','Stores like intent','J8'],
+      ['D01rl','C','Restored · Like ready','C19l sign-in','CO02h','Permission rechecked; not auto-applied','J8'],
+      ['C19b','C','Bookmark sign-in gate','Bookmark on D01','D01rb, D01','Stores bookmark intent','J8'],
+      ['D01rb','C','Restored · Bookmark ready','C19b sign-in','CO02h','Not auto-applied','J8'],
+      ['C19t','C','Track sign-in gate','Track on CO02/CO02pg','CO02rt, CO02','Stores category level intent','J8'],
+      ['CO02rt','C','Restored · level sheet','C19t sign-in','CO02h','Written only when picked','J8'],
+      ['C19c','C','Create sign-in gate · Finishing','New discussion on CO02','C01r, CO02','Contextual; stores category','J8'],
+      ['C01r','C','Restored · new discussion · Finishing','C19c sign-in','C02h, CO02h (typed → C01h)','Create permission rechecked','J8'],
+      ['C19q','C','Quote sign-in gate','Quote on D01','C04q, C13r, D01','Restores quote, not reply','J8'],
+      ['C19tw','C','Track sign-in gate · Woodworking','Track on CO02pg','CO02rtw, CO02pg','Stores category level intent','J8'],
+      ['CO02rtw','C','Restored · level sheet · Woodworking','C19tw sign-in','CO02hp','Written only when picked','J8'],
+      ['C19cw','C','Create sign-in gate · Woodworking','New discussion on CO02pg','C01hp, CO02pg','Contextual; stores category','J8'],
+      ['C19g','C','Global Create sign-in gate','+ Create on H01g','C02g, H01g','No category stored; Communities uses C19gc','J8'],
+      ['C01h','C','New discussion · Finishing · Home','CO02h, typed C01r','KDh, C02h, C16nh, C17nh, C13nh, CU02nh','Permission rechecked on Post','J9'],
+      ['KDh','C','Keep draft? · Home create','C01h Cancel, C13nh Close','CO02h, C01h','Discard only by explicit tap','J9'],
+      ['C02h','C','Chooser · from C01h/C01r','Change, C13nh','C01h, C01hj','Alternate pick keeps writing','J13'],
+      ['C16nh','C','Published · Home stack','C01h Post, CU02nh found','CO02h','Confirmed only','J9'],
+      ['C17nh','C','Pending review · Home','C01h queued','H01m, D01m','Card is unverified proposal','J9'],
+      ['C13nh','C','Rejected · Home create','C01h denied, C19c denied','C02h, KDh','Writing kept','J9'],
+      ['CU02nh','C','Unconfirmed · Home create','C01h no response','C16nh, CO02h, warned Post again','Not found ≠ failed','J9'],
+      ['C01hp','C','New discussion · Woodworking · Home','CO02hp, C19cw, KDhp','KDhp, C02hp, C16nhp, C17nhp, C13nhp, CU02nhp','Drawn typed; permission rechecked on Post','J9'],
+      ['C02hp','C','Chooser · from C01hp','Change, C13nhp','C01hp, C01hpj','Alternate pick keeps writing','J13'],
+      ['C01s','C','New discussion · Finishing · Communities','CO02s, KDs','KDs, C02s, C16ns, C17ns, C13ns, CU02ns','Drawn typed; permission rechecked on Post','J2'],
+      ['C02s','C','Chooser · from C01s','Change, C13ns','C01s, C01sj','Alternate pick keeps writing','J13'],
+      ['C02g','C','Global Create chooser','H01m + Create, C19g','C01g, H01m','No preselection; Communities uses C02gc','J8'],
+      ['C01g','C','New discussion · global · Home','C02g pick, KDg','KDg, C02gb, C16ng, C17ng, C13ng, CU02ng','Drawn typed; Cancel returns to Home','J9'],
+      ['C02gb','C','Chooser · from C01g','Change, C13ng','C01g, C01gj','Alternate pick keeps writing','J13'],
+      ['KDa','C','Keep draft? · Communities create','C03/C06/C09 Cancel, C13na Close','CO02m, C03','Discard only by explicit tap','J2'],
+      ['C02f','C','Chooser · from filled C03','Change, C13na','C03, C03j','Typed text kept','J13'],
+      ['C17na','C','Pending review · Communities','C09 queued','CO01, D01s','Card is unverified proposal','J2'],
+      ['C13na','C','Rejected · Communities create','C09 denied','C02f, KDa','Writing kept','J2'],
+      ['CU02na','C','Unconfirmed · Communities create','C09 no response','C16n, CO02m, warned Post again','Not found ≠ failed','J2'],
+      ['KDr','C','Keep draft? · reply','C04 Cancel','D01m, C04','Discard only by explicit tap','J4'],
+      ['KDra','C','Keep draft? · restored reply','C10r/C13 Cancel','D01m, C10r','—','J1'],
+      ['C04q','C','Quote composer','D01m Quote, C19q','KDq, C16/C17/C13/CU01','Attributed excerpt','J4'],
+      ['KDq','C','Keep draft? · quote','C04q Cancel','D01m, C04q','—','J4'],
+      ['KDe','C','Keep changes? · edit','C11 Cancel','C16, C11','Edit drafts unresolved','J4'],
+      ['DRr','C','Resumed reply · figs','DR01 Resume','DR01, KDdr, C16dr, C17dr, C13dr, CU02dr','Reply permission rechecked','J4'],
+      ['KDdr','C','Keep draft? · resumed reply','DRr after edits','DR01, DRr','Discard deletes draft','J4'],
+      ['DRn','C','Resumed discussion · Hand Tools','DR01 Resume','DR01, KDdn, C02dn, C16dn, C17dn, C13dn, CU02dn','Destination permission rechecked','J4'],
+      ['KDdn','C','Keep draft? · resumed discussion','DRn after edits','DR01, DRn','Discard deletes draft','J4'],
+      ['AUTH','C','Sign-in handoff','C19, C19e, banners (H01g, CO01g, N01g, ME01g), D01x','C10r, C13r, H01m, D01','Method unresolved; recheck permission','J1'],
+      ['C10r','C','Reply composer · restored','AUTH success, Reply','C16, C17, C13, CU01','Reply permission rechecked','J1'],
+      ['C13','C','Validation error','Post rejected','C10r (kept)','Server message verbatim','J1'],
+      ['C16','C','Reply published','Confirmed post','D01 at new post #','—','J1'],
+      ['C17','C','Pending review (inline card proposed)','Queued-for-review result','CO02h','Response contract unverified; inline visibility/persistence are proposals','J1'],
+      ['C01','C','New discussion · inherited destination','CO02m Create, global Create','C02, C03','Create permission on category','J2'],
+      ['C02','C','Destination chooser','C01 Change, global Create','C03','Eligible categories; restricted cues','J2'],
+      ['C03','C','New discussion · filled','C02','C06, C09, C16n','Required fields from Discourse','J2'],
+      ['C06','C','Image upload progress','Image button','C09, C06f','Site upload limits','J2'],
+      ['C09','C','Similar discussions','Post with matches','C16n, C17na, C13na, CU02na, D01s, KDa','New discussions only','J2'],
+      ['C16n','C','Discussion published · Communities','Confirmed topic','CO02m, CO02s','—','J2'],
+      ['SE01','S','Search · results','Search utility','D01mse, CO02h, U01o','Member drawn; guest variant not drawn','J12'],
+      ['SE01e','S','Search · no results','Query with no matches','SE01','—','—'],
+      ['N01','S','Notifications list','Notifications tab','LK01, N01x','Signed in','J3'],
+      ['N01e','S','Notifications empty','No notifications','—','Signed in','—'],
+      ['N01x','S','Notification target missing','Deleted/inaccessible target','N01','—','J3'],
+      ['N01g','S','Notifications · guest','Tab as guest','AUTH','—','—'],
+      ['ME01','S','Me · member','Me tab','U01, A01, B01, DR01, PM01, ST01','PM conditional','J4'],
+      ['ME01g','S','Me · guest','Me tab as guest','AUTH, ST01','—','—'],
+      ['U01','S','Profile · own','ME01','A01, ST01','Fields if present','—'],
+      ['U01o','S','Profile · other member','Search, author tap','PM01, D01mu','Message if permitted','J12'],
+      ['A01','S','Activity','ME01','LK01*, C16n*','Own activity; * sample-only','J3'],
+      ['B01','S','Bookmarks','ME01','D01mb, LK01*','Missing-target state; * LK01 tab differs','J12'],
+      ['DR01','S','Drafts','ME01','DRr, DRn, C12','Truthful status; matching resume','J4'],
+      ['PM01','S','Private Messages (conditional)','ME01, U01o Message','Conversation (D01+C10)','Unverified; launch depth open','—'],
+      ['ST01','S','Settings (conditional)','ME01, U01 Edit','Web (no URL defined)','Server vs device prefs','—'],
+      ['L01','X','Loading','Any list','—','—','—'],
+      ['E01','X','Empty community','Category with no topics','C01','Create conditional','—'],
+      ['ER01','X','Load error','Request failed','Retry','—','J5'],
+      ['AD01','X','Access denied · community','Restricted link','AUTH, CO01','—','—'],
+      ['OF01','X','Offline · cached','No connection','C14','Read cache assumed; no queued auto-send','J5'],
+      ['LK01','X','Exact reply link arrival','Notification, Activity, URL','Origin, C04lk','Topic ID + post number; Go to start in place','J3'],
+      ['LK02','X','Linked reply missing','Post gone, topic exists','D01 from start','—','J3'],
+      ['C04','X','Baseline writing frame','Any composer intent','C07, C08, C06','—','—'],
+      ['C05','X','Editor mode alternatives','Unresolved','—','No conversion guaranteed','—'],
+      ['C07','X','Insert link','Link button','C04','Preview not guaranteed','—'],
+      ['C08','X','Advanced tools','More button','C04','Only detected site tools','—'],
+      ['C11','X','Edit reply','Edit on own post','C16e, C15','Edit permission; eligible metadata','J4'],
+      ['C16e','X','Edit saved','Confirmed edit','D01 same post','Edit-review handling is an unverified proposal','J4'],
+      ['C12','X','Draft lifecycle','Draft status tap, Cancel','DR01, Discard','Draft policy open','J4'],
+      ['C18','X','Guided form','Category with form','C16n','Conditional, unresolved','—'],
+      ['C06f','X','Upload failed','Upload error','C06 retry, remove','Site limits','J5'],
+      ['C13r','X','Restriction · can\'t post','Permission recheck fails','D01m, C02','Writing kept','J5'],
+      ['C14','X','Offline while writing','Connection lost','Post when online','No auto-send','J5'],
+      ['C15','X','Edit/draft conflict','Version mismatch','Re-edit, copy','No silent overwrite','J5'],
+      ['CU01','X','Uncertain submit · checking','Timeout after send','C16, CU02','No auto retry','J5'],
+      ['CU02','X','Uncertain submit · still unconfirmed','Reconcile: not found','CU01, D01m, warned Post again','Not found ≠ failed; no idempotency promised','J5'],
+      ['C19e','X','Session expired while writing','Auth expiry','AUTH → composer','Recheck permission','J5'],
+      ['IP01','P','iPad landscape split','Regular width','IP02, IP03','—','J6'],
+      ['IP02','P','iPad composer sheet','Reply on iPad','IP01','Presentation unresolved','J6'],
+      ['IP03','P','iPad compact split view','Resize to compact','IP01','State preserved','J6'],
+      ['AX01','P','Discussion · large text','Dynamic Type AX sizes','—','Not tested','J7'],
+      ['AX02','P','Composer · keyboard','Focus body','—','Not tested','J7'],
+      ['AX03','P','Composer · large text + keyboard','AX size + focus','—','Not tested','J7'],
+      ['AX04','P','RTL mirror','RTL locale','—','Not tested','J7'],
+      ['KDhp','X','Keep draft? · Woodworking · Home','C01hp Cancel, C13nhp Close','CO02hp, C01hp','Discard only by explicit tap','J9'],
+      ['C16nhp','X','Published · Woodworking · Home','C01hp Post, CU02nhp','CO02hp','Confirmed only','J9'],
+      ['C17nhp','X','Pending · Woodworking · Home','C01hp queued','CO02h, D01mp','Card is unverified proposal','J9'],
+      ['C13nhp','X','Rejected · Woodworking · Home','C01hp denied','C02hp, KDhp','Writing kept','J9'],
+      ['CU02nhp','X','Unconfirmed · Woodworking · Home','C01hp no response','C16nhp, CO02hp, warned Post again','Not found ≠ failed','J9'],
+      ['KDs','X','Keep draft? · Finishing · Communities','C01s Cancel, C13ns Close','CO02s, C01s','Discard only by explicit tap','J2'],
+      ['C16ns','X','Published · Finishing · Communities','C01s Post, CU02ns','CO02s','Confirmed only','J2'],
+      ['C17ns','X','Pending · Finishing · Communities','C01s queued','CO02m, D01s','Card is unverified proposal','J2'],
+      ['C13ns','X','Rejected · Finishing · Communities','C01s denied','C02s, KDs','Writing kept','J2'],
+      ['CU02ns','X','Unconfirmed · Finishing · Communities','C01s no response','C16ns, CO02s, warned Post again','Not found ≠ failed','J2'],
+      ['KDg','X','Keep draft? · global · Home','C01g Cancel, C13ng Close','H01m, C01g','Discard only by explicit tap','J9'],
+      ['C16ng','X','Published · global · Home','C01g Post, CU02ng','H01m','Confirmed only','J9'],
+      ['C17ng','X','Pending · global · Home','C01g queued','D01mh','Card is unverified proposal','J9'],
+      ['C13ng','X','Rejected · global · Home','C01g denied','C02gb, KDg','Writing kept','J9'],
+      ['CU02ng','X','Unconfirmed · global · Home','C01g no response','C16ng, H01m, warned Post again','Not found ≠ failed','J9'],
+      ['C19gc','X','Global Create gate · Communities','+ Create on CO01g','C02gc, CO01g','No category stored; nothing submitted','J8'],
+      ['C02gc','X','Global Create chooser · Communities','CO01 + Create, C19gc','C01gc, CO01','No preselection','J2'],
+      ['C01gc','X','New discussion · global · Communities','C02gc pick, KDgc','KDgc, C02gcb, C16ngc, C17ngc, C13ngc, CU02ngc','Permission rechecked on Post','J2'],
+      ['C02gcb','X','Chooser · from C01gc','Change, C13ngc','C01gc, C01gcj','Alternate pick keeps writing','J13'],
+      ['KDgc','X','Keep draft? · global · Communities','C01gc Cancel, C13ngc Close','CO01, C01gc','Discard only by explicit tap','J2'],
+      ['C16ngc','X','Published · global · Communities','C01gc Post, CU02ngc','CO01','Confirmed only','J2'],
+      ['C17ngc','X','Pending · global · Communities','C01gc queued','CO02m','Card is unverified proposal','J2'],
+      ['C13ngc','X','Rejected · global · Communities','C01gc denied','C02gcb, KDgc','Writing kept','J2'],
+      ['CU02ngc','X','Unconfirmed · global · Communities','C01gc no response','C16ngc, CO01, warned Post again','Not found ≠ failed','J2'],
+      ['C01hj','X','Alternate pick · Joinery · Home','C02h','C16nhj, C17nh, C13nh*, CU02nh*, KDh*','Writing kept; * sample-only','J13'],
+      ['C16nhj','X','Published · Joinery · Home','C01hj Post','CO02h','Confirmed only','J13'],
+      ['C01hpj','X','Alternate pick · Hand Tools · Home','C02hp','C16nhpj, C17nhp, C13nhp*, CU02nhp*, KDhp*','Writing kept; * sample-only','J13'],
+      ['C16nhpj','X','Published · Hand Tools · Home','C01hpj Post','CO02hp','Confirmed only','J13'],
+      ['C03j','X','Alternate pick · Hand Tools · Communities','C02f','C16nj, C17na, C13na*, CU02na*, KDa*','Writing and images kept; * sample-only','J13'],
+      ['C16nj','X','Published · Hand Tools · Communities','C03j Post','CO02m','Confirmed only','J13'],
+      ['C01sj','X','Alternate pick · Joinery · Communities','C02s','C16nsj, C17ns, C13ns*, CU02ns*, KDs*','Writing kept; * sample-only','J13'],
+      ['C16nsj','X','Published · Joinery · Communities','C01sj Post','CO02s','Confirmed only','J13'],
+      ['C01gj','X','Alternate pick · Joinery · global Home','C02gb','C16ngj, C17ng, C13ng*, CU02ng*, KDg*','Writing kept; * sample-only','J13'],
+      ['C16ngj','X','Published · Joinery · global Home','C01gj Post','H01m','Confirmed only','J13'],
+      ['C01gcj','X','Alternate pick · Joinery · global Communities','C02gcb','C16ngcj, C17ngc, C13ngc*, CU02ngc*, KDgc*','Writing kept; * sample-only','J13'],
+      ['C16ngcj','X','Published · Joinery · global Communities','C01gcj Post','CO01','Confirmed only','J13'],
+      ['DRnj','X','Alternate pick · Joinery · resumed draft','C02dn','C16dnj, C17dn, C13dn*, CU02dn*, KDdn*','Writing kept; device-saved until synced','J13'],
+      ['C16dnj','X','Published · Joinery · Me stack','DRnj Post','DR01','Confirmed only; draft removed','J13'],
+      ['CO02nh','X','Level sheet · Finishing · Home','CO02h level','CO02h','Written only when picked; category-scoped Tracked','J10'],
+      ['CO02nhp','X','Level sheet · Woodworking · Home','CO02hp level','CO02hp','Written only when picked','J10'],
+      ['CO02ns','X','Level sheet · Finishing · Communities','CO02s level','CO02s','Written only when picked','J10'],
+      ['C04s','X','Reply composer · Communities','D01s Reply, KDrs','KDrs, C16s, C17s, C13s, CU02s','Reply permission rechecked','J11'],
+      ['KDrs','X','Keep draft? · reply · Communities','C04s / C13s Cancel','D01s, C04s','Discard only by explicit tap','J11'],
+      ['C16s','X','Reply published · Communities','C04s Post, CU02s','CO02s','Confirmed only','J11'],
+      ['C17s','X','Reply pending · Communities','C04s queued','CO02s','Card is unverified proposal','J11'],
+      ['C13s','X','Reply error · Communities','C04s rejected','KDrs, C16s','Server message verbatim','J11'],
+      ['CU02s','X','Reply unconfirmed · Communities','C04s no response','C16s, D01s, warned Post again','Not found ≠ failed','J11'],
+      ['C04qs','X','Quote composer · Communities','D01s Quote, KDqs','KDqs, C16qs, C17qs, C13qs, CU02qs','Attributed excerpt','J11'],
+      ['KDqs','X','Keep draft? · quote · Communities','C04qs / C13qs Cancel','D01s, C04qs','Discard only by explicit tap','J11'],
+      ['C16qs','X','Quote published · Communities','C04qs Post, CU02qs','CO02s','Confirmed only','J11'],
+      ['C17qs','X','Quote pending · Communities','C04qs queued','CO02s','Card is unverified proposal','J11'],
+      ['C13qs','X','Quote error · Communities','C04qs rejected','KDqs, C16qs','Server message verbatim','J11'],
+      ['CU02qs','X','Quote unconfirmed · Communities','C04qs no response','C16qs, D01s, warned Post again','Not found ≠ failed','J11'],
+      ['C04lk','X','Reply to #14 · Bench PSU','LK01 Reply, KDlk','KDlk, C16lk, C17lk, C13lk, CU02lk','Same topic 4190 / post #14','J3'],
+      ['KDlk','X','Keep draft? · reply · Notifications','C04lk / C13lk Cancel','LK01, C04lk','Discard only by explicit tap','J3'],
+      ['C16lk','X','Reply published · Bench PSU','C04lk Post, CU02lk','N01','Confirmed only','J3'],
+      ['C17lk','X','Reply pending · Bench PSU','C04lk queued','N01','Card is unverified proposal','J3'],
+      ['C13lk','X','Reply error · Bench PSU','C04lk rejected','KDlk, C16lk','Server message verbatim','J3'],
+      ['CU02lk','X','Reply unconfirmed · Bench PSU','C04lk no response','C16lk, LK01, warned Post again','Not found ≠ failed','J3'],
+      ['C16dr','X','Resumed reply published','DRr Post, CU02dr','DR01','Draft removed after confirmation','J4'],
+      ['C17dr','X','Resumed reply pending','DRr queued','DR01','Draft listing while pending unresolved','J4'],
+      ['C13dr','X','Resumed reply error','DRr rejected','KDdr, C16dr','Server message verbatim','J4'],
+      ['CU02dr','X','Resumed reply unconfirmed','DRr no response','C16dr, DR01, warned Post again','Not found ≠ failed','J4'],
+      ['C02dn','X','Chooser · from resumed DRn','DRn Change, C13dn','DRn, DRnj','Writing kept','J4'],
+      ['C16dn','X','Resumed discussion published','DRn Post, CU02dn','DR01','Draft removed after confirmation','J4'],
+      ['C17dn','X','Resumed discussion pending','DRn queued','ME01, DRr','Draft listing while pending unresolved','J4'],
+      ['C13dn','X','Resumed discussion rejected','DRn denied','C02dn, KDdn','Writing kept','J4'],
+      ['CU02dn','X','Resumed discussion unconfirmed','DRn no response','C16dn, DR01, warned Post again','Not found ≠ failed','J4'],
+      ['D01mh','X','Discussion · from Home','H01m card, C17ng','H01m, C04*, C04q*','* composer exits return to D01m','J12'],
+      ['D01mp','X','Discussion · from Woodworking (Home)','CO02hp, C17nhp','CO02hp, C04*, C04q*','* composer exits return to D01m','J12'],
+      ['D01mse','X','Discussion · from Search','SE01 result','SE01, C04*, C04q*','* composer exits return to D01m','J12'],
+      ['D01mu','X','Discussion · from profile','U01o','U01o, C04*, C04q*','* composer exits return to D01m','J12'],
+      ['D01mb','X','Discussion · from Bookmarks','B01','B01, C04*, C04q*','Me tab; * composer exits return to D01m','J12']
+    ];
+    rows.forEach(r => loc[r[0]] = F[r[1]] + '#' + r[0]);
+    const frames = rows.map(([id, f, name, entry, exit, perm, j]) => ({ id, href: loc[id], name, entry, exit, perm, j }));
+    const J = (id, name, steps, check) => ({ id, name, check, steps: steps.map(s => ({ id: s, href: loc[s] || '#' })) });
+    const journeys = [
+      J('J1', 'Guest reads and replies via sign-in', ['H01g','CO02','CO02pg','D01','C19','AUTH','C10r','C16','C17','C13'], 'Guest state and Home tab kept through parent/child; reply intent restored to the same topic/target; permission rechecked; nothing auto-posted; each outcome distinct.'),
+      J('J2', 'Communities hierarchy → create', ['CO01','CO02m','CO02s','D01s','C01','C02','C03','C02f','C06','C09','KDa','C16n','C17na','C13na','CU02na','C01s','KDs','C16ns','C17ns','C13ns','CU02ns','C02gc','C01gc','KDgc','C16ngc','C17ngc','C13ngc','CU02ngc'], 'Member state and Communities tab kept; destination inherited only if permitted; restricted cues truthful; upload status independent; returns to origin stack. Global Create from Communities chooses first and Cancel returns to CO01.'),
+      J('J3', 'Exact reply link arrival', ['N01','LK01','C04lk','KDlk','C16lk','C17lk','C13lk','CU02lk','LK02','N01x','D01x','A01'], 'Topic ID and post number preserved; reply from the link stays on topic 4190 in the Notifications tab; missing post and missing topic handled separately.'),
+      J('J4', 'Quote, edit and draft cancel / discard / resume', ['D01m','C04','KDr','C04q','KDq','C16','C11','KDe','C16e','ME01','DR01','DRr','KDdr','C16dr','C17dr','C13dr','CU02dr','DRn','KDdn','C02dn','C16dn','C17dn','C13dn','CU02dn','C12'], 'Changed writing asks Keep draft / Discard; Keep editing keeps text; Discard returns to origin; resume opens the draft\'s own topic or destination. Local vs server save shown truthfully; resumed drafts post with the same four outcomes and return to Drafts; board stores nothing.'),
+      J('J5', 'Composer failure and recovery', ['C06f','C13r','C14','C15','CU01','CU02','C19e','ER01','OF01'], 'Writing never lost; no silent overwrite; no automatic retry or queued send; not-found shown as unconfirmed; any retry is explicit and warns of duplicates.'),
+      J('J6', 'iPad adaptation', ['IP01','IP02','IP03'], 'Resizing and rotation keep navigation, selection and composer state.'),
+      J('J7', 'Accessibility and RTL', ['AX01','AX02','AX03','AX04'], 'VoiceOver order, 44 pt targets, Dynamic Type, RTL: acceptance requirements, not yet tested.'),
+      J('J9', 'Member Home / category → create', ['H01m','CO02h','CO02hp','D01m','C01h','C02h','KDh','C16nh','C17nh','C13nh','CU02nh','C01hp','KDhp','C02hp','C16nhp','C17nhp','C13nhp','CU02nhp','C02g','C01g','KDg','C16ng','C17ng','C13ng','CU02ng'], 'Home tab and member state kept through parent/child/discussion; Finishing inherited only if permitted; contextual Cancel; publish returns to CO02h; pending, rejected and unconfirmed are distinct. Global Create chooses first and Cancel returns to H01m.'),
+      J('J8', 'Sign-in restores the gated action', ['C19l','D01rl','C19b','D01rb','C19t','CO02rt','C19tw','CO02rtw','C19c','C01r','C19cw','C01hp','C19q','C04q','C19g','C02g','C19gc','C02gc'], 'Each gate returns to the same target with that action ready, not a reply; permission rechecked; nothing applied or posted without a tap; the starting tab is kept.'),
+      J('J10', 'Notification level in every stack', ['CO02m','CO02n','CO02h','CO02nh','CO02hp','CO02nhp','CO02s','CO02ns'], 'Each sheet returns to the screen and tab that opened it; level written only when picked; Tracked stays category-scoped.'),
+      J('J11', 'Reply / Quote from the Communities discussion', ['D01s','C04s','KDrs','C16s','C17s','C13s','CU02s','C04qs','KDqs','C16qs','C17qs','C13qs','CU02qs'], 'Communities tab kept; quote keeps attribution through every outcome; unconfirmed offers check / back and a warned retry.'),
+      J('J12', 'Discussion Back keeps its origin', ['H01m','D01mh','CO02hp','D01mp','SE01','D01mse','U01o','D01mu','B01','D01mb','CO02h','D01m'], 'Back returns to the screen that opened the discussion; Bookmarks keeps the Me tab. Composer exits from variants are sample-only.'),
+      J('J13', 'Alternate destination picks', ['C02h','C01hj','C16nhj','C02hp','C01hpj','C16nhpj','C02f','C03j','C16nj','C02s','C01sj','C16nsj','C02gb','C01gj','C16ngj','C02gcb','C01gcj','C16ngcj','C02dn','DRnj','C16dnj'], 'Picking another permitted destination keeps title, body and origin; publish returns to the origin stack.')
+    ];
+    return { frames, journeys };
+  }
+}
+</script>
+</body>
+</html>
