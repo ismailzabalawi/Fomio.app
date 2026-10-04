@@ -152,6 +152,14 @@ import XCTest
         XCTAssertNil(LinkRouter.route(URL(string: "https://other.example/forum/t/4190/14")!, baseURL: base))
         XCTAssertNil(LinkRouter.route(URL(string: "https://community.example/t/4190/14")!, baseURL: base))
     }
+    func testAuthorizationCallbackDoesNotEnterCommunityLinkRouter() {
+        let configuration = LiveConfiguration(baseURL: URL(string: "https://community.example/forum")!, callbackURL: URL(string: "fomio://auth_redirect")!, scopes: "read")
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let app = AppState(service: FixtureService(), fixture: nil, configuration: configuration, store: DraftStore(directory: directory))
+        app.handleLink(URL(string: "fomio://auth_redirect?payload=fictional")!)
+        XCTAssertNil(app.banner)
+    }
     func testRelativeAPIURLPreservesRoot() {
         let configuration = LiveConfiguration(baseURL: URL(string: "https://community.example/forum")!, callbackURL: URL(string: "fixture://callback")!, scopes: "read")
         XCTAssertEqual(configuration.url("latest.json", query: [.init(name: "page", value: "2")]).absoluteString, "https://community.example/forum/latest.json?page=2")

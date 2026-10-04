@@ -65,4 +65,4 @@ Builds succeeded. Xcode emits the nonblocking AppIntents metadata-extraction war
 
 ## Rebuilt editor — 2026-10-04
 
-The editor now has a wrapping native title, TextKit rich/source projection, native block forms, and multiple protected retained photos. The earlier single-line/single-photo descriptions above record prior validation. Current implementation evidence and remaining gates are in [editor validation](editor-validation.md). Live member acceptance is blocked by deployed user-API-key issuance; the expanded editor is not declared ready to ship.
+The editor now has a wrapping native title, TextKit rich/source projection, native block forms, and multiple protected retained photos. The earlier single-line/single-photo descriptions above record prior validation. Current implementation evidence and remaining gates are in [editor validation](editor-validation.md). The transport fix reached the site login page, the incoming callback fallback is wired, and Discourse's wrapped Base64 payload is decoded. A real issued-key callback, current-user lookup and live editor acceptance remain open. The expanded editor is not declared ready to ship.

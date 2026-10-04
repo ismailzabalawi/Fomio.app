@@ -16,7 +16,12 @@ struct LiveConfiguration: Sendable {
         var url = baseURL
         for segment in path.split(separator: "/") { url.appendPathComponent(String(segment)) }
         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
-        if !query.isEmpty { components.queryItems = query }
+        if !query.isEmpty {
+            components.queryItems = query
+            // URLComponents leaves "+" literal, but Rails decodes query "+" as a space. That corrupted
+            // base64 user-API-key public keys (live generic_error) and search terms such as "C++".
+            components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+        }
         return components.url!
     }
     func topicURL(_ id: TopicID, number: PostNumber?) -> URL { url("t/\(id.rawValue)" + (number.map { "/\($0.rawValue)" } ?? "")) }

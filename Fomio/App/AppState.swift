@@ -196,6 +196,7 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         tab.discussions[route] = state; return state
     }
     func handleLink(_ url: URL) {
+        if auth?.receiveCallback(url) == true { return }
         guard let configuration, let route = LinkRouter.route(url, baseURL: configuration.baseURL) else { banner = "This link is not a supported community destination."; return }
         navigate(route)
     }

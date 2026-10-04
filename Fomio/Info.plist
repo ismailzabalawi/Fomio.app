@@ -18,6 +18,17 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.fomio.mobile.authorization</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>fomio</string>
+			</array>
+		</dict>
+	</array>
 	<key>FomioAuthCallback</key>
 	<string>fomio://auth_redirect</string>
 	<key>FomioBaseURL</key>

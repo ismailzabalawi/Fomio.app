@@ -100,4 +100,62 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
         let blocks = HTMLContent.blocks("<p>use the <img src=\"https://example.invalid/images/emoji/apple/heart.png?v=15\" title=\":heart:\" class=\"emoji\" alt=\":heart:\" loading=\"lazy\" width=\"20\" height=\"20\"> to show support</p><img src=\"/uploads/photo.jpg\" alt=\"Bench\">")
         XCTAssertEqual(blocks, [.text("use the :heart: to show support"), .image("/uploads/photo.jpg", "Bench")])
     }
+    /// Decodes a query the way Rack does for Rails params: "+" means space, then percent-decoding.
+    private func railsQuery(_ url: URL) -> [String: String] {
+        let pairs = (url.query(percentEncoded: true) ?? "").split(separator: "&").map { $0.split(separator: "=", maxSplits: 1).map(String.init) }
+        return Dictionary(uniqueKeysWithValues: pairs.map { ($0[0], ($0.count > 1 ? $0[1] : "").replacingOccurrences(of: "+", with: " ").removingPercentEncoding!) })
+    }
+    func testUserAPIKeyAuthorizationPublicKeySurvivesRailsQueryDecoding() throws {
+        // Live 2026-10-04: a literal "+" in public_key became a space server-side, OpenSSL rejected it and
+        // /user-api-key/new rendered generic_error; the %2B form passed validation (302 to /login).
+        let site = LiveConfiguration(baseURL: URL(string: "https://test.example/forum")!, callbackURL: URL(string: "testfixture://auth_redirect")!, scopes: "read,write,notifications,session_info")
+        var keyError: Unmanaged<CFError>?
+        var pkcs1 = Data()
+        for _ in 0..<20 where !AuthenticationService.publicKeyPEM(pkcs1).contains("+") {
+            let privateKey = try XCTUnwrap(SecKeyCreateRandomKey([kSecAttrKeyType as String: kSecAttrKeyTypeRSA, kSecAttrKeySizeInBits as String: 2048] as CFDictionary, &keyError))
+            pkcs1 = try XCTUnwrap(SecKeyCopyExternalRepresentation(try XCTUnwrap(SecKeyCopyPublicKey(privateKey)), &keyError) as Data?)
+        }
+        let pem = AuthenticationService.publicKeyPEM(pkcs1)
+        XCTAssertTrue(pem.contains("+"), "Regression needs a key whose base64 contains '+'.")
+        let url = AuthenticationService.authorizationURL(configuration: site, clientID: "client+id", nonce: "nonce/=", publicKeyPEM: pem)
+        XCTAssertEqual(url.path(), "/forum/user-api-key/new")
+        let params = railsQuery(url)
+        XCTAssertEqual(params["public_key"], pem)
+        XCTAssertEqual(params["client_id"], "client+id")
+        XCTAssertEqual(params["nonce"], "nonce/=")
+        XCTAssertEqual(params["scopes"], "read,write,notifications,session_info")
+        XCTAssertEqual(params["auth_redirect"], "testfixture://auth_redirect")
+        XCTAssertEqual(params["padding"], "oaep")
+        // The server-side value must still be a parsable RSA public key.
+        let body = try XCTUnwrap(params["public_key"]).split(separator: "\n").filter { !$0.hasPrefix("-----") }.joined()
+        let attributes = [kSecAttrKeyType as String: kSecAttrKeyTypeRSA, kSecAttrKeyClass as String: kSecAttrKeyClassPublic] as CFDictionary
+        XCTAssertNotNil(SecKeyCreateWithData(try XCTUnwrap(Data(base64Encoded: body)) as CFData, attributes, &keyError))
+    }
+    func testSearchTermPlusIsNotDecodedAsSpace() {
+        let site = LiveConfiguration(baseURL: URL(string: "https://test.example")!, callbackURL: URL(string: "testfixture://callback")!, scopes: "read")
+        XCTAssertEqual(railsQuery(site.url("search.json", query: [URLQueryItem(name: "q", value: "C++ a b")]))["q"], "C++ a b")
+    }
+    func testAuthorizationFallbackAcceptsOnlyConfiguredCallbackDestination() {
+        let expected = URL(string: "fomio://auth_redirect")!
+        XCTAssertTrue(AuthenticationService.matchesCallback(URL(string: "fomio://auth_redirect?payload=fictional")!, expected: expected))
+        XCTAssertFalse(AuthenticationService.matchesCallback(URL(string: "fomio://other?payload=fictional")!, expected: expected))
+        XCTAssertFalse(AuthenticationService.matchesCallback(URL(string: "https://meta.fomio.app/auth_redirect?payload=fictional")!, expected: expected))
+    }
+    func testDiscourseWrappedCallbackPayloadCanBeDecrypted() throws {
+        var keyError: Unmanaged<CFError>?
+        let privateKey = try XCTUnwrap(SecKeyCreateRandomKey([kSecAttrKeyType as String: kSecAttrKeyTypeRSA, kSecAttrKeySizeInBits as String: 2048] as CFDictionary, &keyError))
+        let publicKey = try XCTUnwrap(SecKeyCopyPublicKey(privateKey))
+        let clear = Data(#"{"key":"fictional-user-key","nonce":"fictional-nonce","push":false,"api":1}"#.utf8)
+        let ciphertext = try XCTUnwrap(SecKeyCreateEncryptedData(publicKey, .rsaEncryptionOAEPSHA1, clear as CFData, &keyError) as Data?)
+        let wrapped = ciphertext.base64EncodedString(options: [.lineLength64Characters, .endLineWithLineFeed])
+        XCTAssertTrue(wrapped.contains("\n"))
+        XCTAssertNil(Data(base64Encoded: wrapped), "Foundation's default rejects Discourse's Base64 line breaks.")
+        var components = URLComponents(string: "fomio://auth_redirect")!
+        components.queryItems = [URLQueryItem(name: "payload", value: wrapped)]
+        let decoded = try XCTUnwrap(AuthenticationService.encryptedPayload(from: try XCTUnwrap(components.url)))
+        XCTAssertEqual(decoded, ciphertext)
+        XCTAssertEqual(SecKeyCreateDecryptedData(privateKey, .rsaEncryptionOAEPSHA1, decoded as CFData, &keyError) as Data?, clear)
+        components.queryItems = [URLQueryItem(name: "payload", value: wrapped + "!")]
+        XCTAssertNil(AuthenticationService.encryptedPayload(from: try XCTUnwrap(components.url)))
+    }
 }

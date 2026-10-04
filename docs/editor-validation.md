@@ -28,7 +28,7 @@ The iPhone Arabic keyboard-open rotation hang reproduced a SwiftUI status-bar pr
 
 ## Live member acceptance blocked
 
-The configured `https://meta.fomio.app` normal authorization page reports that it cannot issue user API keys and that issuance may be disabled by the site administrator. This occurs before member credentials are entered. No member credential was saved or submitted, and no backend settings were changed. [Authorization evidence](editor-captures/live-user-api-disabled.png). Member upload, posting, moderation outcomes, previews and plugins remain unverified. A working normal user-API-key authorization flow is required to complete these release checks.
+The configured `https://meta.fomio.app` normal authorization page reported that it could not issue user API keys before member credentials were entered. No member credential was saved or submitted, and no backend settings were changed. [Authorization evidence](editor-captures/live-user-api-disabled.png). A later transport fix corrected the malformed public-key query, and the native app now reaches the login page; the callback URL scheme, incoming-URL fallback and wrapped Base64 decoder are also fixed. See the [API diagnosis](discourse-api-reference.md). A real issued-key callback, upload, posting, moderation outcomes, previews and plugins remain unverified. A completed normal user-API-key authorization flow is required to finish these release checks.
 
 ## Release gates still open
 

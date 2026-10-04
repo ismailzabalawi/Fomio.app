@@ -10,6 +10,9 @@ Current native baseline: 2026-10-03. The fixture MVP is implemented; live releas
 4. [Development guide](development-guide.md): prerequisites, build/test, development scenarios and pending configuration.
 5. [Flows and recovery](flows-and-recovery.md): observable screen/auth/thread/composer/draft/photo behavior.
 6. [API reference](discourse-api-reference.md): source revision, evidence, response shapes and unresolved deployment contracts.
+   [Localization strategy](localization-strategy.md): native strings, Discourse terminology contract, cache, and offline fallback.
+   [Localization implementation plan](localization-implementation-plan.md): live admin readiness findings, English-only fallback, and ordered delivery gates.
+   [Discourse integration plan](discourse-integration-plan.md): staged live verification and the first authentication gate.
 7. [Release readiness](release-readiness.md): automated coverage, native/live acceptance and required resources.
 
 ## Design and historical references
