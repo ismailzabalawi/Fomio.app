@@ -5,20 +5,31 @@ struct ComposerView: View {
     @Environment(AppState.self) private var app
     @Environment(\.scenePhase) private var phase
     @Bindable var state: ComposerState
-    @State private var photo: PhotosPickerItem?
-    @State private var showExit = false
-    @State private var postAgainWarning = false
-    @State private var destinationChooser = false
-    @State private var showPhotoPicker = false
+    @State private var photos: [PhotosPickerItem] = []
+    @State private var photoInsertion = EditorSelection()
+    @State private var presentation: EditorPresentation?
+    private enum EditorPresentation: Hashable { case destination, link, photos, exit, retry, photo(UUID), block(ComposerBlockKind, Int, Int, String), discussion(TopicID) }
+    private var navigationPresentation: Binding<EditorPresentation?> { Binding(get: { switch presentation { case .destination, .link, .photo, .block, .discussion: presentation; default: nil } }, set: { presentation = $0 }) }
+    private func presented(_ value: EditorPresentation) -> Binding<Bool> { Binding(get: { presentation == value }, set: { presentation = $0 ? value : nil }) }
+    private var showExit: Bool { get { presentation == .exit } nonmutating set { presentation = newValue ? .exit : nil } }
+    private var destinationChooser: Bool { get { presentation == .destination } nonmutating set { presentation = newValue ? .destination : nil } }
+    private var showPhotoPicker: Bool { get { presentation == .photos } nonmutating set { presentation = newValue ? .photos : nil } }
+    private var showLink: Bool { get { presentation == .link } nonmutating set { presentation = newValue ? .link : nil } }
+    private var editingPhoto: ComposerAttachment? { get { if case let .photo(id) = presentation { return state.draft.attachments.first { $0.id == id } }; return nil } nonmutating set { presentation = newValue.map { .photo($0.id) } } }
+    @State private var photoDescription = ""
+    @State private var restoreTask: Task<Void, Never>?
     @State private var suspendedFocus: Field?
-    @State private var titleSelection: TextSelection?
-    @State private var bodySelection: TextSelection?
-    @State private var suspendedSelection: TextSelection?
-    @State private var restoreAfterExit = false
+    @State private var titleEditor = EditorController()
+    @State private var bodyEditor = EditorController()
+    @State private var linkLabel = ""
+    @State private var linkURL = ""
+    @State private var editingLinkRange: NSRange?
+
+    @State private var suspendedSelection = EditorSelection()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private enum Field: Hashable { case title, body }
     private enum Recovery: Hashable { case rejection, authorization, unconfirmed, pending, missingPhoto, photo, error }
-    @FocusState private var focusedField: Field?
+    @State private var focusedField: Field?
     @AccessibilityFocusState private var recoveryFocus: Recovery?
     var body: some View {
         NavigationStack {
@@ -28,22 +39,21 @@ struct ComposerView: View {
                         VStack(alignment: .leading, spacing: 16) {
                             statusCards
                             if state.draft.intent.isNew { destinationRow } else { replyContext }
-                            if let quote = state.draft.quote { QuoteBlock(quote: quote, lineLimit: 3) }
                             if state.draft.intent.isNew {
-                                TextField("Title", text: $state.draft.title, selection: $titleSelection).font(.title3.weight(.semibold)).frame(minHeight: 44).disabled(state.locked)
-                                    .focused($focusedField, equals: .title).submitLabel(.next).onSubmit { focusedField = .body }
-                                    .accessibilityLabel("Title").accessibilityIdentifier("composer-title")
+                                NativeComposerEditor(raw: $state.draft.title, controller: titleEditor, isTitle: true, locked: state.locked, onNext: { titleEditor.blur(); bodyEditor.focus(); focusedField = .body }, onFocus: { bodyEditor.blur(); focusedField = .title }, identifier: "composer-title", label: "Title", placeholder: "Title")
                                 Divider().overlay(Color.fomioSeparator)
                             }
-                            ZStack(alignment: .topLeading) {
-                                TextEditor(text: $state.draft.body, selection: $bodySelection).font(.body).frame(minHeight: 200).scrollContentBackground(.hidden).focused($focusedField, equals: .body).disabled(state.locked)
-                                    .accessibilityLabel(state.draft.intent.isNew ? "Opening post" : "Reply text").accessibilityIdentifier("composer-body")
-                                if state.draft.body.isEmpty {
-                                    Text(state.draft.intent.isNew ? "Write the opening post" : "Write your reply").foregroundStyle(.tertiary).padding(.top, 8).padding(.leading, 5).allowsHitTesting(false).accessibilityHidden(true)
+                            NativeComposerEditor(raw: $state.draft.body, controller: bodyEditor, locked: state.locked, attachmentData: { state.data(for: $0) }, attachmentCaption: { node in state.attachment(for: node).map(photoStatus) }, onBlock: { node in if let attachment = state.attachment(for: node) { suspendEditingFocus(); photoDescription = attachment.description; editingPhoto = attachment } else { openBlock(node) } }, onRemove: { node in bodyEditor.send(.replace(node.range, "")) }, onFocus: { titleEditor.blur(); focusedField = .body }, label: state.draft.intent.isNew ? "Opening post" : "Reply text", placeholder: state.draft.intent.isNew ? "Write the opening post" : "Write your reply")
+                            if !state.suggestions.isEmpty {
+                                DisclosureGroup("Similar discussions") {
+                                    ForEach(state.suggestions) { topic in Button(topic.title) { if state.save() { suspendEditingFocus(); presentation = .discussion(topic.id) } }.frame(minHeight: 44) }
                                 }
                             }
-                            if state.photoData != nil || state.uploadState != .none { photoRow.id(Recovery.photo) }
-                            if state.saveStatus == "Couldn’t save on this device" { Label(state.saveStatus, systemImage: "exclamationmark.triangle.fill").font(.footnote).foregroundStyle(Color.fomioDanger).accessibilityIdentifier("draft-save-status") }
+                            ForEach(state.previews.values.sorted { $0.url.absoluteString < $1.url.absoluteString }, id: \.url) { preview in
+                                VStack(alignment: .leading, spacing: 4) { Text(preview.title).font(.headline); Text(preview.summary).font(.subheadline); Text(preview.url.host ?? "").font(.caption) }.padding(12).background(Color.fomioFill, in: .rect(cornerRadius: 12))
+                            }
+                            ForEach(state.draft.activeAttachments) { attachment in photoStatusRow(attachment) }
+                            if state.saveStatus == "Couldn’t save on this device" { Label(LocalizedStringKey(state.saveStatus), systemImage: "exclamationmark.triangle.fill").font(.footnote).foregroundStyle(Color.fomioDanger).accessibilityIdentifier("draft-save-status") }
                             if let error = state.error { Text(error).font(.subheadline).foregroundStyle(Color.fomioDanger).accessibilityIdentifier("composer-error").id(Recovery.error).accessibilityFocused($recoveryFocus, equals: .error) }
                         }.padding(20)
                     }
@@ -51,7 +61,7 @@ struct ComposerView: View {
                 .safeAreaInset(edge: .bottom) { accessoryBar }
                 .task(id: recoveryTarget) {
                     guard let target = recoveryTarget else { return }
-                    focusedField = nil
+                    focusedField = nil; titleEditor.blur(); bodyEditor.blur()
                     await Task.yield()
                     guard !Task.isCancelled, recoveryTarget == target else { return }
                     if reduceMotion { proxy.scrollTo(target, anchor: .top) }
@@ -61,48 +71,73 @@ struct ComposerView: View {
             }
             .navigationTitle(state.draft.intent.isNew ? "New discussion" : "Reply").navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                if navigationPresentation.wrappedValue == nil {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel", systemImage: "xmark") { close() }.disabled(state.draft.submission == .submitting).accessibilityIdentifier("composer-close").keyboardShortcut(.cancelAction)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     if state.draft.submission == .submitting { ProgressView().accessibilityLabel("Posting") }
-                    else { Button("Post") { focusedField = nil; Task { await state.submit() } }.buttonStyle(.glassProminent).disabled(!state.canPost).accessibilityIdentifier("composer-post").keyboardShortcut(.return, modifiers: .command) }
+                    else { Button("Post") { focusedField = nil; titleEditor.blur(); bodyEditor.blur(); Task { await state.submit() } }.buttonStyle(.glassProminent).disabled(!state.canPost).accessibilityIdentifier("composer-post").keyboardShortcut(.return, modifiers: .command) }
                 }
             }
-            .interactiveDismissDisabled()
-            .confirmationDialog(keepTitle, isPresented: $showExit, titleVisibility: .visible) {
-                Button(state.photoWillBeLost && state.photoUnfinished ? "Keep draft without photo" : "Keep draft") { restoreAfterExit = false; state.keepDraft() }
-                Button(state.resumed ? "Discard draft" : "Discard", role: .destructive) { restoreAfterExit = false; state.discard() }
-                Button("Keep editing") { restoreAfterExit = true; showExit = false }.accessibilityIdentifier("composer-keep-editing")
+            }
+            .background(ComposerDismissGuard(blocked: state.hasChanges, submitting: state.draft.submission == .submitting, onAttempt: { close() }).frame(width: 0, height: 0))
+            .confirmationDialog(keepTitle, isPresented: presented(.exit), titleVisibility: .visible) {
+                Button(state.photoWillBeLost && state.photoUnfinished ? "Keep draft without photo" : "Keep draft") { state.keepDraft() }
+                Button(state.resumed ? "Discard draft" : "Discard", role: .destructive) { state.discard() }
+                Button("Keep editing") { showExit = false; restoreEditingFocus() }.accessibilityIdentifier("composer-keep-editing")
             } message: { if let warning = keepPhotoWarning { Text(warning) } }
-            .alert("Post again?", isPresented: $postAgainWarning) {
+            .alert("Post again?", isPresented: presented(.retry)) {
                 Button("Cancel", role: .cancel) {}
                 Button("Post again") { Task { await state.postAgain() } }
             } message: { Text("If your first \(state.noun) went through, this will create a duplicate.") }
-            .sheet(isPresented: $state.needsAuthorization, onDismiss: { if app.username != nil { state.reauthorized() } }) { SignInView(app: app).presentationDetents([.medium, .large]) }
-            .sheet(isPresented: $destinationChooser, onDismiss: { restoreEditingFocus() }) { DestinationChooser(selected: state.draft.categoryID) { state.draft.categoryID = $0; state.edited() } }
-            .photosPicker(isPresented: $showPhotoPicker, selection: $photo, matching: .images)
-            .onChange(of: showPhotoPicker) { _, presented in if !presented { restoreEditingFocus() } }
-            .onChange(of: showExit) { _, presented in
-                if !presented && restoreAfterExit { restoreAfterExit = false; restoreEditingFocus() }
-            }
-            .onChange(of: state.locked) { _, locked in if locked { focusedField = nil; suspendedFocus = nil } }
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    if focusedField == .title { Button("Next") { focusedField = .body }.accessibilityIdentifier("composer-next") }
-                    Spacer()
-                    Button("Done") { focusedField = nil }.accessibilityIdentifier("composer-keyboard-done")
+            .photosPicker(isPresented: presented(.photos), selection: $photos, matching: .images)
+                        .onChange(of: state.locked) { _, locked in if locked { focusedField = nil; suspendedFocus = nil } }
+            .modifier(ToastHost(message: app.toastMessage, bottom: focusedField == nil ? 72 : 12))
+            .navigationDestination(item: navigationPresentation) { route in
+                switch route {
+                case .destination: DestinationChooser(selected: state.draft.categoryID) { state.chooseDestination($0); presentation = nil }
+                case .link:
+                    Form {
+                        TextField("Text", text: $linkLabel)
+                        TextField("URL", text: $linkURL).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                    }.navigationTitle("Link")
+                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Insert") { if let range = editingLinkRange { bodyEditor.send(.replace(range, DiscourseMarkupCodec.link(label: linkLabel, url: linkURL))) } else { bodyEditor.send(.link(linkLabel, linkURL)) }; presentation = nil }.disabled(URL(string: linkURL)?.scheme.map { !["https", "http"].contains($0) } ?? true) } }
+                case let .photo(id):
+                    Form { TextField("Image description", text: $photoDescription, axis: .vertical) }.navigationTitle("Photo")
+                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Save") {
+                        if let node = DiscourseMarkupCodec.parse(state.draft.body).first(where: { state.attachment(for: $0)?.id == id }), let index = state.draft.attachments.firstIndex(where: { $0.id == id }) {
+                            var changed = state.draft.attachments[index]; changed.description = photoDescription
+                            bodyEditor.send(.replace(node.range, changed.markup)); state.draft.attachments[index].description = photoDescription
+                        }; presentation = nil
+                    } } }
+                case let .block(kind, location, length, raw):
+                    ComposerBlockForm(value: DiscourseMarkupCodec.parse(raw).first.flatMap(ComposerBlockValue.editing) ?? ComposerBlockValue(kind: kind), maximumOptions: app.service.composerCapabilities.maximumPollOptions) { markup in
+                        bodyEditor.send(.replace(NSRange(location: location, length: length), markup + (length == 0 ? "\n" : ""))); presentation = nil
+                    }
+                case let .discussion(id): ComposerSuggestionView(topic: id, service: app.service)
+                default: EmptyView()
                 }
             }
-            .modifier(ToastHost(message: app.toastMessage, bottom: focusedField == nil ? 72 : 12))
+            .onChange(of: presentation) { previous, current in if previous != nil && current == nil { restoreEditingFocus() } }
             .onChange(of: state.draft.title) { state.edited() }
             .onChange(of: state.draft.body) { state.edited() }
             .onChange(of: phase) { _, value in if value != .active && state.hasChanges { state.save() } }
-            .onChange(of: photo) { _, item in
+            .onChange(of: photos) { _, items in
                 Task {
-                    do { if let data = try await item?.loadTransferable(type: Data.self), let image = UIImage(data: data), let jpeg = image.jpegData(compressionQuality: 0.9) { state.addPhoto(jpeg) } }
-                    catch { state.error = "Could not read the selected photo. Your writing is kept." }
-                    photo = nil
+                    var insertion = photoInsertion.range
+                    for item in items {
+                        do {
+                            if let data = try await item.loadTransferable(type: Data.self), let image = UIImage(data: data), let jpeg = image.jpegData(compressionQuality: 0.9) {
+                                let previous = state.draft.body
+                                let before = (previous as NSString).length
+                                state.addPhoto(jpeg, at: insertion)
+                                bodyEditor.send(.adopt(previous, EditorSelection(insertion)))
+                                insertion = NSRange(location: insertion.location + (state.draft.body as NSString).length - before, length: 0)
+                            }
+                        } catch { state.error = "Could not read the selected photo. Your writing is kept." }
+                    }
+                    photos = []
                 }
             }
         }
@@ -110,7 +145,7 @@ struct ComposerView: View {
     private func close() {
         suspendEditingFocus()
         if state.locked { state.keepDraft(message: state.draft.submission == .unconfirmed ? "Kept as a draft. Check the discussion before posting again." : nil) }
-        else if state.hasChanges { restoreAfterExit = true; showExit = true }
+        else if state.hasChanges { showExit = true }
         else { state.close() }
     }
     // Recovery changes reveal the relevant message without stealing focus during ordinary autosave or upload progress.
@@ -121,32 +156,35 @@ struct ComposerView: View {
         if state.draft.submission == .pending { return .pending }
         if state.error != nil { return .error }
         if state.draft.missingPhoto && state.photoData == nil { return .missingPhoto }
-        if case .failed = state.uploadState { return .photo }
+
         return nil
     }
     private func suspendEditingFocus() {
-        suspendedFocus = focusedField
-        suspendedSelection = focusedField == .title ? titleSelection : bodySelection
+        restoreTask?.cancel(); restoreTask = nil
+        suspendedFocus = titleEditor.focused ? .title : bodyEditor.focused ? .body : nil
+        suspendedSelection = titleEditor.focused ? titleEditor.selection : bodyEditor.selection
+        titleEditor.blur(); bodyEditor.blur()
         focusedField = nil
     }
     private func restoreEditingFocus() {
         let field = suspendedFocus
         let selection = suspendedSelection
         suspendedFocus = nil
-        suspendedSelection = nil
-        guard !state.locked, app.composer?.id == state.id else { return }
-        // Let the presentation dismiss before asking the native editor to resume.
-        Task { @MainActor in
-            await Task.yield()
-            guard !state.locked, app.composer?.id == state.id, !showPhotoPicker, !destinationChooser, !showExit else { return }
+        suspendedSelection = EditorSelection()
+        guard let field, !state.locked, app.composer?.id == state.id else { return }
+        // UIKit finishes dismissing the dialog before restoring the first responder.
+        restoreTask?.cancel()
+        restoreTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(350))
+            guard !Task.isCancelled, !state.locked, app.composer?.id == state.id, !showPhotoPicker, !destinationChooser, !showExit else { return }
             focusedField = field
             await Task.yield()
             guard focusedField == field, !state.locked, app.composer?.id == state.id else { return }
-            if field == .title { titleSelection = selection }
-            else if field == .body { bodySelection = selection }
+            if field == .title { titleEditor.selection = selection; titleEditor.focus() }
+            else { bodyEditor.selection = selection; bodyEditor.focus() }
         }
     }
-    private var keepTitle: String { state.resumed ? "You changed this draft." : "Keep this \(state.noun) as a draft?" }
+    private var keepTitle: String { state.resumed ? String(localized: "You changed this draft.") : String(localized: "Keep this \(state.noun) as a draft?") }
     private var keepPhotoWarning: String? {
         guard state.photoWillBeLost && state.photoUnfinished else { return nil }
         let kept = state.draft.intent.isNew ? "title, text and community" : "text"
@@ -165,23 +203,23 @@ struct ComposerView: View {
             .overlay { if label == nil { RoundedRectangle(cornerRadius: 14).strokeBorder(Color.fomioAccent, lineWidth: 1.5) } }
             .contentShape(.rect)
         }.buttonStyle(.plain).disabled(state.locked)
-        .accessibilityLabel(label.map { "Posting in \($0). Change community" } ?? "Choose a community, required").accessibilityIdentifier("composer-destination")
+        .accessibilityLabel(label.map { String(localized: "Posting in \($0). Change community") } ?? String(localized: "Choose a community, required")).accessibilityIdentifier("composer-destination")
     }
     @ViewBuilder private func destinationParts(_ label: String?) -> some View {
         Text("Post in").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
-        Text(label ?? "Choose a community").font(.subheadline.weight(.semibold)).foregroundStyle(label == nil ? Color.fomioSecondaryText : .primary)
+        Text(label ?? String(localized: "Choose a community")).font(.subheadline.weight(.semibold)).foregroundStyle(label == nil ? Color.fomioSecondaryText : .primary)
         Spacer(minLength: 0)
-        Text(label == nil ? "Required" : "Change").font(.subheadline.weight(.semibold)).foregroundStyle(Color.fomioAccent)
+        Text(LocalizedStringKey(label == nil ? "Required" : "Change")).font(.subheadline.weight(.semibold)).foregroundStyle(Color.fomioAccent)
     }
     @ViewBuilder private var replyContext: some View {
         if case let .reply(topic, parent) = state.draft.intent {
             let category = state.draft.contextCategory.map(app.categoryName)
-            let sub = state.draft.quote.map { "Quoting \($0.author) · #\($0.number.rawValue)" }
-                ?? state.draft.targetAuthor.map { "Replying to \($0) · #\(parent?.rawValue ?? 0)" }
-                ?? "Replying to the discussion\(category.map { " · \($0)" } ?? "")"
+            let sub = state.draft.quote.map { String(localized: "Quoting \($0.author) · #\($0.number.rawValue)") }
+                ?? state.draft.targetAuthor.map { String(localized: "Replying to \($0) · #\(parent?.rawValue ?? 0)") }
+                ?? String(localized: "Replying to the discussion") + (category.map { " · \($0)" } ?? "")
             VStack(alignment: .leading, spacing: 3) {
                 Text(sub).font(.caption).foregroundStyle(Color.fomioSecondaryText)
-                Text(state.draft.contextTitle ?? "Discussion \(topic.rawValue)").font(.subheadline.weight(.semibold)).lineLimit(2)
+                Text(state.draft.contextTitle ?? String(localized: "Discussion \(topic.rawValue)")).font(.subheadline.weight(.semibold)).lineLimit(2)
             }.padding(12).frame(maxWidth: .infinity, alignment: .leading).background(Color.fomioFill, in: .rect(cornerRadius: 12)).accessibilityElement(children: .combine)
         }
     }
@@ -198,7 +236,7 @@ struct ComposerView: View {
             alertCard(symbol: "person.crop.circle.badge.exclamationmark", tint: .fomioAccent) {
                 Text("You've been signed out").font(.headline).accessibilityFocused($recoveryFocus, equals: .authorization)
                 Text("Sign in again to post. Your \(state.noun) stays here and won't be sent automatically.").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
-                Button("Sign in") { suspendEditingFocus(); app.gate = state.draft.intent.isNew ? .create(nil) : .reply; state.needsAuthorization = true }.buttonStyle(.glassProminent).frame(minHeight: 44)
+                Button("Sign in") { suspendEditingFocus(); state.suspendForAuthentication() }.buttonStyle(.glassProminent).frame(minHeight: 44)
             }.id(Recovery.authorization)
         }
         if app.isOffline && !state.locked {
@@ -215,7 +253,7 @@ struct ComposerView: View {
                 }
                 Divider()
                 Text("Posting again could create a duplicate if the first one went through.").font(.footnote).foregroundStyle(Color.fomioSecondaryText)
-                Button("Post again…") { postAgainWarning = true }.font(.subheadline.weight(.semibold)).frame(minHeight: 44)
+                Button("Post again…") { presentation = .retry }.font(.subheadline.weight(.semibold)).frame(minHeight: 44)
             }.id(Recovery.unconfirmed)
         }
         if state.draft.submission == .pending {
@@ -250,45 +288,88 @@ struct ComposerView: View {
         }.padding(14).frame(maxWidth: .infinity, alignment: .leading).background(Color.fomioFill, in: .rect(cornerRadius: 14)).accessibilityElement(children: .contain)
     }
     // MARK: Photo
-    private var photoRow: some View {
-        let failed: Bool = { if case .failed = state.uploadState { true } else { false } }()
-        let progress: Double? = { if case let .uploading(value) = state.uploadState { value } else { nil } }()
-        let label = progress.map { "Uploading photo · \(Int($0 * 100))%" } ?? (failed ? "Photo didn’t upload" : "Photo attached")
-        let help = progress != nil ? "Post becomes available when the upload finishes." : failed ? "Your writing is kept. Retry, or remove the photo to post without it." : "One photo per post in this version."
-        return VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top, spacing: 12) {
-                Group {
-                    if let data = state.photoData, let image = UIImage(data: data) { Image(uiImage: image).resizable().scaledToFill() }
-                    else { Image(systemName: "photo").font(.title2).foregroundStyle(Color.fomioSecondaryText).frame(maxWidth: .infinity, maxHeight: .infinity).background(Color.fomioSelected) }
-                }.frame(width: 56, height: 56).clipShape(.rect(cornerRadius: 12)).opacity(state.uploadState == .uploaded ? 1 : 0.55).accessibilityLabel("Attached photo")
-                VStack(alignment: .leading, spacing: 5) {
-                    Label { Text(label) } icon: { if failed { Image(systemName: "exclamationmark.triangle.fill") } }
-                        .font(.subheadline.weight(.semibold)).foregroundStyle(failed ? Color.fomioDanger : .primary).accessibilityAddTraits(.updatesFrequently).accessibilityFocused($recoveryFocus, equals: .photo)
-                    if let progress { ProgressView(value: progress).accessibilityLabel("Photo upload progress") }
-                    Text(help).font(.footnote).foregroundStyle(Color.fomioSecondaryText)
+    private func photoStatus(_ attachment: ComposerAttachment) -> String {
+        switch attachment.status {
+        case .retained: String(localized: "Photo kept on this device. Resume upload to post.")
+        case .queued: String(localized: "Waiting to upload")
+        case let .uploading(value): String(localized: "Uploading photo · \(Int(value * 100))%")
+        case let .failed(message): String(localized: "Photo didn’t upload. \(message)")
+        case .uploaded: String(localized: "Photo attached")
+        case .missing: String(localized: "Photo file unavailable. Remove it or select it again.")
+        }
+    }
+    private func photoStatusRow(_ attachment: ComposerAttachment) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(LocalizedStringKey(photoStatus(attachment))).font(.subheadline).accessibilityAddTraits(.updatesFrequently)
+            HStack {
+                switch attachment.status {
+                case .retained, .failed: Button(LocalizedStringKey(attachment.status == .retained ? "Resume upload" : "Retry upload")) { state.retryPhoto(attachment.id) }.frame(minHeight: 44)
+                default: EmptyView()
                 }
+                Button("Remove photo") {
+                    if let node = DiscourseMarkupCodec.parse(state.draft.body).first(where: { state.attachment(for: $0)?.id == attachment.id }) { bodyEditor.send(.replace(node.range, "")) }
+                }.frame(minHeight: 44)
             }
-            HStack(spacing: 18) {
-                if failed { Button("Retry upload") { state.retryPhoto() } }
-                Button(progress != nil ? "Cancel upload" : "Remove photo") { state.removePhoto() }.disabled(state.locked)
-            }.font(.subheadline.weight(.semibold)).frame(minHeight: 44)
-        }.padding(14).frame(maxWidth: .infinity, alignment: .leading).background(Color.fomioFill, in: .rect(cornerRadius: 14))
+        }.padding(12).frame(maxWidth: .infinity, alignment: .leading).background(Color.fomioFill, in: .rect(cornerRadius: 12))
     }
     @ViewBuilder private var accessoryBar: some View {
-        if !state.locked && state.photoData == nil && state.uploadState == .none && !state.draft.missingPhoto {
-            HStack(spacing: 18) {
-                photoPicker("Add photo", symbol: "photo").accessibilityLabel("Add photo")
-                if app.fixture != nil {
-                    Button("Sample photo") { if let url = Bundle.main.url(forResource: "fixture-photo", withExtension: "jpg"), let data = try? Data(contentsOf: url) { state.addPhoto(data) } }
-                        .font(.subheadline).frame(minHeight: 44).accessibilityIdentifier("sample-photo")
+        if !state.locked {
+            HStack {
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 0) {
+                        Button("Bold", systemImage: "bold") { bodyEditor.send(.bold); bodyEditor.focus() }.labelStyle(.iconOnly).frame(minWidth: 44, minHeight: 44)
+                        Button("Italic", systemImage: "italic") { bodyEditor.send(.italic); bodyEditor.focus() }.labelStyle(.iconOnly).frame(minWidth: 44, minHeight: 44)
+                        Button("Link", systemImage: "link") { openLink() }.labelStyle(.iconOnly).frame(minWidth: 44, minHeight: 44)
+                        photoPicker("Add photo", symbol: "photo")
+                    }
+                    Color.clear.frame(width: 0, height: 44)
                 }
-                Spacer()
+                Spacer(minLength: 0)
+                editorMenu
             }.padding(.horizontal, 20).padding(.vertical, 4).background(.bar)
         }
     }
+    private func openBlock(_ node: MarkupNode) {
+        guard node.kind == .quote || node.kind.map({ app.service.composerCapabilities.blocks.contains($0) }) == true, ComposerBlockValue.editing(node) != nil else { bodyEditor.send(.select(EditorSelection(node.range))); if !bodyEditor.markdown { bodyEditor.send(.markdown) }; bodyEditor.focus(); return }
+        suspendEditingFocus(); presentation = .block(node.kind ?? .opaque, node.range.location, node.range.length, node.raw)
+    }
+    private func openLink() {
+        suspendEditingFocus()
+        editingLinkRange = nil; linkLabel = ""; linkURL = ""
+        let selection = bodyEditor.selection.range
+        if let node = DiscourseMarkupCodec.parse(state.draft.body).first(where: { $0.link != nil && selection.location >= $0.range.location && NSMaxRange(selection) <= NSMaxRange($0.range) }) {
+            editingLinkRange = node.range; linkLabel = node.text; linkURL = node.link ?? ""
+        } else if selection.length > 0, let range = Range(selection, in: state.draft.body) { linkLabel = String(state.draft.body[range]) }
+        showLink = true
+    }
+    private var editorMenu: some View {
+        var actions: [ComposerMenuAction] = [
+            .init("Bold", "bold", group: "Format") { bodyEditor.send(.bold); bodyEditor.focus() },
+            .init("Italic", "italic", group: "Format") { bodyEditor.send(.italic); bodyEditor.focus() },
+            .init("Link", "link", group: "Format") { openLink() },
+            .init("Quote", "text.quote", group: "Format") { bodyEditor.send(.quote); bodyEditor.focus() },
+            .init("Bulleted list", "list.bullet", group: "Format") { bodyEditor.send(.list); bodyEditor.focus() },
+            .init("Emoji", "face.smiling", group: "Format") { bodyEditor.focus() },
+            .init("Add photo", "photo") { suspendEditingFocus(); showPhotoPicker = true }
+        ]
+        if app.fixture != nil {
+            actions.append(.init("Sample photo", "photo") {
+                if let url = Bundle.main.url(forResource: "fixture-photo", withExtension: "jpg"), let data = try? Data(contentsOf: url) {
+                    let previous = state.draft.body; state.addPhoto(data, at: bodyEditor.selection.range); bodyEditor.send(.adopt(previous, bodyEditor.selection))
+                }
+            })
+        }
+        for kind in ComposerBlockKind.allCases where app.service.composerCapabilities.blocks.contains(kind) {
+            actions.append(.init(kind.title, "square.and.pencil", group: "Insert block") { suspendEditingFocus(); presentation = .block(kind, bodyEditor.selection.location, bodyEditor.selection.length, "") })
+        }
+        actions.append(.init(bodyEditor.markdown ? "Rich text" : "Edit in Markdown", "textformat") { bodyEditor.send(.markdown); bodyEditor.focus() })
+        actions.append(.init("Undo", "arrow.uturn.backward", enabled: bodyEditor.canUndo) { bodyEditor.send(.undo) })
+        actions.append(.init("Redo", "arrow.uturn.forward", enabled: bodyEditor.canRedo) { bodyEditor.send(.redo) })
+        return ComposerMoreMenu(actions: actions, onOpen: { restoreTask?.cancel() }).fixedSize().frame(minWidth: 44, minHeight: 44)
+    }
     private func photoPicker(_ title: String, symbol: String?) -> some View {
-        Button { suspendEditingFocus(); showPhotoPicker = true } label: {
-            if let symbol { Label(title, systemImage: symbol).frame(minHeight: 44) } else { Text(title).frame(minHeight: 44) }
+        Button { photoInsertion = bodyEditor.selection; suspendEditingFocus(); showPhotoPicker = true } label: {
+            if let symbol { Label(LocalizedStringKey(title), systemImage: symbol).frame(minHeight: 44) } else { Text(LocalizedStringKey(title)).frame(minHeight: 44) }
         }.font(.subheadline.weight(.semibold)).disabled(state.locked)
     }
 }
@@ -298,8 +379,7 @@ struct DestinationChooser: View {
     let selected: CategoryID?
     let onPick: (CategoryID) -> Void
     var body: some View {
-        NavigationStack {
-            List {
+        List {
                 // Only communities the account can post in; a non-postable parent is a heading only.
                 ForEach(app.communities.filter { root in root.parentID == nil && (root.canCreate || app.communities.contains { $0.parentID == root.id && $0.canCreate }) }) { root in
                     Section {
@@ -308,8 +388,7 @@ struct DestinationChooser: View {
                     } header: { if !root.canCreate { Text(root.name) } }
                 }
             }.navigationTitle("Choose a community").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel", systemImage: "xmark") { dismiss() } } }
-        }
+
     }
     private func row(_ category: Community, parent: Community?) -> some View {
         Button { onPick(category.id); dismiss() } label: {

@@ -102,6 +102,23 @@ Observed read-only from `https://meta.fomio.app` through an admin browser sessio
 - Enabled plugins: checklist, details, lazy videos, local dates, poll, presence, reactions, solved, spoiler alert, templates, topic voting. Chat and AI are disabled.
 - Anonymous `GET /latest.json`, `/categories.json`, `/t/:id.json` and `/n/:slug/:id.json` returned 200 with the fields the adapters decode (`topic_list.topics`, `more_topics_url`, `users`; `topic`, `op_post`, `roots`, `has_more_roots`, `page`). This is a guest read check only; no endpoint is promoted to live verified until the app itself makes the request.
 
+## Live app check — 2026-10-04
+
+Debug build (live adapter, guest, no credentials) on the iPhone 17 Pro simulator against `https://meta.fomio.app`, plus anonymous public JSON requests. Backend reference unchanged at `d4296c5e`; deployed commit as in the snapshot above. No settings were changed and no account was used.
+
+| Request | Observed |
+| --- | --- |
+| `GET /categories.json?include_subcategories=true` | 200. Communities render with subcategory chips. Anonymous `can_create_topic` false and `permission` absent, so guest `canCreate` is false (the guest "New discussion" button is the intentional sign-in prompt). |
+| `GET /latest.json?page=N` | 200. Home feed renders; `more_topics_url` present. |
+| `GET /c/:id/l/latest.json` | **301** to `/c/:slug/:id/l/latest.json` (same origin). `SameOriginDelegate` follows it and the feed renders; costs one extra round trip per category load. |
+| `GET /n/:slug/:id.json`, `/children/:n.json`, `/context/:n.json` (with and without `context=0`) | 200 with the documented keys; page 1 omits `topic`/`op_post`. Fallback slug `topic` also resolves. Topic 5 roots are two `deleted_post_placeholder` posts with empty `cooked` and no `username`. |
+| `GET /search.json?type_filter=topic` | 200; results and highlighted blurbs render. A stop-word-only query (`the`) returns no posts/topics keys. |
+| `GET /u/:username.json`, `/topics/created-by/:username.json` | 200 with decoded fields. |
+| Anonymous `GET /session/current.json` / `/notifications.json` | 404 / 403, as expected without a key; the app shows sign-in prompts instead of calling them. |
+| `GET /user-api-key/new` (from `ASWebAuthenticationSession`) | **Fails.** The page renders the generic error "unable to issue user API keys". At the deployed revision this state is rendered when `require_params`, `validate_params` (scope allowlist, public-key parse, padding) or `validate_auth_redirect` raises *before* the anonymous login redirect. The recorded allowlists include the requested scopes and callback, so the public-key or padding check is the leading suspect, but **the cause is unconfirmed**. Next step: read the `device_auth.authorization.rendered_generic` server log entry (it records the exception) or recheck the settings. All member actions remain live-unverified until this is resolved. |
+
+Rendering facts established: cooked posts use `<img class="emoji" width="20">` for emoji (for example `/images/emoji/apple/heart.png`). These are now kept inline as their shortcode text instead of becoming photo blocks (`HTMLContent.inlineEmoji`). Topic `title` and `fancy_title` both carry raw shortcodes (`:wave:`). Neither the title nor the inline emoji is converted to Unicode yet.
+
 ## Native implementation source review — 2026-10-03
 
 Current reference HEAD: `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`, rechecked before implementation and again during the documentation handoff on 2026-10-03. Only the unrelated untracked `docs/sidebar-outlet-discovery.md` is present. Backend unchanged; no backend server or request specs were run. Deployed verification was blocked pending base URL, version alignment, settings/plugins, callback/scopes and test users; see the 2026-10-04 deployment snapshot above for the resolved items. Test users remain pending. Swift tests use local fictional data, not live-response recordings.
@@ -143,3 +160,23 @@ These are deliberately not mapped and display only in fixtures: directory “Lat
 ### Unresolved integration requirements
 
 No live endpoint is marked live verified. Remaining work includes real config and callback registration, signing/icon, deployed nested capability, user-key permissions, site text/tag/required-field posting constraints, secure media retrieval, search exact-result behavior, pending-author visibility, and a provable uncertain-write reconciliation contract. The live reconcile adapter deliberately returns unresolved. No administrator credentials or production URL were invented.
+
+## Expanded native composer — 2026-10-04
+
+Rechecked local backend HEAD: `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`. No backend modifications.
+
+| Contract | Source reviewed | Fixture/contract tests | Live member verification |
+| --- | --- | --- | --- |
+| Similar discussions | `similar_topics_controller.rb`, `similar_topic_serializer.rb`, `Topic.similar_to`, similar-topic request specs; title required, optional raw, `[]` fast path or referenced topic envelope; Guardian-visible results | Native adapter handles empty and topic envelope, member headers; 750 ms cancellation/debounce; errors don't affect Post | Pending; insertion/UI requests disabled by default |
+| Onebox | `onebox_controller.rb`, Oneboxer, Onebox request specs; requires login; plain cooked HTML, category/topic context, one active preview/user, 404/429 | Member-header adapter; serialized native preview requests; only heading/paragraph text becomes native metadata, original URL remains raw; scripts/embeds never execute | Pending; disabled by default |
+| Category template | `basic_category_serializer.rb` exposes `topic_template` | Category model/decoder and empty-body destination insertion | Pending deployed serializer/member response |
+| Poll | poll builder/settings/validator and request/spec constraints; named regular/multiple poll, title line and option bullets, selection bounds | Native validated form, unique poll names; unsupported attributes preserved for Markdown | Pending member/group/site permission. Live insertion hidden; server-owned voting/rendering remains original-post fallback |
+| Details/spoiler/local date | Plugin markdown implementations and local-date builder | Native forms, supported-shape editing, details/spoiler/date cooked rendering | Pending; live insertion hidden |
+| Table/code | Discourse Markdown/native cooked projection | Native table/code forms and rendering, pipe/code fence handling | Pending live round-trip; core Markdown tools remain available |
+| Inline upload | Existing composer upload contract; prior site-settings snapshot reported 10240 KB image limit | Sequential uploads, retained local files, v2 migration, removed-response suppression, inline-only serialization | Pending actual member uploads and current settings; maximumUploadBytes remains configurable rather than treating the prior observation as fresh verification |
+
+`ComposerCapabilities` defaults conservatively. Plugin enablement observed in an admin settings snapshot is not a per-member capability proof. Test injection uses fixture capabilities; the live adapter's defaults do not enable plugins, similar discussions, or Onebox.
+
+### Live member authorization attempt — 2026-10-04
+
+The native app’s normal ASWebAuthenticationSession flow reached `meta.fomio.app` on iPad Pro 11-inch (M5), iPadOS 26.1. The authorize-application page reported that it was unable to issue user API keys and that the feature may be disabled by the site administrator. No member credential was entered, no key was issued, and no live member posting/upload/preview/plugin checks were completed. Evidence: `editor-captures/live-user-api-disabled.png`. Public feed reads work, but this does not establish member authorization. Resolve deployed user-key issuance configuration before repeating live acceptance; backend source was not modified.

@@ -49,11 +49,16 @@ struct AppShell: View {
                     }
                 }.tabViewStyle(.sidebarAdaptable)
                 .modifier(ToastHost(message: app.composer == nil ? app.toastMessage : nil))
-                .sheet(item: $app.composer) { composer in ComposerView(state: composer).environment(app).presentationDetents([.large]).presentationSizing(.form) }
+                .sheet(item: $app.composer) { composer in
+                    Group {
+                        if UIDevice.current.userInterfaceIdiom == .pad { ComposerView(state: composer).presentationSizing(.form) }
+                        else { ComposerView(state: composer).presentationSizing(.page) }
+                    }.environment(app).presentationDetents([.large]).presentationCompactAdaptation(.sheet).statusBarHidden(false)
+                }
                 .sheet(isPresented: $app.authRequested, onDismiss: { app.pendingAction = nil; app.gate = .signIn }) { SignInView(app: app).presentationDetents([.medium, .large]) }
-                .sheet(isPresented: $app.choosingDestination) { DestinationChooser(selected: nil) { app.openComposer(category: $0) }.environment(app) }
+                .sheet(isPresented: $app.choosingDestination) { NavigationStack { DestinationChooser(selected: nil) { app.openComposer(category: $0) }.environment(app) } }
                 .task {
-                    await app.restoreAccount(); await app.loadCommunities(); await app.refreshUnread()
+                    await app.restoreAccount(); do { try app.draftStore.reconcileFiles(account: app.account) } catch { app.banner = error.localizedDescription }; await app.loadCommunities(); await app.refreshUnread()
                     #if DEBUG
                     if let preset = DevelopmentPresets.requested { await DevelopmentPresets.apply(preset, to: app) }
                     #endif

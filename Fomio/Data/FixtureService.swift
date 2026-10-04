@@ -240,9 +240,18 @@ import Observation
     func reconcile(_ draft: Draft) async throws -> Reconciliation {
         try check(); if let found = submitted[draft.id] { return .published(topic: found.0, number: found.1) }; return .unresolved
     }
+    var composerCapabilities: ComposerCapabilities { .fixture }
+    func similarDiscussions(title: String, raw: String) async throws -> [DiscussionSummary] {
+        try check(); try await Task.sleep(for: .milliseconds(100))
+        return Array(try await feed(category: nil, page: 0).items.prefix(3))
+    }
+    func oneboxPreview(url: URL, context: OneboxContext) async throws -> OneboxMetadata? {
+        try check(); try await Task.sleep(for: .milliseconds(100))
+        return OneboxMetadata(url: url, title: url.host ?? "Link", summary: "Fixture link preview")
+    }
     func upload(_ data: Data, progress: @escaping @MainActor @Sendable (Double) -> Void) async throws -> UploadedPhoto {
         try check()
         for i in 1...10 { try await Task.sleep(for: uploadStep); progress(Double(i)/10); if uploadFails && i == 6 { throw RepositoryError.invalid("Photo upload failed. Retry or remove it.") } }
-        return UploadedPhoto(url: "fixture-photo", shortURL: "fixture-photo")
+        return UploadedPhoto(url: "fixture-photo", shortURL: "upload://fixture-\(UUID().uuidString).jpg")
     }
 }

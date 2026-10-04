@@ -13,7 +13,7 @@ This records current native behavior and its limits as of 2026-10-03. Discourse 
 | Search | Discussion search inside originating tab; query/results/pagination/anchor retained in that tab’s memory |
 | Notifications | Replies/mentions; resolve topic plus optional exact post number before marking read |
 | Me/profile | Basic own/other-member profile and recent discussions; Saved, Drafts and sign-out |
-| Composer | New discussion, reply, quote or resume using raw text, plain links and one photo |
+| Composer | New discussion, reply, quote or resume using a native rich projection, authoritative raw text, inline photos and block forms |
 
 Unavailable fields are omitted or use an honest fallback. Community artwork uses a letter when no verified logo exists. Live Share uses the configured site destination; fixtures cannot claim a real shared post URL.
 
@@ -58,7 +58,7 @@ The live reconciliation adapter currently always returns unresolved. Pending rec
 
 ## Local draft lifecycle
 
-Text/title/category changes debounce autosave by 500 milliseconds. Backgrounding also attempts save. Atomic version-1 JSON records include UUID, account, intent, title/body/category, uploaded reference or missing-photo marker, submission state and timestamp. Only that account’s records are listed.
+Text/title/category changes debounce autosave by 500 milliseconds. Backgrounding also attempts save. Atomic version-2 JSON records include UUID, account, intent, raw title/body/category, ordered attachment metadata and positions, submission state and timestamp. Version-1 records migrate without changing their identity or recovery locks. Only that account’s records are listed.
 
 Before sending, the app saves a submitting record as **unconfirmed on disk**. Termination after the server may have accepted the request therefore restores a locked record rather than an editable duplicate. In-memory state stays submitting during the request.
 
@@ -66,9 +66,9 @@ Close with unchanged writing simply closes. Close after any change to title, tex
 
 ## Photo lifecycle
 
-Picked photos are converted to JPEG for multipart upload. One attachment is supported. Progress, cancellation, failure, retry and removal are exposed. While uploading or failed, Post is disabled. Photo bytes remain in memory and are not stored in the local draft.
+Picked photos are converted to JPEG and retained in protected account-scoped files before upload. Multiple inline attachments have stable identities, source positions, descriptions and independent status. Uploads run sequentially; cancellation/removal prevents a late response from restoring a removed attachment. Post stays disabled while an attachment is unresolved. Successful references replace their local placeholder in place and are submitted once.
 
-Keeping an unfinished attachment warns that it will not be retained. Resume shows “Photo not kept” with Add photo again or Continue without photo. Either choice resolves the missing-photo block. Successfully uploaded live photo references persist; whether they remain usable is a deployment contract to verify. Fixture upload references are deliberately discarded on save because they are fictional, so fixture recovery also requests a photo again.
+Keeping a draft retains unfinished photo files. Resume shows explicit Resume upload/Retry or Remove; upload does not continue after termination. Missing/corrupt retained bytes preserve writing and block Post until resolved. Save failure keeps the composer open. Discard, successful post cleanup and sign-out remove owned retained files; orphan reconciliation follows atomic metadata writes. Files removed from the body remain available to native undo until draft cleanup. Fixture references are fictional and do not establish durable deployed media access.
 
 ## Honest failure states
 
@@ -82,7 +82,7 @@ Composer opens with the keyboard down, including resumed drafts with missing-pho
 
 Post clears input focus before sending. Command-Return invokes the same guarded Post action; Escape invokes Cancel with the existing Keep/Discard protection. Locked submission records cannot retain editing focus. Recovery changes reveal rejection, expired authorization, uncertainty, locked pending records, missing photos, failed uploads or generic errors with a scroll target and accessibility focus. Ordinary autosave and upload progress do not repeatedly move focus. Recovery scrolling respects Reduce Motion. Signing in again keeps the keyboard down and never posts automatically.
 
-Cancel suspends editing focus. Keep editing restores the previous field if the same composer is still open and editable. Destination and photo presentations suspend focus and restore it after dismissal; native TextSelection bindings snapshot and restore the insertion range rather than replacing editor text. Keeping/discarding a draft and publication close the composer. Backgrounding still saves changed drafts; focus on foreground return remains managed by the system.
+Cancel suspends editing focus. Keep editing restores the previous field if the same composer is still open and editable. Destination and photo presentations suspend focus and restore it after dismissal; the native editor snapshots and restores the insertion range rather than replacing editor text. Keeping/discarding a draft and publication close the composer. Backgrounding still saves changed drafts; focus on foreground return remains managed by the system.
 
 Native SwiftUI safe areas and keyboard toolbars manage docked keyboards; no fixed keyboard-height assumptions or global tap-to-dismiss gestures are used. Floating keyboards, physical keyboard navigation/shortcuts, VoiceOver announcements, real Photos picker dismissal, rotation, RTL and resized iPad windows still require device acceptance unless separately recorded in implementation status.
 

@@ -50,6 +50,7 @@ import Foundation
             app.selectedTab = .me; app.navigate(.drafts, in: .me); app.resume(lost)
         case "chooser": app.choosingDestination = true
         case "reply": await reply()
+        case "editor-blocks": await reply("Writing before code\n```swift\nlet greeting = 1\n```")
         case "quote":
             app.navigate(.discussion(walnut, nil))
             if let post = try? await fixture.context(topic: walnut, number: .init(2), focused: true).target.post { app.reply(to: post, quote: true) }

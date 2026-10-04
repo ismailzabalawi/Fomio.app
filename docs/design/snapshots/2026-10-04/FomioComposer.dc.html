@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><script src="./fomio-composer-lib.js"></script><style>@keyframes fcspin{to{transform:rotate(360deg)}}button,input,textarea{font:inherit;color:inherit}button{background:none;border:0;padding:0;margin:0;cursor:pointer;text-align:inherit}[data-fc-ed]{outline:none}[data-fc-ed] p{margin:0 0 14px}[data-fc-ed] h2{font-size:1.25em;line-height:1.3;margin:0 0 10px}[data-fc-ed] h3{font-size:1.1em;margin:0 0 10px}[data-fc-ed] blockquote{margin:0 0 14px;padding:0 0 0 14px;border-inline-start:3px solid var(--sep);color:var(--ink2)}[data-fc-ed] blockquote p{margin:0}[data-fc-ed] ul,[data-fc-ed] ol{margin:0 0 14px;padding-inline-start:24px}[data-fc-ed] li{margin:0 0 4px}[data-fc-ed] a{color:var(--acc)}[data-fc-ed] code{font-family:var(--mono);font-size:.9em;background:var(--fill);padding:1px 4px;border-radius:4px}[data-fc-ed] figure{user-select:none}</style></helmet>
+<svg aria-hidden="true" width="0" height="0" style="position:absolute"><symbol id="i-code" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"></path></symbol><symbol id="i-poll" viewBox="0 0 24 24"><path d="M5 20v-8M12 20V4M19 20v-5" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"></path></symbol><symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round"></path><circle cx="12" cy="12" r="2.5" style="fill:none;stroke:currentColor;stroke-width:1.8"></circle></symbol><symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2" style="fill:none;stroke:currentColor;stroke-width:1.8"></rect><path d="M3.5 10h17M8 3v4M16 3v4" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round"></path></symbol><symbol id="i-table" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2" style="fill:none;stroke:currentColor;stroke-width:1.8"></rect><path d="M3.5 10h17M3.5 15h17M10 4.5v15" style="fill:none;stroke:currentColor;stroke-width:1.8"></path></symbol></svg>
+<div ref="{{ rootRef }}" data-screen-label="Fomio composer" lang="en" style="width:{{ devW }}px;height:{{ devH }}px;border-radius:55px;box-shadow:0 0 0 12px #1B1A1F,0 0 0 13px #3A3842;position:relative;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;background:var(--grp);color:var(--ink)">
+
+<div aria-hidden="true" style="height:54px;display:flex;align-items:center;padding:4px 0 0 46px;box-sizing:border-box;font-size:17px;font-weight:600">9:41</div>
+
+<div role="dialog" aria-label="{{ dlgLabel }}" style="position:absolute;left:0;right:0;top:58px;bottom:0;background:var(--sheet);border-radius:38px 38px 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -1px 0 var(--sep)">
+
+<sc-if value="{{ isEdit }}" hint-placeholder-val="{{ true }}">
+<div style="flex:none;min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 14px;position:relative">
+<button onClick="{{ onCancel }}" aria-label="Cancel" style="flex:none;width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;color:var(--ink);background:var(--gl);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+<sc-if value="{{ headTitle }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;left:50%;transform:translateX(-50%);font-size:17px;font-weight:600;white-space:nowrap">{{ sheetTitle }}</span></sc-if>
+<button onClick="{{ onPost }}" aria-disabled="{{ postOff }}" style="flex:none;min-height:44px;min-width:44px;padding:0 20px;border-radius:22px;font-size:calc(17px * var(--ts));font-weight:600;background:{{ postBg }};color:{{ postFg }};box-shadow:{{ postSh }}">Post</button>
+</div>
+
+<div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:2px 20px 24px;display:flex;flex-direction:column;gap:14px">
+<sc-if value="{{ bodyHeading }}" hint-placeholder-val="{{ false }}"><h2 style="margin:0;font-size:calc(17px * var(--ts));line-height:1.25;font-weight:700">{{ sheetTitle }}</h2></sc-if>
+
+<sc-if value="{{ isReply }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:4px">
+<span style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:calc(15px * var(--ts));line-height:1.35;color:var(--ink2)"><span>Replying to</span><span style="display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--ink)"><span aria-hidden="true" style="width:22px;height:22px;border-radius:11px;background:{{ tColor }};color:#FFFFFF;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">{{ tInitial }}</span>{{ tName }} · #{{ tN }}</span></span>
+<span style="font-size:calc(15px * var(--ts));line-height:1.35;color:var(--ink2);overflow-wrap:break-word">in “{{ threadTitle }}”</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ isNew }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;min-height:44px;padding:4px 0;border-bottom:.5px solid var(--sep)">
+<span style="font-size:calc(15px * var(--ts));color:var(--ink2)">Post in</span>
+<sc-if value="{{ hasDest }}" hint-placeholder-val="{{ true }}"><span style="display:inline-flex;align-items:center;gap:7px;min-width:0;font-size:calc(15px * var(--ts));font-weight:600;overflow-wrap:anywhere"><span aria-hidden="true" style="flex:none;width:10px;height:10px;border-radius:3px;background:{{ destColor }}"></span>{{ destPath }}</span></sc-if>
+<sc-if value="{{ noDest }}" hint-placeholder-val="{{ false }}"><span style="font-size:calc(15px * var(--ts));font-weight:600;color:var(--danger)">Choose a community</span></sc-if>
+<button onClick="{{ openChooser }}" style="margin-inline-start:auto;min-height:44px;padding:0 4px;font-size:calc(15px * var(--ts));font-weight:600;color:var(--acc)">Change</button>
+</div>
+<textarea value="{{ title }}" onChange="{{ onTitle }}" dir="auto" rows="1" aria-label="Title" placeholder="Title" style="display:block;width:100%;box-sizing:border-box;min-height:44px;resize:none;border:0;outline:none;background:transparent;padding:4px 0;font-size:calc(22px * var(--ts));line-height:1.25;font-weight:700;field-sizing:content;overflow:hidden;color:var(--ink)"></textarea>
+<sc-if value="{{ hasSimilar }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;border-radius:16px;background:var(--fill)">
+<button onClick="{{ toggleSimilar }}" aria-expanded="{{ similarOpen }}" style="min-height:44px;display:flex;align-items:center;gap:8px;padding:6px 14px;font-size:calc(15px * var(--ts));font-weight:600"><span style="flex:1">{{ similarLabel }}</span><span aria-hidden="true" style="color:var(--ink3)">{{ similarChev }}</span></button>
+<sc-if value="{{ similarOpen }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;padding:0 14px 8px">
+<sc-for list="{{ similar }}" as="x" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:2px;padding:8px 0;border-top:.5px solid var(--sep)"><span style="font-size:calc(15px * var(--ts));line-height:1.3">{{ x.t }}</span><span style="font-size:calc(13px * var(--ts));color:var(--ink2)">{{ x.m }}</span></div></sc-for>
+</div>
+</sc-if>
+</div>
+</sc-if>
+</sc-if>
+
+<div style="position:relative;flex:1;min-height:200px;display:{{ edDisplay }}">
+<sc-if value="{{ showPh }}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="position:absolute;inset-inline-start:0;top:0;font-size:calc(17px * var(--ts));line-height:1.47;color:var(--ink3);pointer-events:none">{{ placeholder }}</span></sc-if>
+<div ref="{{ edRef }}" data-fc-ed="1" role="textbox" aria-multiline="true" aria-label="{{ placeholder }}" dir="{{ dir }}" onInput="{{ onEdInput }}" style="min-height:200px;font-size:calc(17px * var(--ts));line-height:1.47;overflow-wrap:break-word;unicode-bidi:plaintext"></div>
+</div>
+<textarea value="{{ md }}" onChange="{{ onMd }}" dir="{{ dir }}" aria-label="Markdown" spellcheck="false" style="display:{{ mdDisplay }};flex:1;min-height:260px;width:100%;box-sizing:border-box;resize:none;border:0;outline:none;padding:12px;border-radius:14px;background:var(--fill);font:calc(14px * var(--ts))/1.5 ui-monospace,Menlo,monospace;color:var(--ink)"></textarea>
+</div>
+
+<div style="flex:none;position:relative;padding:8px 10px {{ barPad }}px">
+<sc-if value="{{ moreOpen }}" hint-placeholder-val="{{ false }}"><div role="menu" aria-label="Insert" style="position:absolute;right:10px;bottom:calc(100% + 4px);width:240px;max-width:calc(100% - 20px);border-radius:24px;padding:6px;box-sizing:border-box;display:flex;flex-direction:column;background:var(--glMenu);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh);z-index:5">
+<sc-for list="{{ inserts }}" as="it" hint-placeholder-count="6"><button role="menuitem" onMouseDown="{{ hold }}" onClick="{{ it.run }}" style="min-height:44px;display:flex;align-items:center;gap:12px;padding:6px 12px;border-radius:18px;font-size:calc(16px * var(--ts))"><svg aria-hidden="true" width="20" height="20" style="flex:none;color:var(--acc)"><use href="#{{ it.icon }}"></use></svg>{{ it.label }}</button></sc-for>
+</div></sc-if>
+<sc-if value="{{ linkOpen }}" hint-placeholder-val="{{ false }}"><div role="dialog" aria-label="Insert link" style="position:absolute;left:10px;right:10px;bottom:calc(100% + 4px);border-radius:24px;padding:10px;box-sizing:border-box;display:flex;flex-wrap:wrap;gap:8px;background:var(--glMenu);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh);z-index:5">
+<input value="{{ linkUrl }}" onChange="{{ onLinkUrl }}" aria-label="Link address" type="url" style="flex:1 1 180px;min-width:0;min-height:44px;box-sizing:border-box;border:0;outline:none;border-radius:22px;padding:0 14px;background:var(--fill);font-size:calc(15px * var(--ts))"></input>
+<button onMouseDown="{{ hold }}" onClick="{{ applyLink }}" style="min-height:44px;padding:0 16px;border-radius:22px;background:var(--glTint);color:var(--onAcc);font-size:calc(15px * var(--ts));font-weight:600">Add link</button>
+<button onClick="{{ closePop }}" style="min-height:44px;padding:0 12px;font-size:calc(15px * var(--ts));color:var(--acc)">Cancel</button>
+</div></sc-if>
+<div role="toolbar" aria-label="Formatting" style="display:flex;align-items:center;height:48px;border-radius:24px;padding:0 2px;overflow-x:auto;scrollbar-width:none;color:var(--ink);background:var(--gl);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)">
+<sc-for list="{{ tools }}" as="b" hint-placeholder-count="9"><button onMouseDown="{{ hold }}" onClick="{{ b.run }}" aria-label="{{ b.label }}" aria-pressed="{{ b.pressed }}" aria-disabled="{{ b.off }}" style="flex:none;width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;opacity:{{ b.op }};background:{{ b.bg }};color:{{ b.fg }}"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round"><path d="{{ b.d }}"></path></svg></button></sc-for>
+</div>
+</div>
+
+<sc-if value="{{ emojiOpen }}" hint-placeholder-val="{{ false }}"><div role="group" aria-label="Emoji" style="flex:none;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;padding:10px 12px 34px;background:var(--kb)">
+<sc-for list="{{ emoji }}" as="e" hint-placeholder-count="12"><button onMouseDown="{{ hold }}" onClick="{{ e.run }}" aria-label="{{ e.ch }}" style="min-height:48px;border-radius:12px;font-size:26px;display:flex;align-items:center;justify-content:center;background:var(--kbKey)">{{ e.ch }}</button></sc-for>
+</div></sc-if>
+<sc-if value="{{ kbShow }}" hint-placeholder-val="{{ false }}"><div aria-hidden="true" style="flex:none;height:{{ kbH }}px;background:repeating-linear-gradient(135deg,var(--kb) 0 10px,var(--fill) 10px 20px);display:flex;align-items:center;justify-content:center;font:12px ui-monospace,Menlo,monospace;color:var(--ink2)">keyboard</div></sc-if>
+</sc-if>
+
+<sc-if value="{{ isChooser }}" hint-placeholder-val="{{ false }}">
+<div style="flex:none;min-height:64px;display:flex;align-items:center;padding:0 14px;position:relative">
+<button onClick="{{ closeChooser }}" aria-label="Cancel" style="flex:none;width:44px;height:44px;border-radius:22px;display:flex;align-items:center;justify-content:center;color:var(--ink);background:var(--gl);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+<sc-if value="{{ headTitle }}" hint-placeholder-val="{{ true }}"><span style="position:absolute;left:50%;transform:translateX(-50%);font-size:17px;font-weight:600;white-space:nowrap">Choose a community</span></sc-if>
+</div>
+<div style="flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:0 16px 40px;display:flex;flex-direction:column;gap:18px">
+<sc-if value="{{ bodyHeading }}" hint-placeholder-val="{{ false }}"><h2 style="margin:0 4px;font-size:calc(17px * var(--ts));line-height:1.25;font-weight:700">Choose a community</h2></sc-if>
+<span style="padding:0 4px;font-size:calc(15px * var(--ts));line-height:1.4;color:var(--ink2)">Communities you can start a discussion in.</span>
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="padding:0 4px;font-size:calc(13px * var(--ts));font-weight:600;color:var(--ink2)">{{ g.label }}</span>
+<div style="display:flex;flex-direction:column;border-radius:20px;background:var(--cell);overflow:hidden;box-shadow:0 0 0 .5px var(--sep)">
+<sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="2"><button onClick="{{ r.pick }}" aria-current="{{ r.sel }}" style="min-height:56px;display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-top:.5px solid var(--sep);margin-top:-.5px;background:{{ r.bg }}">
+<span aria-hidden="true" style="flex:none;width:12px;height:12px;border-radius:4px;margin-top:4px;background:{{ r.color }}"></span>
+<span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font-size:calc(17px * var(--ts));line-height:1.3;font-weight:600;overflow-wrap:break-word">{{ r.name }}</span><span style="font-size:calc(14px * var(--ts));line-height:1.35;color:var(--ink2)">{{ r.desc }}</span><sc-if value="{{ r.lock }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex;align-items:center;gap:5px;font-size:calc(13px * var(--ts));color:var(--ink2)"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2.2"><rect x="5" y="10.5" width="14" height="10" rx="2"></rect><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"></path></svg>Private · you’re a member</span></sc-if><sc-if value="{{ r.tpl }}" hint-placeholder-val="{{ false }}"><span style="font-size:calc(13px * var(--ts));color:var(--ink2)">Starts with a short template</span></sc-if></span>
+<sc-if value="{{ r.sel }}" hint-placeholder-val="{{ false }}"><span style="flex:none;display:inline-flex;align-items:center;gap:4px;font-size:calc(13px * var(--ts));font-weight:600;color:var(--acc)"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>Selected</span></sc-if>
+</button></sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}"><div role="status" style="position:absolute;left:50%;transform:translateX(-50%);bottom:{{ toastB }}px;width:max-content;max-width:calc(100% - 40px);padding:12px 18px;border-radius:24px;font-size:calc(15px * var(--ts));line-height:1.35;text-align:center;background:var(--glMenu);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh);z-index:40">{{ toast }}</div></sc-if>
+
+<sc-if value="{{ keepOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ keepEditing }}" style="position:absolute;inset:0;background:var(--scrim);z-index:60"></div>
+<div role="dialog" aria-label="Keep this draft?" style="position:absolute;left:16px;right:16px;top:126px;max-height:calc(100% - 150px);overflow-y:auto;border-radius:28px;padding:6px;box-sizing:border-box;display:flex;flex-direction:column;gap:4px;z-index:61;background:var(--glMenu);backdrop-filter:var(--glBlur);-webkit-backdrop-filter:var(--glBlur);box-shadow:var(--glSh)">
+<span style="padding:12px 14px 8px;font-size:calc(13px * var(--ts));line-height:1.35;color:var(--ink2);text-align:center">Keep this draft?</span>
+<sc-if value="{{ keepWarn }}" hint-placeholder-val="{{ false }}"><div role="note" style="margin:0 6px 6px;padding:10px 12px;border-radius:18px;background:var(--fill);font-size:calc(14px * var(--ts));line-height:1.4">The photo hasn’t finished uploading, so it won’t be kept. Your title, text and community will be kept.</div></sc-if>
+<button onClick="{{ keepDraft }}" style="min-height:50px;border-radius:24px;font-size:calc(17px * var(--ts));font-weight:600;color:var(--acc);text-align:center">{{ keepLabel }}</button>
+<button onClick="{{ discard }}" style="min-height:50px;border-radius:24px;font-size:calc(17px * var(--ts));color:var(--danger);text-align:center">Discard</button>
+<button onClick="{{ keepEditing }}" style="min-height:50px;border-radius:24px;font-size:calc(17px * var(--ts));text-align:center;background:var(--glSel)">Keep editing</button>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;417px&quot;,&quot;height&quot;:&quot;876px&quot;},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;reply&quot;,&quot;quote&quot;,&quot;new&quot;,&quot;chooser&quot;,&quot;long&quot;,&quot;rtl&quot;],&quot;default&quot;:&quot;reply&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;textSize&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;default&quot;,&quot;large&quot;,&quot;xl&quot;],&quot;default&quot;:&quot;default&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;device&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;iphone&quot;,&quot;narrow&quot;],&quot;default&quot;:&quot;iphone&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;keyboard&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;obFail&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">class Component extends DCLogic {
+  rootRef = React.createRef(); edRef = React.createRef(); range = null; n = 0; timers = [];
+  state = Object.assign({ ready: false }, this.init(this.props.mode));
+  init(m) {
+    const F = window.FMC; m = m || 'reply';
+    const isNew = ['new', 'chooser', 'long', 'rtl'].indexOf(m) >= 0;
+    const title = F ? ({ new: F.NEW_TITLE, long: F.LONG_TITLE, rtl: F.AR_TITLE })[m] || '' : '';
+    return { kind: isNew ? 'new' : 'reply', view: m === 'chooser' ? 'chooser' : 'edit', dest: m === 'chooser' ? null : 'open', title, titleBase: title, target: m === 'quote' ? 2 : 3, rich: true, md: '', base: '', blank: true, empty: true, uploading: 0, emoji: false, more: false, link: false, linkUrl: '', similar: false, keep: false, toast: '' };
+  }
+  startMd(m) {
+    const F = window.FMC;
+    if (m === 'quote') return '[quote="ravi, post:2, topic:4127"]\nI keep the curtains open. Two minutes of daylight, but it feels like the morning has already started.\n[/quote]';
+    if (m === 'new') return F.NEW_MD;
+    if (m === 'long') return 'It happens most days. I have a good plan at 6:40 and nothing left of it by seven.';
+    if (m === 'rtl') return F.AR_MD;
+    return '';
+  }
+  vars() {
+    const d = this.props.theme === 'dark';
+    const T = d
+      ? { bg: '#000000', ink: '#ECEBF0', ink2: '#AEACB8', ink3: '#8F8D99', grp: '#000000', cell: '#111114', fill: '#17161C', sep: '#2A2831', acc: '#A58FFF', onAcc: '#000000', sel: '#1B1826', danger: '#FF6B78', sheet: '#111114', scrim: 'rgba(0,0,0,.6)', kb: '#24232A', kbKey: '#4A4952', gl: 'rgba(38,37,44,.66)', glMenu: 'rgba(38,37,44,.86)', glSh: 'inset 0 1px 0 rgba(255,255,255,.16), inset 0 0 0 .5px rgba(255,255,255,.1), 0 10px 26px -10px rgba(0,0,0,.9)', glTint: 'rgba(165,143,255,.94)', glTintSh: 'inset 0 1px 0 rgba(255,255,255,.45), 0 10px 24px -10px rgba(0,0,0,.9)', glSel: 'rgba(255,255,255,.14)' }
+      : { bg: '#FFFFFF', ink: '#1B1A1F', ink2: '#5E5C67', ink3: '#706E79', grp: '#F4F3F7', cell: '#FFFFFF', fill: '#F4F3F7', sep: '#E2E0E8', acc: '#5B3FD6', onAcc: '#FFFFFF', sel: '#EEEBFA', danger: '#C62D3A', sheet: '#FFFFFF', scrim: 'rgba(27,26,31,.24)', kb: '#DCDAE3', kbKey: '#FFFFFF', gl: 'rgba(246,245,250,.8)', glMenu: 'rgba(255,255,255,.88)', glSh: 'inset 0 1px 0 rgba(255,255,255,.95), inset 0 -1px 0 rgba(27,26,31,.04), 0 0 0 .5px rgba(27,26,31,.13), 0 2px 6px rgba(27,26,31,.06), 0 12px 28px -10px rgba(27,26,31,.26)', glTint: 'rgba(91,63,214,.94)', glTintSh: 'inset 0 1px 0 rgba(255,255,255,.35), 0 10px 24px -10px rgba(27,26,31,.35)', glSel: 'rgba(27,26,31,.07)' };
+    T.glBlur = 'blur(18px) saturate(180%)'; T.ts = this.props.textSize === 'xl' ? 2 : this.props.textSize === 'large' ? 1.35 : 1; T.mono = 'ui-monospace,Menlo,monospace';
+    Object.assign(T, { 'primary-medium': T.ink2, 'primary-high': T.ink, tertiary: T.acc, 'primary-low': T.sep, 'primary-low-mid': T.ink3, 'primary-very-low': T.fill, 'content-border-color': T.sep, 'primary-400': T.ink3 });
+    return T;
+  }
+  applyVars() { const el = this.rootRef.current; if (!el) return; const T = this.vars(); Object.keys(T).forEach(k => el.style.setProperty('--' + k, String(T[k]))); }
+  componentDidMount() {
+    this.applyVars();
+    if (this.edRef.current) this.edRef.current.contentEditable = 'true';
+    this.onSel = () => { const s = document.getSelection(), el = this.edRef.current; if (s && s.rangeCount && el && el.contains(s.anchorNode)) this.range = s.getRangeAt(0).cloneRange(); };
+    document.addEventListener('selectionchange', this.onSel);
+    const go = () => { if (!window.FMC) { this.timers.push(setTimeout(go, 50)); return; } this.setState(Object.assign({ ready: true }, this.init(this.props.mode)), () => this.load(this.startMd(this.props.mode))); };
+    go();
+  }
+  componentDidUpdate(pp) {
+    this.applyVars();
+    if (this.edRef.current && this.edRef.current.contentEditable !== 'true') this.edRef.current.contentEditable = 'true';
+    if (window.FMC && (pp.mode !== this.props.mode || pp.obFail !== this.props.obFail)) this.reset();
+  }
+  componentWillUnmount() { this.timers.forEach(clearTimeout); document.removeEventListener('selectionchange', this.onSel); }
+  reset(toast) { this.range = null; this.setState(Object.assign(this.init(this.props.mode), { ready: true }), () => { this.load(this.startMd(this.props.mode)); if (toast) this.flash(toast); }); }
+  flash(t) { this.setState({ toast: t }); this.timers.push(setTimeout(() => this.setState(s => s.toast === t ? { toast: '' } : null), 2600)); }
+  html(md) { return md ? window.FMC.mdToHtml(md, { edit: true, obFail: !!this.props.obFail }) : ''; }
+  load(md) { const el = this.edRef.current; if (!el) return; el.innerHTML = this.html(md); this.sync(); this.setState({ base: window.FMC.htmlToMd(el.innerHTML) }); }
+  curMd() { return this.state.rich ? window.FMC.htmlToMd(this.edRef.current ? this.edRef.current.innerHTML : '') : this.state.md; }
+  sync() {
+    const el = this.edRef.current; if (!el) return;
+    const has = [...el.childNodes].some(n => {
+      if (n.nodeType === 3) return !!n.textContent.trim();
+      if (n.nodeType !== 1) return false;
+      if (n.tagName === 'FIGURE') return n.dataset.kind !== 'quote' && n.dataset.kind !== 'up';
+      return !!n.textContent.trim() || !!n.querySelector('figure:not([data-kind="quote"]):not([data-kind="up"]),img');
+    });
+    this.setState({ empty: !has, blank: !el.textContent.trim() && !el.querySelector('figure,img,li'), uploading: el.querySelectorAll('figure[data-kind="up"]').length });
+  }
+  restore() {
+    const el = this.edRef.current; el.focus({ preventScroll: true });
+    const s = document.getSelection(); s.removeAllRanges();
+    if (this.range && el.contains(this.range.startContainer)) s.addRange(this.range);
+    else { const r = document.createRange(); r.selectNodeContents(el); r.collapse(false); s.addRange(r); }
+  }
+  exec(cmd, val) { if (!this.state.rich) return; this.restore(); document.execCommand(cmd, false, val); this.sync(); }
+  insertMd(md) {
+    if (this.state.rich) this.exec('insertHTML', this.html(md));
+    else this.setState(s => ({ md: (s.md.trim() ? s.md.replace(/\s+$/, '') + '\n\n' : '') + md }));
+    this.setState({ more: false });
+  }
+  addPhoto() {
+    const F = window.FMC, p = F.PHOTOS[this.n++ % F.PHOTOS.length], name = p.name, up = F.upMd(name), done = F.imgMd(p);
+    this.insertMd(up);
+    this.timers.push(setTimeout(() => {
+      if (this.state.rich) { const f = this.edRef.current && this.edRef.current.querySelector('figure[data-kind="up"][data-name="' + name + '"]'); if (f) f.outerHTML = this.html(done).replace(/<p><br><\/p>$/, ''); this.sync(); }
+      else this.setState(s => ({ md: s.md.replace(up, done) }));
+    }, 1800));
+  }
+  openChooser() { this.saved = this.state.rich && this.edRef.current ? this.curMd() : null; this.setState({ view: 'chooser', emoji: false, more: false, link: false }); }
+  backToEdit(extra, tpl) {
+    this.setState(Object.assign({ view: 'edit' }, extra), () => {
+      const el = this.edRef.current; if (!el) return;
+      el.contentEditable = 'true';
+      if (this.state.rich) { const keep = this.saved || ''; el.innerHTML = this.html(tpl && !keep.trim() ? tpl : keep); }
+      this.range = null; this.sync();
+    });
+  }
+  pick(id) { this.backToEdit({ dest: id }, window.FMC.cat(id).template); }
+  toggleMd() {
+    if (this.state.rich) this.setState({ rich: false, md: window.FMC.htmlToMd(this.edRef.current.innerHTML), emoji: false, more: false, link: false });
+    else { this.edRef.current.innerHTML = this.html(this.state.md); this.setState({ rich: true }, () => this.sync()); }
+  }
+  renderVals() {
+    const F = window.FMC, s = this.state, p = this.props;
+    const xl = p.textSize === 'xl', narrow = p.device === 'narrow';
+    const isNew = s.kind === 'new', isEdit = s.view === 'edit';
+    const c = F && s.dest ? F.cat(s.dest) : null;
+    const uploading = s.rich ? s.uploading : (s.md.match(/\[Uploading: /g) || []).length;
+    const body = s.rich ? !s.empty : !!s.md.replace(/\[quote[\s\S]*?\[\/quote\]/g, '').replace(/\[Uploading:[^\n]*\]\(\)/g, '').trim();
+    const can = !!(s.ready && body && !uploading && (!isNew || (s.title.trim() && c)));
+    const T = this.vars();
+    const u = F ? F.USERS[s.target === 2 ? 'ravi' : 'maya'] : { name: '', initial: '', color: '#706E79' };
+    const md = !s.rich;
+    const tool = (label, d, run, opt) => { opt = opt || {}; const off = md && !opt.always; return { label, d, off: off ? 'true' : 'false', op: off ? 0.35 : 1, pressed: opt.pressed ? 'true' : 'false', bg: opt.pressed ? T.glSel : 'transparent', fg: opt.pressed ? T.acc : T.ink, run: () => { if (!off) run(); } }; };
+    const pop = k => this.setState(st => ({ emoji: k === 'emoji' ? !st.emoji : false, more: k === 'more' ? !st.more : false, link: k === 'link' ? !st.link : false, linkUrl: k === 'link' ? (F ? F.URL1 : '') : st.linkUrl }));
+    const tools = [
+      tool('Bold', 'M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z', () => this.exec('bold')),
+      tool('Italic', 'M14 5h-4M14 19h-4M13 5l-2 14', () => this.exec('italic')),
+      tool('Link', 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1', () => pop('link'), { pressed: s.link }),
+      tool('Block quote', 'M6 9h4v4c0 2-1 3.5-3 4M14 9h4v4c0 2-1 3.5-3 4', () => this.exec('formatBlock', 'blockquote')),
+      tool('Bulleted list', 'M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01', () => this.exec('insertUnorderedList')),
+      tool('Add photo', 'M4 7h3l1.5-2h7L17 7h3v12H4zM12 16.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z', () => this.addPhoto(), { always: true }),
+      tool('Emoji', 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8.5 14.5a4.5 4.5 0 0 0 7 0M9 9.5h.01M15 9.5h.01', () => pop('emoji'), { pressed: s.emoji }),
+      tool('Insert', 'M12 5v14M5 12h14', () => pop('more'), { pressed: s.more, always: true }),
+      tool(md ? 'Rich text view' : 'Markdown view', 'M3.5 6.5h17v11h-17zM7 14.5v-5l2 2.5 2-2.5v5M15.5 9.5v5M13.5 12.5l2 2 2-2', () => this.toggleMd(), { pressed: md, always: true })
+    ];
+    const atoms = [['Poll', 'i-poll', '[poll type=regular]\n* Kettle the night before\n* Curtains open\n* Paper list by the door\n[/poll]'], ['Table', 'i-table', '| Habit | Minutes |\n| --- | --- |\n| Kettle | 2 |\n| Paper list | 5 |'], ['Hidden details', 'i-eye', '[details="What I tried first"]\nPhone notes and a planner.\n[/details]'], ['Blurred spoiler', 'i-eye', '[spoiler]It was the curtains.[/spoiler]'], ['Date and time', 'i-cal', '[date=2026-10-05 time=07:30 timezone="Europe/London"]'], ['Preformatted text', 'i-code', '```\nkettle: fill at night\n```']];
+    const groups = F ? [['General', 'General'], ['Craft', 'Craft'], [null, 'Private']].map(([par, label]) => ({ label, rows: F.CATS.filter(x => x.parent === par).map(x => ({ name: x.name, desc: x.desc, color: x.color, lock: !!x.restricted, tpl: !!x.template, sel: s.dest === x.id, bg: s.dest === x.id ? T.sel : 'transparent', pick: () => this.pick(x.id) })) })) : [];
+    const kbH = narrow ? 216 : 291;
+    const kbShow = !!p.keyboard && isEdit && !s.emoji;
+    const sheetTitle = isNew ? 'New discussion' : 'Reply';
+    const dirty = s.title !== s.titleBase || (s.ready && !!this.edRef.current && this.curMd() !== s.base) || uploading > 0;
+    return {
+      rootRef: this.rootRef, edRef: this.edRef,
+      devW: narrow ? 375 : 393, devH: narrow ? 667 : 852,
+      dlgLabel: isEdit ? sheetTitle : 'Choose a community', isEdit, isChooser: !isEdit, isNew, isReply: !isNew,
+      headTitle: !xl, bodyHeading: xl, sheetTitle,
+      postOff: can ? 'false' : 'true', postBg: can ? T.glTint : T.glSel, postFg: can ? T.onAcc : T.ink3, postSh: can ? T.glTintSh : 'none',
+      tName: u.name, tInitial: u.initial, tColor: u.color, tN: s.target, threadTitle: F ? F.THREAD.title : '',
+      hasDest: !!c, noDest: !c, destColor: c ? c.color : 'transparent', destPath: c && F ? F.catPath(c) : '',
+      title: s.title, onTitle: e => this.setState({ title: e.target.value }),
+      hasSimilar: isNew && !!F && s.title.trim().length > 10 && p.mode !== 'rtl', similarOpen: s.similar, similar: F ? F.SIMILAR : [], similarLabel: F ? F.SIMILAR.length + ' similar discussions' : '', similarChev: s.similar ? '▴' : '▾', toggleSimilar: () => this.setState(st => ({ similar: !st.similar })),
+      edDisplay: md ? 'none' : 'block', mdDisplay: md ? 'block' : 'none', md: s.md, onMd: e => this.setState({ md: e.target.value }),
+      showPh: !md && s.blank, placeholder: isNew ? 'Write your post' : 'Write your reply', dir: p.mode === 'rtl' ? 'rtl' : 'auto',
+      onEdInput: () => this.sync(),
+      tools, hold: e => e.preventDefault(),
+      moreOpen: s.more, inserts: atoms.map(([label, icon, a]) => ({ label, icon, run: () => this.insertMd(a) })),
+      linkOpen: s.link, linkUrl: s.linkUrl, onLinkUrl: e => this.setState({ linkUrl: e.target.value }), closePop: () => this.setState({ link: false, more: false }),
+      applyLink: () => { const url = s.linkUrl.trim(); if (!url || !s.rich) return; this.restore(); const sel = document.getSelection(); if (sel.isCollapsed) document.execCommand('insertHTML', false, '<a href="' + F.esc(url) + '">' + F.esc(url) + '</a>&nbsp;'); else document.execCommand('createLink', false, url); this.setState({ link: false }); this.sync(); },
+      emojiOpen: s.emoji && isEdit, emoji: F ? F.EMOJI.map(ch => ({ ch, run: () => { if (this.state.rich) this.exec('insertText', ch); else this.setState(st => ({ md: st.md + ch })); } })) : [],
+      kbShow, kbH, barPad: kbShow || s.emoji ? 8 : 34,
+      onPost: () => { if (!can) return; this.flash(isNew ? 'Simulation · would post to ' + F.catPath(c) + '. Nothing was sent.' : 'Simulation · would reply to ' + u.name + ' #' + s.target + '. Nothing was sent.'); },
+      onCancel: () => { if (dirty) this.setState({ keep: true, emoji: false, more: false, link: false }); else this.reset('Closed without changes'); },
+      keepOpen: s.keep, keepWarn: uploading > 0, keepLabel: uploading > 0 ? 'Keep draft without photo' : 'Keep draft',
+      keepDraft: () => this.reset(uploading > 0 ? 'Draft kept without the photo' : 'Draft kept'), discard: () => this.reset('Draft discarded'), keepEditing: () => this.setState({ keep: false }),
+      openChooser: () => this.openChooser(), closeChooser: () => this.backToEdit({}), groups,
+      toast: s.toast, toastB: kbShow ? kbH + 80 : 110
+    };
+  }
+}</script>
+</body>
+</html>

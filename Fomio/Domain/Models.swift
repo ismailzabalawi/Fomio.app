@@ -33,6 +33,7 @@ struct Community: Identifiable, Codable, Hashable, Sendable {
     var restricted = false
     /// Latest visible discussion for the directory preview. Nil when the source does not provide it.
     var latest: LatestPreview? = nil
+    var topicTemplate: String? = nil
 }
 struct LatestPreview: Codable, Hashable, Sendable { var topicID: TopicID; var title: String; var categoryID: CategoryID; var activity: String }
 struct DiscussionSummary: Identifiable, Codable, Hashable, Sendable {
@@ -110,7 +111,7 @@ enum ComposerIntent: Codable, Hashable, Sendable {
 }
 enum SubmissionState: Codable, Equatable, Sendable { case editing, submitting, pending, unconfirmed }
 struct Draft: Identifiable, Codable, Equatable, Sendable {
-    var version = 1
+    var version = 2
     var id = UUID()
     var account: AccountID
     var intent: ComposerIntent
@@ -119,6 +120,7 @@ struct Draft: Identifiable, Codable, Equatable, Sendable {
     var categoryID: CategoryID?
     var missingPhoto = false
     var uploadedPhoto: UploadedPhoto?
+    var attachments: [ComposerAttachment] = []
     var submission: SubmissionState = .editing
     var updatedAt = Date()
     var quote: QuoteExcerpt? = nil
@@ -149,6 +151,83 @@ enum RepositoryError: LocalizedError, Equatable {
         case .rateLimited: "Too many requests. Please try again later."
         case let .server(code): "The community could not complete the request (\(code))."
         case .unconfirmed: "The post could not be confirmed. Check before trying again."
+        }
+    }
+}
+
+struct ComposerAttachment: Identifiable, Codable, Equatable, Sendable {
+    enum Status: Codable, Equatable, Sendable { case retained, queued, uploading(Double), failed(String), uploaded, missing }
+    var id = UUID()
+    var description = "Photo"
+    var localFileName: String?
+    var sourceLocation: Int?
+    var inDocument: Bool?
+    var server: UploadedPhoto?
+    var status: Status = .retained
+    var localReference: String { "fomio-attachment://\(id.uuidString)" }
+    var reference: String { server?.shortURL ?? "fomio-attachment://\(id.uuidString)" }
+    var markup: String { DiscourseMarkupCodec.image(description: description, url: reference) }
+}
+extension Draft {
+    private enum CodingKeys: String, CodingKey { case version, id, account, intent, title, body, categoryID, missingPhoto, uploadedPhoto, submission, updatedAt, quote, contextTitle, contextCategory, targetAuthor, attachments }
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        version = try c.decodeIfPresent(Int.self, forKey: .version) ?? 1
+        guard [1, 2].contains(version) else { throw DecodingError.dataCorruptedError(forKey: .version, in: c, debugDescription: "Unsupported draft version") }
+        id = try c.decode(UUID.self, forKey: .id); account = try c.decode(AccountID.self, forKey: .account); intent = try c.decode(ComposerIntent.self, forKey: .intent)
+        title = try c.decodeIfPresent(String.self, forKey: .title) ?? ""; body = try c.decodeIfPresent(String.self, forKey: .body) ?? ""
+        categoryID = try c.decodeIfPresent(CategoryID.self, forKey: .categoryID)
+        missingPhoto = try c.decodeIfPresent(Bool.self, forKey: .missingPhoto) ?? false; uploadedPhoto = try c.decodeIfPresent(UploadedPhoto.self, forKey: .uploadedPhoto)
+        submission = try c.decodeIfPresent(SubmissionState.self, forKey: .submission) ?? .editing; updatedAt = try c.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
+        quote = try c.decodeIfPresent(QuoteExcerpt.self, forKey: .quote); contextTitle = try c.decodeIfPresent(String.self, forKey: .contextTitle); contextCategory = try c.decodeIfPresent(CategoryID.self, forKey: .contextCategory); targetAuthor = try c.decodeIfPresent(String.self, forKey: .targetAuthor)
+        attachments = try c.decodeIfPresent([ComposerAttachment].self, forKey: .attachments) ?? []
+        migrateDocument()
+    }
+    mutating func migrateDocument() {
+        if quote != nil { body = composedBody; quote = nil }
+        if let photo = uploadedPhoto {
+            let attachment = ComposerAttachment(server: photo, status: .uploaded)
+            attachments.append(attachment); body += "\n\n" + attachment.markup; uploadedPhoto = nil
+        }
+        if missingPhoto && attachments.isEmpty {
+            let attachment = ComposerAttachment(status: .missing)
+            attachments.append(attachment); body += "\n\n" + attachment.markup
+        }
+        missingPhoto = false; version = 2
+    }
+    var attachmentBindings: [(node: MarkupNode, attachment: ComposerAttachment)] {
+        var available = attachments
+        return DiscourseMarkupCodec.parse(body).filter { $0.kind == .photo }.compactMap { node in
+            let matching = available.indices.filter { node.raw.contains("](" + available[$0].reference + ")") || node.raw.contains("](" + available[$0].localReference + ")") }
+            guard let index = matching.min(by: {
+                let lhs = available[$0], rhs = available[$1]
+                if (lhs.sourceLocation == node.range.location) != (rhs.sourceLocation == node.range.location) { return lhs.sourceLocation == node.range.location }
+                if (lhs.inDocument != false) != (rhs.inDocument != false) { return lhs.inDocument != false }
+                return abs((lhs.sourceLocation ?? node.range.location) - node.range.location) < abs((rhs.sourceLocation ?? node.range.location) - node.range.location)
+            }) else { return nil }
+            return (node, available.remove(at: index))
+        }
+    }
+    var activeAttachments: [ComposerAttachment] { attachmentBindings.map(\.attachment) }
+    mutating func synchronizeAttachments(previousBody: String? = nil) {
+        if let previousBody, previousBody != body {
+            let old = Array(previousBody.utf16), new = Array(body.utf16)
+            var prefix = 0
+            while prefix < min(old.count, new.count), old[prefix] == new[prefix] { prefix += 1 }
+            var suffix = 0
+            while suffix < min(old.count, new.count) - prefix, old[old.count - suffix - 1] == new[new.count - suffix - 1] { suffix += 1 }
+            let oldEnd = old.count - suffix, delta = new.count - old.count
+            for index in attachments.indices {
+                guard attachments[index].inDocument != false, let location = attachments[index].sourceLocation else { continue }
+                if location >= oldEnd { attachments[index].sourceLocation = location + delta }
+                else if location >= prefix { attachments[index].inDocument = false }
+            }
+        }
+        let bindings = attachmentBindings
+        for index in attachments.indices {
+            if let binding = bindings.first(where: { $0.attachment.id == attachments[index].id }) {
+                attachments[index].sourceLocation = binding.node.range.location; attachments[index].inDocument = true
+            } else { attachments[index].inDocument = false }
         }
     }
 }

@@ -25,4 +25,25 @@ import Foundation
 @MainActor protocol UploadRepository {
     func upload(_ data: Data, progress: @escaping @MainActor @Sendable (Double) -> Void) async throws -> UploadedPhoto
 }
-@MainActor protocol CommunityService: FeedRepository, CommunityRepository, DiscussionRepository, SearchRepository, NotificationRepository, ProfileRepository, BookmarkRepository, PostingRepository, UploadRepository {}
+@MainActor protocol CommunityService: FeedRepository, CommunityRepository, DiscussionRepository, SearchRepository, NotificationRepository, ProfileRepository, BookmarkRepository, PostingRepository, UploadRepository, ComposerRepository {}
+
+struct ComposerCapabilities: Equatable, Sendable {
+    var blocks: Set<ComposerBlockKind> = [.table, .code]
+    var maximumPollOptions = 20
+    var maximumUploadBytes: Int?
+    var similarDiscussions = false
+    var onebox = false
+    static let fixture = ComposerCapabilities(blocks: [.poll, .table, .details, .spoiler, .date, .code], maximumUploadBytes: 10 * 1024 * 1024, similarDiscussions: true, onebox: true)
+}
+struct OneboxContext: Sendable { var category: CategoryID?; var topic: TopicID? }
+struct OneboxMetadata: Equatable, Sendable { var url: URL; var title: String; var summary: String }
+@MainActor protocol ComposerRepository {
+    var composerCapabilities: ComposerCapabilities { get }
+    func similarDiscussions(title: String, raw: String) async throws -> [DiscussionSummary]
+    func oneboxPreview(url: URL, context: OneboxContext) async throws -> OneboxMetadata?
+}
+extension ComposerRepository {
+    var composerCapabilities: ComposerCapabilities { ComposerCapabilities() }
+    func similarDiscussions(title: String, raw: String) async throws -> [DiscussionSummary] { throw RepositoryError.unsupported }
+    func oneboxPreview(url: URL, context: OneboxContext) async throws -> OneboxMetadata? { throw RepositoryError.unsupported }
+}

@@ -2,10 +2,28 @@ import Foundation
 
 @MainActor final class DiscourseService: CommunityService {
     let api: APIClient
+    let composerCapabilities: ComposerCapabilities
     private var topicSlugs: [TopicID: String] = [:]
     private var initialPages: [TopicID: DiscussionPage] = [:]
     private var metadata: [TopicID: DiscussionSummary] = [:]
-    init(configuration: LiveConfiguration?, session: URLSession? = nil, credentials: @escaping (String) throws -> Credential? = KeychainCredentialStore.read) { api = APIClient(configuration: configuration, session: session, credentials: credentials) }
+    init(configuration: LiveConfiguration?, session: URLSession? = nil, credentials: @escaping (String) throws -> Credential? = KeychainCredentialStore.read, composerCapabilities: ComposerCapabilities = ComposerCapabilities()) { self.composerCapabilities = composerCapabilities; api = APIClient(configuration: configuration, session: session, credentials: credentials) }
+    func similarDiscussions(title: String, raw: String) async throws -> [DiscussionSummary] {
+        guard composerCapabilities.similarDiscussions else { throw RepositoryError.unsupported }
+        let data = try await api.request("topics/similar_to.json", query: [.init(name: "title", value: title), .init(name: "raw", value: raw)], member: true)
+        if let empty = try? api.decode([String].self, from: data), empty.isEmpty { return [] }
+        struct Envelope: Decodable { var topics: [TopicDTO]?; var users: [UserDTO]? }
+        let envelope = try api.decode(Envelope.self, from: data)
+        return (envelope.topics ?? []).map { $0.domain(users: envelope.users ?? []) }
+    }
+    func oneboxPreview(url: URL, context: OneboxContext) async throws -> OneboxMetadata? {
+        guard composerCapabilities.onebox, ["https", "http"].contains(url.scheme ?? ""), url.host != nil else { throw RepositoryError.unsupported }
+        var query = [URLQueryItem(name: "url", value: url.absoluteString)]
+        if let category = context.category { query.append(.init(name: "category_id", value: String(category.rawValue))) }
+        if let topic = context.topic { query.append(.init(name: "topic_id", value: String(topic.rawValue))) }
+        let data = try await api.request("onebox.json", query: query, member: true)
+        guard data.count <= 256 * 1024, let html = String(data: data, encoding: .utf8) else { return nil }
+        return NativeOneboxParser.parse(html, url: url)
+    }
     func communities() async throws -> [Community] {
         let envelope = try await api.get(CategoryEnvelope.self, "categories.json", query: [URLQueryItem(name: "include_subcategories", value: "true")])
         var result: [Community] = []
@@ -103,12 +121,8 @@ import Foundation
         return Page(items: dto.bookmarks.compactMap { item in guard let topic = item.topicId else { return nil }; return SavedItem(id: item.id, title: item.title ?? "Saved discussion", topicID: .init(topic), number: item.linkedPostNumber.map { PostNumber($0) }) }, nextPage: dto.moreBookmarksUrl == nil ? nil : page + 1)
     }
     func publish(_ draft: Draft) async throws -> PostingOutcome {
-        var body = draft.composedBody
-        if let photo = draft.uploadedPhoto {
-            // Fixture URLs are never sent to a live site.
-            guard photo.shortURL.hasPrefix("upload://") else { throw RepositoryError.invalid("Attach a photo uploaded to this community.") }
-            body += "\n\n![photo](\(photo.shortURL))"
-        }
+        guard !draft.body.contains("fomio-attachment://"), draft.activeAttachments.allSatisfy({ $0.status == .uploaded && $0.server?.shortURL.hasPrefix("upload://") == true }) else { throw RepositoryError.invalid("Resolve every photo before posting.") }
+        let body = draft.composedBody
         var payload: [String: Any] = ["raw": body, "nested_post": true]
         switch draft.intent {
         case .newDiscussion:
@@ -145,8 +159,8 @@ struct CategoryEnvelope: Decodable {
     var categoryList: List
 }
 struct CategoryDTO: Decodable {
-    var id: Int; var name: String; var slug: String?; var parentCategoryId: Int?; var descriptionText: String?; var permission: Int?; var subcategoryList: [CategoryDTO]?
-    func domain(canCreate: Bool) -> Community { Community(id: .init(id), name: name, slug: slug ?? "", parentID: parentCategoryId.map { CategoryID($0) }, description: descriptionText ?? "", canCreate: canCreate && permission == 1) }
+    var id: Int; var name: String; var slug: String?; var parentCategoryId: Int?; var descriptionText: String?; var permission: Int?; var subcategoryList: [CategoryDTO]?; var topicTemplate: String?
+    func domain(canCreate: Bool) -> Community { Community(id: .init(id), name: name, slug: slug ?? "", parentID: parentCategoryId.map { CategoryID($0) }, description: descriptionText ?? "", canCreate: canCreate && permission == 1, topicTemplate: topicTemplate) }
 }
 struct UserDTO: Decodable { var id: Int; var username: String }
 struct TopicDTO: Decodable {

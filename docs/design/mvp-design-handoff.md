@@ -92,3 +92,7 @@ The [generated walnut fallback](assets/README.md) is saved locally but was not u
 ## Native implementation follow-up — 2026-10-03
 
 The fixture milestone is now implemented. See [implementation status and native validation](../implementation-status.md) and the [versioned export](snapshots/2026-10-03/README.md). Historical browser-render evidence above remains design evidence; live acceptance and full native release checks remain pending.
+
+## Rebuilt composer scope — 2026-10-04
+
+The [new snapshot](snapshots/2026-10-04/) preserves the rebuilt composer component and showcase; the previous dated snapshot remains intact. Accepted native scope: source-preserving rich/Markdown editing, multiple inline photos retained locally with unfinished drafts, native poll/table/details/spoiler/date/code forms, attributed quotes, suggestions and Onebox metadata under verified capabilities, wrapping titles, RTL/localization, adaptive toolbar and protected dismissal. The native implementation follows Apple sheet, keyboard and accessibility behavior and preserves Discourse as posting/permission authority. The mockup's unfinished-photo-loss behavior is superseded by durable local retention.

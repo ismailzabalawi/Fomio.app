@@ -62,7 +62,7 @@ Discourse DTOs decode optional permission/content fields and map into native dom
 
 Credentials live in Keychain using device-only protection. Drafts use app-container file protection until first user authentication and atomic JSON writes. Account isolation is enforced by filtering records, not separate encrypted account directories. File protection is not an additional application-level encryption scheme. Sign-out clears current-account drafts and credentials; it does not erase other accounts’ drafts or delete server posts.
 
-Draft records are version 1. Unknown versions are excluded after decoding; there is no migration or corruption quarantine system. A malformed JSON file can fail a list operation. Photo bytes stay in memory; only successfully uploaded live references can survive in a draft. See [recovery behavior](flows-and-recovery.md).
+Draft records are version 2 with version-1 decoding and quote/photo migration. Unknown versions are rejected; there is no corruption quarantine system. A malformed JSON file can fail a list operation. Photo bytes live in protected account-scoped files with atomic draft metadata and orphan reconciliation. Raw Discourse markup is persistence/submission authority; TextKit rich text is an editable projection. See [recovery behavior](flows-and-recovery.md).
 
 ## Extension rules
 

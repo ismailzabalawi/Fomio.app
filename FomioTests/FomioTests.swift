@@ -16,7 +16,7 @@ import XCTest
         let draft = Draft(account: .fixture, intent: .newDiscussion, title: "Walnut finish", body: "Text survives", categoryID: .init(2), missingPhoto: true)
         try store.save(draft)
         let recovered = try DraftStore(directory: directory).list(account: .fixture)
-        XCTAssertEqual(recovered.first?.body, draft.body); XCTAssertEqual(recovered.first?.categoryID, .init(2)); XCTAssertEqual(recovered.first?.missingPhoto, true)
+        XCTAssertTrue(recovered.first?.body.hasPrefix(draft.body) == true); XCTAssertEqual(recovered.first?.categoryID, .init(2)); XCTAssertEqual(recovered.first?.activeAttachments.first?.status, .missing)
         XCTAssertTrue(try store.list(account: .guest).isEmpty)
     }
     func testSubmittingRecordRecoversAsUnconfirmed() throws {
@@ -43,9 +43,25 @@ import XCTest
         state.addPhoto(Data([1, 2, 3])); XCTAssertFalse(state.canPost)
         state.keepDraft()
         let recovered = try XCTUnwrap(app.draftStore.list(account: .fixture).first)
-        XCTAssertTrue(recovered.missingPhoto); XCTAssertEqual(recovered.body, "Writing")
+        XCTAssertFalse(recovered.missingPhoto); XCTAssertTrue(recovered.body.hasPrefix("Writing")); XCTAssertEqual(recovered.attachments.count, 1)
+        XCTAssertEqual(try app.draftStore.photo(draft: recovered, attachment: recovered.attachments[0]), Data([1, 2, 3]))
         let resumed = ComposerState(draft: recovered, app: app, origin: .me)
         XCTAssertFalse(resumed.canPost); resumed.removePhoto(); XCTAssertTrue(resumed.canPost)
+    }
+    func testMultiplePhotosUploadInDocumentOrderAndRemovalCannotRestore() async throws {
+        let (app, service, directory) = try await setup(); defer { try? FileManager.default.removeItem(at: directory) }
+        service.uploadStep = .milliseconds(10)
+        let state = ComposerState(draft: Draft(account: .fixture, intent: .newDiscussion, title: "Photos", body: "Middle", categoryID: .init(2)), app: app, origin: .home)
+        state.addPhoto(Data([1])); state.addPhoto(Data([2]), at: NSRange(location: 0, length: 0))
+        XCTAssertFalse(state.canPost)
+        try await Task.sleep(for: .seconds(2))
+        XCTAssertTrue(state.canPost); XCTAssertEqual(state.draft.activeAttachments.count, 2)
+        XCTAssertEqual(state.draft.activeAttachments.map(\.id), state.draft.attachments.reversed().map(\.id))
+        for attachment in state.draft.activeAttachments { XCTAssertEqual(state.draft.body.components(separatedBy: attachment.reference).count, 2) }
+        state.addPhoto(Data([3])); let removed = try XCTUnwrap(state.draft.activeAttachments.last)
+        state.removePhoto(removed.id)
+        try await Task.sleep(for: .seconds(1))
+        XCTAssertFalse(state.draft.body.contains(removed.localReference)); XCTAssertEqual(state.draft.activeAttachments.count, 2)
     }
     func testUnconfirmedNeverAutomaticallyRetries() async throws {
         let (app, service, directory) = try await setup(); defer { try? FileManager.default.removeItem(at: directory) }
@@ -81,16 +97,32 @@ import XCTest
         XCTAssertTrue(app.authRequested); XCTAssertNil(app.composer)
         await app.signIn()
         XCTAssertNotNil(app.composer); XCTAssertTrue(service.submitted.isEmpty)
-        XCTAssertEqual(app.composer?.draft.quote?.author, "mara_k"); XCTAssertTrue(app.composer?.draft.body.isEmpty == true)
+        XCTAssertNil(app.composer?.draft.quote); XCTAssertTrue(app.composer?.draft.body.contains("[quote=") == true)
         XCTAssertTrue(app.composer?.draft.composedBody.hasPrefix("[quote=\"mara_k, post:1, topic:4182\"]") == true)
     }
     func testSignOutRemovesOnlyCurrentAccountDrafts() async throws {
         let (app, _, directory) = try await setup(); defer { try? FileManager.default.removeItem(at: directory) }
-        try app.draftStore.save(Draft(account: .fixture, intent: .newDiscussion, body: "Member"))
+        var member = Draft(account: .fixture, intent: .newDiscussion, body: "Member")
+        var photo = ComposerAttachment(); photo.localFileName = try app.draftStore.retain(Data([1]), draft: member, attachment: photo.id)
+        member.attachments = [photo]; member.body += photo.markup
+        try app.draftStore.save(member)
         try app.draftStore.save(Draft(account: .guest, intent: .newDiscussion, body: "Guest"))
         app.signOut()
         XCTAssertTrue(try app.draftStore.list(account: .fixture).isEmpty)
+        XCTAssertThrowsError(try app.draftStore.photo(draft: member, attachment: photo))
         XCTAssertEqual(try app.draftStore.list(account: .guest).count, 1)
+    }
+    func testMissingAndCorruptRetainedPhotosKeepWritingAndBlockPosting() async throws {
+        let (app, _, directory) = try await setup(); defer { try? FileManager.default.removeItem(at: directory) }
+        for corrupt in [false, true] {
+            var draft = Draft(account: .fixture, intent: .reply(topic: .init(4182), parent: nil), body: "Keep my writing")
+            var photo = ComposerAttachment()
+            if corrupt { photo.localFileName = try app.draftStore.retain(Data([0, 1, 2]), draft: draft, attachment: photo.id) }
+            draft.attachments = [photo]; draft.body += "\n" + photo.markup
+            let state = ComposerState(draft: draft, app: app, origin: .home, resumed: true)
+            XCTAssertEqual(state.draft.attachments.first?.status, .missing)
+            XCTAssertTrue(state.draft.body.contains("Keep my writing")); XCTAssertFalse(state.canPost)
+        }
     }
     func testThreadExpansionPaginationAndExactContext() async throws {
         let (_, service, directory) = try await setup(); defer { try? FileManager.default.removeItem(at: directory) }

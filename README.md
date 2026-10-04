@@ -19,7 +19,8 @@ Open `Fomio.xcodeproj`, select the Fomio scheme and an iOS 26+ simulator. Debug 
 - [Release readiness](docs/release-readiness.md): coverage, missing resources and acceptance procedure.
 - [Accepted implementation plan](docs/implementation-plan.md)
 - [Implementation and validation status](docs/implementation-status.md)
-- [Versioned design snapshot](docs/design/snapshots/2026-10-03/README.md)
+- [Latest composer snapshot](docs/design/snapshots/2026-10-04/README.md) and [previous design snapshot](docs/design/snapshots/2026-10-03/README.md)
+- [Native editor validation and release gates](docs/editor-validation.md)
 
 - [Project foundation](docs/project-foundation.md): accepted direction, navigation, journeys, and open decisions.
 - [Current Fomio information architecture](docs/information-architecture.md): consolidated navigation, screen map, composer states, journeys, and implementation boundaries.

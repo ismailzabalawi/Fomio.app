@@ -77,6 +77,7 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         self.isConfigured = fixture != nil || configuration != nil
         self.auth = configuration.map { AuthenticationService(configuration: $0) }
         if fixture != nil, !ProcessInfo.processInfo.arguments.contains("--guest") { account = .fixture; username = Self.fixtureMember; displayName = "Jonah Wells" }
+        do { try draftStore.reconcileFiles(account: account) } catch { banner = error.localizedDescription }
     }
     var isOffline: Bool { fixture?.offline == true || (fixture == nil && connectivity.offline) }
     func loadCommunities() async {
@@ -145,6 +146,7 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
             else { throw RepositoryError.configuration }
             if let composer, composer.draft.account != account { self.composer = nil; banner = "The previous account’s draft remains private to that account." }
             try draftStore.migrateGuest(to: account)
+            if composer == nil { try draftStore.reconcileFiles(account: account) }
             let action = pendingAction, gate = self.gate; pendingAction = nil
             authRequested = false; await loadCommunities(); await action?()
             let name = username ?? "member"
@@ -164,9 +166,11 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
             if try KeychainCredentialStore.read(site: configuration.baseURL.absoluteString) != nil {
                 let name = try await auth.currentUsername(); username = name; account = .init(rawValue: "\(configuration.baseURL.absoluteString):\(name)")
             }
+            if composer == nil { try draftStore.reconcileFiles(account: account) }
         } catch { banner = error.localizedDescription }
     }
     func signOut() {
+        composer?.stopUploads()
         do { try draftStore.clear(account: account); try auth?.signOut() }
         catch { banner = "Sign-out could not finish: \(error.localizedDescription)"; return }
         account = .guest; username = nil; displayName = nil; pendingAction = nil; composer = nil; pendingNotice = nil; unreadCount = 0; guestNoteDismissed = false

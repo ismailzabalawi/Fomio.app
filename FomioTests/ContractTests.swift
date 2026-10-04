@@ -17,12 +17,29 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
     override func stopLoading() {}
 }
 @MainActor final class ContractTests: XCTestCase {
-    private func service(_ json: String, status: Int = 200, member: Bool = false) throws -> (DiscourseService, LiveConfiguration) {
+    private func service(_ json: String, status: Int = 200, member: Bool = false, capabilities: ComposerCapabilities = ComposerCapabilities()) throws -> (DiscourseService, LiveConfiguration) {
         StubURLProtocol.status = status; StubURLProtocol.data = Data(json.utf8); StubURLProtocol.captured = nil
         let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [StubURLProtocol.self]
         let site = LiveConfiguration(baseURL: URL(string: "https://test-\(UUID().uuidString).example/forum")!, callbackURL: URL(string: "testfixture://callback")!, scopes: "read,write,session_info")
         let credential = member ? Credential(key: "fictional-test-key", clientID: "fictional-client", site: site.baseURL.absoluteString) : nil
-        return (DiscourseService(configuration: site, session: URLSession(configuration: config), credentials: { _ in credential }), site)
+        return (DiscourseService(configuration: site, session: URLSession(configuration: config), credentials: { _ in credential }, composerCapabilities: capabilities), site)
+    }
+    func testPreviewAdaptersUseMemberHeadersAndKeepEmptySimilarResults() async throws {
+        let (service, _) = try service("[]", member: true, capabilities: .fixture)
+        let results = try await service.similarDiscussions(title: "مرحبا title", raw: "Writing")
+        XCTAssertTrue(results.isEmpty)
+        XCTAssertEqual(StubURLProtocol.captured?.url?.path, "/forum/topics/similar_to.json")
+        XCTAssertEqual(StubURLProtocol.captured?.value(forHTTPHeaderField: "User-Api-Key"), "fictional-test-key")
+        StubURLProtocol.data = Data("<h3>Title</h3><p>Summary</p><script>bad()</script>".utf8)
+        let preview = try await service.oneboxPreview(url: URL(string: "https://example.org")!, context: OneboxContext(category: .init(2), topic: .init(42)))
+        XCTAssertEqual(preview?.title, "Title"); XCTAssertEqual(StubURLProtocol.captured?.url?.path, "/forum/onebox.json")
+        StubURLProtocol.status = 429
+        do { _ = try await service.oneboxPreview(url: URL(string: "https://example.org")!, context: OneboxContext()); XCTFail("Expected rate limit") } catch { XCTAssertEqual(error as? RepositoryError, .rateLimited) }
+    }
+    func testUnknownPreviewCapabilityMakesNoRequest() async throws {
+        let (service, _) = try service("{}", member: true)
+        do { _ = try await service.similarDiscussions(title: "Title", raw: "Body"); XCTFail("Must stay gated") } catch { XCTAssertEqual(error as? RepositoryError, .unsupported) }
+        XCTAssertNil(StubURLProtocol.captured)
     }
     func testKeychainRoundTripAndRemoval() throws {
         let site = "test-" + UUID().uuidString
@@ -76,6 +93,11 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
     }
     func testNativeContentKeepsQuotesCodeImagesAndUnsupportedNotice() {
         let blocks = HTMLContent.blocks("<p>Hello <strong>world</strong></p><blockquote>Quoted</blockquote><pre><code>if x &lt; 3</code></pre><img src=\"/uploads/photo.jpg\" alt=\"Bench\"><table><tr><td>Unsupported table</td></tr></table>")
-        XCTAssertEqual(blocks, [.text("Hello **world**"), .quote("Quoted"), .code("if x < 3"), .image("/uploads/photo.jpg", "Bench"), .unsupported])
+        XCTAssertEqual(blocks, [.text("Hello **world**"), .quote("Quoted"), .code("if x < 3"), .image("/uploads/photo.jpg", "Bench"), .table([["Unsupported table"]])])
+    }
+    func testEmojiImagesStayInlineWithText() {
+        // Shape observed in cooked posts on the deployed site, 2026-10-04.
+        let blocks = HTMLContent.blocks("<p>use the <img src=\"https://example.invalid/images/emoji/apple/heart.png?v=15\" title=\":heart:\" class=\"emoji\" alt=\":heart:\" loading=\"lazy\" width=\"20\" height=\"20\"> to show support</p><img src=\"/uploads/photo.jpg\" alt=\"Bench\">")
+        XCTAssertEqual(blocks, [.text("use the :heart: to show support"), .image("/uploads/photo.jpg", "Bench")])
     }
 }
