@@ -45,10 +45,68 @@ final class ComposerEditorTests: XCTestCase {
         XCTAssertEqual(DiscourseMarkupCodec.parse("[custom]keep me[/custom]").first?.kind, .opaque)
     }
     func testUnsupportedMarkdownBlocksStayOpaqueAndSourcePreserved() {
-        for raw in ["# Heading\n", "1. Ordered item\n", "- [x] Task\n", "---\n", "~~~ruby\nliteral\n~~~\n"] {
+        for raw in ["1. Ordered item\n", "- [x] Task\n", "---\n", "~~~ruby\nliteral\n~~~\n"] {
             let nodes = DiscourseMarkupCodec.parse(raw)
             XCTAssertEqual(nodes.first?.kind, .opaque, raw); XCTAssertEqual(nodes.map(\.raw).joined(), raw)
         }
+    }
+    func testHeadingsAreEditableTextWithIdentityOffsets() {
+        let raw = "## Finish *walnut*\nBody"
+        let heading = DiscourseMarkupCodec.parse(raw).first
+        XCTAssertNil(heading?.kind); XCTAssertEqual(heading?.text, "## Finish *walnut*\n")
+        XCTAssertEqual(DiscourseMarkupCodec.textStyle(raw, at: NSRange(location: 4, length: 0)), .heading(2))
+        XCTAssertEqual(DiscourseMarkupCodec.textStyle(raw, at: NSRange(location: 20, length: 0)), .paragraph)
+    }
+    func testTurnIntoRewritesOnlyTheLinePrefixAndKeepsTheCaret() throws {
+        let raw = "Intro\nWhat I tried\nEnd"
+        let heading = try XCTUnwrap(DiscourseMarkupCodec.restyle(raw, range: NSRange(location: 10, length: 0), to: .heading(2)))
+        XCTAssertEqual(heading.raw, "Intro\n## What I tried\nEnd"); XCTAssertEqual(heading.selection, NSRange(location: 13, length: 0))
+        let quote = try XCTUnwrap(DiscourseMarkupCodec.restyle(heading.raw, range: heading.selection, to: .quote))
+        XCTAssertEqual(quote.raw, "Intro\n> What I tried\nEnd"); XCTAssertEqual(quote.selection, NSRange(location: 12, length: 0))
+        let paragraph = try XCTUnwrap(DiscourseMarkupCodec.restyle(quote.raw, range: quote.selection, to: .paragraph))
+        XCTAssertEqual(paragraph.raw, raw); XCTAssertEqual(paragraph.selection, NSRange(location: 10, length: 0))
+        let list = try XCTUnwrap(DiscourseMarkupCodec.restyle("One\nTwo", range: NSRange(location: 1, length: 5), to: .list))
+        XCTAssertEqual(list.raw, "- One\n- Two"); XCTAssertEqual(list.selection, NSRange(location: 3, length: 7))
+    }
+    func testTurnIntoRefusesStructuredBlocks() {
+        let raw = "```\ncode\n```\n"
+        XCTAssertNil(DiscourseMarkupCodec.textStyle(raw, at: NSRange(location: 5, length: 0)))
+        XCTAssertNil(DiscourseMarkupCodec.restyle(raw, range: NSRange(location: 5, length: 0), to: .heading(2)))
+    }
+    func testInsertionGoesAfterTheCaretBlockOrReusesAnEmptyLine() {
+        XCTAssertTrue(DiscourseMarkupCodec.blockInsertion("First\nSecond", at: NSRange(location: 2, length: 0)) == (6, ""))
+        XCTAssertTrue(DiscourseMarkupCodec.blockInsertion("First\nSecond", at: NSRange(location: 8, length: 0)) == (12, "\n"))
+        XCTAssertTrue(DiscourseMarkupCodec.blockInsertion("First\n\nThird", at: NSRange(location: 6, length: 0)) == (6, ""))
+    }
+    @MainActor func testStyleCommandIsOneUndoStepAndTypingAfterHeadingIsPlain() {
+        var raw = "Title line"
+        let controller = EditorController()
+        let coordinator = NativeComposerEditor.Coordinator(NativeComposerEditor(raw: .init(get: { raw }, set: { raw = $0 }), controller: controller))
+        let view = ComposerTextView(usingTextLayoutManager: true); coordinator.view = view
+        coordinator.render(raw, selection: .init(location: 5, length: 0))
+        coordinator.command(.style(.heading(2)))
+        XCTAssertEqual(raw, "## Title line"); XCTAssertEqual(controller.textStyle, .heading(2)); XCTAssertEqual(controller.selection.range, NSRange(location: 8, length: 0))
+        XCTAssertEqual(view.text, "## Title line")
+        coordinator.textViewDidChangeSelection(view)
+        XCTAssertFalse(controller.boldTyping, "Heading weight is not bold markup")
+        coordinator.command(.undo)
+        XCTAssertEqual(raw, "Title line"); XCTAssertEqual(controller.textStyle, .paragraph)
+    }
+    @MainActor func testHeadingInlineCommandsPreserveSourceAndHistory() {
+        var raw = "## Heading\nParagraph"
+        let controller = EditorController()
+        let coordinator = NativeComposerEditor.Coordinator(NativeComposerEditor(raw: .init(get: { raw }, set: { raw = $0 }), controller: controller))
+        let view = ComposerTextView(usingTextLayoutManager: true); coordinator.view = view
+        for range in [NSRange(location: 3, length: 0), NSRange(location: 3, length: 7), NSRange(location: 3, length: 16)] {
+            coordinator.render(raw, selection: range)
+            let selection = controller.selection
+            coordinator.command(.bold); coordinator.command(.italic); coordinator.command(.link("Label", "https://example.com"))
+            XCTAssertEqual(raw, "## Heading\nParagraph")
+            XCTAssertEqual(controller.selection, selection)
+            XCTAssertFalse(controller.boldTyping); XCTAssertFalse(controller.italicTyping)
+            XCTAssertFalse(coordinator.history.canUndo)
+        }
+        XCTAssertTrue(DiscourseMarkupCodec.supportsInlineFormatting(raw, range: NSRange(location: 14, length: 0)))
     }
     func testUnicodeReplacementRejectsSplitSurrogate() {
         XCTAssertEqual(DiscourseMarkupCodec.replace("😀hello", range: NSRange(location: 1, length: 1), with: "x"), "😀hello")

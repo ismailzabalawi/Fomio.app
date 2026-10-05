@@ -15,25 +15,16 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>com.fomio.mobile.authorization</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>fomio</string>
-			</array>
-		</dict>
-	</array>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>FomioAuthCallback</key>
 	<string>fomio://auth_redirect</string>
 	<key>FomioBaseURL</key>
 	<string>https://meta.fomio.app</string>
 	<key>FomioUserAPIScopes</key>
 	<string>read,write,notifications,session_info</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

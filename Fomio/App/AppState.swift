@@ -60,7 +60,6 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     var banner: String?
     var toastMessage: String?
     var pendingNotice: PendingNotice?
-    var choosingDestination = false
     var guestNoteDismissed = false
     var unreadCount = 0
     var draftsRevision = 0
@@ -113,12 +112,11 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         requireMember(.create(category.flatMap { self.category($0)?.name })) { [weak self] in
             guard let self else { return }
             guard self.communities.contains(where: { $0.canCreate && (category == nil || $0.id == category) }) else { self.banner = "No permitted destination is available."; return }
-            // Global Create chooses a destination before writing; contextual Create inherits it.
-            if let category { self.openComposer(category: category) } else { self.choosingDestination = true }
+            // Contextual Create inherits its community; global Create picks one in the composer's Post in field.
+            self.openComposer(category: category)
         }
     }
-    func openComposer(category: CategoryID) {
-        choosingDestination = false
+    func openComposer(category: CategoryID?) {
         composer = ComposerState(draft: Draft(account: account, intent: .newDiscussion, categoryID: category), app: self, origin: selectedTab)
     }
     func reply(to post: Post, quote: Bool = false) {

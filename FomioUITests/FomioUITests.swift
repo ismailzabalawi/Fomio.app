@@ -2,6 +2,49 @@ import XCTest
 import UIKit
 
 @MainActor final class FomioUITests: XCTestCase {
+    func testInserterCancelPreservesHiddenKeyboard() {
+        let app = launch(["--preset", "newtopic"])
+        let body = app.textViews["composer-body"]
+        XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("Audit paragraph")
+        dismissComposerKeyboard(app)
+        app.buttons["composer-insert"].tap()
+        XCTAssertTrue(app.buttons["composer-insert-cancel"].waitForExistence(timeout: 5))
+        app.buttons["composer-insert-cancel"].tap()
+        XCTAssertTrue(app.buttons["composer-insert"].waitForExistence(timeout: 5))
+        let hidden = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Show keyboard"), object: app.buttons["composer-keyboard"])
+        XCTAssertEqual(XCTWaiter.wait(for: [hidden], timeout: 5), .completed, "Cancel should preserve hidden keyboard")
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
+    }
+    func testHeadingMenuDisablesUnsupportedInlineFormatting() {
+        let app = launch(["--preset", "newtopic"])
+        let body = app.textViews["composer-body"]
+        XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("Heading")
+        app.buttons["composer-block-type"].tap()
+        app.buttons["composer-turn-into-Heading 2"].tap()
+        app.buttons["composer-more"].tap(); app.buttons["Format"].tap()
+        for label in ["Bold", "Italic", "Link"] {
+            let action = app.buttons[label].firstMatch
+            XCTAssertTrue(action.waitForExistence(timeout: 5)); XCTAssertFalse(action.isEnabled)
+        }
+        XCTAssertEqual(body.value as? String, "## Heading")
+    }
+    func testLargestTextSelectionFitsBar() {
+        let app = launch(["--preset", "newtopic", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
+        let body = app.textViews["composer-body"]
+        XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("Audit paragraph")
+        body.press(forDuration: 1.1)
+        let selectAll = app.menuItems["Select All"]
+        if selectAll.waitForExistence(timeout: 2) { selectAll.tap() }
+        else { body.doubleTap() }
+        let done = app.buttons["composer-selection-done"]
+        XCTAssertTrue(done.waitForExistence(timeout: 5))
+        let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Largest text selection with compact composer bar"; capture.lifetime = .keepAlways; add(capture)
+        for id in ["composer-insert", "composer-more", "composer-selection-done"] {
+            let button = app.buttons[id]
+            XCTAssertTrue(button.isHittable)
+            XCTAssertTrue(app.frame.contains(button.frame), "Control outside screen: \(id), \(button.frame)")
+        }
+    }
     override func setUp() { continueAfterFailure = false; MainActor.assumeIsolated { XCUIDevice.shared.orientation = .portrait } }
     override func tearDown() { MainActor.assumeIsolated { XCUIDevice.shared.orientation = .portrait } }
     private func launch(_ arguments: [String] = []) -> XCUIApplication {
@@ -9,34 +52,82 @@ import UIKit
         if !arguments.contains("--live") { XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 10)) }
         return app
     }
+    private func dismissComposerKeyboard(_ app: XCUIApplication) {
+        guard app.keyboards.firstMatch.exists else { return }
+        // The floating bar's own control; a drag on a short reply also pulls the sheet and opens Keep/Discard.
+        let toggle = app.buttons["composer-keyboard"]; XCTAssertEqual(toggle.label, "Hide keyboard"); toggle.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
+        // Hiding the keyboard keeps the floating bar reachable above the safe area.
+        let docked = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true AND label == %@", "Show keyboard"), object: app.buttons["composer-keyboard"])
+        XCTAssertEqual(XCTWaiter.wait(for: [docked], timeout: 5), .completed)
+    }
     func testNativeFormattingCaretTypingSurvivesSourceSwitch() {
-        let app = launch()
-        app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
+        let app = launch(["--preset", "newtopic"])
         let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["composer-insert"].isHittable); XCTAssertTrue(app.buttons["composer-more"].isHittable)
+        let hiddenCapture = XCTAttachment(screenshot: app.screenshot()); hiddenCapture.name = "Composer entry bar without keyboard"; hiddenCapture.lifetime = .keepAlways; add(hiddenCapture)
         body.tap(); body.typeText("Before ")
-        app.buttons["composer-more"].tap(); app.buttons["Format"].tap(); app.buttons["Bold"].firstMatch.tap()
+        XCTAssertFalse(app.buttons["composer-keyboard-done"].exists)
+        let more = app.buttons["composer-more"]
+        XCTAssertTrue(more.waitForExistence(timeout: 5))
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: more)], timeout: 5), .completed)
+        let keyboard = app.keyboards.firstMatch
+        XCTAssertTrue(keyboard.waitForExistence(timeout: 5))
+        let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Composer bar attached to keyboard"; capture.lifetime = .keepAlways; add(capture)
+        // XCTest’s keyboard frame excludes the QuickType prediction row.
+        XCTAssertLessThanOrEqual(more.frame.maxY, keyboard.frame.minY)
+        XCTAssertLessThanOrEqual(keyboard.frame.minY - more.frame.maxY, 64, "Only the prediction row should separate formatting controls from the keys")
+        more.tap(); app.buttons["Format"].tap(); app.buttons["Bold"].firstMatch.tap()
         body.typeText("Bold")
-        app.buttons["composer-keyboard-done"].tap(); app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
         XCTAssertEqual(body.value as? String, "Before **Bold**")
-        app.buttons["composer-keyboard-done"].tap(); app.buttons["composer-close"].tap(); app.buttons["Discard"].tap()
+        app.buttons["composer-close"].tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
+        app.buttons["Discard"].tap()
+    }
+    func testFloatingBarTurnsBlockIntoHeadingAndInserterCancelKeepsCaret() {
+        let app = launch(["--preset", "newtopic"])
+        let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5))
+        body.tap(); body.typeText("What I tried")
+        let chip = app.buttons["composer-block-type"]; XCTAssertTrue(chip.waitForExistence(timeout: 5))
+        XCTAssertEqual(chip.label, "Turn into: Paragraph")
+        chip.tap(); let heading = app.buttons["composer-turn-into-Heading 2"]; XCTAssertTrue(heading.waitForExistence(timeout: 5)); heading.tap()
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Turn into: Heading 2"), object: chip)], timeout: 5), .completed)
+        XCTAssertTrue(app.keyboards.firstMatch.exists, "Changing the block type keeps the keyboard up")
+        app.buttons["composer-insert"].tap()
+        XCTAssertTrue(app.staticTexts["composer-insert-placement"].waitForExistence(timeout: 5))
+        let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Add block sheet names its placement"; capture.lifetime = .keepAlways; add(capture)
+        app.buttons["composer-insert-cancel"].tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+        body.typeText(" first")
+        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        XCTAssertEqual(body.value as? String, "## What I tried first", "Cancel changes nothing and returns to the captured caret")
+        app.buttons["composer-close"].tap(); app.buttons["Discard"].tap()
     }
     func testNativeBlockFormAndMarkdownRoundTrip() {
         let app = launch()
         app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
         let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5))
         body.tap(); body.typeText("Writing before code\n")
-        app.buttons["composer-keyboard-done"].tap(); app.buttons["composer-more"].tap(); app.buttons["Insert block"].tap(); app.buttons["Code"].tap()
+        app.buttons["composer-insert"].tap()
+        let search = app.searchFields.firstMatch; XCTAssertTrue(search.waitForExistence(timeout: 5)); search.tap(); search.typeText("Code")
+        let codeBlock = app.buttons["Code"]; XCTAssertTrue(codeBlock.waitForExistence(timeout: 5)); codeBlock.tap()
         let code = app.textViews["block-body"]; XCTAssertTrue(code.waitForExistence(timeout: 5)); code.tap(); code.typeText("let greeting = 1")
         app.buttons["block-save"].tap()
         XCTAssertTrue(code.waitForNonExistence(timeout: 5))
-        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
-        app.buttons["composer-more"].tap(); XCTAssertTrue(app.buttons["Edit in Markdown"].waitForExistence(timeout: 5)); app.buttons["Edit in Markdown"].tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+        // After the pushed form closes, the bar must float above the keyboard again rather than behind it.
+        let keyboardTop = app.keyboards.firstMatch.frame.minY
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in app.buttons["composer-more"].frame.maxY <= keyboardTop }, object: nil)], timeout: 5), .completed)
+        app.buttons["composer-more"].tap()
+        let markdown = app.buttons["Edit in Markdown"]
+        if !markdown.waitForExistence(timeout: 2) { app.buttons["composer-more"].tap() }
+        XCTAssertTrue(markdown.waitForExistence(timeout: 5)); markdown.tap()
         XCTAssertTrue((body.value as? String)?.contains("let greeting = 1") == true)
         XCTAssertTrue((body.value as? String)?.contains("```") == true)
-        app.buttons["composer-keyboard-done"].tap(); app.buttons["composer-more"].tap(); app.buttons["Rich text"].tap()
+        app.buttons["composer-more"].tap(); app.buttons["Rich text"].tap()
         let editBlock = app.buttons["composer-block-edit-code"]
         XCTAssertTrue(editBlock.waitForExistence(timeout: 5), "A rich block must expose its native editing card")
-        app.buttons["composer-keyboard-done"].tap()
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: editBlock)], timeout: 5), .completed)
         let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Native composer with code block"; capture.lifetime = .keepAlways; add(capture)
         editBlock.tap(); XCTAssertTrue(code.waitForExistence(timeout: 5)); XCTAssertEqual(code.value as? String, "let greeting = 1")
@@ -50,7 +141,7 @@ import UIKit
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.08)).press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8)))
         XCTAssertTrue(app.textViews["composer-body"].waitForNonExistence(timeout: 5))
         app.buttons["discussion-reply"].tap(); let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("Keep this writing")
-        app.buttons["composer-keyboard-done"].tap()
+        dismissComposerKeyboard(app)
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.08)).press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8)))
         XCTAssertTrue(app.buttons["Keep draft"].waitForExistence(timeout: 5)); app.buttons["Keep draft"].tap()
     }
@@ -92,7 +183,7 @@ import UIKit
         let app = launch(["--upload-fails"])
         let create = app.buttons["New discussion"]
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: create)], timeout: 5), .completed)
-        create.tap(); XCTAssertTrue(app.buttons["destination-2"].waitForExistence(timeout: 5)); app.buttons["destination-2"].tap()
+        create.tap(); app.buttons["composer-destination"].tap(); app.buttons["destination-toggle-1"].tap(); XCTAssertTrue(app.buttons["destination-2"].waitForExistence(timeout: 5)); app.buttons["destination-2"].tap()
         XCTAssertTrue(app.textViews["composer-title"].waitForExistence(timeout: 5)); app.textViews["composer-title"].tap(); app.textViews["composer-title"].typeText("Photo recovery")
         app.textViews["composer-body"].tap(); app.textViews["composer-body"].typeText("Writing stays")
         app.buttons["composer-more"].tap(); let sample = app.buttons["Sample photo"]; XCTAssertTrue(sample.waitForExistence(timeout: 5)); sample.tap()
@@ -107,13 +198,13 @@ import UIKit
         let app = launch(["--dark", "--accessibility-text"])
         let create = app.buttons["New discussion"]
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: create)], timeout: 5), .completed)
-        create.tap(); XCTAssertTrue(app.buttons["destination-2"].waitForExistence(timeout: 5)); app.buttons["destination-2"].tap()
+        create.tap(); app.buttons["composer-destination"].tap(); app.buttons["destination-toggle-1"].tap(); XCTAssertTrue(app.buttons["destination-2"].waitForExistence(timeout: 5)); app.buttons["destination-2"].tap()
         XCTAssertTrue(app.buttons["composer-destination"].waitForExistence(timeout: 5)); XCTAssertTrue(app.buttons["composer-close"].isHittable)
         let body = app.textViews["composer-body"]
         app.swipeUp(); XCTAssertTrue(body.exists); body.tap(); body.typeText("Large text reply")
-        XCTAssertTrue(app.buttons["composer-keyboard-done"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["composer-keyboard-done"].exists)
         XCTAssertTrue(app.buttons["composer-close"].isHittable)
-        app.buttons["composer-keyboard-done"].tap()
+        dismissComposerKeyboard(app)
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
     }
     func testArabicHomeRotationKeepsFeedReachable() {
@@ -128,7 +219,7 @@ import UIKit
         let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5))
         body.tap(); body.typeText("مرحبا Fomio")
         let written = body.value as? String
-        app.buttons["composer-keyboard-done"].tap(); app.buttons["composer-more"].tap()
+        app.buttons["composer-more"].tap()
         XCTAssertTrue(app.buttons["التحرير بصيغة Markdown"].waitForExistence(timeout: 5)); app.buttons["التحرير بصيغة Markdown"].tap()
         XCTAssertEqual(body.value as? String, written)
         XCUIDevice.shared.orientation = .landscapeLeft
@@ -163,25 +254,47 @@ import UIKit
         XCTAssertTrue(app.staticTexts["Community configuration needed"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["topic-4190"].exists)
     }
-    func testKeyboardNextDoneAndKeepEditing() {
+    func testCommunityFieldSearchesInPlace() {
         let app = launch()
         let create = app.buttons["New discussion"]
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: create)], timeout: 5), .completed)
         create.tap()
+        let search = app.textFields["destination-search"]
+        let field = app.buttons["composer-destination"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5)); XCTAssertFalse(search.exists)
+        field.tap()
+        XCTAssertTrue(search.waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["destination-2"].exists)
+        // Families open and close; search looks inside closed ones.
+        let woodworking = app.buttons["destination-toggle-1"]
+        woodworking.tap(); XCTAssertTrue(app.buttons["destination-2"].waitForExistence(timeout: 5))
+        woodworking.tap(); XCTAssertTrue(app.buttons["destination-2"].waitForNonExistence(timeout: 5))
+        XCTAssertEqual(app.keyboards.count, 0)
+        search.tap(); search.typeText("repa")
+        XCTAssertTrue(app.buttons["destination-6"].waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["destination-2"].exists)
+        app.buttons["destination-6"].tap()
+        XCTAssertTrue(field.waitForExistence(timeout: 5)); XCTAssertTrue(field.label.contains("Repairs")); XCTAssertFalse(search.exists)
+        // Choosing a community alone is not writing, so closing doesn't ask to keep a draft.
+        app.buttons["composer-close"].tap()
+        XCTAssertTrue(create.waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["composer-keep-editing"].exists)
+    }
+    func testKeyboardBarNextAndKeepEditing() {
+        let app = launch()
+        let create = app.buttons["New discussion"]
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: create)], timeout: 5), .completed)
+        create.tap()
+        app.buttons["composer-destination"].tap(); app.buttons["destination-toggle-1"].tap()
         XCTAssertTrue(app.buttons["destination-2"].waitForExistence(timeout: 5))
         app.buttons["destination-2"].tap()
         let title = app.textViews["composer-title"]
         XCTAssertTrue(title.waitForExistence(timeout: 5))
         XCTAssertEqual(app.keyboards.count, 0)
         title.tap(); title.typeText("Keyboard journey")
-        let next = app.buttons["composer-next"]
-        XCTAssertTrue(next.waitForExistence(timeout: 5)); next.tap()
+        XCTAssertFalse(app.buttons["composer-keyboard-done"].exists)
+        title.typeText("\n")
         let body = app.textViews["composer-body"]
         body.typeText("First line\nSecond line")
         XCTAssertEqual(body.value as? String, "First line\nSecond line")
-        app.buttons["composer-keyboard-done"].tap()
-        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
-        body.tap(); body.typeText(" before")
+        body.typeText(" before")
         let beforeDialog = body.value as? String ?? ""
         app.buttons["composer-close"].tap()
         let keepEditing = app.buttons["composer-keep-editing"].firstMatch
@@ -191,7 +304,6 @@ import UIKit
         let expectedBody = beforeDialog.replacingOccurrences(of: " before", with: " before continued")
         XCTAssertEqual(body.value as? String, expectedBody)
         XCTAssertEqual(title.value as? String, "Keyboard journey")
-        app.buttons["composer-keyboard-done"].tap()
         title.tap(); title.typeText(" before")
         let beforeChooser = title.value as? String ?? ""
         app.buttons["composer-destination"].tap()

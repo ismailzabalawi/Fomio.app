@@ -13,6 +13,7 @@
 		2F2FB52C9E21DDCD2469BE02 /* NativeOneboxParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D5AB8C1254419A99C88867 /* NativeOneboxParser.swift */; };
 		32689ADDD3417AC9FC2F53B7 /* ComposerEditorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCDEAE5EB4BD2DBD84631447 /* ComposerEditorTests.swift */; };
 		3354C5CE8E79E735E08488A6 /* ComposerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4CA36CC3F0410DC642A97BB /* ComposerState.swift */; };
+		35873BC32DF7849A79AEE714 /* ComposerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7193F8AA933B637A5A60DD7A /* ComposerBar.swift */; };
 		39BF0A203BC71D5CE78CF483 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BC22B3DE7F60DEF7DB4526DA /* Assets.xcassets */; };
 		3A91EA749E3040B8D142CDBA /* ComposerDismissGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34FA20BF3F4115DB8C4006FE /* ComposerDismissGuard.swift */; };
 		3BDA54481F30C0C1D16FBF0A /* ComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB98F1E6E54D3868704EE4CE /* ComposerView.swift */; };
@@ -34,6 +35,7 @@
 		BD3FAE7FE34829467928AFDD /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8D72B14D60A13FEA7EB3A6E /* FeedView.swift */; };
 		BFD047366CD6B2C22863CA19 /* FomioApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B69571EE27877EAEC79598A9 /* FomioApp.swift */; };
 		CCFA52CA69FA6D846B127739 /* ComposerBlockForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E49138602926D05C1E1DF7 /* ComposerBlockForm.swift */; };
+		CF50ABC1AB50E4DC2A8B596F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = BB27F39A2140D936F0B25A16 /* PrivacyInfo.xcprivacy */; };
 		D523B3A64E261860FF5C9118 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34669362D70C9736215EB26 /* Theme.swift */; };
 		DA30C8FD55B64AB32DEF4C51 /* FomioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF9D3CD324603F2AF7FC12A5 /* FomioTests.swift */; };
 		DD250616A3F5510B73EAA157 /* NativeComposerEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FFE3805FEE99CDD357899B8 /* NativeComposerEditor.swift */; };
@@ -75,6 +77,7 @@
 		4E3E04A3335B529423DF96F5 /* Authentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
 		540EC63262ABFDA7AD8DFC8B /* ContractTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContractTests.swift; sourceTree = "<group>"; };
 		54D983A4990762D7B6E858EE /* FomioUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = FomioUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7193F8AA933B637A5A60DD7A /* ComposerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerBar.swift; sourceTree = "<group>"; };
 		74321B4CF303EA4DBF3996FC /* DiscussionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscussionView.swift; sourceTree = "<group>"; };
 		7742E54A2AFF205443C31612 /* FomioTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = FomioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		77B2DFA2C5FE82FD46BE929A /* ComposerDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerDocument.swift; sourceTree = "<group>"; };
@@ -85,6 +88,7 @@
 		AD88FE6146A8E950E2222F61 /* DraftStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftStore.swift; sourceTree = "<group>"; };
 		AF9D3CD324603F2AF7FC12A5 /* FomioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FomioTests.swift; sourceTree = "<group>"; };
 		B69571EE27877EAEC79598A9 /* FomioApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FomioApp.swift; sourceTree = "<group>"; };
+		BB27F39A2140D936F0B25A16 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		BC22B3DE7F60DEF7DB4526DA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C0DBF9E2C16D64A5EB580076 /* AccountViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountViews.swift; sourceTree = "<group>"; };
 		C34669362D70C9736215EB26 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -170,6 +174,7 @@
 				36A8C29BF94A4A0719F5CF1A /* AppIcon.icon */,
 				BC22B3DE7F60DEF7DB4526DA /* Assets.xcassets */,
 				DB21FF85AD61800519D8FC79 /* fixture-photo.jpg */,
+				BB27F39A2140D936F0B25A16 /* PrivacyInfo.xcprivacy */,
 				347659E4C30ECFC841B880AC /* Localizable.strings */,
 			);
 			path = Resources;
@@ -193,6 +198,7 @@
 		C78292473FBD8757AFF0D1A9 /* Editor */ = {
 			isa = PBXGroup;
 			children = (
+				7193F8AA933B637A5A60DD7A /* ComposerBar.swift */,
 				05E49138602926D05C1E1DF7 /* ComposerBlockForm.swift */,
 				34FA20BF3F4115DB8C4006FE /* ComposerDismissGuard.swift */,
 				77B2DFA2C5FE82FD46BE929A /* ComposerDocument.swift */,
@@ -296,13 +302,16 @@
 				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					0EECE4325DA600607C97C993 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = LK9253R3XB;
+						ProvisioningStyle = Automatic;
 					};
 					33D66838DFF61321603B118C = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = LK9253R3XB;
+						ProvisioningStyle = Automatic;
 					};
 					98045232B4B14CB242721699 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = LK9253R3XB;
+						ProvisioningStyle = Automatic;
 						TestTargetID = 33D66838DFF61321603B118C;
 					};
 				};
@@ -337,6 +346,7 @@
 				BA9B834D08C3A95CF90B5E70 /* AppIcon.icon in Resources */,
 				39BF0A203BC71D5CE78CF483 /* Assets.xcassets in Resources */,
 				0BC9808375064E2FE26DBEE2 /* Localizable.strings in Resources */,
+				CF50ABC1AB50E4DC2A8B596F /* PrivacyInfo.xcprivacy in Resources */,
 				6B2B013858769EBDFB16EAF8 /* fixture-photo.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -351,6 +361,7 @@
 				FEDBBD6AF65287BA56F577C0 /* AccountViews.swift in Sources */,
 				712F31430C05424A67AA5FE8 /* AppState.swift in Sources */,
 				A13663D8617648B36F6E09D7 /* Authentication.swift in Sources */,
+				35873BC32DF7849A79AEE714 /* ComposerBar.swift in Sources */,
 				CCFA52CA69FA6D846B127739 /* ComposerBlockForm.swift in Sources */,
 				3A91EA749E3040B8D142CDBA /* ComposerDismissGuard.swift in Sources */,
 				2946169470941B5215FBEBDB /* ComposerDocument.swift in Sources */,
@@ -472,12 +483,12 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGNING_ALLOWED = NO;
-				"CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]" = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = LK9253R3XB;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -501,6 +512,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 0.8.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -563,12 +575,12 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGNING_ALLOWED = NO;
-				"CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]" = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = LK9253R3XB;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -586,6 +598,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 0.8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

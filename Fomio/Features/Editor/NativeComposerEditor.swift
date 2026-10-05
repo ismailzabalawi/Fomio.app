@@ -11,6 +11,8 @@ import Observation
     var italicTyping = false
     var canUndo = false
     var canRedo = false
+    /// Type of the block holding the caret; nil inside a structured block or the title.
+    var textStyle: ComposerTextStyle? = .paragraph
     @ObservationIgnored weak var coordinator: NativeComposerEditor.Coordinator?
     func send(_ command: EditorCommand) { coordinator?.command(command) }
     func focus() { focused = true; coordinator?.view?.becomeFirstResponder() }
@@ -43,23 +45,8 @@ struct NativeComposerEditor: UIViewRepresentable {
         view.keyboardDismissMode = .interactive
         view.returnKeyType = isTitle ? .next : .default
         view.delegate = context.coordinator
-        let accessory = UIInputView(frame: CGRect(x: 0, y: 0, width: 0, height: UIFontMetrics.default.scaledValue(for: 44)), inputViewStyle: .keyboard)
-        accessory.allowsSelfSizing = true; accessory.tintColor = UIColor(Color.fomioAccent)
-        let controls = UIStackView(); controls.axis = .horizontal; controls.translatesAutoresizingMaskIntoConstraints = false
-        func button(_ title: String, identifier: String, action: Selector) -> UIButton {
-            let button = UIButton(type: .system); button.setTitle(String(localized: String.LocalizationValue(title)), for: .normal)
-            button.titleLabel?.font = .preferredFont(forTextStyle: .body); button.titleLabel?.adjustsFontForContentSizeCategory = true
-            button.accessibilityIdentifier = identifier; button.addTarget(context.coordinator, action: action, for: .touchUpInside)
-            button.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
-            button.widthAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
-            return button
-        }
-        if isTitle { controls.addArrangedSubview(button("Next", identifier: "composer-next", action: #selector(Coordinator.nextField))) }
-        controls.addArrangedSubview(UIView())
-        controls.addArrangedSubview(button("Done", identifier: "composer-keyboard-done", action: #selector(Coordinator.doneEditing)))
-        accessory.addSubview(controls)
-        NSLayoutConstraint.activate([controls.leadingAnchor.constraint(equalTo: accessory.leadingAnchor, constant: 12), controls.trailingAnchor.constraint(equalTo: accessory.trailingAnchor, constant: -12), controls.topAnchor.constraint(equalTo: accessory.topAnchor), controls.bottomAnchor.constraint(equalTo: accessory.bottomAnchor)])
-        view.inputAccessoryView = accessory
+        // The SwiftUI formatting bar follows the keyboard safe area. A separate
+        // UIKit accessory would add an extra row between the bar and the keys.
         view.accessibilityIdentifier = identifier
         view.accessibilityLabel = String(localized: String.LocalizationValue(label))
         view.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
@@ -119,6 +106,22 @@ struct NativeComposerEditor: UIViewRepresentable {
             if italic { traits.insert(.traitItalic) }
             return base.fontDescriptor.withSymbolicTraits(traits).map { UIFont(descriptor: $0, size: 0) } ?? base
         }
+        func headingFont(_ level: Int) -> UIFont {
+            let style: UIFont.TextStyle = level <= 1 ? .title2 : level == 2 ? .title3 : .headline
+            let base = UIFont.preferredFont(forTextStyle: style)
+            return base.fontDescriptor.withSymbolicTraits(.traitBold).map { UIFont(descriptor: $0, size: 0) } ?? base
+        }
+        func reportStyle() {
+            let range = controller.selection.range
+            controller.textStyle = parent.isTitle ? nil : DiscourseMarkupCodec.textStyle(lastRaw, at: range)
+            // A range reports the marks of the styled run that holds it; a caret keeps its typing attributes.
+            guard range.length > 0, !controller.markdown, !parent.isTitle else { return }
+            let run = spans.first { span in
+                let content = span.node.contentRange ?? span.node.range
+                return span.node.kind == nil && range.location >= span.node.range.location && NSMaxRange(range) <= NSMaxRange(span.node.range) && NSIntersectionRange(range, content).length > 0
+            }
+            controller.boldTyping = run?.node.bold ?? false; controller.italicTyping = run?.node.italic ?? false
+        }
         func render(_ raw: String, selection: NSRange) {
             guard let view, view.markedTextRange == nil else { return }
             rendering = true
@@ -147,6 +150,13 @@ struct NativeComposerEditor: UIViewRepresentable {
                 }
             }
             if !controller.markdown && !parent.isTitle {
+                for span in spans where span.node.kind == nil {
+                    guard case let .heading(level) = DiscourseMarkupCodec.style(ofLine: span.node.raw).style else { continue }
+                    let marker = DiscourseMarkupCodec.style(ofLine: span.node.raw).prefix
+                    result.addAttribute(.font, value: headingFont(level), range: span.display)
+                    // The Markdown marker stays in the text, quieter, so heading offsets match raw exactly.
+                    result.addAttribute(.foregroundColor, value: UIColor.tertiaryLabel, range: NSRange(location: span.display.location, length: min(marker, span.display.length)))
+                }
                 let displayed = result.string as NSString
                 var start = 0
                 while start < displayed.length {
@@ -170,6 +180,7 @@ struct NativeComposerEditor: UIViewRepresentable {
             view.selectedRange = displayRange(selection)
             lastDisplay = view.text ?? ""
             controller.selection = EditorSelection(clamp(selection, in: raw))
+            reportStyle()
             controller.canUndo = history.canUndo; controller.canRedo = history.canRedo
             view.invalidateIntrinsicContentSize()
         }
@@ -268,6 +279,7 @@ struct NativeComposerEditor: UIViewRepresentable {
             case .markdown:
                 controller.markdown.toggle(); render(lastRaw, selection: range)
             case .bold, .italic:
+                guard DiscourseMarkupCodec.supportsInlineFormatting(lastRaw, range: range) else { break }
                 if range.length == 0 {
                     if case .bold = command { controller.boldTyping.toggle() } else { controller.italicTyping.toggle() }
                     view.typingAttributes[.font] = font(bold: controller.boldTyping, italic: controller.italicTyping)
@@ -305,13 +317,12 @@ struct NativeComposerEditor: UIViewRepresentable {
                     let replacement = stripped ? String(selected.dropFirst(marker.count).dropLast(marker.count)) : marker + selected + marker
                     commit(DiscourseMarkupCodec.replace(lastRaw, range: range, with: replacement), selection: NSRange(location: range.location, length: (replacement as NSString).length), action: "Format")
                 }
-            case .quote, .list:
-                let source = lastRaw as NSString
-                let paragraph = source.paragraphRange(for: clamp(range, in: lastRaw))
-                let prefix = { if case .quote = command { return "> " }; return "- " }()
-                let replacement = source.substring(with: paragraph).components(separatedBy: "\n").map { prefix + $0 }.joined(separator: "\n")
-                commit(DiscourseMarkupCodec.replace(lastRaw, range: paragraph, with: replacement), selection: NSRange(location: paragraph.location + (replacement as NSString).length, length: 0), action: "Format")
+            case let .style(style):
+                guard !parent.isTitle, let result = DiscourseMarkupCodec.restyle(lastRaw, range: clamp(range, in: lastRaw), to: style) else { break }
+                if result.raw == lastRaw { render(lastRaw, selection: result.selection) }
+                else { commit(result.raw, selection: result.selection, action: "Change block type") }
             case let .link(label, url):
+                guard DiscourseMarkupCodec.supportsInlineFormatting(lastRaw, range: range) else { break }
                 let text = DiscourseMarkupCodec.link(label: label, url: url)
                 commit(DiscourseMarkupCodec.replace(lastRaw, range: range, with: text), selection: NSRange(location: range.location + (text as NSString).length, length: 0), action: "Insert link")
             case let .insert(text):
@@ -321,14 +332,17 @@ struct NativeComposerEditor: UIViewRepresentable {
             }
             controller.canUndo = history.canUndo; controller.canRedo = history.canRedo
         }
-        @objc func nextField() { parent.onNext() }
-        @objc func doneEditing() { controller.blur() }
         func textViewDidBeginEditing(_ textView: UITextView) { controller.focused = true; parent.onFocus() }
         func textViewDidEndEditing(_ textView: UITextView) { controller.focused = false }
         func textViewDidChangeSelection(_ textView: UITextView) {
             guard !rendering, textView.markedTextRange == nil else { return }
             controller.selection = EditorSelection(sourceRange(textView.selectedRange))
-            if let font = textView.typingAttributes[.font] as? UIFont {
+            reportStyle()
+            if controller.selection.length > 0 { return }
+            if case .heading = controller.textStyle {
+                // A heading's weight comes from its level, not from bold markup.
+                controller.boldTyping = false; controller.italicTyping = false
+            } else if let font = textView.typingAttributes[.font] as? UIFont {
                 controller.boldTyping = font.fontDescriptor.symbolicTraits.contains(.traitBold)
                 controller.italicTyping = font.fontDescriptor.symbolicTraits.contains(.traitItalic)
             }
@@ -399,6 +413,8 @@ struct NativeComposerEditor: UIViewRepresentable {
             }
             let previous = lastRaw, previousSelection = controller.selection.range
             let raw = DiscourseMarkupCodec.replace(lastRaw, range: source, with: replacement)
+            let caret = NSRange(location: source.location + (replacement as NSString).length, length: 0)
+            let restyled = !controller.markdown && !parent.isTitle && DiscourseMarkupCodec.textStyle(previous, at: NSRange(location: source.location, length: 0)) != DiscourseMarkupCodec.textStyle(raw, at: caret)
             registerUndo { target in target.commit(previous, selection: previousSelection) }
             lastRaw = raw; lastDisplay = textView.text ?? ""
             if !controller.markdown && !parent.isTitle {
@@ -413,13 +429,14 @@ struct NativeComposerEditor: UIViewRepresentable {
                 }
             }
             let projected = controller.markdown || parent.isTitle ? raw : DiscourseMarkupCodec.parse(raw).map { $0.kind == nil ? $0.text : "\u{fffc}" }.joined()
-            if projected.replacingOccurrences(of: "(?m)^[-*] ", with: "• ", options: .regularExpression) != lastDisplay && projected != lastDisplay {
+            if restyled || (projected.replacingOccurrences(of: "(?m)^[-*] ", with: "• ", options: .regularExpression) != lastDisplay && projected != lastDisplay) {
                 parent.raw = raw
-                render(raw, selection: NSRange(location: source.location + (replacement as NSString).length, length: 0))
+                render(raw, selection: caret)
                 return
             }
             parent.raw = raw
             controller.selection = EditorSelection(sourceRange(textView.selectedRange))
+            reportStyle()
             controller.canUndo = history.canUndo; controller.canRedo = history.canRedo
             (textView as? ComposerTextView)?.placeholder = raw.isEmpty ? String(localized: String.LocalizationValue(parent.placeholder)) : nil
             textView.invalidateIntrinsicContentSize()
@@ -568,13 +585,18 @@ final class ComposerAttachmentCard: UIView {
 struct ComposerMoreMenu: UIViewRepresentable {
     @Environment(\.locale) private var locale
     var actions: [ComposerMenuAction]
+    /// Icon-only on the full bar; the compact fallback spells out More.
+    var labelled = true
     var onOpen: () -> Void
     func makeCoordinator() -> Coordinator { Coordinator(self) }
     func makeUIView(context: Context) -> UIButton {
         let button = UIButton(type: .system)
         var configuration = UIButton.Configuration.plain()
-        configuration.title = String(localized: "More", locale: locale); configuration.image = UIImage(systemName: "ellipsis"); configuration.imagePadding = 6
+        configuration.image = UIImage(systemName: "ellipsis"); configuration.imagePadding = 6
+        // Insets give the icon-only button a 44 pt target; a SwiftUI frame around it would not enlarge the UIKit hit area.
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
         button.configuration = configuration
+        button.accessibilityLabel = String(localized: "More", locale: locale)
         button.titleLabel?.font = .preferredFont(forTextStyle: .body); button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.showsMenuAsPrimaryAction = true; button.accessibilityIdentifier = "composer-more"
         button.addAction(UIAction { [weak coordinator = context.coordinator] _ in coordinator?.parent.onOpen() }, for: .touchDown)
@@ -583,6 +605,10 @@ struct ComposerMoreMenu: UIViewRepresentable {
     }
     func updateUIView(_ button: UIButton, context: Context) {
         let coordinator = context.coordinator; coordinator.parent = self
+        if (button.configuration?.title != nil) != labelled {
+            button.configuration?.title = labelled ? String(localized: "More", locale: locale) : nil
+            button.tintColor = labelled ? nil : .label
+        }
         let signature = locale.identifier + actions.map { "\($0.title)|\($0.enabled)|\($0.group ?? "")" }.joined(separator: ";")
         guard coordinator.signature != signature else { return }
         coordinator.signature = signature

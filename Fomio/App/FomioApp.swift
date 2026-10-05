@@ -53,10 +53,9 @@ struct AppShell: View {
                     Group {
                         if UIDevice.current.userInterfaceIdiom == .pad { ComposerView(state: composer).presentationSizing(.form) }
                         else { ComposerView(state: composer).presentationSizing(.page) }
-                    }.environment(app).presentationDetents([.large]).presentationCompactAdaptation(.sheet).statusBarHidden(false)
+                    }.environment(app).modifier(DevelopmentDisplaySettings()).presentationDetents([.large]).presentationCompactAdaptation(.sheet).statusBarHidden(false)
                 }
-                .sheet(isPresented: $app.authRequested, onDismiss: { app.pendingAction = nil; app.gate = .signIn }) { SignInView(app: app).presentationDetents([.medium, .large]) }
-                .sheet(isPresented: $app.choosingDestination) { NavigationStack { DestinationChooser(selected: nil) { app.openComposer(category: $0) }.environment(app) } }
+                .sheet(isPresented: $app.authRequested, onDismiss: { app.pendingAction = nil; app.gate = .signIn }) { SignInView(app: app) }
                 .task {
                     await app.restoreAccount(); do { try app.draftStore.reconcileFiles(account: app.account) } catch { app.banner = error.localizedDescription }; await app.loadCommunities(); await app.refreshUnread()
                     #if DEBUG
@@ -148,6 +147,7 @@ struct SignInView: View {
     @Bindable var app: AppState
     @Environment(\.dismiss) private var dismiss
     @State private var busy = false
+    @State private var contentHeight: CGFloat = 380
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -161,7 +161,11 @@ struct SignInView: View {
                 Button { dismiss() } label: { Text("Not now").frame(maxWidth: .infinity, minHeight: 44) }
                 if busy { ProgressView() }
             }.padding(24).frame(maxWidth: 480).frame(maxWidth: .infinity)
-        }.onChange(of: app.username) { _, username in if username != nil { dismiss() } }
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
+        }.scrollBounceBehavior(.basedOnSize)
+        // Fit the sheet to its content; the system caps it at full height for large text sizes.
+        .presentationDetents([.height(contentHeight)]).presentationDragIndicator(.visible)
+        .onChange(of: app.username) { _, username in if username != nil { dismiss() } }
     }
 }
 

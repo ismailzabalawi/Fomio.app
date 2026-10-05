@@ -72,7 +72,7 @@ struct Monogram: View {
     var name: String
     var size: CGFloat = 40
     var body: some View {
-        Text(String(name.prefix(1)).uppercased()).font(size > 44 ? .title2.bold() : .headline).foregroundStyle(Color.fomioAccent)
+        Text(String(name.prefix(1)).uppercased()).font(size > 44 ? .title2.bold() : size < 32 ? .footnote.bold() : .headline).foregroundStyle(Color.fomioAccent)
             .frame(width: size, height: size).background(Color.fomioHighlight, in: .rect(cornerRadius: size * 0.26)).accessibilityHidden(true)
     }
 }

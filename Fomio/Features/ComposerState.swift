@@ -34,7 +34,8 @@ import Observation
     let origin: AppTab
     let resumed: Bool
     unowned let app: AppState
-    private let original: String
+    private var original: String
+    private var stored: Bool
     private var positionSnapshot: String
     private var autosave: Task<Void, Never>?
     private var uploadTask: Task<Void, Never>?
@@ -47,6 +48,7 @@ import Observation
         positionSnapshot = draft.body
         self.id = draft.id; self.draft = draft; self.app = app; self.origin = origin; self.resumed = resumed
         original = Self.signature(draft, photo: draft.uploadedPhoto != nil)
+        stored = resumed
     }
     private static func signature(_ draft: Draft, photo: Bool) -> String {
         var raw = draft.body
@@ -81,8 +83,12 @@ import Observation
         rejection = nil; changed(); refreshSuggestions(); refreshPreviews()
     }
     func chooseDestination(_ id: CategoryID) {
+        // Choosing a community for an untouched draft is setup, not writing; it does not prompt Keep/Discard on close.
+        let untouched = !hasChanges
         if draft.body.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, let template = app.category(id)?.topicTemplate { draft.body = template }
-        draft.categoryID = id; edited()
+        draft.categoryID = id
+        if untouched { original = Self.signature(draft, photo: false) }
+        edited()
     }
     private func refreshSuggestions() {
         suggestionTask?.cancel(); suggestionGeneration = UUID()
@@ -118,6 +124,8 @@ import Observation
     }
     func changed() {
         autosave?.cancel()
+        // A new draft gets a device record only once it differs from what the composer opened with.
+        guard hasChanges || stored else { return }
         autosave = Task { [weak self] in
             do { try await Task.sleep(for: .milliseconds(500)); guard !Task.isCancelled else { return }; self?.save() } catch {}
         }
@@ -126,7 +134,7 @@ import Observation
         synchronizeAttachments()
         var value = draft
         value.attachments = draft.activeAttachments
-        do { try app.draftStore.save(value); saveStatus = "Saved on this device"; error = nil; app.draftsRevision += 1; return true }
+        do { try app.draftStore.save(value); stored = true; saveStatus = "Saved on this device"; error = nil; app.draftsRevision += 1; return true }
         catch { saveStatus = "Couldn’t save on this device"; self.error = error.localizedDescription; return false }
     }
     func keepDraft(message: String? = nil) {

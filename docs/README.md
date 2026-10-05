@@ -18,6 +18,7 @@ Current native baseline: 2026-10-03. The fixture MVP is implemented; live releas
 ## Design and historical references
 
 - [MVP design handoff](design/mvp-design-handoff.md) defines the narrowed launch direction.
+- [Composer bar exploration](design/composer-bar-exploration.md) records the 2026-10-05 Expo-informed interaction proposal, Claude Bar Lab, browser checks and remaining decisions; it is not an accepted native replacement.
 - [Versioned source export](design/snapshots/2026-10-03/README.md) records provenance, original hashes, Review Index repair and photo licenses. Native typography uses system fonts; exported Lora is reference-only.
 - [Native captures](validation/2026-10-03/README.md) record simulator layouts; [browser evidence](design/mockup-verification.json) is design evidence only.
 - [Project foundation](project-foundation.md) records origin and accepted decision updates.
