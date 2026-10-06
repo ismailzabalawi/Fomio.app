@@ -77,13 +77,14 @@ struct CookedContent: View {
     let html: String
     let topic: TopicID
     let number: PostNumber
+    var textStyle: Font = .body
     var body: some View {
         let blocks = HTMLContent.blocks(html)
         VStack(alignment: .leading, spacing: 12) {
             ForEach(Array(blocks.enumerated()), id: \.offset) { _, block in
                 switch block {
-                case let .text(text): Text(.init(text)).font(.body).textSelection(.enabled)
-                case let .quote(text): Text(.init(text)).font(.body).textSelection(.enabled).padding(12).background(Color.fomioHighlight, in: .rect(cornerRadius: 8)).accessibilityLabel("Quote: " + HTMLContent.plainText(text))
+                case let .text(text): Text(.init(text)).font(textStyle).textSelection(.enabled)
+                case let .quote(text): Text(.init(text)).font(textStyle).textSelection(.enabled).padding(12).background(Color.fomioHighlight, in: .rect(cornerRadius: 8)).accessibilityLabel("Quote: " + HTMLContent.plainText(text))
                 case let .code(text): ScrollView(.horizontal) { Text(text).font(.system(.body, design: .monospaced)).textSelection(.enabled).padding(12) }.background(Color.fomioHighlight, in: .rect(cornerRadius: 8))
                 case let .details(summary, body): DisclosureGroup(summary) { Text(.init(body)).textSelection(.enabled) }
                 case let .spoiler(text): DisclosureGroup("Reveal spoiler") { Text(text).textSelection(.enabled) }.accessibilityLabel("Concealed text. Reveal spoiler")

@@ -2,6 +2,8 @@
 
 Recorded: 2026-10-02. Status: broader historical planning map, retained for traceability. The accepted launch scope is implemented in fixtures; [current architecture](architecture.md) and [implementation status](implementation-status.md) describe the app.
 
+Focused planning update, 2026-10-06: use [category, subcategory and topic IA](category-topic-ia.md) for category/topic screen work. The user confirmed one subcategory level: root → immediate child (two levels total). This supersedes earlier deeper-category mockup proposals; nested reply depth remains independent. Category-feed scope, reply/context navigation and state coverage use inspected backend source. Native recommendations do not establish current deployment behavior.
+
 MVP scope update: 2026-10-03. Use the [finalized design handoff](design/mvp-design-handoff.md) for first-release scope and presentation. This map remains the broader roadmap. Launch uses one discussion feed, discussion search, a community directory, basic profiles/Saved/Drafts, and minimal creation/reply. Advanced tracking, activity/settings, private messages, chat, AI, multiple editor modes and plugin tools are deferred. Latest-only Home and required nested replies are accepted decisions; deployed availability and effective nested sorting still require verification. iOS 26+ Liquid Glass is the selected design target.
 
 ## Basis and decision authority

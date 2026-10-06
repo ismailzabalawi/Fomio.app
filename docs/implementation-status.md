@@ -114,3 +114,30 @@ Implemented and verified on iPhone 17 Pro / iOS 26.1 simulator:
 - Development display settings now apply directly to the composer sheet. The previous `--accessibility-text` test passed with regular composer controls and did not establish large-text acceptance.
 
 Validation: 28 selected checks passed (23 codec/native editor tests and five UI journeys), then three UI checks passed for the heading menu, hidden-keyboard Cancel with an explicit keyboard absence assertion, and dark accessibility text. These are two runs, 31 executions / 30 distinct tests, zero failures or reported warnings. Result bundles under `~/Library/Developer/XcodeBuildMCP/workspaces/Fomio-Swift-a437303753c0/result-bundles/`: `test_sim_2026-10-05T13-41-46-162Z_pid76838_6b582a15.xcresult` and `test_sim_2026-10-05T13-44-27-561Z_pid76838_7b68ed85.xcresult`. `git diff --check` passed. No backend contracts changed. Narrow phone widths, physical VoiceOver, RTL, iPad window/floating-keyboard behavior, IME and real Photos recovery remain outside this follow-up's verification.
+
+
+## Compact category and topic screens — 2026-10-06
+
+Implemented the user-approved [compact elevated direction](design/category-topic-claude-handoff.md) in native SwiftUI: a root/immediate-child directory with retained expansion and local filtering, backend category markers and optional light/dark logos, compact shared category headers with About and contextual New discussion, wrapping child chips, explicit aggregate feed scope, pinned/activity metadata, category-path discussion heading, authored OP, labeled Like/Save, per-post Reply/Quote, tinted quotes and outlined exact target. Large-text category headings stack identity above the name. Existing independent branch paging, permission revalidation, drafts and per-tab navigation remain in place. Category depth is independent of reply depth.
+
+The adapter maps optional identity and site-default light/dark color tokens, effective reply sort and archived status. Prominent labels choose black/white by action-color luminance. The live fixture/deployment distinctions and remaining member-theme/media/catalog assumptions are recorded in [API reference](discourse-api-reference.md). The backend checkout was not modified.
+
+Validation: Xcode 27.0, iOS/iPadOS 26.1. All **70 unit/contract tests passed** on iPhone 17 Pro. Across targeted runs, **seven distinct iPhone UI journeys and two iPad Pro 11-inch (M5) UI journeys passed**: directory expansion/About/exact-child creation; dark accessibility-size alternate-theme reachability; directory query/ancestor/Back retention; existing composer destination search, guest authorization without posting, notification #14 and reply/draft recovery. This is aggregated evidence, not one final complete-suite run. Initial category UI failures came from a launch helper waiting for a Home topic while the preset opened Communities; the helper was corrected and both journeys passed. Final cosmetic follow-ups include the directory guide, 14pt description, action contrast, large-text stacked identity and matching 16pt cooked/plain replies; builds and selected UI checks cover these refinements, not a complete rerun of the editor suite.
+
+Result bundles under `~/Library/Developer/XcodeBuildMCP/workspaces/Fomio-Swift-a437303753c0/result-bundles/`:
+
+- `test_sim_2026-10-06T16-31-57-629Z_pid7214_2d12ae93.xcresult`: 70 unit/contract + three existing UI passes, two helper failures.
+- `test_sim_2026-10-06T16-35-26-571Z_pid7214_b8b8ad64.xcresult`: corrected two category UI passes.
+- `test_sim_2026-10-06T16-38-24-003Z_pid7214_3461db5d.xcresult`: four iPhone UI passes after action/contrast refinements.
+- `test_sim_2026-10-06T16-40-16-337Z_pid7214_9124341c.xcresult`: two iPad category UI passes.
+- `test_sim_2026-10-06T16-42-36-841Z_pid7214_1f81d1ef.xcresult`: directory filtering and Back pass.
+- `test_sim_2026-10-06T16-43-57-438Z_pid7214_60542ddd.xcresult`: large-text header refinement pass.
+
+[Native captures](validation/2026-10-06-category-topic/README.md) show representative default/dark-large-text screens. Runtime hierarchy capture through MCP failed; XCTest supplied interaction evidence. Simulator checks do not establish physical VoiceOver, all contrast/motion/transparency settings, arbitrary long content/custom identity identifiers, narrow phones, iPad window resizing/floating keyboards or deployed member scheme/media behavior. No live member write was performed for this slice.
+
+
+## Live category/topic integration — 2026-10-06
+
+Category identity, default site palette, category/child feeds and exact topic/reply navigation were exercised against the configured Discourse site. Root paging and scoped child completion now prevent truncating lazy category previews; nonempty Saved responses now decode their `user_bookmark_list` wrapper. All **73 local unit/contract tests passed** (three live opt-ins skipped); separate live guest/member reads, the user-approved temporary topic/two-reply/Save/cleanup round trip and native live category→About→topic UI passed. Final readback confirmed test topics 1767/1768 unavailable to guests and absent from Saved. Three selected iPad journeys passed.
+
+The full baseline had 92 passes and two failures: keyboard focus passed on later isolated/combined reruns; phone Arabic composer landscape remains reproducibly failing and is a release gate. No speculative orientation/presentation change was retained. Live burst tests encountered real 429s; separate spaced runs passed. Selected member scheme precedence, protected asset access, live uploads, pending-review/trust-level matrices and fresh/expired/revoked sign-in remain unverified. This is not a fully green release certification. [Full evidence and sanitized result summaries](validation/2026-10-06-live-api/README.md).

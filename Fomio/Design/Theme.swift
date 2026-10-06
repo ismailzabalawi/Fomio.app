@@ -2,7 +2,7 @@ import SwiftUI
 
 extension Color {
     init(hex: UInt32) { self.init(.sRGB, red: Double((hex >> 16) & 255)/255, green: Double((hex >> 8) & 255)/255, blue: Double(hex & 255)/255, opacity: 1) }
-    /// Fomio web tokens: light, AMOLED dark, and their Increase Contrast variants.
+    /// Trait-aware light/dark colors with optional Increase Contrast variants.
     static func fomio(_ light: UInt32, _ dark: UInt32, lightHC: UInt32? = nil, darkHC: UInt32? = nil) -> Color {
         Color(uiColor: UIColor { traits in
             let high = traits.accessibilityContrast == .high
@@ -10,18 +10,38 @@ extension Color {
             return UIColor(Color(hex: value))
         })
     }
-    static let fomioAccent = fomio(0x5B3FD6, 0xA58FFF, lightHC: 0x4A2FBF, darkHC: 0xBFAFFF)
-    static let fomioBackground = fomio(0xFFFFFF, 0x000000)
-    static let fomioGrouped = fomio(0xF4F3F7, 0x000000)
-    static let fomioCell = fomio(0xFFFFFF, 0x111114)
-    static let fomioFill = fomio(0xF4F3F7, 0x17161C)
-    static let fomioSecondaryText = fomio(0x5E5C67, 0xAEACB8, lightHC: 0x45434D, darkHC: 0xCFCDD8)
-    static let fomioSeparator = fomio(0xE2E0E8, 0x2A2831, lightHC: 0xA9A6B4, darkHC: 0x5A5863)
-    static let fomioHighlight = fomio(0xE7E0FF, 0x2B2257)
-    static let fomioSelected = fomio(0xEEEBFA, 0x1B1826)
-    static let fomioDanger = fomio(0xC62D3A, 0xFF6B78)
-    static let fomioSuccess = fomio(0x1D7F4A, 0x4CD48A)
-    static let fomioLove = fomio(0xD6245C, 0xFF5C8D)
+    static func hexValue(_ text: String?) -> UInt32? {
+        guard let text else { return nil }
+        let value = text.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
+        guard value.count == 6, value.allSatisfy({ $0.isHexDigit }) else { return nil }
+        return UInt32(value, radix: 16)
+    }
+    @MainActor private static func token(_ name: String, _ light: UInt32, _ dark: UInt32) -> Color {
+        fomio(hexValue(FomioTheme.current.light[name]) ?? light, hexValue(FomioTheme.current.dark[name]) ?? dark)
+    }
+    @MainActor static var fomioText: Color { token("primary", 0x1B1A1F, 0xECEBF0) }
+    @MainActor static var fomioAccent: Color { token("tertiary", 0x5B3FD6, 0xA58FFF) }
+    @MainActor static var fomioOnAccent: Color {
+        func ink(_ hex: UInt32) -> UInt32 {
+            let channels = [Double((hex >> 16) & 255), Double((hex >> 8) & 255), Double(hex & 255)].map { value in
+                let c = value / 255; return c <= 0.04045 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4)
+            }
+            return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722 > 0.179 ? 0x000000 : 0xFFFFFF
+        }
+        return fomio(ink(hexValue(FomioTheme.current.light["tertiary"]) ?? 0x5B3FD6), ink(hexValue(FomioTheme.current.dark["tertiary"]) ?? 0xA58FFF))
+    }
+    @MainActor static var fomioBackground: Color { token("secondary", 0xFFFFFF, 0x000000) }
+    @MainActor static var fomioGrouped: Color { fomioBackground }
+    @MainActor static var fomioCell: Color { fomioBackground }
+    @MainActor static var fomioFill: Color { fomioText.opacity(0.055) }
+    @MainActor static var fomioSecondaryText: Color { fomioText.opacity(0.72) }
+    @MainActor static var fomioSeparator: Color { fomioText.opacity(0.16) }
+    @MainActor static var fomioHighlight: Color { fomioAccent.opacity(0.12) }
+    @MainActor static var fomioSelected: Color { fomioAccent.opacity(0.08) }
+    @MainActor static var fomioDanger: Color { token("danger", 0xC62D3A, 0xFF6B78) }
+    @MainActor static var fomioSuccess: Color { token("success", 0x1D7F4A, 0x4CD48A) }
+    @MainActor static var fomioLove: Color { token("love", 0xD6245C, 0xFF5C8D) }
+
 }
 struct ReadingColumn<Content: View>: View {
     @ViewBuilder var content: Content
@@ -67,15 +87,6 @@ struct SectionLabel: View {
     init(_ text: String) { self.text = text }
     var body: some View { Text(text).font(.subheadline.weight(.semibold)).foregroundStyle(Color.fomioSecondaryText).accessibilityAddTraits(.isHeader) }
 }
-/// Letter tile used while Discourse category logos are unconfirmed.
-struct Monogram: View {
-    var name: String
-    var size: CGFloat = 40
-    var body: some View {
-        Text(String(name.prefix(1)).uppercased()).font(size > 44 ? .title2.bold() : size < 32 ? .footnote.bold() : .headline).foregroundStyle(Color.fomioAccent)
-            .frame(width: size, height: size).background(Color.fomioHighlight, in: .rect(cornerRadius: size * 0.26)).accessibilityHidden(true)
-    }
-}
 struct Avatar: View {
     var name: String
     var size: CGFloat = 34
@@ -103,14 +114,14 @@ struct FlowLayout: Layout {
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         for row in arrange(bounds.width, subviews) {
             var x = bounds.minX
-            for index in row.indices { let size = subviews[index].sizeThatFits(.unspecified); subviews[index].place(at: CGPoint(x: x, y: bounds.minY + row.y), proposal: ProposedViewSize(size)); x += size.width + spacing }
+            for index in row.indices { let size = subviews[index].sizeThatFits(ProposedViewSize(width: bounds.width, height: nil)); subviews[index].place(at: CGPoint(x: x, y: bounds.minY + row.y), proposal: ProposedViewSize(size)); x += size.width + spacing }
         }
     }
     private struct Row { var indices: [Int] = []; var y: CGFloat = 0; var width: CGFloat = 0; var height: CGFloat = 0 }
     private func arrange(_ width: CGFloat, _ subviews: Subviews) -> [Row] {
         var rows = [Row()]
         for index in subviews.indices {
-            let size = subviews[index].sizeThatFits(.unspecified)
+            let size = subviews[index].sizeThatFits(ProposedViewSize(width: width.isFinite ? width : nil, height: nil))
             if !rows[rows.count - 1].indices.isEmpty && rows[rows.count - 1].width + spacing + size.width > width {
                 let last = rows[rows.count - 1]; rows.append(Row(y: last.y + last.height + spacing))
             }
@@ -199,5 +210,79 @@ enum RelativeAge {
         if value == "now" { return "Edited just now" }
         let unit = value.last == "m" ? "m" : value.last == "h" ? "h" : "d"
         return "Edited \(value.dropLast())\(unit) ago"
+    }
+}
+
+/// App-wide site palette. Color providers capture immutable light/dark values for UIKit traits.
+/// Refreshing AppState.siteTheme redraws mounted SwiftUI surfaces without resetting navigation.
+@MainActor enum FomioTheme { static var current = SiteTheme() }
+
+struct ScaledTitle: View {
+    var text: String
+    @ScaledMetric(relativeTo: .title2) private var size: CGFloat = 22
+    init(_ text: String, size: CGFloat) { self.text = text; _size = ScaledMetric(wrappedValue: size, relativeTo: .title2) }
+    var body: some View { Text(text).font(.system(size: size, weight: .bold)).fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader) }
+}
+
+/// Discourse identifiers are Font Awesome names, not SF Symbol names. Supported mappings are explicit;
+/// unrecognized/custom names and failed assets use the category's own color square.
+struct CategoryMark: View {
+    @Environment(AppState.self) private var app
+    @Environment(\.colorScheme) private var scheme
+    let category: Community
+    var size: CGFloat = 44
+    var useLogo = false
+    static let icons = ["bicycle": "bicycle", "gear": "gearshape", "wrench": "wrench", "hammer": "hammer", "microchip": "cpu", "seedling": "leaf", "leaf": "leaf", "screwdriver-wrench": "wrench.and.screwdriver", "paintbrush": "paintbrush", "comments": "bubble.left.and.bubble.right", "code": "chevron.left.forwardslash.chevron.right"]
+    static let emoji = ["bike": "🚲", "bicyclist": "🚴", "seedling": "🌱", "hammer": "🔨", "wrench": "🔧", "thread": "🧵", "art": "🎨", "gear": "⚙️", "heart": "❤️"]
+    var color: Color { Color.hexValue(category.identity.color).map(Color.init(hex:)) ?? .fomioAccent }
+    private var logo: URL? {
+        guard useLogo else { return nil }
+        let asset = scheme == .dark ? category.identity.darkLogo ?? category.identity.logo : category.identity.logo
+        return app.publicAssetURL(asset?.url)
+    }
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: size * 0.28).fill(color.opacity(0.14)).rotationEffect(.degrees(-7)).padding(2)
+            if let logo {
+                AsyncImage(url: logo) { phase in
+                    if let image = phase.image { image.resizable().scaledToFit().padding(5) } else if phase.error != nil { square } else { marker }
+                }
+            } else { marker }
+        }.frame(width: size, height: size).accessibilityHidden(true)
+    }
+    @ViewBuilder private var marker: some View {
+        if category.identity.style == "icon", let name = category.identity.icon, let symbol = Self.icons[name] {
+            Image(systemName: symbol).font(.system(size: size * 0.46, weight: .semibold)).foregroundStyle(color)
+        } else if category.identity.style == "emoji", let name = category.identity.emoji,
+                  let resolved = Self.emoji[name.trimmingCharacters(in: CharacterSet(charactersIn: ":"))] ?? (name.unicodeScalars.contains(where: { $0.value > 127 }) ? name : nil) {
+            Text(resolved).font(.system(size: size * 0.5))
+        } else {
+            square
+        }
+    }
+    private var square: some View { RoundedRectangle(cornerRadius: size * 0.09).fill(color).frame(width: size * 0.4, height: size * 0.4) }
+}
+struct CategoryChip: View {
+    @Environment(AppState.self) private var app
+    let category: Community
+    var body: some View {
+        Button { app.navigate(.community(category.id)) } label: {
+            HStack(spacing: 6) { CategoryMark(category: category, size: 24); Text(category.name).font(.subheadline.weight(.semibold)).multilineTextAlignment(.leading) }
+                .padding(.horizontal, 10).padding(.vertical, 6).frame(minHeight: 44)
+                .background(Color.fomioFill, in: .rect(cornerRadius: 14))
+                .overlay { RoundedRectangle(cornerRadius: 14).strokeBorder(Color.fomioSeparator, lineWidth: 1) }
+        }.buttonStyle(.plain).accessibilityLabel("Open community \(category.name)")
+    }
+}
+
+struct CategoryHeading: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
+    let category: Community
+    var body: some View {
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10)) : AnyLayout(HStackLayout(spacing: 12))
+        layout {
+            CategoryMark(category: category, size: 50, useLogo: true)
+            ScaledTitle(category.name, size: 25).frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 }

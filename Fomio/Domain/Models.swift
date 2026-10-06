@@ -34,7 +34,32 @@ struct Community: Identifiable, Codable, Hashable, Sendable {
     /// Latest visible discussion for the directory preview. Nil when the source does not provide it.
     var latest: LatestPreview? = nil
     var topicTemplate: String? = nil
+    var identity = CategoryIdentity()
+    var descriptionExcerpt: String? = nil
+    var aboutURL: String? = nil
 }
+struct CategoryAsset: Codable, Hashable, Sendable {
+    var id: Int? = nil
+    var url: String
+    var width: Int? = nil
+    var height: Int? = nil
+}
+struct CategoryIdentity: Codable, Hashable, Sendable {
+    var color: String? = nil
+    var textColor: String? = nil
+    var style: String? = nil
+    var icon: String? = nil
+    var emoji: String? = nil
+    var logo: CategoryAsset? = nil
+    var darkLogo: CategoryAsset? = nil
+    var background: CategoryAsset? = nil
+    var darkBackground: CategoryAsset? = nil
+}
+struct SiteTheme: Equatable, Sendable {
+    var light: [String: String] = [:]
+    var dark: [String: String] = [:]
+}
+
 struct LatestPreview: Codable, Hashable, Sendable { var topicID: TopicID; var title: String; var categoryID: CategoryID; var activity: String }
 struct DiscussionSummary: Identifiable, Codable, Hashable, Sendable {
     var id: TopicID
@@ -49,6 +74,7 @@ struct DiscussionSummary: Identifiable, Codable, Hashable, Sendable {
     var targetPostNumber: PostNumber?
     /// Author of the matched post when a search hit is inside the discussion.
     var matchAuthor: String? = nil
+    var pinned = false
 }
 struct QuoteExcerpt: Codable, Hashable, Sendable { var author: String; var number: PostNumber; var text: String }
 struct Post: Identifiable, Codable, Hashable, Sendable {
@@ -84,6 +110,8 @@ struct DiscussionPage: Sendable {
     var nextPage: Int?
     var closed = false
     var canReply = false
+    var effectiveSort: String? = nil
+    var archived = false
 }
 struct ChildPage: Sendable { var nodes: [ThreadNode]; var nextPage: Int? }
 struct ThreadContext: Sendable { var page: DiscussionPage; var ancestors: [Post]; var target: ThreadNode; var truncated: Bool }

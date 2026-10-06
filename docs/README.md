@@ -17,6 +17,8 @@ Current native baseline: 2026-10-03. The fixture MVP is implemented; live releas
 
 ## Design and historical references
 
+- [Category, subcategory and topic IA](category-topic-ia.md) is the focused 2026-10-06 pre-mockup map: root/child hierarchy, category-feed scope, nested/exact-reply navigation, permission and recovery states, source traces, and current native gaps. Native recommendations are proposals; source review is distinct from deployed verification.
+- [Category/topic Claude Design handoff](design/category-topic-claude-handoff.md) links the new IA-based mockups and records independent browser checks, review screenshots and remaining native/deployment validation.
 - [MVP design handoff](design/mvp-design-handoff.md) defines the narrowed launch direction.
 - [Composer bar exploration](design/composer-bar-exploration.md) records the 2026-10-05 Expo-informed interaction proposal, Claude Bar Lab, browser checks and remaining decisions; it is not an accepted native replacement.
 - [Versioned source export](design/snapshots/2026-10-03/README.md) records provenance, original hashes, Review Index repair and photo licenses. Native typography uses system fonts; exported Lora is reference-only.
@@ -30,3 +32,5 @@ Current native baseline: 2026-10-03. The fixture MVP is implemented; live releas
 The user’s accepted decisions determine scope. Current implementation guides describe inspected code; historical maps describe proposals. Discourse determines live permissions/content/posting rules. Route existence, source review, sanitized adapter tests and deployed verification are distinct statuses.
 
 When changing behavior, update the corresponding guide and implementation status. When changing an adapter, recheck backend revision and update API evidence/assumptions. Record validation with device/OS, selected tests, result artifacts and limitations. Do not overwrite original exports/imports or promote browser/fixture evidence to native/live acceptance. Do not document credentials or invent deployment resources.
+
+- [Live category/topic API validation](validation/2026-10-06-live-api/README.md): native live reads, approved temporary writes/cleanup, catalog and Saved fixes, actual test results and unresolved rotation failure.

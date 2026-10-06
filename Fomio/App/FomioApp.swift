@@ -40,6 +40,7 @@ import SwiftUI
 struct AppShell: View {
     @Bindable var app: AppState
     var body: some View {
+        let _ = app.siteTheme
         Group {
             if app.isConfigured {
                 TabView(selection: $app.selectedTab) {
@@ -57,7 +58,7 @@ struct AppShell: View {
                 }
                 .sheet(isPresented: $app.authRequested, onDismiss: { app.pendingAction = nil; app.gate = .signIn }) { SignInView(app: app) }
                 .task {
-                    await app.restoreAccount(); do { try app.draftStore.reconcileFiles(account: app.account) } catch { app.banner = error.localizedDescription }; await app.loadCommunities(); await app.refreshUnread()
+                    await app.restoreAccount(); await app.loadTheme(); do { try app.draftStore.reconcileFiles(account: app.account) } catch { app.banner = error.localizedDescription }; await app.loadCommunities(); await app.refreshUnread()
                     #if DEBUG
                     if let preset = DevelopmentPresets.requested { await DevelopmentPresets.apply(preset, to: app) }
                     #endif
@@ -67,6 +68,8 @@ struct AppShell: View {
             }
         }
         .environment(app)
+        .tint(Color.fomioAccent)
+        .foregroundStyle(Color.fomioText)
         .background(Color.fomioBackground)
         .alert("Fomio", isPresented: Binding(get: { app.banner != nil }, set: { if !$0 { app.banner = nil } })) { Button("OK") { app.banner = nil } } message: { Text(app.banner ?? "") }
     }
@@ -156,7 +159,7 @@ struct SignInView: View {
                 Text(app.gate.message).multilineTextAlignment(.center).foregroundStyle(Color.fomioSecondaryText)
                 Button {
                     busy = true; Task { await app.signIn(); busy = false }
-                } label: { Text("Sign in").frame(maxWidth: .infinity, minHeight: 44) }.buttonStyle(.glassProminent).disabled(busy).accessibilityIdentifier("signin-continue")
+                } label: { Text("Sign in").frame(maxWidth: .infinity, minHeight: 44) }.buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).disabled(busy).accessibilityIdentifier("signin-continue")
                 if app.fixture != nil { Text("Fixture preview signs in as the fictional member jonah.w.").font(.caption).foregroundStyle(.secondary) }
                 Button { dismiss() } label: { Text("Not now").frame(maxWidth: .infinity, minHeight: 44) }
                 if busy { ProgressView() }

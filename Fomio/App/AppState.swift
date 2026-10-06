@@ -33,6 +33,7 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
 @MainActor @Observable final class TabState {
     var path: [Route] = []
     var communityQuery = ""
+    var directoryInitialized = false
     var expandedCommunities: Set<CategoryID> = []
     var searchQuery = ""
     var searchResults: [DiscussionSummary] = []
@@ -49,6 +50,9 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     var selectedTab: AppTab = .home
     var tabs = Dictionary(uniqueKeysWithValues: AppTab.allCases.map { ($0, TabState()) })
     var communities: [Community] = []
+    var siteTheme = SiteTheme()
+    var themeError: String?
+    var communitiesLoaded = false
     var communityError: String?
     var account: AccountID = .guest
     var username: String?
@@ -80,11 +84,33 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     }
     var isOffline: Bool { fixture?.offline == true || (fixture == nil && connectivity.offline) }
     func loadCommunities() async {
-        do { communities = try await service.communities(); communityError = nil } catch { communityError = error.localizedDescription }
+        do {
+            communities = try await service.communities(); communitiesLoaded = true; communityError = nil
+            if let tab = tabs[.communities], !tab.directoryInitialized {
+                tab.expandedCommunities = Set(communities.filter { $0.parentID == nil }.prefix(2).map(\.id))
+                tab.directoryInitialized = true
+            }
+        } catch { communityError = error.localizedDescription }
+    }
+    func loadTheme() async {
+        do { siteTheme = try await service.siteTheme(); FomioTheme.current = siteTheme; themeError = nil }
+        catch { themeError = error.localizedDescription }
     }
     func refreshUnread() async {
         guard username != nil else { unreadCount = 0; return }
         if let page = try? await service.notifications(page: 0) { unreadCount = page.items.filter { !$0.read }.count }
+    }
+    /// Public category assets may use the site's relative root or an HTTPS CDN. Never attach user keys.
+    func publicAssetURL(_ value: String?) -> URL? {
+        guard let value else { return nil }
+        let url: URL?
+        if value.hasPrefix("//") { url = URL(string: "https:" + value) }
+        else {
+            let base = configuration.map { $0.baseURL.absoluteString }.flatMap { URL(string: $0.hasSuffix("/") ? $0 : $0 + "/") }
+            url = URL(string: value, relativeTo: base)?.absoluteURL
+        }
+        guard let url, url.scheme == "https", url.host != nil, url.user == nil, url.password == nil else { return nil }
+        return url
     }
     func category(_ id: CategoryID) -> Community? { communities.first { $0.id == id } }
     func categoryName(_ id: CategoryID) -> String {
@@ -146,7 +172,7 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
             try draftStore.migrateGuest(to: account)
             if composer == nil { try draftStore.reconcileFiles(account: account) }
             let action = pendingAction, gate = self.gate; pendingAction = nil
-            authRequested = false; await loadCommunities(); await action?()
+            authRequested = false; await loadTheme(); await loadCommunities(); await action?()
             let name = username ?? "member"
             switch gate {
             case .reply, .quote: toast("Signed in as \(name). Your reply is ready.")

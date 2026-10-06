@@ -1,0 +1,226 @@
+{
+  "date": "2026-10-06",
+  "backendRevision": "d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2",
+  "runs": [
+    {
+      "bundle": "test_sim_2026-10-06T17-16-20-526Z_pid7214_cde1f0f2.xcresult",
+      "result": "Failed",
+      "passed": 92,
+      "failed": 2,
+      "skipped": 0,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": [
+        {
+          "test": "FomioUITests/testArabicComposerPreservesMixedTextAcrossModesAndRotation()",
+          "message": "XCTAssertGreaterThan failed: (\"402.0\") is not greater than (\"874.0\")"
+        },
+        {
+          "test": "FomioUITests/testKeyboardBarNextAndKeepEditing()",
+          "message": "Failed to synthesize event: Neither element nor any descendant has keyboard focus. Event dispatch snapshot: TextView, {{20.0, 292.3}, {362.0, 200.0}}, identifier: 'composer-body', label: 'Opening post', value: First line"
+        }
+      ]
+    },
+    {
+      "bundle": "test_sim_2026-10-06T17-25-25-933Z_pid7214_19a096d4.xcresult",
+      "result": "Failed",
+      "passed": 72,
+      "failed": 2,
+      "skipped": 1,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": [
+        {
+          "test": "ContractTests/testDirectoryPageFailureDoesNotPublishPartialCatalog()",
+          "message": "Test crashed with signal trap."
+        },
+        {
+          "test": "ContractTests/testPagedDirectoryLoadsAllRootsAndScopedChildrenWithoutDuplicates()",
+          "message": "Crash: Fomio"
+        }
+      ]
+    },
+    {
+      "bundle": "test_sim_2026-10-06T17-26-54-368Z_pid7214_3a89ba4f.xcresult",
+      "result": "Failed",
+      "passed": 22,
+      "failed": 1,
+      "skipped": 0,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": [
+        {
+          "test": "LiveDiscourseTests/testApprovedTemporaryTopicRepliesSaveAndCleanup()",
+          "message": "failed: caught error: \"keyNotFound(CodingKeys(stringValue: \"bookmarks\", intValue: nil), Swift.DecodingError.Context(codingPath: [], debugDescription: \"No value associated with key CodingKeys(stringValue: \\\"bookmarks\\\", i"
+        }
+      ]
+    },
+    {
+      "bundle": "test_sim_2026-10-06T17-28-26-567Z_pid7214_3debf7fa.xcresult",
+      "result": "Failed",
+      "passed": 24,
+      "failed": 2,
+      "skipped": 0,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": [
+        {
+          "test": "LiveDiscourseTests/testApprovedTemporaryTopicRepliesSaveAndCleanup()",
+          "message": "failed: caught error: \"rateLimited\""
+        },
+        {
+          "test": "LiveDiscourseTests/testStoredMemberReadPermissionsSavedAndNotifications()",
+          "message": "failed: caught error: \"rateLimited\""
+        }
+      ]
+    },
+    {
+      "bundle": "test_sim_2026-10-06T17-28-56-277Z_pid7214_9bb2db93.xcresult",
+      "result": "Failed",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": [
+        {
+          "test": "FomioUITests/testArabicComposerPreservesMixedTextAcrossModesAndRotation()",
+          "message": "XCTAssertGreaterThan failed: (\"402.0\") is not greater than (\"874.0\")"
+        }
+      ]
+    },
+    {
+      "bundle": "test_sim_2026-10-06T17-30-26-104Z_pid7214_4c68c52c.xcresult",
+      "result": "Passed",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": []
+    },
+    {
+      "bundle": "test_sim_2026-10-06T17-31-04-427Z_pid7214_cb3299ae.xcresult",
+      "result": "Failed",
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": [
+        {
+          "test": "FomioUITests/testArabicComposerPreservesMixedTextAcrossModesAndRotation()",
+          "message": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\") - Wait for the window rotation, rather than the already-visible Close button"
+        },
+        {
+          "test": "FomioUITests/testLiveCategoryChildAboutAndTopicNavigation()",
+          "message": "XCTAssertTrue failed"
+        }
+      ]
+    },
+    {
+      "bundle": "test_sim_2026-10-06T17-32-24-383Z_pid7214_be5f66d8.xcresult",
+      "result": "Failed",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": [
+        {
+          "test": "FomioUITests/testArabicComposerPreservesMixedTextAcrossModesAndRotation()",
+          "message": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\") - Wait for the window rotation, rather than the already-visible Close button"
+        }
+      ]
+    },
+    {
+      "bundle": "test_sim_2026-10-06T17-34-39-735Z_pid7214_7c7a7083.xcresult",
+      "result": "Failed",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": [
+        {
+          "test": "FomioUITests/testArabicComposerPreservesMixedTextAcrossModesAndRotation()",
+          "message": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\") - Wait for the window rotation, rather than the already-visible Close button"
+        }
+      ]
+    },
+    {
+      "bundle": "test_sim_2026-10-06T17-36-48-986Z_pid7214_701e7915.xcresult",
+      "result": "Passed",
+      "passed": 73,
+      "failed": 0,
+      "skipped": 3,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": []
+    },
+    {
+      "bundle": "test_sim_2026-10-06T17-37-23-686Z_pid7214_88dda8be.xcresult",
+      "result": "Failed",
+      "passed": 2,
+      "failed": 1,
+      "skipped": 0,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": [
+        {
+          "test": "FomioUITests/testArabicComposerPreservesMixedTextAcrossModesAndRotation()",
+          "message": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\") - Wait for the window rotation, rather than the already-visible Close button"
+        }
+      ]
+    },
+    {
+      "bundle": "test_sim_2026-10-06T17-39-18-326Z_pid7214_771a706c.xcresult",
+      "result": "Passed",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "devices": [
+        "iPad Pro 11-inch (M5)"
+      ],
+      "failures": []
+    },
+    {
+      "bundle": "test_sim_2026-10-06T17-41-26-169Z_pid7214_f9ba3650.xcresult",
+      "result": "Failed",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": [
+        {
+          "test": "LiveDiscourseTests/testStoredMemberReadPermissionsSavedAndNotifications()",
+          "message": "failed: caught error: \"rateLimited\""
+        }
+      ]
+    },
+    {
+      "bundle": "test_sim_2026-10-06T17-42-42-521Z_pid7214_609b0712.xcresult",
+      "result": "Passed",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": []
+    }
+  ]
+}

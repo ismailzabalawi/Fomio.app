@@ -1,0 +1,21 @@
+# Live API validation — 2026-10-06
+
+Configured site: `https://meta.fomio.app`. Backend reference: `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`, read-only. No stored keys or raw account payloads are included. Source contracts and remaining assumptions are recorded in [the API reference](../../discourse-api-reference.md#live-categorytopic-api-validation--2026-10-06).
+
+## Results
+
+- Final local unit/contract suite: **73 passed, zero failed**, three live tests intentionally skipped. The new regressions cover paged roots/scoped child completion and deduplication, partial-catalog failures, and nonempty/empty Saved response shapes.
+- Live guest adapter checks passed: site palette, 26 secured directory categories, every visible root feed, Latest pagination, three topics with exact contexts/children, search-hit destinations, and missing-topic handling.
+- Live stored-member read checks passed: per-user session, theme/categories, profile, Saved, notifications and topic. This account has cleanup authority; it does not establish other accounts' permissions.
+- User-approved temporary write round trip passed after fixing Saved decoding: topic, two labeled replies including a nested quote, exact target/ancestor/child readback, Save/Unsave and topic deletion with guest unavailability. Temporary topic IDs were **1767** (initial run exposing Saved bug) and **1768** (corrected passing run). Recovery targeted only 1767's bookmarks; 1768's bookmark was removed within its passing test. No automatic posting retry, permanent deletion or unrelated-content writes occurred.
+- Native live iPhone UI journey passed: directory search retains the Fomio ancestor, child category header/feed, About sheet and real topic/OP controls. [Directory](live-directory.png), [subcategory](live-subcategory.png), [topic](live-topic.png). These are public community reads, not synthetic fixture data.
+- Full baseline iPhone suite completed despite the MCP call timing out: **92 passed, two failed** of 94. The keyboard focus journey passed on subsequent isolated and combined runs. The Arabic composer landscape test consistently failed because the window remained portrait; screenshots confirm that outcome. Waiting explicitly for rotation did not fix it; changing sheet adaptation and adding a base orientation setting did not fix it and those speculative changes were reverted. LLDB showed root and presented controller orientation masks 30, application mask 26 (landscape allowed). Root cause remains unresolved; this is a release gate, not a claimed pass.
+- Selected iPad Pro 11-inch (M5), iOS 26.1 journeys: **three passed** (directory expansion/About/child create context, dark accessibility theme reflow, Arabic composer text preservation after a device orientation request). The iPad test allows a fixed-size window and does not assert landscape rotation.
+- Final isolated member readback passed: neither topic 1767 nor 1768 appears in Saved, and both are unavailable to guests.
+- A close live rerun returned 429 before new publication. Later spaced write checks passed. Combining the guest/member read batches also produced a 429; an isolated spaced member read and cleanup verification passed. The deployed limiter values were not inferred from local defaults. The fixture transport's first new scripted-response tests crashed due to a MainActor-inherited closure executing on URLProtocol's thread; declaring the handler `@Sendable` fixed the harness. Both failures and their passing reruns are retained in the result summary.
+
+[Sanitized result-bundle summaries](test-runs.json) include failed runs, skipped counts and device names. Full `.xcresult` bundles remain in the machine's XcodeBuildMCP workspace under `result-bundles/`; the JSON records exact filenames. Earlier category/topic presentation screenshots remain in [the fixture validation](../2026-10-06-category-topic/README.md).
+
+## Limits
+
+No live uploads, Like mutation on other members' posts, mark-read writes, fresh sign-in/expired/revoked credential journey, pending-review posting, restricted-group matrix, deployed lazy catalog or member-selected theme precedence were exercised. Those remain separate release gates. Current dark mode uses the native fallback because the site's default dark scheme is null. The frontend never embeds an administrator API key.

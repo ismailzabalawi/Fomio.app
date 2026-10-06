@@ -2,7 +2,7 @@
 
 A native SwiftUI client for Fomio, backed by Discourse APIs. This project is separate from the Discourse backend and web theme.
 
-The native iOS/iPadOS 26+ SwiftUI MVP now has an Xcode project, fixture-backed screens, protected local drafts, tests, and source-informed Discourse adapters. Live deployment configuration is pending.
+The native iOS/iPadOS 26+ SwiftUI MVP has an Xcode project, live Discourse screens, protected local drafts, fixture previews, and automated tests. The configured site's guest/member read contracts and an approved temporary posting round trip have been exercised; release gates remain in the validation documents.
 
 ## Run
 

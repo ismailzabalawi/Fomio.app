@@ -66,3 +66,9 @@ Builds succeeded. Xcode emits the nonblocking AppIntents metadata-extraction war
 ## Rebuilt editor — 2026-10-04
 
 The editor now has a wrapping native title, TextKit rich/source projection, native block forms, and multiple protected retained photos. The earlier single-line/single-photo descriptions above record prior validation. Current implementation evidence and remaining gates are in [editor validation](editor-validation.md). The transport fix reached the site login page, the incoming callback fallback is wired, and Discourse's wrapped Base64 payload is decoded. A real issued-key callback, current-user lookup and live editor acceptance remain open. The expanded editor is not declared ready to ship.
+
+## First App Store Connect upload — 2026-10-05
+
+Distribution signing now uses automatic signing with team `LK9253R3XB` and bundle `com.fomio.mobile`, the same App Store Connect record (`6759279998`) previously used by the Expo app (last version 0.7.10). `project.yml` sets `MARKETING_VERSION` 0.8.0 and `CURRENT_PROJECT_VERSION` 1, `ITSAppUsesNonExemptEncryption = false`, and a privacy manifest (`Fomio/Resources/PrivacyInfo.xcprivacy`) declaring no tracking, no collected data types and no required-reason API use. The Expo camera, microphone and photo-library usage strings, push entitlement and `applinks:meta.fomio.app` associated domain were not carried over: the native app uses `PhotosPicker` and has no push or universal links. Increment `CURRENT_PROJECT_VERSION` for each later upload of the same version.
+
+Build 0.8.0 (1) was archived with Xcode 27.0 (Release, generic iOS) and uploaded via `xcodebuild -exportArchive` (`app-store-connect`, destination `upload`); the upload succeeded and entered processing. The build has not been submitted for App Review. The live acceptance gates above (real sign-in callback, live posting/uploads, device accessibility) remain open and should be exercised on this TestFlight build before review.

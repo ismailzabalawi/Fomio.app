@@ -1,7 +1,7 @@
 import Foundation
 
 @MainActor protocol FeedRepository { func feed(category: Community?, page: Int) async throws -> Page<DiscussionSummary> }
-@MainActor protocol CommunityRepository { func communities() async throws -> [Community] }
+@MainActor protocol CommunityRepository { func communities() async throws -> [Community]; func siteTheme() async throws -> SiteTheme }
 @MainActor protocol DiscussionRepository {
     func discussion(_ id: TopicID, page: Int) async throws -> DiscussionPage
     func children(topic: TopicID, parent: PostNumber, page: Int, depth: Int) async throws -> ChildPage
@@ -47,3 +47,5 @@ extension ComposerRepository {
     func similarDiscussions(title: String, raw: String) async throws -> [DiscussionSummary] { throw RepositoryError.unsupported }
     func oneboxPreview(url: URL, context: OneboxContext) async throws -> OneboxMetadata? { throw RepositoryError.unsupported }
 }
+
+extension CommunityRepository { func siteTheme() async throws -> SiteTheme { SiteTheme() } }

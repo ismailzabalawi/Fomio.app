@@ -4,6 +4,7 @@ struct DiscussionView: View {
     @Environment(AppState.self) private var app
     @Bindable var state: DiscussionState
     var body: some View {
+        let _ = app.siteTheme
         ScrollViewReader { proxy in
             ScrollView {
                 ReadingColumn {
@@ -20,6 +21,14 @@ struct DiscussionView: View {
                                 Button("Show all replies") { app.navigate(.discussion(state.topicID, nil)) }.font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44).background(Color.fomioFill, in: .capsule).padding(.bottom, 12)
                             }
                             if let opening = state.opening { PostCard(post: opening, state: state).id(opening.id) }
+                            HStack(alignment: .firstTextBaseline) {
+                                ScaledTitle("Replies", size: 19)
+                                Text("\(page.summary.replyCount)").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
+                                Spacer()
+                                if let sort = page.effectiveSort {
+                                    Text(sort == "new" ? "Newest first" : sort == "old" ? "Oldest first" : "Community order").font(.caption).foregroundStyle(Color.fomioSecondaryText)
+                                }
+                            }.padding(.top, 16).padding(.bottom, 10)
                             ForEach(state.roots, id: \.self) { id in
                                 Divider().overlay(Color.fomioSeparator)
                                 ThreadBranch(id: id, depth: 0, state: state).padding(.top, 14)
@@ -36,11 +45,11 @@ struct DiscussionView: View {
             }.scrollPosition(id: $state.anchor)
             .onChange(of: state.highlight) { _, value in if let value { proxy.scrollTo(value, anchor: .center) } }
             .safeAreaInset(edge: .bottom) {
-                if let page = state.page, let opening = state.opening, !page.closed, page.canReply || app.username == nil {
+                if let page = state.page, let opening = state.opening, page.canReply || app.username == nil {
                     let target = state.focus == .notification ? state.highlighted ?? opening : opening
                     ReadingColumn {
                         Button { app.reply(to: target) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left").font(.body.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44) }
-                            .buttonStyle(.glassProminent).accessibilityIdentifier("discussion-reply")
+                            .buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).accessibilityIdentifier("discussion-reply")
                             .accessibilityLabel(target.number.rawValue > 1 ? "Reply to \(target.author) · #\(target.number.rawValue)" : "Reply to \(page.summary.title)")
                             .padding(.horizontal, 20).padding(.vertical, 8)
                     }
@@ -63,15 +72,24 @@ struct DiscussionView: View {
     }
     private func header(_ page: DiscussionPage) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Button(app.categoryName(page.summary.categoryID)) { app.navigate(.community(page.summary.categoryID)) }
-                .font(.subheadline.weight(.semibold)).foregroundStyle(Color.fomioAccent).frame(minHeight: 44).padding(.vertical, -10)
-                .accessibilityLabel("Open community \(app.categoryName(page.summary.categoryID))")
-            Text(page.summary.title).font(.title2.bold()).accessibilityAddTraits(.isHeader)
-            Text(([page.summary.author.isEmpty ? nil : page.summary.author, repliesText(page.summary.replyCount), page.summary.activity.isEmpty ? nil : "Active \(page.summary.activity)"] as [String?]).compactMap { $0 }.joined(separator: " · "))
-                .font(.footnote).foregroundStyle(Color.fomioSecondaryText)
+            FlowLayout(spacing: 4) {
+                if let category = app.category(page.summary.categoryID) {
+                    if let parent = category.parentID.flatMap(app.category) { pathLink(parent); Image(systemName: "chevron.right").font(.caption).foregroundStyle(Color.fomioSecondaryText).frame(minHeight: 44).accessibilityHidden(true) }
+                    pathLink(category)
+                } else {
+                    Button(app.categoryName(page.summary.categoryID)) { app.navigate(.community(page.summary.categoryID)) }.frame(minHeight: 44)
+                }
+            }
+            ScaledTitle(page.summary.title, size: 22)
             if page.closed { Label("This discussion is closed", systemImage: "lock").font(.subheadline).foregroundStyle(Color.fomioSecondaryText) }
+            if page.archived { Label("This discussion is archived", systemImage: "archivebox").font(.subheadline).foregroundStyle(Color.fomioSecondaryText) }
             if state.truncated { Text("Earlier thread context is unavailable here.").font(.subheadline).foregroundStyle(Color.fomioSecondaryText) }
         }.padding(.bottom, 16)
+    }
+    private func pathLink(_ category: Community) -> some View {
+        Button { app.navigate(.community(category.id)) } label: {
+            HStack(spacing: 5) { CategoryMark(category: category, size: 20); Text(category.name).font(.caption.weight(.semibold)) }.frame(minHeight: 44)
+        }.buttonStyle(.plain).accessibilityLabel("Open community \(category.name)")
     }
     @ViewBuilder private func failure(_ error: String) -> some View {
         if state.page == nil, state.errorKind == .unavailable {
@@ -95,6 +113,7 @@ struct ShareButton: View {
     let topic: TopicID
     let number: PostNumber?
     var body: some View {
+        let _ = app.siteTheme
         if let url = app.configuration?.topicURL(topic, number: number) { ShareLink(item: url) { Label("Share", systemImage: "square.and.arrow.up") } }
         else { Button { app.toast("Sharing a community link is available when a live site is configured.") } label: { Label("Share", systemImage: "square.and.arrow.up") } }
     }
@@ -105,6 +124,7 @@ struct ThreadBranch: View {
     let depth: Int
     let state: DiscussionState
     var body: some View {
+        let _ = app.siteTheme
         if let post = state.nodes[id] {
             VStack(alignment: .leading, spacing: 8) {
                 PostCard(post: post, state: state)
@@ -136,15 +156,16 @@ struct PostCard: View {
     private var highlighted: Bool { state.highlight == post.id }
     private var own: Bool { app.username != nil && post.author == app.username }
     var body: some View {
+        let _ = app.siteTheme
         VStack(alignment: .leading, spacing: 10) {
             if highlighted, let focus = state.focus { FocusTag(text: focus.label) }
             HStack(alignment: .center, spacing: 10) {
                 Button { app.navigate(.profile(post.author)) } label: {
                     HStack(spacing: 10) {
-                        Avatar(name: post.authorName ?? post.author)
+                        Avatar(name: post.authorName ?? post.author, size: post.number.rawValue == 1 ? 40 : 34)
                         VStack(alignment: .leading, spacing: 1) {
-                            Text(post.author.isEmpty ? "Member" : post.author).font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
-                            if !post.age.isEmpty { Text(post.age).font(.caption).foregroundStyle(Color.fomioSecondaryText) }
+                            Text(post.authorName ?? (post.author.isEmpty ? "Member" : post.author)).font(.subheadline.weight(.bold)).foregroundStyle(Color.fomioText)
+                            if !post.age.isEmpty { Text(post.number.rawValue == 1 ? "Started the discussion · \(post.age)" : post.age).font(.caption).foregroundStyle(Color.fomioSecondaryText) }
                         }
                     }.frame(minHeight: 44).contentShape(.rect)
                 }.buttonStyle(.plain).accessibilityLabel("View profile, \(post.author)")
@@ -154,16 +175,14 @@ struct PostCard: View {
             if post.deleted || post.ignored { Text(post.deleted ? "This reply was deleted." : "This reply is hidden.").foregroundStyle(Color.fomioSecondaryText) }
             else {
                 if let quote = post.quote { QuoteBlock(quote: quote) }
-                if let cooked = post.cooked { CookedContent(html: cooked, topic: post.topicID, number: post.number) }
-                else { Text(.init(post.body)).font(.body).textSelection(.enabled) }
+                if let cooked = post.cooked { CookedContent(html: cooked, topic: post.topicID, number: post.number, textStyle: post.number.rawValue == 1 ? .body : .callout) }
+                else { Text(.init(post.body)).font(post.number.rawValue == 1 ? .body : .callout).textSelection(.enabled) }
                 if let image = post.image { SamplePhoto(name: image) }
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 18) { actions }
-                    VStack(alignment: .leading, spacing: 0) { actions }
-                }
+                FlowLayout(spacing: 10) { actions }
             }
         }.padding(highlighted ? 12 : 0)
         .background(highlighted ? Color.fomioSelected : Color.clear, in: .rect(cornerRadius: 14))
+        .overlay { if highlighted { RoundedRectangle(cornerRadius: 14).strokeBorder(Color.fomioAccent.opacity(0.4), lineWidth: 1.5).accessibilityHidden(true) } }
         .padding(.bottom, 12)
         .accessibilityElement(children: .contain).accessibilityLabel("\(post.number.rawValue == 1 ? "Opening post" : "Reply \(post.number.rawValue)") by \(post.author)")
         .contextMenu {
@@ -178,13 +197,22 @@ struct PostCard: View {
             if post.likeCount > 0 { Label(post.likeCount == 1 ? "1 like" : "\(post.likeCount) likes", systemImage: "heart").labelStyle(CompactIconLabel()).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).frame(minHeight: 44) }
         } else if post.canLike || app.username == nil || post.liked {
             Button { like() } label: {
-                Label(post.likeCount > 0 ? "\(post.likeCount)" : "Like", systemImage: post.liked ? "heart.fill" : "heart").labelStyle(CompactIconLabel())
+                Label(post.likeCount > 0 ? "Like \(post.likeCount)" : "Like", systemImage: post.liked ? "heart.fill" : "heart").labelStyle(CompactIconLabel())
                     .foregroundStyle(post.liked ? Color.fomioLove : Color.fomioSecondaryText)
+                    .padding(.horizontal, 12).frame(minHeight: 44).background(Color.fomioFill, in: .capsule)
             }.font(.subheadline.weight(.medium)).frame(minWidth: 44, minHeight: 44).buttonStyle(.plain)
             .accessibilityLabel("\(post.liked ? "Unlike" : "Like") post by \(post.author), \(post.likeCount) likes").accessibilityAddTraits(post.liked ? .isSelected : [])
         }
+        Button { save() } label: {
+            Label(post.bookmarkID == nil ? "Save" : "Saved", systemImage: post.bookmarkID == nil ? "bookmark" : "bookmark.fill").labelStyle(CompactIconLabel())
+                .font(.subheadline.weight(.medium)).padding(.horizontal, 12).frame(minHeight: 44).background(Color.fomioFill, in: .capsule)
+        }.buttonStyle(.plain).accessibilityLabel(post.bookmarkID == nil ? "Save post by \(post.author)" : "Remove post by \(post.author) from Saved")
         if post.canReply || app.username == nil {
-            Button { app.reply(to: post, quote: true) } label: { Label("Quote", systemImage: "quote.opening").labelStyle(CompactIconLabel()).foregroundStyle(Color.fomioSecondaryText) }
+            if post.number.rawValue > 1 {
+                Button { app.reply(to: post) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left").labelStyle(CompactIconLabel()).frame(minHeight: 44) }
+                    .font(.subheadline.weight(.medium)).buttonStyle(.plain).accessibilityLabel("Reply to \(post.author), post \(post.number.rawValue)")
+            }
+            Button { app.reply(to: post, quote: true) } label: { Label("Quote", systemImage: "quote.opening").labelStyle(CompactIconLabel()).foregroundStyle(Color.fomioSecondaryText).frame(minHeight: 44) }
                 .font(.subheadline.weight(.medium)).frame(minHeight: 44).buttonStyle(.plain).accessibilityLabel("Quote \(post.author)’s post")
         }
     }
@@ -211,7 +239,7 @@ struct QuoteBlock: View {
             Text("\(quote.author) · #\(quote.number.rawValue)").font(.caption.weight(.semibold)).foregroundStyle(Color.fomioSecondaryText)
             Text(quote.text).font(.subheadline).lineLimit(lineLimit)
         }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.fomioFill, in: .rect(cornerRadius: 12))
+        .background(Color.fomioHighlight, in: .rect(cornerRadius: 16))
         .overlay(alignment: .leading) { Capsule().fill(Color.fomioAccent).frame(width: 3).padding(.vertical, 8) }
         .accessibilityElement(children: .combine).accessibilityLabel("Quote from \(quote.author), post \(quote.number.rawValue): \(quote.text)")
     }

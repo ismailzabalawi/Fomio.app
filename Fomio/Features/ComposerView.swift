@@ -89,7 +89,7 @@ struct ComposerView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     if state.draft.submission == .submitting { ProgressView().accessibilityLabel("Posting") }
-                    else { Button("Post") { focusedField = nil; titleEditor.blur(); bodyEditor.blur(); Task { await state.submit() } }.buttonStyle(.glassProminent).disabled(!state.canPost).accessibilityIdentifier("composer-post").keyboardShortcut(.return, modifiers: .command) }
+                    else { Button("Post") { focusedField = nil; titleEditor.blur(); bodyEditor.blur(); Task { await state.submit() } }.buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).disabled(!state.canPost).accessibilityIdentifier("composer-post").keyboardShortcut(.return, modifiers: .command) }
                 }
             }
             }
@@ -251,7 +251,7 @@ struct ComposerView: View {
             alertCard(symbol: "person.crop.circle.badge.exclamationmark", tint: .fomioAccent) {
                 Text("You've been signed out").font(.headline).accessibilityFocused($recoveryFocus, equals: .authorization)
                 Text("Sign in again to post. Your \(state.noun) stays here and won't be sent automatically.").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
-                Button("Sign in") { suspendEditingFocus(); state.suspendForAuthentication() }.buttonStyle(.glassProminent).frame(minHeight: 44)
+                Button("Sign in") { suspendEditingFocus(); state.suspendForAuthentication() }.buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).frame(minHeight: 44)
             }.id(Recovery.authorization)
         }
         if app.isOffline && !state.locked {
@@ -289,7 +289,7 @@ struct ComposerView: View {
         }
     }
     @ViewBuilder private var unconfirmedActions: some View {
-        Button("Check again") { Task { await state.checkAgain() } }.buttonStyle(.glassProminent).disabled(state.checking).frame(minHeight: 44)
+        Button("Check again") { Task { await state.checkAgain() } }.buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).disabled(state.checking).frame(minHeight: 44)
         Button(state.draft.intent.isNew ? "Keep as draft" : "Back to discussion") { state.keepDraft(message: "Kept as a draft. Check the discussion before posting again.") }.buttonStyle(.bordered).frame(minHeight: 44)
     }
     @ViewBuilder private var lostPhotoActions: some View {
@@ -572,7 +572,7 @@ struct CommunityField: View {
     /// A parent the account can't post in: its mark and name label the group but can't be chosen.
     private func parentHeading(_ community: Community) -> some View {
         HStack(spacing: 12) {
-            Monogram(name: community.name, size: mark)
+            CategoryMark(category: community, size: mark)
             Text(community.name).font(.body.weight(.semibold)).foregroundStyle(Color.fomioSecondaryText)
         }.padding(.leading, 14).padding(.vertical, 8).frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
     }
@@ -595,8 +595,8 @@ struct CommunityField: View {
         let isSelected = selected == option.id
         return Button { pick(option.id) } label: {
             HStack(spacing: 12) {
-                // Parents carry their letter mark; in search results a sub-community shows its parent's, so families stay recognisable.
-                if style != .child { Monogram(name: (option.parent ?? option.community).name, size: mark) }
+                // Each result uses its own Discourse category identity.
+                if style != .child { CategoryMark(category: option.community, size: mark) }
                 VStack(alignment: .leading, spacing: 2) {
                     Text(matched(option.community.name)).font(option.parent == nil ? .body.weight(.semibold) : .body).foregroundStyle(style == .child ? AnyShapeStyle(.primary.opacity(0.8)) : AnyShapeStyle(.primary))
                     if style == .result, let parent = option.parent { Text(matched(String(localized: "in \(parent.name)"))).font(.footnote).foregroundStyle(Color.fomioSecondaryText) }

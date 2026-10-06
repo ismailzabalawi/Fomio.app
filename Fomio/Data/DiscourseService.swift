@@ -25,15 +25,47 @@ import Foundation
         return NativeOneboxParser.parse(html, url: url)
     }
     func communities() async throws -> [Community] {
-        let envelope = try await api.get(CategoryEnvelope.self, "categories.json", query: [URLQueryItem(name: "include_subcategories", value: "true")])
         var result: [Community] = []
-        func append(_ category: CategoryDTO) {
-            let value = category.domain(canCreate: envelope.categoryList.canCreateTopic == true)
-            if !result.contains(where: { $0.id == value.id }) { result.append(value) }
-            (category.subcategoryList ?? []).forEach(append)
+        var seen: Set<CategoryID> = []
+        var roots: [CategoryDTO] = []
+        func append(_ category: CategoryDTO, canCreate: Bool) {
+            let value = category.domain(canCreate: canCreate)
+            if seen.insert(value.id).inserted { result.append(value) }
+            (category.subcategoryList ?? []).forEach { append($0, canCreate: canCreate) }
         }
-        envelope.categoryList.categories.forEach(append)
+        // Category JSON omits a next-page marker. Page 2 is empty when paging is disabled.
+        // Stop at an empty/no-progress page and bound requests if a deployment misbehaves.
+        var finished = false
+        for page in 1...100 {
+            try Task.checkCancellation()
+            let envelope = try await api.get(CategoryEnvelope.self, "categories.json", query: [.init(name: "include_subcategories", value: "true"), .init(name: "page", value: String(page))])
+            let before = seen.count
+            roots += envelope.categoryList.categories.filter { $0.parentCategoryId == nil && !seen.contains(.init($0.id)) }
+            envelope.categoryList.categories.forEach { append($0, canCreate: envelope.categoryList.canCreateTopic == true) }
+            if seen.count == before { finished = true; break }
+        }
+        guard finished else { throw RepositoryError.invalid("The community directory could not be fully loaded. Refresh to try again.") }
+        // Lazy lists embed only a child preview. Fetch the full immediate-child list when needed.
+        for root in roots {
+            let loaded = result.filter { $0.parentID == .init(root.id) }
+            let expected = Set(root.subcategoryIds ?? [])
+            let needsChildren = !expected.isSubset(of: Set(loaded.map { $0.id.rawValue })) || (root.subcategoryCount ?? 0) > loaded.count || (root.hasChildren == true && loaded.isEmpty)
+            guard needsChildren else { continue }
+            var childFinished = false
+            for page in 1...100 {
+                try Task.checkCancellation()
+                let envelope = try await api.get(CategoryEnvelope.self, "categories.json", query: [.init(name: "parent_category_id", value: String(root.id)), .init(name: "include_subcategories", value: "true"), .init(name: "page", value: String(page))])
+                let before = seen.count
+                envelope.categoryList.categories.forEach { append($0, canCreate: envelope.categoryList.canCreateTopic == true) }
+                if seen.count == before { childFinished = true; break }
+            }
+            guard childFinished else { throw RepositoryError.invalid("Some subcommunities could not be loaded. Refresh to try again.") }
+        }
         return result
+    }
+    func siteTheme() async throws -> SiteTheme {
+        let site = try await api.get(SiteThemeDTO.self, "site.json")
+        return site.domain
     }
     func feed(category: Community?, page: Int) async throws -> Page<DiscussionSummary> {
         let path = category.map { "c/\($0.id.rawValue)/l/latest.json" } ?? "latest.json"
@@ -58,7 +90,7 @@ import Foundation
             if let cached = initialPages[id] { initial = cached } else { initial = try await discussion(id, page: 0) }
             detail = initial.summary; opening = initial.opening; canReply = initial.canReply
         }
-        let result = DiscussionPage(summary: detail, opening: opening, roots: envelope.roots.map { $0.node(canReply: canReply, topicID: id) }, nextPage: envelope.hasMoreRoots ? page + 1 : nil, closed: envelope.topic?.closed ?? initialPages[id]?.closed ?? false, canReply: canReply)
+        let result = DiscussionPage(summary: detail, opening: opening, roots: envelope.roots.map { $0.node(canReply: canReply, topicID: id) }, nextPage: envelope.hasMoreRoots ? page + 1 : nil, closed: envelope.topic?.closed ?? initialPages[id]?.closed ?? false, canReply: canReply, effectiveSort: envelope.effectiveSort ?? initialPages[id]?.effectiveSort, archived: envelope.topic?.archived ?? initialPages[id]?.archived ?? false)
         if page == 0 { initialPages[id] = result }; return result
     }
     func children(topic: TopicID, parent: PostNumber, page: Int, depth: Int) async throws -> ChildPage {
@@ -73,7 +105,7 @@ import Foundation
         if focused { query.append(URLQueryItem(name: "context", value: "0")) }
         let dto = try await api.get(ContextDTO.self, nestedPath(topic) + "/context/\(number.rawValue).json", query: query)
         let detail = summary(dto.topic), canReply = dto.topic.details?.canCreatePost == true
-        let page = DiscussionPage(summary: detail, opening: dto.opPost.domain(canReply: canReply, topicID: topic), roots: [], nextPage: nil, closed: dto.topic.closed == true, canReply: canReply)
+        let page = DiscussionPage(summary: detail, opening: dto.opPost.domain(canReply: canReply, topicID: topic), roots: [], nextPage: nil, closed: dto.topic.closed == true, canReply: canReply, effectiveSort: dto.effectiveSort, archived: dto.topic.archived == true)
         return ThreadContext(page: page, ancestors: dto.ancestorChain.map { $0.domain(canReply: canReply, topicID: topic) }, target: dto.targetPost.node(canReply: canReply, topicID: topic), truncated: dto.ancestorsTruncated)
     }
     func like(_ post: Post) async throws -> Post {
@@ -159,18 +191,36 @@ struct CategoryEnvelope: Decodable {
     var categoryList: List
 }
 struct CategoryDTO: Decodable {
-    var id: Int; var name: String; var slug: String?; var parentCategoryId: Int?; var descriptionText: String?; var permission: Int?; var subcategoryList: [CategoryDTO]?; var topicTemplate: String?
-    func domain(canCreate: Bool) -> Community { Community(id: .init(id), name: name, slug: slug ?? "", parentID: parentCategoryId.map { CategoryID($0) }, description: descriptionText ?? "", canCreate: canCreate && permission == 1, topicTemplate: topicTemplate) }
+    var id: Int; var name: String; var slug: String?; var parentCategoryId: Int?; var descriptionText: String?; var descriptionExcerpt: String?; var permission: Int?; var subcategoryList: [CategoryDTO]?; var topicTemplate: String?
+    var color: String?; var textColor: String?; var styleType: String?; var icon: String?; var emoji: String?; var readRestricted: Bool?; var topicUrl: String?
+    var subcategoryIds: [Int]?; var subcategoryCount: Int?; var hasChildren: Bool?
+    var uploadedLogo: CategoryAsset?; var uploadedLogoDark: CategoryAsset?; var uploadedBackground: CategoryAsset?; var uploadedBackgroundDark: CategoryAsset?
+    func domain(canCreate: Bool) -> Community {
+        Community(id: .init(id), name: name, slug: slug ?? "", parentID: parentCategoryId.map { CategoryID($0) }, description: descriptionText ?? "", canCreate: canCreate && permission == 1,
+                  topicTemplate: topicTemplate,
+                  identity: CategoryIdentity(color: color, textColor: textColor, style: styleType, icon: icon, emoji: emoji, logo: uploadedLogo, darkLogo: uploadedLogoDark, background: uploadedBackground, darkBackground: uploadedBackgroundDark),
+                  descriptionExcerpt: descriptionExcerpt.map(HTMLContent.plainText), aboutURL: topicUrl)
+        // read_restricted means a visible secured category, not that this viewer is denied access.
+    }
+}
+struct SiteThemeDTO: Decodable {
+    struct Scheme: Decodable {
+        struct Token: Decodable { var name: String; var hex: String }
+        var colors: [Token]?
+        var tokens: [String: String] { (colors ?? []).reduce(into: [:]) { $0[$1.name] = $1.hex } }
+    }
+    var defaultLightColorScheme: Scheme?; var defaultDarkColorScheme: Scheme?
+    var domain: SiteTheme { SiteTheme(light: defaultLightColorScheme?.tokens ?? [:], dark: defaultDarkColorScheme?.tokens ?? [:]) }
 }
 struct UserDTO: Decodable { var id: Int; var username: String }
 struct TopicDTO: Decodable {
     struct Details: Decodable { var canCreatePost: Bool? }
     struct Poster: Decodable { var userId: Int; var description: String? }
-    var id: Int; var title: String; var slug: String?; var categoryId: Int?; var excerpt: String?; var replyCount: Int?; var postsCount: Int?; var lastPosterUsername: String?; var posters: [Poster]?; var closed: Bool?; var details: Details?
+    var id: Int; var title: String; var slug: String?; var categoryId: Int?; var excerpt: String?; var replyCount: Int?; var postsCount: Int?; var lastPosterUsername: String?; var posters: [Poster]?; var closed: Bool?; var details: Details?; var archived: Bool?; var bumpedAt: String?; var pinned: Bool?
     func domain(users: [UserDTO]) -> DiscussionSummary {
         let authorID = posters?.first(where: { $0.description?.contains("Original Poster") == true })?.userId ?? posters?.first?.userId
         let author = users.first { $0.id == authorID }?.username ?? ""
-        return DiscussionSummary(id: .init(id), title: title, slug: slug ?? "topic", categoryID: .init(categoryId ?? 0), excerpt: HTMLContent.plainText(excerpt ?? ""), author: author, replyCount: replyCount ?? max(0, (postsCount ?? 1) - 1), activity: "")
+        return DiscussionSummary(id: .init(id), title: title, slug: slug ?? "topic", categoryID: .init(categoryId ?? 0), excerpt: HTMLContent.plainText(excerpt ?? ""), author: author, replyCount: replyCount ?? max(0, (postsCount ?? 1) - 1), activity: RelativeAge.string(iso: bumpedAt), pinned: pinned == true)
     }
 }
 struct FeedEnvelope: Decodable { struct List: Decodable { var topics: [TopicDTO]; var moreTopicsUrl: String? }; var topicList: List; var users: [UserDTO]? }
@@ -183,9 +233,9 @@ struct PostDTO: Decodable {
     }
     func node(canReply: Bool, topicID: TopicID? = nil) -> ThreadNode { ThreadNode(post: domain(canReply: canReply, topicID: topicID), children: (children ?? []).map { $0.node(canReply: canReply, topicID: topicID) }) }
 }
-struct RootsDTO: Decodable { var topic: TopicDTO?; var opPost: PostDTO?; var roots: [PostDTO]; var hasMoreRoots: Bool; var page: Int }
+struct RootsDTO: Decodable { var topic: TopicDTO?; var opPost: PostDTO?; var roots: [PostDTO]; var hasMoreRoots: Bool; var page: Int; var sort: String?; var effectiveSort: String? }
 struct ChildrenDTO: Decodable { var children: [PostDTO]; var hasMore: Bool; var page: Int }
-struct ContextDTO: Decodable { var topic: TopicDTO; var opPost: PostDTO; var ancestorChain: [PostDTO]; var targetPost: PostDTO; var ancestorsTruncated: Bool }
+struct ContextDTO: Decodable { var topic: TopicDTO; var opPost: PostDTO; var ancestorChain: [PostDTO]; var targetPost: PostDTO; var ancestorsTruncated: Bool; var sort: String?; var effectiveSort: String? }
 struct SearchDTO: Decodable { struct Result: Decodable { var topicId: Int; var postNumber: Int?; var blurb: String?; var username: String? }; struct Group: Decodable { var moreFullPageResults: Bool? }; var topics: [TopicDTO]?; var posts: [Result]?; var users: [UserDTO]?; var groupedSearchResult: Group? }
 struct NoticesDTO: Decodable {
     struct Item: Decodable { struct Info: Decodable { var displayUsername: String? }; var id: Int; var notificationType: Int; var read: Bool; var topicId: Int?; var postNumber: Int?; var fancyTitle: String?; var createdAt: String?; var data: Info? }
@@ -204,5 +254,17 @@ struct MemberDTO: Decodable {
 extension ISO8601DateFormatter {
     static var fractional: ISO8601DateFormatter { let value = ISO8601DateFormatter(); value.formatOptions = [.withInternetDateTime, .withFractionalSeconds]; return value }
 }
-struct SavedDTO: Decodable { struct Item: Decodable { var id: Int; var title: String?; var topicId: Int?; var linkedPostNumber: Int? }; var bookmarks: [Item]; var moreBookmarksUrl: String? }
+struct SavedDTO: Decodable {
+    struct Item: Decodable { var id: Int; var title: String?; var topicId: Int?; var linkedPostNumber: Int? }
+    var bookmarks: [Item]
+    var moreBookmarksUrl: String?
+    private enum CodingKeys: String, CodingKey { case userBookmarkList, bookmarks, moreBookmarksUrl }
+    init(from decoder: Decoder) throws {
+        let root = try decoder.container(keyedBy: CodingKeys.self)
+        // UsersController returns a flat empty list, but serialized nonempty lists have a root.
+        let list = root.contains(.userBookmarkList) ? try root.nestedContainer(keyedBy: CodingKeys.self, forKey: .userBookmarkList) : root
+        bookmarks = try list.decode([Item].self, forKey: .bookmarks)
+        moreBookmarksUrl = try list.decodeIfPresent(String.self, forKey: .moreBookmarksUrl)
+    }
+}
 struct PostingDTO: Decodable { var success: Bool?; var action: String?; var post: PostDTO?; var errors: [String]? }

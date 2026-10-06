@@ -2,6 +2,62 @@ import XCTest
 import UIKit
 
 @MainActor final class FomioUITests: XCTestCase {
+    func testLiveCategoryChildAboutAndTopicNavigation() throws {
+        guard ProcessInfo.processInfo.environment["FOMIO_LIVE_UI_TESTS"] == "1" else { throw XCTSkip("Live UI reads require explicit opt-in") }
+        let app = launch(["--live"])
+        let communities = app.buttons["Communities"].firstMatch
+        XCTAssertTrue(communities.waitForExistence(timeout: 20)); communities.tap()
+        let search = app.searchFields.firstMatch
+        XCTAssertTrue(search.waitForExistence(timeout: 20)); search.tap(); search.typeText("Experiments\n")
+        let child = app.buttons["community-54"]
+        XCTAssertTrue(child.waitForExistence(timeout: 15)); XCTAssertTrue(app.buttons["community-45"].exists)
+        let directory = XCTAttachment(screenshot: app.screenshot()); directory.name = "Live root and child category identity"; directory.lifetime = .keepAlways; add(directory)
+        child.tap()
+        let about = app.buttons["community-about"]; XCTAssertTrue(about.waitForExistence(timeout: 15)); about.tap()
+        XCTAssertTrue(app.buttons["Done"].waitForExistence(timeout: 5)); app.buttons["Done"].tap()
+        let topic = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "topic-")).firstMatch
+        XCTAssertTrue(topic.waitForExistence(timeout: 15))
+        let feed = XCTAttachment(screenshot: app.screenshot()); feed.name = "Live subcategory header and feed"; feed.lifetime = .keepAlways; add(feed)
+        topic.tap()
+        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 15))
+        let detail = XCTAttachment(screenshot: app.screenshot()); detail.name = "Live topic opening post and reply controls"; detail.lifetime = .keepAlways; add(detail)
+        XCTAssertFalse(app.staticTexts["Fixture preview"].exists)
+    }
+    func testCategoryDirectoryExpansionAboutAndChildCreate() {
+        let app = launch(["--preset", "communities"])
+        let expand = app.buttons["category-expand-1"]
+        XCTAssertTrue(expand.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["community-4"].exists)
+        expand.tap(); XCTAssertTrue(app.buttons["community-4"].waitForNonExistence(timeout: 5))
+        expand.tap(); XCTAssertTrue(app.buttons["community-4"].waitForExistence(timeout: 5))
+        app.buttons["community-4"].tap()
+        let about = app.buttons["community-about"]; XCTAssertTrue(about.waitForExistence(timeout: 5)); about.tap()
+        XCTAssertTrue(app.staticTexts["Planes, saws, chisels and keeping them sharp."].waitForExistence(timeout: 5))
+        app.buttons["Done"].tap()
+        app.buttons["New discussion in Hand Tools"].tap()
+        XCTAssertTrue(app.textViews["composer-body"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Hand Tools")).firstMatch.exists)
+        XCTAssertFalse(app.buttons["Post"].isEnabled)
+        app.buttons["composer-close"].tap()
+    }
+    func testDirectoryFilterKeepsAncestorAndQueryAfterBack() {
+        let app = launch(["--preset", "communities"])
+        let search = app.searchFields.firstMatch; XCTAssertTrue(search.waitForExistence(timeout: 5)); search.tap(); search.typeText("Finishing\n")
+        XCTAssertTrue(app.buttons["community-1"].exists); XCTAssertFalse(app.buttons["community-5"].exists)
+        let child = app.buttons["community-2"]; XCTAssertTrue(child.waitForExistence(timeout: 5)); child.tap()
+        XCTAssertTrue(app.buttons["community-about"].waitForExistence(timeout: 5))
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(child.waitForExistence(timeout: 5)); XCTAssertEqual(search.value as? String, "Finishing")
+        XCTAssertFalse(app.buttons["community-5"].exists)
+    }
+    func testCategoryDarkLargeTextAndThemeReflow() {
+        let app = launch(["--preset", "communities", "--dark", "--accessibility-text", "--teal-theme"])
+        let root = app.buttons["community-1"]; XCTAssertTrue(root.waitForExistence(timeout: 10)); root.tap()
+        let about = app.buttons["community-about"]; XCTAssertTrue(about.waitForExistence(timeout: 5))
+        XCTAssertTrue(about.isHittable); XCTAssertGreaterThanOrEqual(about.frame.height, 44)
+        XCTAssertTrue(app.buttons["New discussion in Woodworking"].exists)
+        let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Category dark accessibility teal"; capture.lifetime = .keepAlways; add(capture)
+    }
     func testInserterCancelPreservesHiddenKeyboard() {
         let app = launch(["--preset", "newtopic"])
         let body = app.textViews["composer-body"]
@@ -49,7 +105,10 @@ import UIKit
     override func tearDown() { MainActor.assumeIsolated { XCUIDevice.shared.orientation = .portrait } }
     private func launch(_ arguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication(); app.launchArguments = arguments.contains("--live") ? arguments : ["--fixture", "--ui-testing"] + arguments; app.launchEnvironment["FOMIO_UI_TEST_NAMESPACE"] = UUID().uuidString; app.launch()
-        if !arguments.contains("--live") { XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 10)) }
+        if !arguments.contains("--live") {
+            let ready = arguments.contains("communities") ? "community-1" : "topic-4182"
+            XCTAssertTrue(app.buttons[ready].waitForExistence(timeout: 10))
+        }
         return app
     }
     private func dismissComposerKeyboard(_ app: XCUIApplication) {
@@ -227,7 +286,12 @@ import UIKit
         XCTAssertTrue(close.waitForExistence(timeout: 5))
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: close)], timeout: 5), .completed)
         // An iPad window can retain its size when device orientation changes.
-        if UIDevice.current.userInterfaceIdiom == .phone { XCTAssertGreaterThan(app.frame.width, app.frame.height) }
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            let rotated = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in app.frame.width > app.frame.height }, object: nil)
+            let result = XCTWaiter.wait(for: [rotated], timeout: 8)
+            let evidence = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); evidence.name = "Arabic composer rotation outcome"; evidence.lifetime = .keepAlways; add(evidence)
+            XCTAssertEqual(result, .completed, "Wait for the window rotation, rather than the already-visible Close button")
+        }
         XCTAssertTrue(app.frame.contains(close.frame), "The native action must remain inside the rotated window")
         XCTAssertEqual(body.value as? String, written)
         let capture = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); capture.name = UIDevice.current.userInterfaceIdiom == .phone ? "Arabic composer landscape" : "Arabic composer after device orientation request"; capture.lifetime = .keepAlways; add(capture)

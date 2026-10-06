@@ -42,7 +42,7 @@ struct MeView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Sign in to see your profile").font(.headline)
                         Text("Your saved discussions and drafts live here once you're signed in.").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
-                        Button("Sign in") { app.requestSignIn() }.buttonStyle(.glassProminent).frame(minHeight: 44)
+                        Button("Sign in") { app.requestSignIn() }.buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).frame(minHeight: 44)
                     }.padding(.vertical, 8)
                 }
             }
@@ -212,7 +212,7 @@ struct NotificationsView: View {
             if app.username == nil {
                 ScrollView {
                     InfoCard(title: "Sign in to see notifications", message: "Find out when someone replies to you or mentions you.") {
-                        Button("Sign in") { app.requestSignIn() }.buttonStyle(.glassProminent).frame(minHeight: 44)
+                        Button("Sign in") { app.requestSignIn() }.buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).frame(minHeight: 44)
                     }.padding(20)
                 }
             } else {

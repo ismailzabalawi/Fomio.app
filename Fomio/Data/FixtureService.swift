@@ -17,7 +17,8 @@ import Observation
     var posts: [TopicID: [Post]] = [:]
     var summaries: [DiscussionSummary] = []
     static let member = "jonah.w"
-    static let sampleCommunities: [Community] = [
+    static let sampleCommunities: [Community] = {
+        let categories: [Community] = [
         .init(id: .init(1), name: "Woodworking", slug: "woodworking", description: "Furniture, tools and techniques. Show your builds and ask for help.", canCreate: true),
         .init(id: .init(4), name: "Hand Tools", slug: "hand-tools", parentID: .init(1), description: "Planes, saws, chisels and keeping them sharp.", canCreate: true),
         .init(id: .init(2), name: "Finishing", slug: "finishing", parentID: .init(1), description: "Stains, oils, film finishes and fixing blotchy results.", canCreate: true),
@@ -29,6 +30,20 @@ import Observation
         .init(id: .init(8), name: "Gardening", slug: "gardening", description: "Growing food and flowers.", canCreate: true),
         .init(id: .init(10), name: "Makers Council", slug: "makers-council", description: "Restricted community", canCreate: false, restricted: true)
     ]
+    return categories.map { category in
+        var category = category
+        let colors = [1: "3E8561", 4: "A56B43", 2: "BC704A", 3: "7464BC", 9: "478C94", 5: "4679B3", 6: "99637D", 7: "3F9490", 8: "719546", 10: "73718A"]
+        let icons = [1: "hammer", 4: "wrench", 2: "paintbrush", 5: "microchip", 6: "screwdriver-wrench", 8: "seedling"]
+        category.identity = CategoryIdentity(color: colors[category.id.rawValue], style: icons[category.id.rawValue] == nil ? "square" : "icon", icon: icons[category.id.rawValue])
+        return category
+    }
+    }()
+    func siteTheme() async throws -> SiteTheme {
+        if ProcessInfo.processInfo.arguments.contains("--teal-theme") {
+            return SiteTheme(light: ["primary": "182A2A", "secondary": "FFFFFF", "tertiary": "147A74"], dark: ["primary": "E3F0EF", "secondary": "081615", "tertiary": "73D4C9"])
+        }
+        return SiteTheme()
+    }
     static let people: [String: (name: String, joined: String, bio: String)] = [
         "jonah.w": ("Jonah Wells", "Mar 2024", "Weekend furniture maker in a one-car garage. Mostly walnut and oak, hand tools where I can."),
         "margaux.delacroix-whitfield": ("Margaux Delacroix-Whitfield", "2025", "Learning furniture making on weekends, mostly with reclaimed timber."),

@@ -67,3 +67,12 @@ Draft records are version 2 with version-1 decoding and quote/photo migration. U
 ## Extension rules
 
 Add domain/interface behavior before adding endpoint assumptions to a view. Keep fixtures and live adapters behind the same repository contract. Record source evidence and live status when changing an adapter. Preserve independent draft/upload/auth/submission states and exact identities. Add meaningful tests for new contracts or recovery risks; never use fixture success as proof of deployed behavior.
+
+
+## Category/topic presentation refinement — 2026-10-06
+
+Community retains optional Discourse category identity assets/style/colors, excerpt and introduction URL. CategoryMark renders known icon/emoji identifiers and public HTTPS logo variants, with a category-color square fallback. The directory groups roots and immediate children, keeps server order and matching-child ancestry, and retains expansion/query in TabState. About uses the returned description and optional same-site introduction link. Root category feeds remain aggregate and label that scope.
+
+AppState loads the site's default light/dark schemes through CommunityRepository. FomioTheme stores the app's single-site palette; Color providers capture immutable values for system appearance traits, and observed siteTheme updates mounted views without resetting tab paths. CSS, custom theme behavior and member scheme selection are not mirrored. Missing tokens retain the explicit native fallback. Theme fetching is independent of category permissions.
+
+Discussion presentation adds the parent/child path, compact scaling titles, named author block, labeled Save/Like controls and exact-target outline. Existing normalized paging/context/navigation state remains authoritative. Effective root sort and archived status are now mapped; permission controls still use the viewer's returned flags. Category depth and reply depth remain independent.
