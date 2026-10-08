@@ -98,3 +98,38 @@ Arabic strings were added for every new label; they have not been reviewed by a 
 Verified in the iPhone 17 Pro simulator (iOS 26.1, hardware keyboard connected): entry bar with keyboard hidden; paragraph write mode; Turn into → Heading 2 transformed in place with the caret kept; + sheet named the captured block; Cancel restored the caret; + → Quote inserted a new line after the block with the caret inside it, and typing went into the quote; double-tap selection showed Bold · Italic · Link · Quote · Done; Bold applied and kept the selection. Unit tests cover restyle, caret mapping, structured-block refusal, insertion placement, heading parsing and the style command's undo. UI test `testFloatingBarTurnsBlockIntoHeadingAndInserterCancelKeepsCaret` covers the software-keyboard path.
 
 Still needs native validation: software-keyboard geometry on 375×667 and at accessibility sizes, VoiceOver order and announcements, RTL mirroring of the pill, iPad hardware-keyboard shortcuts, photo-picker return after + → Photo, IME input inside headings and quotes, and Reduce Transparency appearance.
+
+## Composer design audit and refinement — 2026-10-07
+
+The current native composer was audited at `a93cb62` and refined in the working tree using the Build iOS Apps UI patterns, input-toolbar, grid, sheets and Liquid Glass guidance. The user's requested references are interaction sources; the application remains a native Discourse client.
+
+### Reference patterns
+
+| Reference | Observed pattern | Application to Fomio |
+| --- | --- | --- |
+| [Notion mobile editing](https://www.notion.com/help/writing-and-editing-basics) | Mobile insertion lives above the keyboard; block insertion and transformation have separate purposes. | Keep + stable, retain the block-type control, and make insertion scannable. No hover handles or desktop slash-command requirement. |
+| [Gutenberg toolbar](https://developer.wordpress.org/block-editor/reference-guides/components/toolbar/) and [mobile source](https://github.com/wordpress-mobile/gutenberg-mobile/blob/trunk/bundle/android/strings.xml) | Related options share a consistent toolbar; mobile guidance locates insertion at bottom left and formatting above the keyboard. | Separate Add, edit tools, and Done/keyboard into predictable visual groups. |
+| [Tiptap BubbleMenu](https://tiptap.dev/docs/editor/extensions/functionality/bubble-menu) | Formatting responds to text selection. | Keep the contextual selection row. Native selection handles and the system Cut/Copy menu retain their normal behavior; a second bubble near the selection would compete with them. |
+| [Arc command access](https://resources.arc.net/hc/en-us/articles/20855018192791-Site-Search-Directly-Search-any-Website) and [iOS refinements](https://resources.arc.net/hc/en-us/articles/23528454620311-Arc-Search-for-iOS-Release-Notes) | Focused search reduces navigation steps; published refinements include text scaling, RTL and selection-handle fixes. | Search blocks by their purpose as well as name. Restraint, stable focus and adaptable controls are design interpretations, not claims of product parity. |
+| [Telegram attachment menu](https://telegram.org/blog/downloads-attachments-streaming) and [drafts](https://telegram.org/blog/drafts) | A dedicated attachment surface and recoverable unfinished writing support quick composition. | Put Photo in the first row of the insertion sheet and preserve the existing protected local draft behavior. This does not introduce cloud draft sync or Telegram's media capabilities. |
+| [Apple toolbars](https://developer.apple.com/design/human-interface-guidelines/toolbars) and [materials](https://developer.apple.com/design/human-interface-guidelines/materials) | Deliberate item choice, logical groups and a restrained glass control layer preserve hierarchy. | Use separators and a neutral type chip in the floating toolbar; use ordinary themed fills for catalogue content. |
+
+### Audit findings and delivered changes
+
+- The purple outlined type chip competed with the filled Add control. It now uses a quieter fill, the short visible label Text for a paragraph, and a consistent transform chevron. Its accessibility label still states the complete current block type.
+- Add, formatting, and finishing actions appeared as one undifferentiated row. Separators now establish groups, including a distinct Done/keyboard action. The accessibility-size three-control row remains available. Add uses the theme's contrast-aware on-accent ink.
+- The Add block sheet was a long generic list. Photo and Quote now lead as quick cards; text and capability-gated advanced choices use readable rows with purpose descriptions. Search matches descriptions (for example, vote finds Poll). Quick cards collapse to a single column at accessibility sizes. Native search cancellation precedes sheet dismissal when search is active.
+- More → Emoji merely refocused the editor. The inert action was removed; the system keyboard remains the place to choose emoji.
+- Focus/selection, line placement, source mode, undo, draft protection and backend permission ownership remain part of the existing editor contract. The new catalogue uses the same captured insertion operation.
+
+### Remaining design constraints
+
+Full inline formatting inside headings remains unavailable; existing heading markup can display literally. Ordered/task lists and unsupported blocks remain bounded native projections. A fully polished block-writing experience would need richer projections and explicit block operations with source-safe selection mapping. Dragging/reordering blocks, slash commands, collaboration and AI are outside this refinement. Native image selection/cancellation, physical VoiceOver, narrow phones, iPad window resizing and floating keyboards still need their own acceptance evidence.
+
+### Validation and native captures
+
+Built successfully and verified eight distinct fixture UI journeys on an isolated iPhone 17 Pro simulator, iOS 26.1: contextual selection formatting, purpose search and quick quote insertion, Arabic mixed-text editing and rotation, dark accessibility text, largest-text selection reachability, heading transformation and insertion cancellation, keyboard Next/Keep editing, and structured-block Markdown round trip.
+
+The eight-test run passed seven journeys; the new catalogue test initially failed because it expected a Cancel label for iOS 26's icon-only Close search control. After correcting the test query, the catalogue journey passed independently, including search cancellation without a draft mutation or keyboard reopening and quote insertion with exact raw Markdown. No production changes were required for that test correction. Result bundles: `/private/tmp/fomio-polish-verified-20261007.xcresult` (7 passed, 1 failed) and `/private/tmp/fomio-polish-catalogue-final.xcresult` (1 passed, 0 failed). Earlier shared-simulator runs were interrupted and are not acceptance evidence.
+
+Native screenshots were exported and visually inspected: [writing bar](../validation/2026-10-07-composer-polish/writing.png), [insertion catalogue](../validation/2026-10-07-composer-polish/inserter.png), [contextual selection](../validation/2026-10-07-composer-polish/selection.png), [largest-text controls](../validation/2026-10-07-composer-polish/accessibility.png), and [Arabic rotation](../validation/2026-10-07-composer-polish/arabic.png). These captures document the native implementation; exhaustive accessibility and product parity remain unclaimed.

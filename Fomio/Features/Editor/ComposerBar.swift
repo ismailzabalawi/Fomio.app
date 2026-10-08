@@ -69,6 +69,7 @@ struct ComposerBar<More: View>: View {
     private func row(compact: Bool, link: Bool, minimal: Bool = false) -> some View {
         HStack(spacing: 0) {
             insertButton
+            if !minimal, mode != .entry, mode != .title { separator }
             if !minimal { centre(compact: compact, link: link) }
             Spacer(minLength: 4)
             if sizeClass == .regular, !compact, mode != .title {
@@ -76,6 +77,7 @@ struct ComposerBar<More: View>: View {
                 icon("Redo", "arrow.uturn.forward", action: actions.redo).disabled(!canRedo).opacity(canRedo ? 1 : 0.35)
             }
             if mode != .title { more(compact && !minimal).fixedSize().frame(minWidth: target, minHeight: target) }
+            separator
             trailing
         }
     }
@@ -83,7 +85,7 @@ struct ComposerBar<More: View>: View {
         switch mode {
         case .entry, .turnInto: EmptyView()
         case .title:
-            Text("Title · plain text").font(.subheadline).foregroundStyle(Color.fomioSecondaryText).lineLimit(1).padding(.horizontal, 8)
+            Text("Title").font(.subheadline).foregroundStyle(Color.fomioSecondaryText).lineLimit(1).padding(.horizontal, 8)
         case let .write(style):
             if let style {
                 if !compact { typeChip(style) }
@@ -102,6 +104,9 @@ struct ComposerBar<More: View>: View {
             if !compact, style != nil { toggle("Quote", "text.quote", on: style == .quote, action: actions.quote) }
         }
     }
+    private var separator: some View {
+        Capsule().fill(Color.fomioSeparator).frame(width: 1, height: 18).padding(.horizontal, 4).accessibilityHidden(true)
+    }
     @ViewBuilder private var trailing: some View {
         if case .selection = mode {
             Button(action: actions.done) { Text("Done").font(.body.weight(.semibold)).foregroundStyle(Color.fomioAccent).padding(.horizontal, 10).frame(minWidth: target, minHeight: target).contentShape(.rect) }
@@ -114,7 +119,7 @@ struct ComposerBar<More: View>: View {
     // MARK: Controls
     private var insertButton: some View {
         Button(action: actions.insert) {
-            Image(systemName: "plus").font(.system(size: 20, weight: .semibold)).foregroundStyle(.white)
+            Image(systemName: "plus").font(.system(size: 20, weight: .semibold)).foregroundStyle(Color.fomioOnAccent)
                 .frame(width: target - 8, height: target - 8).background(Color.fomioAccent, in: .circle)
                 .frame(width: target, height: target).contentShape(.rect)
         }
@@ -125,12 +130,12 @@ struct ComposerBar<More: View>: View {
     private func typeChip(_ style: ComposerTextStyle) -> some View {
         Button(action: actions.openTurnInto) {
             HStack(spacing: 4) {
-                Text(style.title).lineLimit(1)
-                if sizeClass == .regular { Image(systemName: "chevron.up.chevron.down").font(.caption.weight(.semibold)).accessibilityHidden(true) }
+                Text(style == .paragraph ? String(localized: "Text") : style.title).lineLimit(1)
+                Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold)).accessibilityHidden(true)
             }
-            .font(.subheadline.weight(.semibold)).foregroundStyle(Color.fomioAccent)
-            .padding(.horizontal, 12).frame(minHeight: 32)
-            .overlay { Capsule().strokeBorder(Color.fomioAccent, lineWidth: 1.5) }
+            .font(.subheadline.weight(.medium)).foregroundStyle(Color.primary)
+            .padding(.horizontal, 10).frame(minHeight: 32)
+            .background(Color.fomioFill, in: .capsule)
             .frame(minHeight: target).contentShape(.rect)
         }
         .buttonStyle(.plain).padding(.horizontal, 4)
@@ -189,12 +194,12 @@ struct ComposerBar<More: View>: View {
         if reduceTransparency {
             Capsule().fill(Color.fomioCell).overlay { Capsule().strokeBorder(Color.fomioSeparator) }
         } else {
-            Color.clear.glassEffect(.regular, in: .capsule)
+            Color.clear.glassEffect(.regular.interactive(), in: .capsule)
         }
     }
 }
 
-/// + opens this sheet. It names where the block will go and only lists what this site supports.
+/// A focused insertion catalogue. Common additions come first; search keeps every supported block reachable.
 struct ComposerInserter: View {
     enum Choice: Hashable { case text(ComposerTextStyle), photo, samplePhoto, block(ComposerBlockKind) }
     var placement: String
@@ -202,37 +207,120 @@ struct ComposerInserter: View {
     var samplePhoto: Bool
     var pick: (Choice) -> Void
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicType
     @State private var query = ""
-    private struct Item: Identifiable { var choice: Choice; var title: String; var symbol: String; var id: Choice { choice } }
+    private struct Item: Identifiable {
+        var choice: Choice
+        var title: String
+        var detail: String
+        var symbol: String
+        var id: Choice { choice }
+    }
+    private func localized(_ key: String) -> String { String(localized: String.LocalizationValue(key)) }
+    private var quickItems: [Item] {
+        [Item(choice: .photo, title: localized("Photo"), detail: localized("From your library"), symbol: "photo"),
+         Item(choice: .text(.quote), title: localized("Quote"), detail: localized("Give a passage its own space"), symbol: "text.quote")]
+    }
+    private func textItem(_ style: ComposerTextStyle) -> Item {
+        let detail: String
+        switch style {
+        case .paragraph: detail = "Continue with plain text"
+        case .heading(2): detail = "Start a new section"
+        case .heading: detail = "Add a smaller section heading"
+        case .quote: detail = "Give a passage its own space"
+        case .list: detail = "Make your points easy to scan"
+        }
+        return Item(choice: .text(style), title: style == .paragraph ? localized("Text") : style.title, detail: localized(detail), symbol: style.symbol)
+    }
     private var sections: [(String, [Item])] {
-        let text = ComposerTextStyle.offered.map { Item(choice: .text($0), title: $0.title, symbol: $0.symbol) }
-        var media = [Item(choice: .photo, title: String(localized: "Photo"), symbol: "photo")]
-        if samplePhoto { media.append(Item(choice: .samplePhoto, title: String(localized: "Sample photo"), symbol: "photo.badge.checkmark")) }
-        let advanced = blocks.map { Item(choice: .block($0), title: String(localized: String.LocalizationValue($0.title)), symbol: Self.symbol($0)) }
-        let trimmed = query.trimmingCharacters(in: .whitespaces)
-        return [(String(localized: "Text"), text), (String(localized: "Media"), media), (String(localized: "Advanced"), advanced)].map { title, items in
-            (title, trimmed.isEmpty ? items : items.filter { $0.title.localizedStandardContains(trimmed) })
+        let text = ComposerTextStyle.offered.map(textItem)
+        var media = [quickItems[0]]
+        if samplePhoto { media.append(Item(choice: .samplePhoto, title: localized("Sample photo"), detail: localized("Fixture preview"), symbol: "photo.badge.checkmark")) }
+        let advanced = blocks.map { Item(choice: .block($0), title: localized($0.title), detail: localized(Self.detail($0)), symbol: Self.symbol($0)) }
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        return [(localized("Text"), text), (localized("Media"), media), (localized("Advanced"), advanced)].map { title, items in
+            let visible = trimmed.isEmpty ? items.filter { item in !quickItems.contains { $0.choice == item.choice } } : items.filter {
+                $0.title.localizedStandardContains(trimmed) || $0.detail.localizedStandardContains(trimmed)
+            }
+            return (title, visible)
         }.filter { !$0.1.isEmpty }
     }
     var body: some View {
         NavigationStack {
-            List {
-                Section { Text(placement).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).accessibilityIdentifier("composer-insert-placement") }
-                ForEach(sections, id: \.0) { title, items in
-                    Section(title) {
-                        ForEach(items) { item in
-                            Button { pick(item.choice) } label: { Label(item.title, systemImage: item.symbol).frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(.rect) }
-                                .foregroundStyle(.primary)
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 24) {
+                    Label { Text(placement) } icon: { Image(systemName: "text.insert") }
+                        .font(.footnote).foregroundStyle(Color.fomioSecondaryText)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityIdentifier("composer-insert-placement")
+                    if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        LazyVGrid(columns: dynamicType.isAccessibilitySize ? [GridItem(.flexible())] : [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                            ForEach(quickItems) { item in quickButton(item) }
                         }
                     }
-                }
-                if sections.isEmpty { Text("No block matches “\(query)”.").foregroundStyle(Color.fomioSecondaryText) }
+                    ForEach(sections, id: \.0) { title, items in
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(title).font(.footnote.weight(.semibold)).foregroundStyle(Color.fomioSecondaryText).accessibilityAddTraits(.isHeader)
+                            VStack(spacing: 0) {
+                                ForEach(items) { item in
+                                    itemButton(item)
+                                    if item.id != items.last?.id { Divider().padding(.leading, 58).accessibilityHidden(true) }
+                                }
+                            }.background(Color.fomioFill, in: .rect(cornerRadius: 18))
+                        }
+                    }
+                    if sections.isEmpty, !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        ContentUnavailableView.search(text: query)
+                    }
+                }.padding(20)
             }
+            .background(Color.fomioBackground)
+            .scrollDismissesKeyboard(.interactively)
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("Search blocks"))
             .navigationTitle("Add block").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel", systemImage: "xmark") { dismiss() }.accessibilityIdentifier("composer-insert-cancel") } }
         }
         .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+    private func quickButton(_ item: Item) -> some View {
+        Button { pick(item.choice) } label: {
+            VStack(alignment: .leading, spacing: 12) {
+                Image(systemName: item.symbol).font(.system(size: 23, weight: .medium)).foregroundStyle(Color.fomioAccent)
+                    .frame(width: 44, height: 44).background(Color.fomioHighlight, in: .rect(cornerRadius: 12))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(item.title).font(.headline).foregroundStyle(Color.primary)
+                    Text(item.detail).font(.caption).foregroundStyle(Color.fomioSecondaryText)
+                }
+            }.frame(maxWidth: .infinity, alignment: .leading).padding(16)
+                .frame(maxHeight: .infinity, alignment: .top)
+                .background(Color.fomioFill, in: .rect(cornerRadius: 20)).contentShape(.rect)
+        }.buttonStyle(.plain).accessibilityLabel(item.title).accessibilityHint(item.detail)
+    }
+    private func itemButton(_ item: Item) -> some View {
+        Button { pick(item.choice) } label: {
+            HStack(spacing: 14) {
+                Image(systemName: item.symbol).font(.system(size: 18, weight: .medium)).foregroundStyle(Color.fomioSecondaryText).frame(width: 28)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(item.title).font(.body.weight(.medium)).foregroundStyle(Color.primary)
+                    Text(item.detail).font(.caption).foregroundStyle(Color.fomioSecondaryText)
+                }
+                Spacer(minLength: 0)
+            }.padding(.horizontal, 16).padding(.vertical, 13).frame(maxWidth: .infinity, minHeight: 56, alignment: .leading).contentShape(.rect)
+        }.buttonStyle(.plain).accessibilityLabel(item.title).accessibilityHint(item.detail)
+    }
+    private static func detail(_ kind: ComposerBlockKind) -> String {
+        switch kind {
+        case .poll: "Ask the community to vote"
+        case .table: "Organize information in rows"
+        case .details: "Let readers reveal more"
+        case .spoiler: "Hide a detail until tapped"
+        case .date: "Share a date and time"
+        case .code: "Keep code readable"
+        case .quote: "Give a passage its own space"
+        case .photo: "From your library"
+        case .opaque: "Edit in Markdown"
+        }
     }
     private static func symbol(_ kind: ComposerBlockKind) -> String {
         switch kind {

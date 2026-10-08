@@ -137,3 +137,18 @@
 "Quoting %@ · #%lld" = "Quoting %@ · #%lld";
 "Replying to %@ · #%lld" = "Replying to %@ · #%lld";
 "Discussion %lld" = "Discussion %lld";
+
+/* Composer insertion catalogue */
+"From your library" = "From your library";
+"Give a passage its own space" = "Give a passage its own space";
+"Continue with plain text" = "Continue with plain text";
+"Start a new section" = "Start a new section";
+"Add a smaller section heading" = "Add a smaller section heading";
+"Make your points easy to scan" = "Make your points easy to scan";
+"Fixture preview" = "Fixture preview";
+"Ask the community to vote" = "Ask the community to vote";
+"Organize information in rows" = "Organize information in rows";
+"Let readers reveal more" = "Let readers reveal more";
+"Hide a detail until tapped" = "Hide a detail until tapped";
+"Share a date and time" = "Share a date and time";
+"Keep code readable" = "Keep code readable";

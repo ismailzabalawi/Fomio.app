@@ -1,0 +1,11 @@
+{
+  "Fomio/Features/DiscussionState.swift": "c4bbeda76cbc2e1ee295377a9692f0fe75283b9189219d6322e7a6123a2bfebe",
+  "Fomio/Features/ComposerView.swift": "d9f6b0c548209611c84159b559ccb9c0419a918d380ef28b37b0a88b6ca21cd6",
+  "Fomio/Features/Editor/ComposerBar.swift": "c19b67f82526c9db45852f77932b8054e536c00f6469367b1ba03d2f14b0f90a",
+  "Fomio/Resources/en.lproj/Localizable.strings": "2636d08b2204959a380660b6cf29d6b0bf3e764f63ba0082599beea388686897",
+  "Fomio/Resources/ar.lproj/Localizable.strings": "faba06e23222c6e55d3563328e23deb11d3baee3b1f367c7ad443995cd99387e",
+  "FomioTests/FomioTests.swift": "95541904728088591c5eaa1ddf6ffc1326e0d0386c945146c0d822bca766f715",
+  "FomioUITests/FomioUITests.swift": "0db3bb868ac5d62578fbb1d98d8d74d9a9d575f317dcdee4c4eab35556beca3d",
+  "project.yml": "d1e4c09881a50dd62129da7522c0fb0485627fb04b48c1492660c7a648fa8d62",
+  "Fomio.xcodeproj/project.pbxproj": "209d2c23d239c8813abade64d7f246954e56815754cef3cb24d42f707ade29de"
+}

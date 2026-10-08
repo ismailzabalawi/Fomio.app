@@ -1,5 +1,13 @@
 # Discourse API reference
 
+## Category identity administration review — 2026-10-08
+
+Reference HEAD freshly rechecked at `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`. Backend checkout remains read-only. Browser guest review of the deployed `/categories` directory confirms 11 public roots and 15 immediate children; this does not enumerate restricted/staff categories. Most rendered badges repeat `0088CC` and `square-full`; General uses `25AAE2`. See [assessment and proposed identities](category-identity-plan.md) for the exact ID inventory, descriptions and unresolved application checks.
+
+Source review: `config/routes.rb` maps category updates through resource `PUT /categories/:id`; `CategoriesController#update` requires login and `guardian.ensure_can_edit!`, and permits `name`, `color`, `text_color`, `style_type`, `icon`, `emoji` and description. `CategoryGuardian#can_edit_category?` allows administrators or visible-category moderators when `moderators_manage_categories` is enabled. `Category` validates hex colors and emoji existence and defines square/icon/emoji styles. `BasicCategorySerializer` returns identity fields and logo uploads. `spec/requests/categories_controller_spec.rb` covers unauthenticated/nonstaff denial, updates, invalid emoji and description/About-topic synchronization. Specs were read, not run. Route/source availability is not proof that the deployed editor accepts every proposed icon.
+
+Status: public taxonomy/rendered appearance **browser verified**; identity write contract **source reviewed**; deployed picker, authenticated edit/save/readback and native display **pending** because the current in-app browser is signed out. No deployed mutations or API keys used. Proposed names and identities are not recorded as applied facts. Native `CategoryMark` currently maps only a small icon/emoji subset; most proposed symbols need native mappings before full cross-client verification.
+
 ## Category and topic IA source review — 2026-10-06
 
 Local checkout `/Volumes/Develop/Projects/Dicourse` rechecked at `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`; only the previously recorded unrelated untracked `docs/sidebar-outlet-discovery.md` was present. No backend changes, server startup, request-spec execution or fresh deployed requests. The attached Discourse archeologist skill informed the trace; its historical Expo/relative-path wording does not change the native client's ownership or deployment status.
@@ -292,3 +300,13 @@ Backend reference HEAD was rechecked at `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e
 - **Rate limiting: live observed.** A closely spaced rerun returned 429 before publication; it was recorded as `rateLimited`, not empty content or successful posting. A later spaced run passed. No automatic posting retry was introduced.
 
 Integration tests are opt-in. `FOMIO_LIVE_READ_TESTS=1` enables guest/member reads; `FOMIO_LIVE_WRITE_TESTS=1` enables the explicitly approved temporary-content test. Ordinary runs skip live tests. Write authorization must be obtained for each future task; an environment flag is not authorization. `FOMIO_PREVIOUS_TEST_TOPIC_ID` is only for cleanup of the exact ID recorded by an earlier approved run, never a title/search match. No credentials or raw account payloads are stored in this documentation.
+
+## Final native audit — 2026-10-07
+
+Backend reference HEAD freshly checked and unchanged at `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`; no backend changes. Live anonymous adapter checks, stored-member read checks and native category → child → About → topic navigation passed again. This audit made no live member mutations and did not repeat yesterday's approved temporary write tests. Source inspection confirmed the Like response's PostSerializer includes `topic_id`; no adapter contract change was needed.
+
+Two local diagnostic probes exposed cache invalidation gaps: a successful refresh retained a removed child in an expanded branch, and an HTTP 403 refresh retained the old topic page/text and its earlier reply permission. The latter is simulated transport evidence, not a deployed revocation test. Server authorization is still enforced; native display currently retains stale content/controls. These are open client fixes. See [final audit findings and exact evidence](validation/2026-10-07-final-audit/README.md). Existing deployed revocation/trust-level/upload/theme-preference assumptions remain unresolved.
+
+## Audit cache corrections — 2026-10-07
+
+The native refresh defects recorded above are now corrected: successful refresh replaces reply caches and refetches reachable expanded branches; 401/403/404 remove the previously visible topic/controls, while offline refresh retains content. Late results from an older cache generation do not repopulate a replaced cache. Sanitized transport regressions cover all three status codes; fixture regressions cover deleted children, empty branches and offline retention. These are local client-state verifications, not a new deployed revocation experiment or API contract change. Backend HEAD was rechecked and remains `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`; no backend edits or live mutations. [Fixes and final test evidence](validation/2026-10-07-audit-fixes/README.md).

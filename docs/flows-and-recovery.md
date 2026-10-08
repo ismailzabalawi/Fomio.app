@@ -89,3 +89,7 @@ Cancel suspends editing focus. Keep editing restores the previous field if the s
 Native SwiftUI safe areas position the formatting bar above docked keyboards; no fixed keyboard-height assumptions or global tap-to-dismiss gestures are used. Floating keyboards, physical keyboard navigation/shortcuts, VoiceOver announcements, real Photos picker dismissal, rotation, RTL and resized iPad windows still require device acceptance unless separately recorded in implementation status.
 
 Design references: [Apple Virtual keyboards](https://developer.apple.com/design/human-interface-guidelines/virtual-keyboards), [Keyboards](https://developer.apple.com/design/human-interface-guidelines/keyboards), and [Focus and selection](https://developer.apple.com/design/human-interface-guidelines/focus-and-selection/). Apple search excerpts were read; the direct pages returned JavaScript shells in this session. This is source-informed implementation, not a claim of exhaustive HIG compliance.
+
+### Refresh recovery correction — 2026-10-07
+
+A successful topic refresh replaces the normalized reply cache and reloads reachable open branches; a retained reading anchor must exist in the fresh response. Removed children and empty branches disappear. Offline refresh retains content and expansion. Authorization/visibility failure discards the topic and its controls rather than showing previously permitted content. Older in-flight child/mutation results cannot repopulate the replacement cache. [Local regression evidence](validation/2026-10-07-audit-fixes/README.md).

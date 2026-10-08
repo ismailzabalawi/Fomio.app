@@ -1,0 +1,136 @@
+{
+  "clientDate": "2026-10-07",
+  "timezone": "Asia/Amman",
+  "appRevision": "a93cb620060e8d0a0ea6beb476639fd4e7ae9ce3",
+  "backendRevision": "d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2",
+  "runs": [
+    {
+      "bundle": "test_sim_2026-10-06T22-08-54-774Z_pid7214_ba1e3b55.xcresult",
+      "result": "Passed",
+      "passed": 73,
+      "failed": 0,
+      "skipped": 3,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": []
+    },
+    {
+      "bundle": "test_sim_2026-10-06T22-09-28-002Z_pid7214_89187308.xcresult",
+      "result": "Failed",
+      "passed": 7,
+      "failed": 2,
+      "skipped": 0,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": [
+        {
+          "test": "FomioUITests/testArabicComposerPreservesMixedTextAcrossModesAndRotation()",
+          "message": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\") - Wait for the window rotation, rather than the already-visible Close button"
+        },
+        {
+          "test": "FomioUITests/testKeyboardBarNextAndKeepEditing()",
+          "message": "Failed to synthesize event: Neither element nor any descendant has keyboard focus. Event dispatch snapshot: TextView, {{20.0, 292.3}, {362.0, 200.0}}, identifier: 'composer-body', label: 'Opening post', value: First line\nSecond ...\nElement "
+        }
+      ]
+    },
+    {
+      "bundle": "test_sim_2026-10-06T22-12-14-718Z_pid7214_d335f903.xcresult",
+      "result": "Failed",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": [
+        {
+          "test": "FinalAuditVisibilityProbe/testDeniedRefreshRetainsPreviouslyVisibleOpening()",
+          "message": "XCTAssertNotNil failed"
+        }
+      ]
+    },
+    {
+      "bundle": "test_sim_2026-10-06T22-12-28-978Z_pid7214_8342a5e2.xcresult",
+      "result": "Passed",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": []
+    },
+    {
+      "bundle": "test_sim_2026-10-06T22-12-54-943Z_pid7214_29384ab4.xcresult",
+      "result": "Passed",
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": []
+    },
+    {
+      "bundle": "test_sim_2026-10-06T22-14-11-480Z_pid7214_d5d32352.xcresult",
+      "result": "Passed",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": []
+    },
+    {
+      "bundle": "test_sim_2026-10-06T22-14-48-586Z_pid7214_48f52fdc.xcresult",
+      "result": "Failed",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "devices": [
+        "iPhone 17 Pro"
+      ],
+      "failures": [
+        {
+          "test": "FomioUITests/testKeyboardBarNextAndKeepEditing()",
+          "message": "Failed to synthesize event: Neither element nor any descendant has keyboard focus. Event dispatch snapshot: TextView, {{20.0, 292.3}, {362.0, 200.0}}, identifier: 'composer-body', label: 'Opening post', value: First line\nSecond ...\nElement "
+        }
+      ]
+    },
+    {
+      "bundle": "test_sim_2026-10-06T22-17-22-229Z_pid7214_53a8421c.xcresult",
+      "scope": "concurrent layout batch; runner infrastructure failure",
+      "result": "Failed",
+      "passed": 0,
+      "failed": 2,
+      "skipped": 0,
+      "failures": [
+        {
+          "test": "FomioUITests-Runner (51033) encountered an error",
+          "message": "Failed to install or launch the test runner. (Underlying Error: The operation couldn\u2019t be completed. (Mach error -308 - (ipc/mig) server died))"
+        },
+        {
+          "test": "FomioUITests/testComposerCatalogueQuickQuoteAndSearchRecovery()",
+          "message": "Test crashed with signal kill."
+        }
+      ]
+    },
+    {
+      "bundle": "test_sim_2026-10-06T22-18-52-478Z_pid7214_b81c4f60.xcresult",
+      "scope": "concurrent catalogue retry; UI failure",
+      "result": "Failed",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "failures": [
+        {
+          "test": "FomioUITests/testComposerCatalogueQuickQuoteAndSearchRecovery()",
+          "message": "Failed to tap \"composer-insert-cancel\" Button: No matches found for Elements matching predicate '\"composer-insert-cancel\" IN identifiers' from input {(\n    Button, label: 'Sheet Grabber', value: Expanded,\n    Button, label: 'Next keyboard',"
+        }
+      ]
+    }
+  ]
+}

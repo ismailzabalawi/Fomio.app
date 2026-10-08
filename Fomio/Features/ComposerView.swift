@@ -47,7 +47,7 @@ struct ComposerView: View {
                             statusCards
                             if state.draft.intent.isNew { destinationRow } else { replyContext }
                             if state.draft.intent.isNew {
-                                NativeComposerEditor(raw: $state.draft.title, controller: titleEditor, isTitle: true, locked: state.locked, onNext: { titleEditor.blur(); bodyEditor.focus(); focusedField = .body }, onFocus: { bodyEditor.blur(); focusedField = .title }, identifier: "composer-title", label: "Title", placeholder: "Title")
+                                NativeComposerEditor(raw: $state.draft.title, controller: titleEditor, isTitle: true, locked: state.locked, onNext: { bodyEditor.focus(); focusedField = .body }, onFocus: { bodyEditor.blur(); focusedField = .title }, identifier: "composer-title", label: "Title", placeholder: "Title")
                                 Divider().overlay(Color.fomioSeparator)
                             }
                             NativeComposerEditor(raw: $state.draft.body, controller: bodyEditor, locked: state.locked, attachmentData: { state.data(for: $0) }, attachmentCaption: { node in state.attachment(for: node).map(photoStatus) }, onBlock: { node in if let attachment = state.attachment(for: node) { suspendEditingFocus(); photoDescription = attachment.description; editingPhoto = attachment } else { openBlock(node) } }, onRemove: { node in bodyEditor.send(.replace(node.range, "")) }, onFocus: { titleEditor.blur(); focusedField = .body; bodyEngaged = true }, label: state.draft.intent.isNew ? "Opening post" : "Reply text", placeholder: state.draft.intent.isNew ? "Write the opening post" : "Write your reply")
@@ -435,8 +435,7 @@ struct ComposerView: View {
         var actions: [ComposerMenuAction] = [
             .init("Bold", "bold", enabled: canFormatInline, group: "Format") { bodyEditor.send(.bold); bodyEditor.focus() },
             .init("Italic", "italic", enabled: canFormatInline, group: "Format") { bodyEditor.send(.italic); bodyEditor.focus() },
-            .init("Link", "link", enabled: canFormatInline, group: "Format") { openLink() },
-            .init("Emoji", "face.smiling", group: "Format") { bodyEditor.focus() }
+            .init("Link", "link", enabled: canFormatInline, group: "Format") { openLink() }
         ]
         // Turn into stays reachable here when large text drops the type chip from the bar.
         for style in ComposerTextStyle.offered {

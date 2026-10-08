@@ -1,0 +1,153 @@
+{
+  "runs": [
+    {
+      "name": "fix_initial",
+      "summary": {
+        "status": "FAILED",
+        "durationMs": 131362,
+        "counts": {
+          "passed": 78,
+          "failed": 1,
+          "skipped": 3
+        },
+        "target": "simulator"
+      },
+      "artifacts": {
+        "buildLogPath": "~/Library/Developer/XcodeBuildMCP/workspaces/Fomio-Swift-a437303753c0/logs/test_sim_2026-10-06T22-28-14-400Z_pid7214_6c65c6db.log",
+        "xcresultPath": "~/Library/Developer/XcodeBuildMCP/workspaces/Fomio-Swift-a437303753c0/result-bundles/test_sim_2026-10-06T22-28-14-401Z_pid7214_9af950db.xcresult",
+        "testProductsPath": "~/Library/Developer/XcodeBuildMCP/workspaces/Fomio-Swift-a437303753c0/test-products/test_sim_2026-10-06T22-28-14-401Z_pid7214_b82aa370.xctestproducts"
+      },
+      "failures": [
+        {
+          "suite": "FomioUITests",
+          "test": "testComposerCatalogueQuickQuoteAndSearchRecovery",
+          "message": "XCTAssertNotNil failed",
+          "location": "/Volumes/Develop/Projects/Fomio Swift/FomioUITests/FomioUITests.swift:132"
+        },
+        {
+          "suite": "FomioUITests",
+          "test": "testComposerCatalogueQuickQuoteAndSearchRecovery()",
+          "message": "XCTAssertNotNil failed"
+        }
+      ],
+      "selectedUICases": [
+        {
+          "suite": "FomioUITests",
+          "test": "testArabicComposerPreservesMixedTextAcrossModesAndRotation",
+          "status": "passed",
+          "durationMs": 23924
+        },
+        {
+          "suite": "FomioUITests",
+          "test": "testComposerCatalogueQuickQuoteAndSearchRecovery",
+          "status": "failed",
+          "durationMs": 19151
+        },
+        {
+          "suite": "FomioUITests",
+          "test": "testKeyboardBarNextAndKeepEditing",
+          "status": "passed",
+          "durationMs": 27408
+        }
+      ]
+    },
+    {
+      "name": "fix_regression",
+      "summary": {
+        "status": "SUCCEEDED",
+        "durationMs": 166729,
+        "counts": {
+          "passed": 81,
+          "failed": 0,
+          "skipped": 3
+        },
+        "target": "simulator"
+      },
+      "artifacts": {
+        "buildLogPath": "~/Library/Developer/XcodeBuildMCP/workspaces/Fomio-Swift-a437303753c0/logs/test_sim_2026-10-06T22-30-52-723Z_pid7214_54e9d744.log",
+        "xcresultPath": "~/Library/Developer/XcodeBuildMCP/workspaces/Fomio-Swift-a437303753c0/result-bundles/test_sim_2026-10-06T22-30-52-723Z_pid7214_a31d9ce7.xcresult",
+        "testProductsPath": "~/Library/Developer/XcodeBuildMCP/workspaces/Fomio-Swift-a437303753c0/test-products/test_sim_2026-10-06T22-30-52-723Z_pid7214_259d03aa.xctestproducts"
+      },
+      "failures": [],
+      "selectedUICases": [
+        {
+          "suite": "FomioUITests",
+          "test": "testArabicComposerPreservesMixedTextAcrossModesAndRotation",
+          "status": "passed",
+          "durationMs": 22613
+        },
+        {
+          "suite": "FomioUITests",
+          "test": "testComposerCatalogueQuickQuoteAndSearchRecovery",
+          "status": "passed",
+          "durationMs": 31067
+        },
+        {
+          "suite": "FomioUITests",
+          "test": "testDarkAccessibilityComposerRemainsReachable",
+          "status": "passed",
+          "durationMs": 21571
+        },
+        {
+          "suite": "FomioUITests",
+          "test": "testKeyboardBarNextAndKeepEditing",
+          "status": "passed",
+          "durationMs": 28411
+        },
+        {
+          "suite": "FomioUITests",
+          "test": "testLargestTextSelectionFitsBar",
+          "status": "passed",
+          "durationMs": 19540
+        }
+      ]
+    },
+    {
+      "name": "fix_exact_final",
+      "summary": {
+        "status": "SUCCEEDED",
+        "durationMs": 50193,
+        "counts": {
+          "passed": 78,
+          "failed": 0,
+          "skipped": 3
+        },
+        "target": "simulator"
+      },
+      "artifacts": {
+        "buildLogPath": "~/Library/Developer/XcodeBuildMCP/workspaces/Fomio-Swift-a437303753c0/logs/test_sim_2026-10-06T22-36-08-058Z_pid7214_1ab611c2.log",
+        "xcresultPath": "~/Library/Developer/XcodeBuildMCP/workspaces/Fomio-Swift-a437303753c0/result-bundles/test_sim_2026-10-06T22-36-08-058Z_pid7214_78208c65.xcresult",
+        "testProductsPath": "~/Library/Developer/XcodeBuildMCP/workspaces/Fomio-Swift-a437303753c0/test-products/test_sim_2026-10-06T22-36-08-058Z_pid7214_934d3267.xctestproducts"
+      },
+      "failures": [],
+      "selectedUICases": [
+        {
+          "suite": "FomioUITests",
+          "test": "testNotificationTargetsExactReply",
+          "status": "passed",
+          "durationMs": 10953
+        }
+      ]
+    }
+  ],
+  "release": {
+    "summary": {
+      "status": "SUCCEEDED",
+      "durationMs": 29033,
+      "target": "simulator"
+    },
+    "artifacts": {
+      "buildLogPath": "~/Library/Developer/XcodeBuildMCP/workspaces/Fomio-Swift-a437303753c0/logs/build_sim_2026-10-06T22-37-25-705Z_pid7214_8725cd73.log"
+    },
+    "diagnostics": {
+      "warnings": [
+        {
+          "message": "will never be executed",
+          "location": "/Volumes/Develop/Projects/Fomio Swift/Fomio/App/FomioApp.swift:18"
+        }
+      ],
+      "errors": []
+    }
+  },
+  "note": "Completed test-product copies from the first two runs were removed for disk headroom. Result bundles and logs remain."
+}

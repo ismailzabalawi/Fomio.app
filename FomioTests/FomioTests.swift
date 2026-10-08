@@ -172,3 +172,91 @@ import XCTest
         XCTAssertFalse(try XCTUnwrap(dto.roots.first).domain(canReply: false).canLike)
     }
 }
+
+@MainActor final class DiscussionRefreshTests: XCTestCase {
+    func testExactRefreshKeepsTargetBeyondFirstSiblingPage() async throws {
+        let fixture = FixtureService(), topic = TopicID(4182)
+        let posts = try XCTUnwrap(fixture.posts[topic])
+        let opening = posts[0]
+        var root = posts[1]; root.parent = .init(1)
+        var sibling = posts[2]; sibling.parent = root.number
+        var secondSibling = sibling; secondSibling.id = .init(900001); secondSibling.number = .init(8)
+        var target = posts[3]; target.parent = root.number
+        fixture.posts[topic] = [opening, root, sibling, secondSibling, target]
+        let state = DiscussionState(route: .discussion(topic, target.number), service: fixture)
+        await state.load()
+        XCTAssertEqual(state.children[root.id], [target.id])
+        await state.load(refresh: true)
+        XCTAssertNil(state.error)
+        XCTAssertEqual(state.highlight, target.id); XCTAssertEqual(state.anchor, target.id)
+        XCTAssertEqual(state.children[root.id], [target.id])
+        XCTAssertTrue(state.expanded.contains(root.id))
+        XCTAssertEqual(state.nodes[root.id]?.childCount, 3)
+    }
+    func testOfflineRefreshKeepsExpandedReplies() async throws {
+        let fixture = FixtureService()
+        let state = DiscussionState(route: .discussion(.init(4190), nil), service: fixture)
+        await state.load()
+        let root = try XCTUnwrap(state.roots.first)
+        await state.toggle(root, depth: 0)
+        let children = state.children[root]
+        let opening = state.opening?.body
+        fixture.offline = true
+        await state.load(refresh: true)
+        XCTAssertEqual(state.errorKind, .offline)
+        XCTAssertEqual(state.opening?.body, opening)
+        XCTAssertEqual(state.children[root], children)
+        XCTAssertTrue(state.expanded.contains(root))
+    }
+    func testRefreshRemovesDeletedChildAndRestoresExpandedBranch() async throws {
+        let fixture = FixtureService(), topic = TopicID(4182)
+        let original = try XCTUnwrap(fixture.posts[topic])
+        let opening = original[0]
+        var root = original[1]; root.parent = .init(1)
+        var removed = original[2]; removed.parent = root.number
+        var remaining = original[3]; remaining.parent = root.number
+        fixture.posts[topic] = [opening, root, removed, remaining]
+        let state = DiscussionState(route: .discussion(topic, nil), service: fixture)
+        await state.load(); await state.toggle(root.id, depth: 0)
+        XCTAssertTrue(state.children[root.id, default: []].contains(removed.id))
+        state.anchor = remaining.id
+        fixture.posts[topic] = [opening, root, remaining]
+        await state.load(refresh: true)
+        XCTAssertNil(state.error)
+        XCTAssertEqual(state.nodes[root.id]?.childCount, 1)
+        XCTAssertTrue(state.expanded.contains(root.id))
+        XCTAssertFalse(state.children[root.id, default: []].contains(removed.id))
+        XCTAssertEqual(state.children[root.id], [remaining.id])
+        XCTAssertNil(state.nodes[removed.id])
+        XCTAssertEqual(state.anchor, remaining.id)
+        fixture.posts[topic] = [opening, root]
+        await state.load(refresh: true)
+        XCTAssertEqual(state.nodes[root.id]?.childCount, 0)
+        XCTAssertNil(state.children[root.id]); XCTAssertNil(state.nodes[remaining.id])
+        XCTAssertFalse(state.expanded.contains(root.id))
+        XCTAssertNil(state.anchor)
+    }
+}
+
+@MainActor final class DiscussionVisibilityTests: XCTestCase {
+    func testDeniedRefreshClearsPreviouslyVisibleOpening() async throws {
+        let configuration = LiveConfiguration(baseURL: URL(string: "https://audit.example")!, callbackURL: URL(string: "audit://callback")!, scopes: "read")
+        let transport = URLSessionConfiguration.ephemeral; transport.protocolClasses = [StubURLProtocol.self]
+        StubURLProtocol.handler = nil; StubURLProtocol.status = 200
+        StubURLProtocol.data = Data(#"{"topic":{"id":80,"title":"Previously visible","category_id":4,"details":{"can_create_post":true}},"op_post":{"id":8001,"post_number":1,"username":"fixture","cooked":"<p>Previously visible member content</p>"},"roots":[],"has_more_roots":false,"page":0}"#.utf8)
+        defer { StubURLProtocol.status = 200; StubURLProtocol.data = Data(); StubURLProtocol.handler = nil }
+        let service = DiscourseService(configuration: configuration, session: URLSession(configuration: transport), credentials: { _ in nil })
+        let state = DiscussionState(route: .discussion(.init(80), nil), service: service)
+        await state.load(); XCTAssertNotNil(state.page)
+        for (status, expected) in [(401, RepositoryError.unauthorized), (403, .denied), (404, .unavailable)] {
+            StubURLProtocol.status = 200
+            await state.load()
+            XCTAssertNotNil(state.opening)
+            StubURLProtocol.status = status
+            await state.load(refresh: true)
+            XCTAssertEqual(state.errorKind, expected)
+            XCTAssertNil(state.page); XCTAssertNil(state.opening)
+            XCTAssertTrue(state.nodes.isEmpty); XCTAssertTrue(state.roots.isEmpty)
+        }
+    }
+}

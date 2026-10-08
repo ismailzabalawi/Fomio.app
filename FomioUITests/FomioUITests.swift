@@ -101,6 +101,43 @@ import UIKit
             XCTAssertTrue(app.frame.contains(button.frame), "Control outside screen: \(id), \(button.frame)")
         }
     }
+    func testComposerSelectionFormattingKeepsActionsReachable() {
+        let app = launch(["--preset", "newtopic"])
+        let body = app.textViews["composer-body"]
+        XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("What I tried")
+        body.doubleTap()
+        let done = app.buttons["composer-selection-done"]
+        XCTAssertTrue(done.waitForExistence(timeout: 5))
+        app.buttons["Bold"].firstMatch.tap()
+        XCTAssertTrue(done.isHittable)
+        for id in ["composer-insert", "composer-more", "composer-selection-done"] {
+            XCTAssertTrue(app.buttons[id].isHittable); XCTAssertTrue(app.frame.contains(app.buttons[id].frame))
+        }
+        let selection = XCTAttachment(screenshot: app.screenshot()); selection.name = "Polished contextual selection bar"; selection.lifetime = .keepAlways; add(selection)
+        done.tap(); app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        XCTAssertTrue((body.value as? String)?.contains("**") == true)
+    }
+    func testComposerCatalogueQuickQuoteAndSearchRecovery() {
+        let app = launch(["--preset", "newtopic"])
+        let body = app.textViews["composer-body"]
+        XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("What I tried")
+        let writing = XCTAttachment(screenshot: app.screenshot()); writing.name = "Polished composer writing bar"; writing.lifetime = .keepAlways; add(writing)
+        dismissComposerKeyboard(app); app.buttons["composer-insert"].tap()
+        XCTAssertTrue(app.buttons["Photo"].waitForExistence(timeout: 5)); XCTAssertTrue(app.buttons["Quote"].isHittable)
+        let catalogue = XCTAttachment(screenshot: app.screenshot()); catalogue.name = "Polished insertion catalogue"; catalogue.lifetime = .keepAlways; add(catalogue)
+        let search = app.searchFields.firstMatch; search.tap(); search.typeText("vote")
+        XCTAssertTrue(app.buttons["Poll"].waitForExistence(timeout: 5), "Search includes the block description")
+        // Native searchable replaces the navigation actions while active. Cancel search first, then close the sheet.
+        let searchCancel = app.buttons.matching(NSPredicate(format: "(label == %@ OR label == %@) AND identifier != %@", "Close", "Cancel", "composer-close")).firstMatch
+        XCTAssertTrue(searchCancel.waitForExistence(timeout: 5)); searchCancel.tap()
+        XCTAssertTrue(app.buttons["composer-insert-cancel"].waitForExistence(timeout: 5))
+        app.buttons["composer-insert-cancel"].tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5)); XCTAssertEqual(body.value as? String, "What I tried")
+        app.buttons["composer-insert"].tap(); app.buttons["Quote"].tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5)); body.typeText("Two thin coats")
+        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        XCTAssertEqual(body.value as? String, "What I tried\n> Two thin coats")
+    }
     override func setUp() { continueAfterFailure = false; MainActor.assumeIsolated { XCUIDevice.shared.orientation = .portrait } }
     override func tearDown() { MainActor.assumeIsolated { XCUIDevice.shared.orientation = .portrait } }
     private func launch(_ arguments: [String] = []) -> XCUIApplication {

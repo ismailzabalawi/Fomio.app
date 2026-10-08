@@ -170,3 +170,18 @@
 "Adds at the end." = "تُضاف في النهاية.";
 "Adds at the cursor." = "تُضاف عند المؤشر.";
 "Adds after “%@”" = "تُضاف بعد «%@»";
+
+/* Composer insertion catalogue */
+"From your library" = "من مكتبة الصور";
+"Give a passage its own space" = "امنح المقطع مساحة مستقلة";
+"Continue with plain text" = "تابع بنص عادي";
+"Start a new section" = "ابدأ قسماً جديداً";
+"Add a smaller section heading" = "أضف عنواناً فرعياً أصغر";
+"Make your points easy to scan" = "اعرض نقاطك بوضوح";
+"Fixture preview" = "معاينة تجريبية";
+"Ask the community to vote" = "اطلب من المجتمع التصويت";
+"Organize information in rows" = "نظّم المعلومات في صفوف";
+"Let readers reveal more" = "دع القراء يعرضون المزيد";
+"Hide a detail until tapped" = "أخفِ التفاصيل حتى الضغط عليها";
+"Share a date and time" = "شارك تاريخاً ووقتاً";
+"Keep code readable" = "اعرض الشيفرة بوضوح";

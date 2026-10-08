@@ -61,3 +61,7 @@ Local result bundles reside under `~/Library/Developer/XcodeBuildMCP/workspaces/
 | `test_sim_2026-10-04T15-50-37-608Z_pid89196_909c17e1.xcresult` | Final iPad build: 55 unit/contract + four editor UI checks passed, zero failures |
 
 Earlier failure evidence includes `test_sim_2026-10-04T14-04-35-796Z_pid89196_f16ed404.xcresult` (undo-host exception) and `test_sim_2026-10-04T14-08-15-142Z_pid89196_7657252c.xcresult` (four UI failures). Final passing groups above supersede those results for covered checks.
+
+## Audit failure corrections — 2026-10-07
+
+On iPhone 17 Pro / iOS 26.1, Arabic mixed text now survives actual landscape geometry after adding the base supported-orientation plist key. Direct title-to-body responder transfer passes Next, body newlines, continued typing and Keep editing in two runs. The final batch also passes largest-text selection-bar reachability, dark accessibility composer and catalogue search/quote/Markdown recovery. Search automation uses the system Close/Cancel control before sheet cancellation. Existing production catalogue refinements were preserved. [Results and scope](validation/2026-10-07-audit-fixes/README.md). Physical keyboard, VoiceOver and iPad resizing still require their own acceptance checks.
