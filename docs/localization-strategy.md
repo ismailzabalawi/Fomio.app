@@ -25,7 +25,7 @@ The browser loads `main`, `mf`, and optional `overrides` bundles through `app/vi
 
 ## Proposed native contract, when backend work is authorized
 
-Provide a small, public, read-only JSON representation of the **Fomio-owned terminology keys**. It should be generated from the forum's current translated terms/overrides, with a stable schema and no administrative credentials in the app. The backend implementation, endpoint path, and deployment are still decisions to make; the following is a contract shape, **not an existing route**:
+Provide a public, read-only JSON catalog of the **app's complete required UI keys for one locale**. Map equivalent labels to Discourse translations and site-text overrides; maintain Fomio-only strings alongside that catalog. The backend implementation, endpoint path, and deployment are still decisions to make; the following terminology subset illustrates a contract shape, **not an existing route or a complete catalog**:
 
 ```json
 {
@@ -40,7 +40,7 @@ Provide a small, public, read-only JSON representation of the **Fomio-owned term
 }
 ```
 
-Return only approved plain-text terms. Define singular, plural, action, and accessibility variants separately where grammar requires them. Validate locale against the site's supported locales; provide an explicit resolved locale and fallback. Bound payload size and disallow markup, formatting placeholders, arbitrary translation keys, and user-specific content. Use `ETag`/`If-None-Match` or an equivalent revision token. Confirm anonymous access and behavior under `login_required` in request specs and against the deployed site before use. Backend implementation requires a separate authorized task.
+Return only approved UI messages. Define singular, plural, action, and accessibility variants separately where grammar requires them, and validate any allowed formatting placeholders against the app's key schema. Validate locale against the site's supported locales; provide an explicit resolved locale and fallback. Bound payload size and disallow markup, arbitrary translation keys, and user-specific content. Include completeness metadata so the app never activates a partial language. Use `ETag`/`If-None-Match` or an equivalent revision token. Confirm anonymous access and behavior under `login_required` in request specs and against the deployed site before use. Backend implementation requires a separate authorized task.
 
 Do not parse or execute `/extra-locales/.../*.js` in the native app. The browser asset's assignment syntax, MessageFormat code, and locale data are not a native API contract. Do not call admin site-text routes or embed an administrator key.
 
@@ -49,11 +49,11 @@ Do not parse or execute `/extra-locales/.../*.js` in the native app. The browser
 | Data | Local storage | Freshness / refresh | Offline behavior |
 | --- | --- | --- | --- |
 | Bundled English app strings | App bundle | New app version | Always available; fallback for any language that has not been downloaded. |
-| Public terminology JSON, once available | Atomic file in Application Support, keyed by site origin + relative root + resolved locale + schema version | Render last good data immediately. Revalidate in background on launch/foreground when older than 24 hours; use conditional request. A successful changed revision replaces the file and updates visible labels. Manual refresh can bypass age check. | Use last good data; otherwise bundled app terminology. Never block startup. |
+| Complete public UI catalog for one selected language, once available | Atomic file in Application Support, keyed by site origin + relative root + resolved locale + schema version | Render last good data immediately. Revalidate in background on launch/foreground when older than 24 hours; use conditional request. A successful changed revision replaces the file and updates visible labels. Manual refresh can bypass age check. | Use last good catalog; otherwise bundled English. Never block startup. |
 | Site default locale metadata | Small public cache or existing site metadata fetch | Revalidate with normal site bootstrap; do not fetch on every screen | Use the last known locale for site behavior; display English app strings if the selected language is unavailable. |
 | Community names/content | Existing repository behavior | Follow each content endpoint's own freshness/permissions policy | Do not treat translation caching as an offline content or posting system. |
 
-The 24-hour interval is an app policy proposal, not a Discourse header guarantee. A terminology change becomes visible at the next successful refresh (or manual refresh), not instantaneously while the device is offline. Honor server cache headers where compatible; use conditional requests to avoid downloading unchanged data. Coalesce concurrent refreshes and keep network failure silent when a valid cached/bundled value exists. A malformed response must leave the last good file intact.
+The 24-hour interval is an app policy proposal, not a Discourse header guarantee. A terminology change becomes visible at the next successful refresh (or manual refresh), not instantaneously while the device is offline. Honor server cache headers where compatible; use conditional requests to avoid downloading unchanged data. Coalesce concurrent refreshes and keep network failure silent when a valid cached/bundled value exists. A malformed or incomplete response must leave the last good file intact. Retain only the current non-English catalog and, if useful, one recently used catalog; never download every locale at once.
 
 Cache public terms separately for each site and locale. Do not mix terms across installations, do not store member data in this cache, and do not use it to determine permissions. If a future endpoint returns user-specific values, redesign isolation and invalidation before caching them. Clear obsolete schema versions on migration; sign-out does not need to delete truly public terms.
 

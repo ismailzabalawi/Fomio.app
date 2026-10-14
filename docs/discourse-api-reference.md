@@ -1,6 +1,69 @@
 # Discourse API reference
 
+## Topic list media and card metadata — 2026-10-15
+
+Backend reference HEAD freshly rechecked at `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2` (commit date 2026-10-02); read only, no backend changes, server startup or request-spec execution.
+
+| Field | Source evidence | Native mapping | Status |
+| --- | --- | --- | --- |
+| `image_url` | `ListableTopicSerializer` attribute → `Topic#image_url(enqueue_if_missing: true)`: the 1024×1024 share thumbnail's optimized URL, else `image_upload.url`, passed through `UrlHelper.cook_url` (absolute; secure-upload proxy when `secure_uploads` applies). Required key, `string|null`, in `spec/requests/api/schemas/json/category_topics_response.json`. Topic visibility is enforced by `ListController`/`TopicQuery` and `Guardian` before serialization; the image belongs to a topic the viewer may list. | `TopicDTO.imageUrl` → `DiscussionSummary.imageURL` through `PublicMedia.url`: HTTPS absolute, protocol-relative or site-relative only; no embedded credentials; never sent with user keys (plain `AsyncImage`). Failed loads remove the media slot. Live mode never shows bundled fixture photos. | **Source reviewed; deployed guest verified.** Anonymous `GET https://meta.fomio.app/latest.json` (2026-10-15) returned 30 topics; 24 have absolute `https://meta.fomio.app/uploads/default/{optimized,original}/…` values, 6 are `null`. Member responses, secure/login-required media, CDN hosts and category-feed media were not separately verified. |
+| `unicode_title` | `ListableTopicSerializer#include_unicode_title?` (title matches `:shortcode:`) → `Emoji.gsub_emoji_to_unicode(title)`. | `DiscussionSummary.title = unicode_title ?? title` for every `TopicDTO` mapping. | **Source reviewed; deployed guest verified**: topic 5 `Welcome to Fomio! :wave:` → `Welcome to Fomio! 👋`. Cooked inline emoji in posts are unchanged. |
+| `thumbnails` | Same serializer; included only when theme or plugin `topic_thumbnail_sizes` are registered. | Not used. | Absent from the deployed guest response (no registered sizes observed). Not inferred. |
+| Original author | `posters[]` with `description` containing "Original Poster" + top-level `users[]` (existing mapping). `last_poster_username` is a different person. | `author`; empty when no Original Poster/user match. Last poster is never substituted. | Unchanged mapping; adapter unit test added. |
+| Activity | `bumped_at` (existing mapping). | Labeled "Active … ago"; not creation age. | Unchanged. |
+| Reply count | `reply_count`, else `posts_count - 1`. | Zero shown as "No replies yet". | Unchanged. |
+
+The deployed response observed above showed `reply_count` 0 on every topic and only topic 5 pinned; it is evidence of field shape, not of community activity. No credentials, administrator keys or site settings were used or changed.
+
+## Native consolidated categories — 2026-10-08
+
+Build iOS Apps / XcodeBuildMCP live anonymous contract verification establishes the existing native adapter returns 11 roots and 9 children after consolidation, with all six retired IDs absent, General's two children and Fomio's seven children intact. All returned icon identifiers now map to validated available SF Symbols; colors decode and Introductions uses the corrected display name. Native directory and filtered child → About → topic navigation pass on iPhone/iOS 26.1 with live data. No endpoint or permission contract changed; backend source HEAD rechecked at `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`. [Results, captures and practical limits](validation/2026-10-08-native-categories/README.md).
+
+## Category hierarchy consolidation — 2026-10-08
+
+User approved consolidation of General children 50/51/52/53 into root 4, Fomio child 49 into root 45, and Off-topic child 34 into root 9. Fresh source HEAD remains `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`. Deployed browser feeds show only their About topics, no regular discussions; all six category editors expose enabled Delete actions and public everyone see/reply/create permissions. `CategoriesController#destroy` calls `guardian.ensure_can_delete!` then hard-destroys the category. `CategoryGuardian#can_delete_category?` requires edit authority, nonpositive regular-topic count, no children, and excludes Uncategorized. Request specs cover anonymous/nonstaff denial and successful count reduction. `Category#trash_category_definition` trashes the About topic after category destruction. Source inspected, specs not run.
+
+After the user's action-time confirmation (“go ahead”), all six category records were deleted through their enabled Settings actions and confirmation dialogs. The authenticated directory now contains **11 public roots and 9 children**, plus unchanged private Staff. General retains Interesting Finds and Introductions; Fomio retains seven children; Off-topic Discussions has no children. All six exact canonical URL permalinks and Random's legacy alias were opened in the browser and resolved to the intended parent URLs with matching latest-topic headings. No regular discussions required migration. Native stale-category/deep-link handling and arbitrary URL suffix redirects remain unverified. [Evidence and exact mapping](validation/2026-10-08-category-hierarchy/README.md).
+
+## Topic-card swipe Save review — 2026-10-08
+
+Source HEAD rechecked: `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`. Source review only; no new deployed calls or backend changes. The earlier live Post Save/Unsave evidence remains separate from proposed feed and Topic-bookmark behavior.
+
+**Goal:** Assess a topic-card Save shortcut without conflating topic and post bookmark targets.
+
+**Entry Point:** `config/routes.rb` resources `bookmarks`; POST `/bookmarks.json`, DELETE `/bookmarks/:id.json`; `BookmarksController#create/#destroy`.
+
+**Client Trigger:** Proposed native swipe reveal followed by tap. Existing `Fomio/Data/DiscourseService.swift#bookmark` uses Post ID and exact bookmark ID; `DiscussionSummary` does not retain that identity/state.
+
+**Server Path:** `BookmarksController` → `BookmarkManager#create_for/#destroy` → registered `PostBookmarkable` or `TopicBookmarkable`; their validation and after-create/destroy callbacks govern access and topic-user state.
+
+**Data Map:** Bookmark model schema annotation/associations: `bookmarks.user_id/bookmarkable_type/bookmarkable_id`, unique user/type/target. `TopicPostBookmarkableHelper#sync_topic_user_bookmarked` calls `TopicUser.change` with whether any bookmark exists in that topic. This aggregate is not the identity of the opening-post bookmark.
+
+**Permissions:** Controller requires login; creation rate-limits with `max_bookmarks_per_day`. Post target checks Guardian visibility of topic/post; Topic target checks first-post visibility. Manager's exact-ID removal checks edit access to that bookmark. Request specs reject another user's bookmark removal.
+
+**Async Side Effects:** Reminder support is separate (`BookmarkManager` references `Jobs::BookmarkReminderNotifications`); a quick Save should not silently add a reminder. Bookmarkable cleanup paths enqueue `sync_topic_user_bookmarked`; cleanup is distinct from the normal swipe operation.
+
+**Realtime Side Effects:** Bookmarkable callbacks sync TopicUser through `TopicUser.change`; no direct MessageBus publish was found in these inspected callbacks. Broader indirect effects are not exhaustively verified; native list/Saved reconciliation needs explicit implementation.
+
+**Serializer/JSON Contract:** Create returns success plus bookmark `id`; destroy returns `topic_bookmarked` metadata. `ListableTopicSerializer#bookmarked` is viewer topic state; `TopicListItemSerializer#include_first_post_id?` is conditional on theme/plugin OP-like serialization. Do not assume the OP ID is always present or use a topic ID as a Post ID. Source supports Topic bookmarks, but deploying them from this native feed is not yet validated.
+
+**Tests:** `spec/requests/bookmarks_controller_spec.rb`: rate-limit 429, duplicate Post/Topic target 400, hidden Topic OP 403, exact-ID deletion, aggregate flag remains true while other bookmarks exist, other-user removal denied. Reviewed assertions; tests not executed for this advisory task.
+
+**Safest Extension Plan:** Native gesture/presentation over existing APIs requires no backend extension. For a web counterpart, assess Theme component presentation first. Use a Plugin only if a verified missing contract needs additional fields; Core patch has no established justification. Initially resolve the OP without read-tracking side effects and reuse exact Post Save behavior, or separately validate Topic bookmark semantics. Never bulk-remove discussion bookmarks for a card Unsave.
+
+**Verification Steps:**
+
+```sh
+rg -n 'resources :bookmarks' /Volumes/Develop/Projects/Dicourse/config/routes.rb
+rg -n 'validate_before_create|bookmark_metadata|after_create' /Volumes/Develop/Projects/Dicourse/app/services/{post,topic}_bookmarkable.rb
+rg -n 'rate limits creates|already has bookmarked|does not belong' /Volumes/Develop/Projects/Dicourse/spec/requests/bookmarks_controller_spec.rb
+```
+
+Design recommendation (not accepted implementation): one trailing-edge Save reveal in both Compact and Cards; require tap, no full-swipe execution, retain row/order, provide non-gesture access and accessible action, honest pending/failure state. Unsave requires exact target/bookmark identity. Like, mute, mark-read/unread, dismiss and delete remain outside this recommendation.
+
 ## Category identity administration review — 2026-10-08
+
+**Later application in this task:** user authorized the proposed edits and established a signed-in category-management session. All 26 public categories now have saved native Discourse icon/color identities and descriptions, plus four display-name corrections. Reloaded directory DOM readback matched all 26 IDs/names/icons/colors; badge text is `FFFFFF`, slugs and parent paths are preserved. Staff was visible only in the authenticated directory and was not edited. The deployed icon picker restricts choices to available sprite icons; 14 meaningful substitutions are recorded in [the applied identity plan](category-identity-plan.md). HTTP 429 responses recovered through cooldown and slower UI edits; no settings were relaxed. Evidence is saved under `docs/validation/2026-10-08-category-identities/`. Backend reference HEAD was freshly rechecked at the same revision. The earlier signed-out/pending-write status below is historical; native mappings, fresh signed-out rendering, dark mode, and updated native API decoding remain pending.
 
 Reference HEAD freshly rechecked at `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`. Backend checkout remains read-only. Browser guest review of the deployed `/categories` directory confirms 11 public roots and 15 immediate children; this does not enumerate restricted/staff categories. Most rendered badges repeat `0088CC` and `square-full`; General uses `25AAE2`. See [assessment and proposed identities](category-identity-plan.md) for the exact ID inventory, descriptions and unresolved application checks.
 
@@ -189,7 +252,7 @@ Debug build (live adapter, guest, no credentials) on the iPhone 17 Pro simulator
 | Anonymous `GET /session/current.json` / `/notifications.json` | 404 / 403, as expected without a key; the app shows sign-in prompts instead of calling them. |
 | `GET /user-api-key/new` (from `ASWebAuthenticationSession`) | **Client defect found and fixed 2026-10-04.** The generic error came from public-key parsing: the app sent base64 `+` unescaped, Rails decoded it as a space and `OpenSSL::PKey::RSA.new` failed (`InvalidParameters(:public_key)`, rescued into `generic_error`). After the fix the app's own request passes pre-consent validation and reaches the login page. Consent, callback and member identity are still live-unverified; see “User API key pre-consent failure — diagnosis” below. |
 
-Rendering facts established: cooked posts use `<img class="emoji" width="20">` for emoji (for example `/images/emoji/apple/heart.png`). These are now kept inline as their shortcode text instead of becoming photo blocks (`HTMLContent.inlineEmoji`). Topic `title` and `fancy_title` both carry raw shortcodes (`:wave:`). Neither the title nor the inline emoji is converted to Unicode yet.
+Rendering facts established: cooked posts use `<img class="emoji" width="20">` for emoji (for example `/images/emoji/apple/heart.png`). These are now kept inline as their shortcode text instead of becoming photo blocks (`HTMLContent.inlineEmoji`). Topic `title` and `fancy_title` both carry raw shortcodes (`:wave:`). Neither the title nor the inline emoji is converted to Unicode yet. (2026-10-15: titles now use `unicode_title` when sent; see the Topic list media section.)
 
 ## Native implementation source review — 2026-10-03
 
@@ -198,7 +261,7 @@ Current reference HEAD: `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`, rechecked be
 | Contract | Source evidence reviewed | Implementation / verification status |
 | --- | --- | --- |
 | Browser user key | `user_api_keys_controller.rb` new/create/redirect validation; `app/services/user_api_key/device_auth/crypto.rb`; `user_api_key_scope.rb`; `auth/default_current_user_provider.rb`; `spec/requests/user_api_keys_controller_spec.rb` RSA/padding/callback/group/scopes cases | Contract reviewed for classic browser flow: RSA 2048 OAEP SHA-1, nonce, client ID, encrypted callback payload. Query values must be form-safe: `+` is sent as `%2B` (`LiveConfiguration.url`), covered by `testUserAPIKeyAuthorizationPublicKeySurvivesRailsQueryDecoding`. Pre-consent validation live verified (anonymous 302 to `/login`); consent, callback decryption, Keychain and `session/current.json` are not live verified. |
-| Latest/category feeds | Dynamic routes in `config/routes.rb`; `list_controller.rb`; `TopicListSerializer`, `TopicListItemSerializer`, `ListableTopicSerializer`; `Guardian`; list/category request specs | Source-informed adapter uses `topic_list.topics`, user mapping and `more_topics_url`. Feed excerpt/media are optional. Live availability and site-specific required fields blocked. |
+| Latest/category feeds | Dynamic routes in `config/routes.rb`; `list_controller.rb`; `TopicListSerializer`, `TopicListItemSerializer`, `ListableTopicSerializer`; `Guardian`; list/category request specs | Source-informed adapter uses `topic_list.topics`, user mapping and `more_topics_url`. Feed excerpt/media are optional. 2026-10-15: `image_url` mapped and its deployed guest shape verified (see Topic list media section). Member/secure media and site-specific required fields remain unverified. |
 | Categories | `categories_controller.rb#index/fetch_category_list`; `CategoryList`, `CategoryListSerializer`, `CategoryDetailedSerializer`, `BasicCategorySerializer`; category request specs for hidden/permitted subcategories | Contract reviewed: `include_subcategories=true` includes recursive `subcategory_list`; `parent_category_id` preserves hierarchy. Global `can_create_topic` plus category permission 1 (full) gates new-topic choices. Server still validates group/trust/tag rules. |
 | Nested replies | `/n/:slug/:topic_id` show/children/context routes; `NestedTopicsController`; `NestedTopic::ListRoots/ListChildren/ShowContext`; `NestedReplies::PostTreeSerializer/TreeLoader/Sort`; nested controller request specs | Contract reviewed at source: `nested_replies_enabled` and Guardian visibility required; JSON roots include initial topic/OP, subsequent pages omit metadata; child/context fields documented below. User-key `read`/`write` match GET at source, but no live user-key request verified. Release requires nested capability. |
 | Posting/moderation | `PostsController#create/create_params/backwards_compatible_json`; `NewPostManager`; `NewPostResultSerializer`; Guardian; post request specs for nested result/queue | Contract reviewed for raw/title/category/topic/reply target with `nested_post=true`. `action=enqueued` is distinct from a published post. API memoization is not treated as a client idempotency guarantee. Live per-user posting and pending visibility blocked. |

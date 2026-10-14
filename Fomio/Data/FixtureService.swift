@@ -10,6 +10,8 @@ import Observation
     var nestedEnabled = true
     /// Development-only latency for showing the loading state.
     var feedDelay: Duration = .zero
+    /// Development-only: the next "load more" page fails once, then succeeds on retry.
+    var failNextPage = false
     var uploadStep: Duration = .milliseconds(100)
     var bookmarks: [PostID: Int] = [PostID(418201): 1, PostID(419014): 2]
     var readNotices: Set<Int> = [3]
@@ -125,6 +127,19 @@ import Observation
             summaries.append(DiscussionSummary(id: topic, title: item.title, slug: "topic-\(item.id)", categoryID: .init(item.category), excerpt: opening.body, author: opening.author, replyCount: item.posts.count - 1, activity: item.activity, image: opening.image))
         }
     }
+    /// Fictional topic-card edge cases (`--card-cases`): pinned with no replies, Arabic, absent author/excerpt/activity,
+    /// failed media and a long title with a photo. They have no discussion posts, so opening one shows the unavailable state.
+    func addCardCases() {
+        let missingMedia = URL(fileURLWithPath: "/fomio-fixture/missing-thumbnail.jpg")
+        let cases: [DiscussionSummary] = [
+            .init(id: .init(5001), title: "Read first: how photos and measurements help a repair question", slug: "card-pinned", categoryID: .init(5), excerpt: "Include the model, what changed and a clear photo of the bench setup.", author: "devon", replyCount: 0, activity: "3h", pinned: true),
+            .init(id: .init(5002), title: "ما أفضل طريقة لري شجرة تين في أصيص خلال الشتاء؟", slug: "card-arabic", categoryID: .init(8), excerpt: "الكراج عندي يبقى قرابة درجتين مئويتين. هل ألف الأصيص أم أدخله إلى البيت؟", author: "ines.r", replyCount: 3, activity: "40m"),
+            .init(id: .init(5003), title: "Untitled bench notes without an opening excerpt", slug: "card-sparse", categoryID: .init(9), excerpt: "", author: "", replyCount: 0, activity: ""),
+            .init(id: .init(5004), title: "Thumbnail failed to load: the card falls back to text", slug: "card-failed-media", categoryID: .init(6), excerpt: "This fictional topic points at a missing image so the media slot is removed.", author: "theo", replyCount: 1, activity: "2h", imageURL: missingMedia),
+            .init(id: .init(5005), title: "Restoring a walnut side table whose top has a decades-old water ring, uneven fading under a lamp, and a veneer edge that has lifted along the back", slug: "card-long", categoryID: .init(2), excerpt: "Before I strip anything: is there a gentler order of operations that keeps the original patina where it is still even?", author: "margaux.delacroix-whitfield", replyCount: 12, activity: "1d", image: "ph-walnut")
+        ]
+        summaries.insert(contentsOf: cases, at: min(1, summaries.count))
+    }
     static func sampleDrafts(account: AccountID) -> [Draft] {
         var reply = Draft(account: account, intent: .reply(topic: .init(4170), parent: .init(1)), body: "Mine survived at 0°C wrapped in burlap, but I brought it in when it dropped below −5°C.")
         reply.contextTitle = "Overwintering a fig in a large container"; reply.contextCategory = .init(8)
@@ -147,6 +162,7 @@ import Observation
         try check()
         if feedDelay > .zero { try await Task.sleep(for: feedDelay) }
         if category?.restricted == true { throw RepositoryError.denied }
+        if page > 0 && failNextPage { failNextPage = false; throw RepositoryError.server(503) }
         let ids = category.map { value in [value.id] + Self.sampleCommunities.filter { $0.parentID == value.id }.map(\.id) }
         let values = summaries.filter { ids == nil || ids!.contains($0.categoryID) }
         return paginate(values, page: page, size: 5)

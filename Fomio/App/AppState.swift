@@ -101,17 +101,7 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         if let page = try? await service.notifications(page: 0) { unreadCount = page.items.filter { !$0.read }.count }
     }
     /// Public category assets may use the site's relative root or an HTTPS CDN. Never attach user keys.
-    func publicAssetURL(_ value: String?) -> URL? {
-        guard let value else { return nil }
-        let url: URL?
-        if value.hasPrefix("//") { url = URL(string: "https:" + value) }
-        else {
-            let base = configuration.map { $0.baseURL.absoluteString }.flatMap { URL(string: $0.hasSuffix("/") ? $0 : $0 + "/") }
-            url = URL(string: value, relativeTo: base)?.absoluteURL
-        }
-        guard let url, url.scheme == "https", url.host != nil, url.user == nil, url.password == nil else { return nil }
-        return url
-    }
+    func publicAssetURL(_ value: String?) -> URL? { PublicMedia.url(value, base: configuration?.baseURL) }
     func category(_ id: CategoryID) -> Community? { communities.first { $0.id == id } }
     func categoryName(_ id: CategoryID) -> String {
         guard let value = category(id) else { return "Community" }

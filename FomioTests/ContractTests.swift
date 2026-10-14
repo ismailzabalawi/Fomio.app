@@ -1,5 +1,6 @@
 import XCTest
 import SwiftUI
+import UIKit
 @testable import Fomio
 
 final class StubURLProtocol: URLProtocol, @unchecked Sendable {
@@ -233,6 +234,23 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
 
 /// Explicitly enabled integration checks. Ordinary test runs make no live requests or writes.
 @MainActor final class LiveDiscourseTests: XCTestCase {
+    func testConsolidatedCategoryHierarchyAndNativeIdentity() async throws {
+        let service = DiscourseService(configuration: try configuration(), credentials: { _ in nil })
+        let categories = try await service.communities()
+        XCTAssertEqual(categories.filter { $0.parentID == nil }.count, 11)
+        XCTAssertEqual(categories.filter { $0.parentID != nil }.count, 9)
+        XCTAssertEqual(Set(categories.filter { $0.parentID == .init(4) }.map { $0.id.rawValue }), [11, 42])
+        XCTAssertEqual(Set(categories.filter { $0.parentID == .init(45) }.map { $0.id.rawValue }), [10, 12, 43, 55, 54, 48, 47])
+        XCTAssertFalse(categories.contains { [34, 49, 50, 51, 52, 53].contains($0.id.rawValue) })
+        for category in categories {
+            XCTAssertEqual(category.identity.style, "icon", category.name)
+            XCTAssertNotNil(Color.hexValue(category.identity.color), category.name)
+            let icon = try XCTUnwrap(category.identity.icon, category.name)
+            let symbol = try XCTUnwrap(CategoryMark.icons[icon], "Missing native mapping for \(category.name): \(icon)")
+            XCTAssertNotNil(UIImage(systemName: symbol), "Unavailable native symbol: \(symbol)")
+        }
+        XCTAssertEqual(categories.first { $0.id == .init(42) }?.name, "Introductions")
+    }
     private func configuration(write: Bool = false) throws -> LiveConfiguration {
         let flag = write ? "FOMIO_LIVE_WRITE_TESTS" : "FOMIO_LIVE_READ_TESTS"
         guard ProcessInfo.processInfo.environment[flag] == "1" else { throw XCTSkip("Live checks require explicit \(flag)=1") }

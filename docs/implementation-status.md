@@ -1,5 +1,15 @@
 # Native implementation status — 2026-10-03
 
+## Topic cards: Compact and Cards appearances — 2026-10-15
+
+Home and category feeds render the composed `TopicCard` in Compact (default) or Cards, chosen from the Home/Feed options menu beside Search/Create and stored per device. Switching keeps the same topic at the same relative reading position, along with loaded pages, pagination errors, tab and navigation state. Live feeds now map Discourse `image_url` (public HTTPS media, failure falls back to text) and `unicode_title`. Swipe actions, feed Like/Save/Share and author profile targets are deferred. Simulator results, captures and limits: [validation](validation/2026-10-15-topic-cards/README.md). Not uploaded to TestFlight.
+
+New development arguments: `--card-cases` (fictional pinned/Arabic/sparse/failed-media/long-title topics), `--feed-more-fails` (first "More discussions" page fails once), `--keep-preferences` (UI tests otherwise reset the feed appearance).
+
+## Live category consolidation and identities — 2026-10-08
+
+The app's existing server-driven catalog reflects the 11-root/9-child hierarchy on launch or directory refresh. CategoryMark now provides available native equivalents for all 20 public category icons. Focused live anonymous hierarchy/identity contract and native General → filtered Fomio child → About → topic UI checks pass on iPhone/iOS 26.1. [Evidence and limits](validation/2026-10-08-native-categories/README.md). These source changes have not been uploaded to TestFlight.
+
 ## Delivered
 
 Developer handoff: [architecture](architecture.md), [development guide](development-guide.md), [flows/recovery](flows-and-recovery.md), and [release readiness](release-readiness.md).

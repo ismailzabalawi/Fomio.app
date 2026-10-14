@@ -75,6 +75,22 @@ struct DiscussionSummary: Identifiable, Codable, Hashable, Sendable {
     /// Author of the matched post when a search hit is inside the discussion.
     var matchAuthor: String? = nil
     var pinned = false
+    /// Discourse `image_url` from the topic list: an optional public HTTPS image. `image` names bundled fixture assets only.
+    var imageURL: URL? = nil
+}
+/// Accepts only absolute HTTPS (or site-relative) media without embedded credentials. Requests never carry user keys.
+enum PublicMedia {
+    static func url(_ value: String?, base: URL?) -> URL? {
+        guard let value, !value.isEmpty else { return nil }
+        let url: URL?
+        if value.hasPrefix("//") { url = URL(string: "https:" + value) }
+        else {
+            let root = base.map(\.absoluteString).flatMap { URL(string: $0.hasSuffix("/") ? $0 : $0 + "/") }
+            url = URL(string: value, relativeTo: root)?.absoluteURL
+        }
+        guard let url, url.scheme == "https", url.host != nil, url.user == nil, url.password == nil else { return nil }
+        return url
+    }
 }
 struct QuoteExcerpt: Codable, Hashable, Sendable { var author: String; var number: PostNumber; var text: String }
 struct Post: Identifiable, Codable, Hashable, Sendable {

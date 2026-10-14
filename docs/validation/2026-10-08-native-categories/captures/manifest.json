@@ -1,0 +1,44 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "D9D0FD49-8BB8-44CB-90B6-84A832A162C7",
+        "deviceName" : "Fomio Composer Review",
+        "exportedFileName" : "6404426A-405F-4989-988D-6FB0F4B69B31.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Live topic opening post and reply controls_0_B1175D35-1F91-4F20-8BEC-B9ABEDBE293E.png",
+        "timestamp" : 1791452839.182
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "D9D0FD49-8BB8-44CB-90B6-84A832A162C7",
+        "deviceName" : "Fomio Composer Review",
+        "exportedFileName" : "5CBFD61A-4B23-4F04-A93E-43C733AD478D.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Live subcategory header and feed_0_9F51AB6F-1494-4EB1-BE24-F62D4050A5BF.png",
+        "timestamp" : 1791452837.175
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "D9D0FD49-8BB8-44CB-90B6-84A832A162C7",
+        "deviceName" : "Fomio Composer Review",
+        "exportedFileName" : "C588EA2F-CE61-43F8-A4A0-F153E6797BEC.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Live root and child category identity_0_43539AAF-3887-4B6C-9485-E0AD1C97ECDA.png",
+        "timestamp" : 1791452830.133
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "D9D0FD49-8BB8-44CB-90B6-84A832A162C7",
+        "deviceName" : "Fomio Composer Review",
+        "exportedFileName" : "30566D30-FAA8-4578-8583-905E6DC92714.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Live consolidated General hierarchy and native icons_0_276D2BDE-F64D-4347-ADBE-145E001B0C36.png",
+        "timestamp" : 1791452826.083
+      }
+    ],
+    "testIdentifier" : "FomioUITests/testLiveCategoryChildAboutAndTopicNavigation()",
+    "testIdentifierURL" : "test://com.apple.xcode/Fomio/FomioUITests/FomioUITests/testLiveCategoryChildAboutAndTopicNavigation"
+  }
+]

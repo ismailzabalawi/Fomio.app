@@ -70,7 +70,7 @@ import Foundation
     func feed(category: Community?, page: Int) async throws -> Page<DiscussionSummary> {
         let path = category.map { "c/\($0.id.rawValue)/l/latest.json" } ?? "latest.json"
         let envelope = try await api.get(FeedEnvelope.self, path, query: [URLQueryItem(name: "page", value: String(page))])
-        let items = envelope.topicList.topics.map { $0.domain(users: envelope.users ?? []) }
+        let items = envelope.topicList.topics.map { $0.domain(users: envelope.users ?? [], baseURL: api.configuration?.baseURL) }
         for item in items { metadata[item.id] = item; topicSlugs[item.id] = item.slug }
         return Page(items: items, nextPage: envelope.topicList.moreTopicsUrl == nil ? nil : page + 1)
     }
@@ -216,11 +216,12 @@ struct UserDTO: Decodable { var id: Int; var username: String }
 struct TopicDTO: Decodable {
     struct Details: Decodable { var canCreatePost: Bool? }
     struct Poster: Decodable { var userId: Int; var description: String? }
-    var id: Int; var title: String; var slug: String?; var categoryId: Int?; var excerpt: String?; var replyCount: Int?; var postsCount: Int?; var lastPosterUsername: String?; var posters: [Poster]?; var closed: Bool?; var details: Details?; var archived: Bool?; var bumpedAt: String?; var pinned: Bool?
-    func domain(users: [UserDTO]) -> DiscussionSummary {
+    var id: Int; var title: String; var slug: String?; var categoryId: Int?; var excerpt: String?; var replyCount: Int?; var postsCount: Int?; var lastPosterUsername: String?; var posters: [Poster]?; var closed: Bool?; var details: Details?; var archived: Bool?; var bumpedAt: String?; var pinned: Bool?; var imageUrl: String?; var unicodeTitle: String?
+    func domain(users: [UserDTO], baseURL: URL? = nil) -> DiscussionSummary {
         let authorID = posters?.first(where: { $0.description?.contains("Original Poster") == true })?.userId ?? posters?.first?.userId
         let author = users.first { $0.id == authorID }?.username ?? ""
-        return DiscussionSummary(id: .init(id), title: title, slug: slug ?? "topic", categoryID: .init(categoryId ?? 0), excerpt: HTMLContent.plainText(excerpt ?? ""), author: author, replyCount: replyCount ?? max(0, (postsCount ?? 1) - 1), activity: RelativeAge.string(iso: bumpedAt), pinned: pinned == true)
+        // `unicode_title` is sent only when the title contains emoji shortcodes.
+        return DiscussionSummary(id: .init(id), title: unicodeTitle ?? title, slug: slug ?? "topic", categoryID: .init(categoryId ?? 0), excerpt: HTMLContent.plainText(excerpt ?? ""), author: author, replyCount: replyCount ?? max(0, (postsCount ?? 1) - 1), activity: RelativeAge.string(iso: bumpedAt), pinned: pinned == true, imageURL: PublicMedia.url(imageUrl, base: baseURL))
     }
 }
 struct FeedEnvelope: Decodable { struct List: Decodable { var topics: [TopicDTO]; var moreTopicsUrl: String? }; var topicList: List; var users: [UserDTO]? }

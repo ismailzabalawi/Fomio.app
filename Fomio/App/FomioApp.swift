@@ -11,6 +11,8 @@ import SwiftUI
         let configuration = LiveConfiguration.fromBundle()
         #endif
         #if DEBUG
+        // UI tests start from the default appearance unless they are checking relaunch persistence.
+        if arguments.contains("--ui-testing") && !arguments.contains("--keep-preferences") { UserDefaults.standard.removeObject(forKey: FeedAppearance.storageKey) }
         let fixtureMode = arguments.contains("--fixture") || (!arguments.contains("--live") && configuration == nil)
         #else
         let fixtureMode = false
@@ -20,6 +22,8 @@ import SwiftUI
             #if DEBUG
             if let index = arguments.firstIndex(of: "--post-outcome"), arguments.indices.contains(index + 1), let scenario = FixtureService.Scenario(rawValue: arguments[index + 1]) { fixture.scenario = scenario }
             fixture.uploadFails = arguments.contains("--upload-fails")
+            fixture.failNextPage = arguments.contains("--feed-more-fails")
+            if arguments.contains("--card-cases") { fixture.addCardCases() }
             if DevelopmentPresets.requested == "loading" { fixture.feedDelay = .seconds(120) }
             #endif
             var store = DraftStore()

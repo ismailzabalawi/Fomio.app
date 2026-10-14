@@ -1,6 +1,6 @@
 # Topic Card Home prototype
 
-Requested: 2026-10-07. Status: Claude Design prototype created; representative independent browser review completed. Native implementation/acceptance pending.
+Requested: 2026-10-07. Status: Claude Design prototype created; representative independent browser review completed. Native Compact/Cards implementation and Simulator validation completed 2026-10-15 (see end of this document); user acceptance pending.
 
 Destination: existing [Fomio design project](https://claude.ai/design/p/10e05e50-973c-4ddb-836f-406e5456a4f2). Build iOS Apps' SwiftUI UI Patterns guidance informs the native handoff; this pass requests a browser design prototype, not production SwiftUI changes.
 
@@ -74,3 +74,9 @@ User requested seeing the proposed switch implemented. Claude updated the existi
 Claude reports changes to `mockups/FmHomeFeedDevice.dc.html` and the main Topic Card board, preserving card and historical shared files. It reports topic-anchor restoration when switching, synchronized reviewer controls/category feeds, keyboard/Escape/outside dismissal, and dark/narrow/AX2 checks. Its measured topic #5 position changed 64→63px while raw offset changed 900→1161px; topic Back retained Cards and the offset. These are Claude-reported checks, not independent native evidence. Loaded-page/error preservation and unavailable-storage fallback were not exercised.
 
 Independent browser checks: selected Cards in the product menu; feed changed to contained cards and readout reported Cards with anchor #1 at 162px. Reloaded the preview, reopened Prototype: Cards persisted. Reopened Home options and visually confirmed Cards checkmark. Left that menu open for review. Capture: [Feed appearance menu](snapshots/2026-10-08-topic-card/feed-appearance-menu.png), at 75% canvas zoom. Native app/backend code was not changed.
+
+## Native implementation — 2026-10-15
+
+Implemented in SwiftUI per the October 8 handoff; the browser prototype itself was not reopened in this pass (local captures above and this handoff were the reference). Compact (1a, default) uses flat editorial rows with hairline separators and an optional trailing square thumbnail (72pt, scaling with Dynamic Type up to 112pt). Cards (1b) uses a soft rounded (20pt) contained surface using `fomioFill` with a faint separator stroke, and full-width 16:9 media. Both use 17pt bold titles (`body`), 15pt excerpts (`subheadline`) and 13pt metadata (`footnote`), semantic Dynamic Type, current Fomio/site tokens and actual category identities. Options menu: Home options (`ellipsis`) → Feed appearance → Compact (`list.bullet`) / Cards (`rectangle.grid.1x2`). Category feeds show the same menu, labeled Feed options.
+
+Differences from the prototype, by design or platform: on iOS 26.1 the "Feed appearance" section title declared around the inline `Picker` is not displayed in the toolbar `Menu` (observed in Simulator); the menu shows only the two options with icons and checkmark. Whether VoiceOver announces the title was not verified. The initials avatar is omitted at accessibility text sizes. Switching is instant (no layout animation) so it needs no Reduce Motion variant. Live topics have no avatar images; initials come from the username. Swipe actions, feed Like/Save/Share, author profile targets and Closed/Archived summaries are not implemented. Evidence: [validation](../validation/2026-10-15-topic-cards/README.md).

@@ -1,0 +1,37 @@
+[
+  {
+    "from": "/c/general/open-discussions/50",
+    "to": "https://meta.fomio.app/c/general/4",
+    "heading": "Latest topics in General"
+  },
+  {
+    "from": "/c/general/questions/51",
+    "to": "https://meta.fomio.app/c/general/4",
+    "heading": "Latest topics in General"
+  },
+  {
+    "from": "/c/general/opinions/52",
+    "to": "https://meta.fomio.app/c/general/4",
+    "heading": "Latest topics in General"
+  },
+  {
+    "from": "/c/general/ideas/53",
+    "to": "https://meta.fomio.app/c/general/4",
+    "heading": "Latest topics in General"
+  },
+  {
+    "from": "/c/fomio/general-fomio-discussions/49",
+    "to": "https://meta.fomio.app/c/fomio/45",
+    "heading": "Latest topics in Fomio"
+  },
+  {
+    "from": "/c/off-topic-discussions/random/34",
+    "to": "https://meta.fomio.app/c/off-topic-discussions/9",
+    "heading": "Latest topics in Off-topic Discussions"
+  },
+  {
+    "from": "/c/off-topic-discussions/general-chat-randomness/34",
+    "to": "https://meta.fomio.app/c/off-topic-discussions/9",
+    "heading": "Latest topics in Off-topic Discussions"
+  }
+]

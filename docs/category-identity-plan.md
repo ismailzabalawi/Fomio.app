@@ -1,6 +1,37 @@
 # Category assessment and identity plan
 
-Recorded 2026-10-08. **Proposal prepared; no deployed category changes applied.**
+Recorded 2026-10-08. **Applied to all 26 public categories through the deployed Discourse editor.** The original proposal below is retained; the application result and icon substitutions supersede its pending status.
+
+## Applied result — 2026-10-08
+
+User authorized application and established an authenticated category-editing browser session. Saved distinct icon/color identities and short descriptions for all 11 public roots and 15 children. Corrected the four proposed display names. IDs, slugs and parent paths match the original public inventory; the typo in the Introductions slug is intentionally retained for link stability. All rendered badges use white badge text, icon style and the specified color. The signed-in directory additionally exposes Staff; it was not edited.
+
+The deployed picker exposes only the available sprite catalog. These equivalent symbols were applied where proposed symbols were absent:
+
+| Category | Proposed icon | Applied icon |
+| --- | --- | --- |
+| Technology | microchip | desktop |
+| Gaming | gamepad | puzzle-piece |
+| Politics | landmark | gavel |
+| Lifestyle | leaf | sun |
+| Fomio | shapes | cubes |
+| Off-topic Discussions | mug-hot | face-smile |
+| Interesting Finds | compass | magnifying-glass |
+| Ideas | lightbulb | wand-magic-sparkles |
+| Announcements | bullhorn | rss |
+| Knowledge Base | book-open | book-open-reader |
+| Experiments & Ideas | vial | rocket |
+| Bug Reports | bug | triangle-exclamation |
+| Help & Support | life-ring | headset |
+| General Fomio Discussions | message | comment |
+
+Other icons and all colors match the proposal. Existing substantive Dev Blog About text was preserved beneath its short description. Blank/default About templates and single-paragraph descriptions were replaced with the specified text. Changes were made through description-topic editing and category Save Hub controls; category types, visibility controls, hierarchy, and posting settings were not changed.
+
+Verification: reloaded directory DOM matched all 26 IDs/names/icon symbols/colors with **zero mismatches**. Root descriptions were visible in the reloaded directory; child description saves were checked in their editor flow. White badge text and parent color families were confirmed from rendered badge styles. Separate reload checks were also completed for early edits including Politics and Science & Health. Temporary HTTP 429 responses affected the icon picker/navigation; cooldown and slower edits recovered them, and final readback resolved the save uncertainty. No rate-limit settings were changed.
+
+Evidence: [full directory capture](validation/2026-10-08-category-identities/categories.jpg), [overview](validation/2026-10-08-category-identities/overview.jpg), and [DOM readback and edit records](validation/2026-10-08-category-identities/readback.json). The edit records are collected UI snapshots, not a complete transactional rollback backup; the first Sports and General edits preceded that collection.
+
+Remaining: native icon mapping support, native/live API decoding of these updated identities, dark-mode visual verification, and fresh signed-out rendering. No app or backend checkout code was changed in this application pass. Existing permissions were not modified; browser verification does not constitute a complete permission regression audit.
 
 ## Evidence
 

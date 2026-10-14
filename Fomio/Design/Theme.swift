@@ -232,7 +232,18 @@ struct CategoryMark: View {
     let category: Community
     var size: CGFloat = 44
     var useLogo = false
-    static let icons = ["bicycle": "bicycle", "gear": "gearshape", "wrench": "wrench", "hammer": "hammer", "microchip": "cpu", "seedling": "leaf", "leaf": "leaf", "screwdriver-wrench": "wrench.and.screwdriver", "paintbrush": "paintbrush", "comments": "bubble.left.and.bubble.right", "code": "chevron.left.forwardslash.chevron.right"]
+    // Map server icon identifiers to native symbols; category names, colors and hierarchy stay server-owned.
+    static let icons = [
+        "bicycle": "bicycle", "gear": "gearshape", "wrench": "wrench", "hammer": "hammer",
+        "microchip": "cpu", "seedling": "leaf", "leaf": "leaf", "screwdriver-wrench": "wrench.and.screwdriver",
+        "paintbrush": "paintbrush", "comments": "bubble.left.and.bubble.right", "code": "chevron.left.forwardslash.chevron.right",
+        "trophy": "trophy", "magnifying-glass": "magnifyingglass", "hand": "hand.wave",
+        "desktop": "desktopcomputer", "chart-line": "chart.xyaxis.line", "palette": "paintpalette",
+        "puzzle-piece": "puzzlepiece", "flask": "flask", "gavel": "building.columns", "cubes": "shippingbox",
+        "circle-plus": "plus.circle", "rss": "dot.radiowaves.left.and.right", "book-open-reader": "book",
+        "rocket": "paperplane", "headset": "headphones", "triangle-exclamation": "exclamationmark.triangle",
+        "sun": "sun.max", "face-smile": "face.smiling", "lock": "lock"
+    ]
     static let emoji = ["bike": "🚲", "bicyclist": "🚴", "seedling": "🌱", "hammer": "🔨", "wrench": "🔧", "thread": "🧵", "art": "🎨", "gear": "⚙️", "heart": "❤️"]
     var color: Color { Color.hexValue(category.identity.color).map(Color.init(hex:)) ?? .fomioAccent }
     private var logo: URL? {

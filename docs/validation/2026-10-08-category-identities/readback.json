@@ -1,0 +1,523 @@
+{
+  "date": "2026-10-08",
+  "source": "authenticated browser DOM",
+  "readback": [
+    {
+      "badgeStyle": "--category-badge-color: #C2410C;--category-badge-text-color: #FFFFFF;",
+      "href": "/c/sports/58",
+      "icon": "#trophy",
+      "name": "Sports"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #0369A1;--category-badge-text-color: #FFFFFF;",
+      "href": "/c/general/4",
+      "icon": "#comments",
+      "name": "General"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #075985;--category-badge-text-color: #FFFFFF;--parent-category-badge-color: #0369A1;--parent-category-badge-text-color: #FFFFFF;",
+      "href": "/c/general/interesting-finds/11",
+      "icon": "#magnifying-glass",
+      "name": "Interesting Finds"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #0E7490;--category-badge-text-color: #FFFFFF;--parent-category-badge-color: #0369A1;--parent-category-badge-text-color: #FFFFFF;",
+      "href": "/c/general/open-discussions/50",
+      "icon": "#comment-dots",
+      "name": "Open Discussions"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #155E75;--category-badge-text-color: #FFFFFF;--parent-category-badge-color: #0369A1;--parent-category-badge-text-color: #FFFFFF;",
+      "href": "/c/general/questions/51",
+      "icon": "#circle-question",
+      "name": "Questions"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #1D4ED8;--category-badge-text-color: #FFFFFF;--parent-category-badge-color: #0369A1;--parent-category-badge-text-color: #FFFFFF;",
+      "href": "/c/general/opinions/52",
+      "icon": "#quote-left",
+      "name": "Opinions"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #1E40AF;--category-badge-text-color: #FFFFFF;--parent-category-badge-color: #0369A1;--parent-category-badge-text-color: #FFFFFF;",
+      "href": "/c/general/ideas/53",
+      "icon": "#wand-magic-sparkles",
+      "name": "Ideas"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #2563EB;--category-badge-text-color: #FFFFFF;--parent-category-badge-color: #0369A1;--parent-category-badge-text-color: #FFFFFF;",
+      "href": "/c/general/introducions/42",
+      "icon": "#hand",
+      "name": "Introductions"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #0F766E;--category-badge-text-color: #FFFFFF;",
+      "href": "/c/technology/56",
+      "icon": "#desktop",
+      "name": "Technology"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #166534;--category-badge-text-color: #FFFFFF;",
+      "href": "/c/business-finance/60",
+      "icon": "#chart-line",
+      "name": "Business & Finance"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #BE185D;--category-badge-text-color: #FFFFFF;",
+      "href": "/c/entertainment-arts/62",
+      "icon": "#palette",
+      "name": "Entertainment & Arts"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #6D28D9;--category-badge-text-color: #FFFFFF;",
+      "href": "/c/gaming/59",
+      "icon": "#puzzle-piece",
+      "name": "Gaming"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #4D7C0F;--category-badge-text-color: #FFFFFF;",
+      "href": "/c/science-health/61",
+      "icon": "#flask",
+      "name": "Science & Health"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #9F1239;--category-badge-text-color: #FFFFFF;",
+      "href": "/c/politics/57",
+      "icon": "#gavel",
+      "name": "Politics"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #5B3FD6;--category-badge-text-color: #FFFFFF;",
+      "href": "/c/fomio/45",
+      "icon": "#cubes",
+      "name": "Fomio"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #4338CA;--category-badge-text-color: #FFFFFF;--parent-category-badge-color: #5B3FD6;--parent-category-badge-text-color: #FFFFFF;",
+      "href": "/c/fomio/dev-blog/10",
+      "icon": "#code",
+      "name": "Dev Blog"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #6D28D9;--category-badge-text-color: #FFFFFF;--parent-category-badge-color: #5B3FD6;--parent-category-badge-text-color: #FFFFFF;",
+      "href": "/c/fomio/feature-requests/12",
+      "icon": "#circle-plus",
+      "name": "Feature Requests"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #5B21B6;--category-badge-text-color: #FFFFFF;--parent-category-badge-color: #5B3FD6;--parent-category-badge-text-color: #FFFFFF;",
+      "href": "/c/fomio/announcements/43",
+      "icon": "#rss",
+      "name": "Announcements"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #3730A3;--category-badge-text-color: #FFFFFF;--parent-category-badge-color: #5B3FD6;--parent-category-badge-text-color: #FFFFFF;",
+      "href": "/c/fomio/knowledge-base/55",
+      "icon": "#book-open-reader",
+      "name": "Knowledge Base"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #7E22CE;--category-badge-text-color: #FFFFFF;--parent-category-badge-color: #5B3FD6;--parent-category-badge-text-color: #FFFFFF;",
+      "href": "/c/fomio/experiments-ideas/54",
+      "icon": "#rocket",
+      "name": "Experiments & Ideas"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #6B21A8;--category-badge-text-color: #FFFFFF;--parent-category-badge-color: #5B3FD6;--parent-category-badge-text-color: #FFFFFF;",
+      "href": "/c/fomio/general-fomio-discussions/49",
+      "icon": "#comment",
+      "name": "General Fomio Discussions"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #4F46E5;--category-badge-text-color: #FFFFFF;--parent-category-badge-color: #5B3FD6;--parent-category-badge-text-color: #FFFFFF;",
+      "href": "/c/fomio/help-support/48",
+      "icon": "#headset",
+      "name": "Help & Support"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #86198F;--category-badge-text-color: #FFFFFF;--parent-category-badge-color: #5B3FD6;--parent-category-badge-text-color: #FFFFFF;",
+      "href": "/c/fomio/bug-reports/47",
+      "icon": "#triangle-exclamation",
+      "name": "Bug Reports"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #A16207;--category-badge-text-color: #FFFFFF;",
+      "href": "/c/lifestyle/63",
+      "icon": "#sun",
+      "name": "Lifestyle"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #E45735;--category-badge-text-color: #FFFFFF;",
+      "href": "/c/staff/3",
+      "icon": "#lock",
+      "name": "Staff"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #475569;--category-badge-text-color: #FFFFFF;",
+      "href": "/c/off-topic-discussions/9",
+      "icon": "#face-smile",
+      "name": "Off-topic Discussions"
+    },
+    {
+      "badgeStyle": "--category-badge-color: #334155;--category-badge-text-color: #FFFFFF;--parent-category-badge-color: #475569;--parent-category-badge-text-color: #FFFFFF;",
+      "href": "/c/off-topic-discussions/random/34",
+      "icon": "#shuffle",
+      "name": "Random"
+    }
+  ],
+  "changes": [
+    {
+      "id": 58,
+      "name": "Sports",
+      "icon": "trophy",
+      "color": "C2410C",
+      "description": "Big games, local teams, standout moments, and life on the field.",
+      "verified": true
+    },
+    {
+      "id": 4,
+      "name": "General",
+      "icon": "comments",
+      "color": "0369A1",
+      "description": "Meet the community and start conversations that cross interests."
+    },
+    {
+      "id": 56,
+      "name": "Technology",
+      "icon": "desktop",
+      "color": "0F766E",
+      "description": "New tools, digital culture, and the technology shaping everyday life."
+    },
+    {
+      "id": 60,
+      "path": "/c/business-finance/60",
+      "name": "Business & Finance",
+      "icon": "chart-line",
+      "color": "166534",
+      "description": "Companies, careers, money, and the economy in conversation.",
+      "savedDescription": "Companies, careers, money, and the economy in conversation.",
+      "verified": true
+    },
+    {
+      "id": 62,
+      "path": "/c/entertainment-arts/62",
+      "name": "Entertainment & Arts",
+      "icon": "palette",
+      "color": "BE185D",
+      "description": "Film, music, books, art, and the culture we create and love.",
+      "savedDescription": "Film, music, books, art, and the culture we create and love.",
+      "verified": true
+    },
+    {
+      "id": 59,
+      "path": "/c/gaming/59",
+      "name": "Gaming",
+      "icon": "puzzle-piece",
+      "color": "6D28D9",
+      "description": "What we play, how we play, and the worlds we get lost in.",
+      "savedDescription": "What we play, how we play, and the worlds we get lost in.",
+      "verified": true
+    },
+    {
+      "id": 61,
+      "name": "Science & Health",
+      "icon": "flask",
+      "color": "4D7C0F",
+      "description": "Research, discovery, wellbeing, and questions about how life works."
+    },
+    {
+      "id": 57,
+      "name": "Politics",
+      "icon": "gavel",
+      "color": "9F1239",
+      "description": "Public decisions, policy, and civic life—discussed with care.",
+      "verified": true
+    },
+    {
+      "id": 63,
+      "path": "/c/lifestyle/63",
+      "name": "Lifestyle",
+      "icon": "sun",
+      "color": "A16207",
+      "description": "Everyday interests, food, travel, habits, and ways of living.",
+      "savedDescription": "Everyday interests, food, travel, habits, and ways of living."
+    },
+    {
+      "id": 45,
+      "name": "Fomio",
+      "icon": "cubes",
+      "color": "5B3FD6",
+      "description": "Help shape Fomio: product news, support, and ideas for what comes next."
+    },
+    {
+      "id": 9,
+      "path": "/c/off-topic-discussions/9",
+      "name": "Off-topic Discussions",
+      "icon": "face-smile",
+      "color": "475569",
+      "description": "Casual chat, small moments, and conversations just for fun.",
+      "savedDescription": "Casual chat, small moments, and conversations just for fun."
+    },
+    {
+      "id": 11,
+      "path": "/c/general/interesting-finds/11",
+      "name": "Interesting Finds",
+      "icon": "magnifying-glass",
+      "color": "075985",
+      "description": "Links, stories, and discoveries worth sharing.",
+      "savedDescription": "Links, stories, and discoveries worth sharing."
+    },
+    {
+      "id": 50,
+      "path": "/c/general/open-discussions/50",
+      "name": "Open Discussions",
+      "icon": "comment-dots",
+      "color": "0E7490",
+      "description": "Open-ended conversations that span more than one subject.",
+      "savedDescription": "Open-ended conversations that span more than one subject."
+    },
+    {
+      "id": 51,
+      "path": "/c/general/questions/51",
+      "name": "Questions",
+      "icon": "circle-question",
+      "color": "155E75",
+      "description": "Ask the community a question that crosses interests.",
+      "savedDescription": "Ask the community a question that crosses interests."
+    },
+    {
+      "id": 52,
+      "path": "/c/general/opinions/52",
+      "name": "Opinions",
+      "icon": "quote-left",
+      "color": "1D4ED8",
+      "description": "Share a perspective and explore thoughtful disagreement.",
+      "savedDescription": "Share a perspective and explore thoughtful disagreement."
+    },
+    {
+      "id": 53,
+      "path": "/c/general/ideas/53",
+      "name": "Ideas",
+      "icon": "wand-magic-sparkles",
+      "color": "1E40AF",
+      "description": "Share an early idea about the wider world and build on it together.",
+      "savedDescription": "Share an early idea about the wider world and build on it together."
+    },
+    {
+      "id": 42,
+      "path": "/c/general/introducions/42",
+      "name": "Introductions",
+      "icon": "hand",
+      "color": "2563EB",
+      "description": "Say hello, share your interests, and meet other members.",
+      "savedDescription": "Say hello, share your interests, and meet other members."
+    },
+    {
+      "id": 10,
+      "path": "/c/fomio/dev-blog/10",
+      "name": "Dev Blog",
+      "icon": "code",
+      "color": "4338CA",
+      "description": "Behind the scenes of building Fomio.",
+      "savedDescription": "Behind the scenes of building Fomio.\n\n**Welcome to the Dev blog Teret**  \n\nStay informed and up-to-date with everything happening at Fomio through this teret. This is your go-to space for the longer updates, visions, and behind the scenes type of content.\n\nHere’s what you’ll find in here:  \n- **Platform Updates:** Discover new features, improvements, and changes to the Fomio experience.  \n- **Community News:** Learn about upcoming events, initiatives, and highlights from within the community.  \n- **Insights & Stories:** Read behind-the-scenes updates on how we’re building and growing Fomio.  \n- **Announcements:** Stay ahead of major updates, maintenance schedules, or other essential news.  \n\n**How to Engage:**  \n- Keep an eye on this teret for important updates and announcements.  \n- Share your thoughts and feedback on posts to help us continue improving.  \n- Let us know what kind of updates or stories you’d like to see here.  \n\nThis is where the story of Fomio unfolds. Join us in shaping the journey by staying connected and engaged!"
+    },
+    {
+      "id": 12,
+      "path": "/c/fomio/feature-requests/12",
+      "name": "Feature Requests",
+      "icon": "circle-plus",
+      "color": "6D28D9",
+      "description": "Propose a concrete change that would make Fomio better.",
+      "savedDescription": "Propose a concrete change that would make Fomio better."
+    },
+    {
+      "id": 43,
+      "path": "/c/fomio/announcements/43",
+      "name": "Announcements",
+      "icon": "rss",
+      "color": "5B21B6",
+      "description": "Official Fomio updates, launches, and important news.",
+      "savedDescription": "Official Fomio updates, launches, and important news."
+    },
+    {
+      "id": 55,
+      "path": "/c/fomio/knowledge-base/55",
+      "name": "Knowledge Base",
+      "icon": "book-open-reader",
+      "color": "3730A3",
+      "description": "Guides and answers you can return to.",
+      "savedDescription": "Guides and answers you can return to."
+    },
+    {
+      "id": 54,
+      "path": "/c/fomio/experiments-ideas/54",
+      "name": "Experiments & Ideas",
+      "icon": "rocket",
+      "color": "7E22CE",
+      "description": "Explore possibilities for Fomio before they become feature requests.",
+      "savedDescription": "Explore possibilities for Fomio before they become feature requests."
+    },
+    {
+      "id": 47,
+      "path": "/c/fomio/bug-reports/47",
+      "name": "Bug Reports",
+      "icon": "triangle-exclamation",
+      "color": "86198F",
+      "description": "Tell us what broke and how to reproduce it.",
+      "savedDescription": "Tell us what broke and how to reproduce it."
+    },
+    {
+      "id": 48,
+      "path": "/c/fomio/help-support/48",
+      "name": "Help & Support",
+      "icon": "headset",
+      "color": "4F46E5",
+      "description": "Get help using Fomio and working through a problem.",
+      "savedDescription": "Get help using Fomio and working through a problem."
+    },
+    {
+      "id": 49,
+      "path": "/c/fomio/general-fomio-discussions/49",
+      "name": "General Fomio Discussions",
+      "icon": "comment",
+      "color": "6B21A8",
+      "description": "Talk about Fomio and the community around it.",
+      "savedDescription": "Talk about Fomio and the community around it."
+    },
+    {
+      "id": 34,
+      "path": "/c/off-topic-discussions/random/34",
+      "name": "Random",
+      "icon": "shuffle",
+      "color": "334155",
+      "description": "Unexpected thoughts, playful tangents, and little surprises.",
+      "savedDescription": "Unexpected thoughts, playful tangents, and little surprises."
+    }
+  ],
+  "beforeCategories": [
+    {
+      "id": 56,
+      "form": "Edit: Technology\nAdvanced settings\nTechnology\nCategory types\nDiscussion\n​\nHub name\nColor\n#\nStyle (optional)\nIcon\nEmoji\nSquare\nsquare-full\nDescription\nPlease add a description for this category.\nEdit\nTeret of... (optional)\nNone\nVisibility\n Public\nPrivate",
+      "description": "(Replace this first paragraph with a brief description of your new category. This guidance will appear in the category selection area, so try to keep it below 200 characters.)\n\nUse the following paragraphs for a longer description, or to establish category guidelines or rules:\n\n- Why should people use this category? What is it for?\n\n- How exactly is this different than the other categories we already have?\n\n- What should topics in this category generally contain?\n\n- Do we need this category? Can we merge with another category, or subcategory?\n"
+    },
+    {
+      "id": 60,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: BUSINESS & Finance\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: BUSINESS & Finance\"':\n      - generic \"BUSINESS & Finance\":\n        - generic: BUSINESS & Finance\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: BUSINESS & Finance\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\" [checked]\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\"\n  - generic: Square\n  - button \"square-full\":\n    - generic: square-full\n  - generic: Description\n  - generic: Please add a description for this category.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: None\"':\n    - generic \"None\":\n      - generic: None\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert",
+      "description": "(Replace this first paragraph with a brief description of your new category. This guidance will appear in the category selection area, so try to keep it below 200 characters.)\n\nUse the following paragraphs for a longer description, or to establish category guidelines or rules:\n\n- Why should people use this category? What is it for?\n\n- How exactly is this different than the other categories we already have?\n\n- What should topics in this category generally contain?\n\n- Do we need this category? Can we merge with another category, or subcategory?\n"
+    },
+    {
+      "id": 62,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Entertainment & arts\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: Entertainment & arts\"':\n      - generic \"Entertainment & arts\":\n        - generic: Entertainment & arts\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Entertainment & arts\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\" [checked]\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\"\n  - generic: Square\n  - button \"square-full\":\n    - generic: square-full\n  - generic: Description\n  - generic: Please add a description for this category.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: None\"':\n    - generic \"None\":\n      - generic: None\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert",
+      "description": "(Replace this first paragraph with a brief description of your new category. This guidance will appear in the category selection area, so try to keep it below 200 characters.)\n\nUse the following paragraphs for a longer description, or to establish category guidelines or rules:\n\n- Why should people use this category? What is it for?\n\n- How exactly is this different than the other categories we already have?\n\n- What should topics in this category generally contain?\n\n- Do we need this category? Can we merge with another category, or subcategory?\n"
+    },
+    {
+      "id": 59,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Gaming\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: Gaming\"':\n      - generic \"Gaming\":\n        - generic: Gaming\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Gaming\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\" [checked]\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\"\n  - generic: Square\n  - button \"square-full\":\n    - generic: square-full\n  - generic: Description\n  - generic: Please add a description for this category.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: None\"':\n    - generic \"None\":\n      - generic: None\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert",
+      "description": "(Replace this first paragraph with a brief description of your new category. This guidance will appear in the category selection area, so try to keep it below 200 characters.)\n\nUse the following paragraphs for a longer description, or to establish category guidelines or rules:\n\n- Why should people use this category? What is it for?\n\n- How exactly is this different than the other categories we already have?\n\n- What should topics in this category generally contain?\n\n- Do we need this category? Can we merge with another category, or subcategory?\n"
+    },
+    {
+      "id": 61,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Science & Health\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: Science & Health\"':\n      - generic \"Science & Health\":\n        - generic: Science & Health\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Science & Health\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\" [checked]\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\"\n  - generic: Square\n  - button \"square-full\":\n    - generic: square-full\n  - generic: Description\n  - generic: Please add a description for this category.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: None\"':\n    - generic \"None\":\n      - generic: None\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert"
+    },
+    {
+      "id": 57,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Politics\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: Politics\"':\n      - generic \"Politics\":\n        - generic: Politics\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Politics\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\" [checked]\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\"\n  - generic: Square\n  - button \"square-full\":\n    - generic: square-full\n  - generic: Description\n  - generic: Please add a description for this category.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: None\"':\n    - generic \"None\":\n      - generic: None\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert",
+      "description": "(Replace this first paragraph with a brief description of your new category. This guidance will appear in the category selection area, so try to keep it below 200 characters.)\n\nUse the following paragraphs for a longer description, or to establish category guidelines or rules:\n\n- Why should people use this category? What is it for?\n\n- How exactly is this different than the other categories we already have?\n\n- What should topics in this category generally contain?\n\n- Do we need this category? Can we merge with another category, or subcategory?\n"
+    },
+    {
+      "id": 57,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Politics\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: Politics\"':\n      - generic \"Politics\":\n        - generic: Politics\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Politics\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 9F1239\n  - textbox: \"#9f1239\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\" [checked]\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\"\n  - generic: Square\n  - button \"gavel\":\n    - generic: gavel\n  - generic: Description\n  - generic: Public decisions, policy, and civic life—discussed with care.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: None\"':\n    - generic \"None\":\n      - generic: None\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"1029.3\"\n- text: ms×3",
+      "description": "Public decisions, policy, and civic life—discussed with care."
+    },
+    {
+      "id": 63,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: lifestyle\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: lifestyle\"':\n      - generic \"lifestyle\":\n        - generic: lifestyle\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: lifestyle\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\" [checked]\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\"\n  - generic: Square\n  - button \"square-full\":\n    - generic: square-full\n  - generic: Description\n  - generic: Please add a description for this category.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: None\"':\n    - generic \"None\":\n      - generic: None\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"486.0\"\n- text: ms×3",
+      "description": "(Replace this first paragraph with a brief description of your new category. This guidance will appear in the category selection area, so try to keep it below 200 characters.)\n\nUse the following paragraphs for a longer description, or to establish category guidelines or rules:\n\n- Why should people use this category? What is it for?\n\n- How exactly is this different than the other categories we already have?\n\n- What should topics in this category generally contain?\n\n- Do we need this category? Can we merge with another category, or subcategory?\n"
+    },
+    {
+      "id": 45,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Fomio\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: Fomio\"':\n      - generic \"Fomio\":\n        - generic: Fomio\n    - 'generic \"Filter by: subcategories\"':\n      - generic \"subcategories\":\n        - generic: subcategories\n  - navigation:\n    - list:\n      - link \"General\":\n        - /url: \"\"\n      - link \"Ideas\":\n        - /url: \"\"\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button \"Ideas\":\n    - generic: Ideas\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Fomio\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\"\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\" [checked]\n  - generic: Square\n  - generic: Fomio\n  - generic: Description\n  - generic: Welcome to the Fomio Hub!\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: None\"':\n    - generic \"None\":\n      - generic: None\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"629.6\"\n- text: ms",
+      "description": "Welcome to the Fomio Hub! 👋\n\nThis Hub is the central headquarters for discussing the development, future, and features of Fomio. We are building a dedicated social blogging platform for creators, and your feedback is a crucial part of how we shape that experience.\n\n**What belongs in this Hub?** This is the place to talk about the app itself. Whether you are participating in our iOS release, testing new features, or just have thoughts on how we can make Fomio better for you, we want to hear it.\n\nHere is how we’ve organized things to keep the conversation focused:\n\n* **Announcements:** Check here for official release notes, development milestones, and updates directly from the developer.\n* **Feature Requests:** Have an idea for a new tool, a UI tweak, or a feature that would make your life as a creator easier? Pitch it here and let the community vote on it!\n* **Bug Reports:** Found a glitch, an animation hiccup, or something that isn't working quite right? Let us know so it can be squashed.\n* **Help & Support:** Need a hand navigating the app, managing your account, or formatting your posts? Ask away!\n* **General Discussion:** For everything else related to the development and direction of Fomio that doesn't fit into the above.\n\n**A quick guideline:** Please try to post your bytes in the most relevant teret, and take a quick look to see if someone else has already posted about the same bug or feature request before starting a new thread.\n\nThank you for being part of the Fomio journey. Let’s build something amazing together!"
+    },
+    {
+      "id": 9,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Off-topic Discussions\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: Off-topic Discussions\"':\n      - generic \"Off-topic Discussions\":\n        - generic: Off-topic Discussions\n    - 'generic \"Filter by: subcategories\"':\n      - generic \"subcategories\":\n        - generic: subcategories\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Off-topic Discussions\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\"\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\" [checked]\n  - generic: Square\n  - generic: Off-topic Discussions\n  - generic: Description\n  - generic: A space for anything casual, fun, or unrelated — just talk, share, and enjoy.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: None\"':\n    - generic \"None\":\n      - generic: None\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"462.0\"\n- text: ms",
+      "description": "A space for anything casual, fun, or unrelated — just talk, share, and enjoy."
+    },
+    {
+      "id": 11,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Interesting Finds\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: General\"':\n      - generic \"General\":\n        - generic: General\n    - 'generic \"Filter by: Interesting Finds\"':\n      - generic \"Interesting Finds\":\n        - generic: Interesting Finds\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Interesting Finds\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\"\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\" [checked]\n  - generic: Square\n  - generic: Interesting Finds\n  - generic: Description\n  - generic: Share something you found interesting — articles, videos, posts, or anything worth checking out.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: General\"':\n    - generic \"General\":\n      - generic: General\n    - button \"Clear input\":\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"140.2\"\n- text: ms",
+      "description": "Share something you found interesting — articles, videos, posts, or anything worth checking out."
+    },
+    {
+      "id": 50,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Open Discussions\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: General\"':\n      - generic \"General\":\n        - generic: General\n    - 'generic \"Filter by: Open Discussions\"':\n      - generic \"Open Discussions\":\n        - generic: Open Discussions\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Open Discussions\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\" [checked]\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\"\n  - generic: Square\n  - button \"square-full\":\n    - generic: square-full\n  - generic: Description\n  - generic: Start a conversation about any topic and see what others think.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: General\"':\n    - generic \"General\":\n      - generic: General\n    - button \"Clear input\":\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"1926.5\"\n- text: ms",
+      "description": "Start a conversation about any topic and see what others think."
+    },
+    {
+      "id": 51,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Questions\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: General\"':\n      - generic \"General\":\n        - generic: General\n    - 'generic \"Filter by: Questions\"':\n      - generic \"Questions\":\n        - generic: Questions\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Questions\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\" [checked]\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\"\n  - generic: Square\n  - button \"square-full\":\n    - generic: square-full\n  - generic: Description\n  - generic: Ask anything. Whether you need help, advice, or just want opinions — this is the place.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: General\"':\n    - generic \"General\":\n      - generic: General\n    - button \"Clear input\":\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"418.7\"\n- text: ms",
+      "description": "Ask anything. Whether you need help, advice, or just want opinions — this is the place."
+    },
+    {
+      "id": 52,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Opinions\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: General\"':\n      - generic \"General\":\n        - generic: General\n    - 'generic \"Filter by: Opinions\"':\n      - generic \"Opinions\":\n        - generic: Opinions\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Opinions\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\" [checked]\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\"\n  - generic: Square\n  - button \"square-full\":\n    - generic: square-full\n  - generic: Description\n  - generic: Share your thoughts, takes, and perspectives — and see how others respond.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: General\"':\n    - generic \"General\":\n      - generic: General\n    - button \"Clear input\":\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"509.1\"\n- text: ms",
+      "description": "Share your thoughts, takes, and perspectives — and see how others respond."
+    },
+    {
+      "id": 53,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Ideas\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: General\"':\n      - generic \"General\":\n        - generic: General\n    - 'generic \"Filter by: Ideas\"':\n      - generic \"Ideas\":\n        - generic: Ideas\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Ideas\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\" [checked]\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\"\n  - generic: Square\n  - button \"square-full\":\n    - generic: square-full\n  - generic: Description\n  - generic: Have an idea or a “what if”? Share it and explore it with others.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: General\"':\n    - generic \"General\":\n      - generic: General\n    - button \"Clear input\":\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"576.8\"\n- text: ms",
+      "description": "Have an idea or a “what if”? Share it and explore it with others."
+    },
+    {
+      "id": 42,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Introducions\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: General\"':\n      - generic \"General\":\n        - generic: General\n    - 'generic \"Filter by: Introducions\"':\n      - generic \"Introducions\":\n        - generic: Introducions\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Introducions\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088cc\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\"\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\" [checked]\n  - generic: Square\n  - generic: Introducions\n  - generic: Description\n  - generic: This is were come together as one. Come introduce your self and say your greetings! We’d love to know more about you! what you’re working on, what excites you, or even just say “hello” to everyone.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: General\"':\n    - generic \"General\":\n      - generic: General\n    - button \"Clear input\":\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"440.1\"\n- text: ms",
+      "description": "This is were come together as one. Come introduce your self and say your greetings! We’d love to know more about you! what you’re working on, what excites you, or even just say “hello” to everyone."
+    },
+    {
+      "id": 10,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Dev Blog\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: Fomio\"':\n      - generic \"Fomio\":\n        - generic: Fomio\n    - 'generic \"Filter by: Dev Blog\"':\n      - generic \"Dev Blog\":\n        - generic: Dev Blog\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Dev Blog\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\"\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\" [checked]\n  - generic: Square\n  - generic: Dev Blog\n  - generic: Description\n  - strong: Welcome to the Dev blog Teret\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: Fomio\"':\n    - generic \"Fomio\":\n      - generic: Fomio\n    - button \"Clear input\":\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"492.9\"\n- text: ms",
+      "description": "**Welcome to the Dev blog Teret**  \n\nStay informed and up-to-date with everything happening at Fomio through this teret. This is your go-to space for the longer updates, visions, and behind the scenes type of content.\n\nHere’s what you’ll find in here:  \n- **Platform Updates:** Discover new features, improvements, and changes to the Fomio experience.  \n- **Community News:** Learn about upcoming events, initiatives, and highlights from within the community.  \n- **Insights & Stories:** Read behind-the-scenes updates on how we’re building and growing Fomio.  \n- **Announcements:** Stay ahead of major updates, maintenance schedules, or other essential news.  \n\n**How to Engage:**  \n- Keep an eye on this teret for important updates and announcements.  \n- Share your thoughts and feedback on posts to help us continue improving.  \n- Let us know what kind of updates or stories you’d like to see here.  \n\nThis is where the story of Fomio unfolds. Join us in shaping the journey by staying connected and engaged!"
+    },
+    {
+      "id": 12,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Feature Requests\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: Fomio\"':\n      - generic \"Fomio\":\n        - generic: Fomio\n    - 'generic \"Filter by: Feature Requests\"':\n      - generic \"Feature Requests\":\n        - generic: Feature Requests\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Feature Requests\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\"\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\" [checked]\n  - generic: Square\n  - generic: Feature Requests\n  - generic: Description\n  - generic: Suggest ideas or improvements you’d like to see in Fomio.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: Fomio\"':\n    - generic \"Fomio\":\n      - generic: Fomio\n    - button \"Clear input\":\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"403.2\"\n- text: ms",
+      "description": "Suggest ideas or improvements you’d like to see in Fomio."
+    },
+    {
+      "id": 43,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Announcements\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: Fomio\"':\n      - generic \"Fomio\":\n        - generic: Fomio\n    - 'generic \"Filter by: Announcements\"':\n      - generic \"Announcements\":\n        - generic: Announcements\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Announcements\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\"\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\" [checked]\n  - generic: Square\n  - generic: Announcements\n  - generic: Description\n  - generic: Official updates about new features, changes, and important news from Fomio.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: Fomio\"':\n    - generic \"Fomio\":\n      - generic: Fomio\n    - button \"Clear input\":\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"547.3\"\n- text: ms",
+      "description": "Official updates about new features, changes, and important news from Fomio."
+    },
+    {
+      "id": 55,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Knowledge Base\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: Fomio\"':\n      - generic \"Fomio\":\n        - generic: Fomio\n    - 'generic \"Filter by: Knowledge Base\"':\n      - generic \"Knowledge Base\":\n        - generic: Knowledge Base\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Knowledge Base\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\" [checked]\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\"\n  - generic: Square\n  - button \"square-full\":\n    - generic: square-full\n  - generic: Description\n  - generic: The official knowledge base for Fomio. Find guides, platform explanations, community rules, and answers to common questions about how Fomio works.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: Fomio\"':\n    - generic \"Fomio\":\n      - generic: Fomio\n    - button \"Clear input\":\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"470.2\"\n- text: ms",
+      "description": "The official knowledge base for Fomio. Find guides, platform explanations, community rules, and answers to common questions about how Fomio works."
+    },
+    {
+      "id": 54,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Experiments & Ideas\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: Fomio\"':\n      - generic \"Fomio\":\n        - generic: Fomio\n    - 'generic \"Filter by: Experiments & Ideas\"':\n      - generic \"Experiments & Ideas\":\n        - generic: Experiments & Ideas\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Experiments & Ideas\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\" [checked]\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\"\n  - generic: Square\n  - button \"square-full\":\n    - generic: square-full\n  - generic: Description\n  - generic: Share ideas, concepts, and experiments that could shape the future of Fomio.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: Fomio\"':\n    - generic \"Fomio\":\n      - generic: Fomio\n    - button \"Clear input\":\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"504.9\"\n- text: ms",
+      "description": "Share ideas, concepts, and experiments that could shape the future of Fomio."
+    },
+    {
+      "id": 47,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Bug Reports\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: Fomio\"':\n      - generic \"Fomio\":\n        - generic: Fomio\n    - 'generic \"Filter by: Bug Reports\"':\n      - generic \"Bug Reports\":\n        - generic: Bug Reports\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Bug Reports\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\" [checked]\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\"\n  - generic: Square\n  - button \"square-full\":\n    - generic: square-full\n  - generic: Description\n  - generic: Report issues, glitches, or anything that isn’t working as expected.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: Fomio\"':\n    - generic \"Fomio\":\n      - generic: Fomio\n    - button \"Clear input\":\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"559.4\"\n- text: ms",
+      "description": "Report issues, glitches, or anything that isn’t working as expected."
+    },
+    {
+      "id": 48,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Help & Support\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: Fomio\"':\n      - generic \"Fomio\":\n        - generic: Fomio\n    - 'generic \"Filter by: Help & Support\"':\n      - generic \"Help & Support\":\n        - generic: Help & Support\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Help & Support\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\" [checked]\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\"\n  - generic: Square\n  - button \"square-full\":\n    - generic: square-full\n  - generic: Description\n  - generic: Need help using Fomio? Ask here and get support from the community or team.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: Fomio\"':\n    - generic \"Fomio\":\n      - generic: Fomio\n    - button \"Clear input\":\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"661.6\"\n- text: ms",
+      "description": "Need help using Fomio? Ask here and get support from the community or team."
+    },
+    {
+      "id": 49,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: General Fomio Discussions\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: Fomio\"':\n      - generic \"Fomio\":\n        - generic: Fomio\n    - 'generic \"Filter by: General Fomio Discussions\"':\n      - generic \"General Fomio Discussions\":\n        - generic: General Fomio Discussions\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: General Fomio Discussions\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\" [checked]\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\"\n  - generic: Square\n  - button \"square-full\":\n    - generic: square-full\n  - generic: Description\n  - generic: Talk about Fomio — share feedback, thoughts, and general discussions about the platform.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: Fomio\"':\n    - generic \"Fomio\":\n      - generic: Fomio\n    - button \"Clear input\":\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"386.4\"\n- text: ms",
+      "description": "Talk about Fomio — share feedback, thoughts, and general discussions about the platform."
+    },
+    {
+      "id": 34,
+      "form": "- generic \"Skip navigation links\":\n  - link \"Skip to main content\":\n    - /url: \"#main-container\"\n- link \"Fomio\":\n  - /url: /\n  - img \"Fomio\"\n- navigation \"Header\":\n  - list:\n    - button \"Color mode, currently light\":\n    - button \"Search\":\n- main:\n  - 'heading \"Edit: Random\" [level=1]'\n  - switch\n  - generic: Advanced settings\n  - list:\n    - 'generic \"Filter by: Off-topic Discussions\"':\n      - generic \"Off-topic Discussions\":\n        - generic: Off-topic Discussions\n    - 'generic \"Filter by: Random\"':\n      - generic \"Random\":\n        - generic: Random\n  - navigation:\n    - list\n  - generic: Category types\n  - button \"Discussion\":\n    - generic: Discussion\n  - button:\n  - generic: Hub name\n  - textbox \"Hub name\":\n    - /placeholder: One or two words recommended\n    - text: Random\n  - generic: Color\n  - generic: \"#\"\n  - textbox \"Color\": 0088CC\n  - textbox: \"#0088cc\"\n  - button \"Color palette\":\n  - text: Style\n  - generic: (optional)\n  - radio \"Icon\"\n  - generic: Icon\n  - radio \"Emoji\"\n  - generic: Emoji\n  - radio \"Square\" [checked]\n  - generic: Square\n  - generic: Random\n  - generic: Description\n  - generic: Post anything unexpected, weird, or just random.\n  - button \"Edit\":\n    - generic: Edit\n  - text: Teret of...\n  - generic: (optional)\n  - 'generic \"Filter by: Off-topic Discussions\"':\n    - generic \"Off-topic Discussions\":\n      - generic: Off-topic Discussions\n    - button \"Clear input\":\n  - generic: Visibility\n  - radio \"Public\" [checked]\n  - text: Public\n  - radio \"Private\"\n  - generic: Private\n  - dialog \"User card\"\n- navigation \"Navigation menu\":\n  - link \"Home\":\n    - /url: /latest\n    - generic: Home\n  - link \"Categories\":\n    - /url: /categories\n    - generic: Categories\n  - button \"New Byte\":\n    - generic: New Byte\n  - button \"Notifications\":\n    - generic: Notifications\n  - link \"Soma Profile\":\n    - /url: /u/soma\n    - img \"Soma\"\n    - generic: Profile\n- status\n- alert\n- generic: \"479.6\"\n- text: ms",
+      "description": "Post anything unexpected, weird, or just random."
+    }
+  ]
+}

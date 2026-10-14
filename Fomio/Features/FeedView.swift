@@ -25,8 +25,12 @@ struct FeedView: View {
     @Bindable var state: FeedState
     let category: Community?
     @State private var showingAbout = false
+    @AppStorage(FeedAppearance.storageKey) private var appearance: FeedAppearance = .compact
+    @State private var geometry = FeedGeometry()
+    @State private var pendingRestore: FeedGeometry.Anchor?
     var body: some View {
         let _ = app.siteTheme
+        ScrollViewReader { proxy in
         ScrollView {
             ReadingColumn {
                 LazyVStack(alignment: .leading, spacing: 0) {
@@ -41,7 +45,14 @@ struct FeedView: View {
                         }
                     }.padding(.horizontal, 20).padding(.top, 18).padding(.bottom, 4)
                     if state.loading && !state.loaded { SkeletonRows() }
-                    ForEach(state.items) { topic in TopicRow(topic: topic, showCategory: category == nil || topic.categoryID != category?.id).id(topic.id) }
+                    if appearance == .cards && !state.items.isEmpty { Color.clear.frame(height: 6).accessibilityHidden(true) }
+                    ForEach(state.items) { topic in
+                        TopicCard(topic: topic, appearance: appearance, showCategory: category == nil || topic.categoryID != category?.id,
+                                  onOpen: { app.navigate(.discussion(topic.id, topic.targetPostNumber)) },
+                                  onCategory: { app.navigate(.community($0)) })
+                            .onGeometryChange(for: CGRect.self) { $0.frame(in: .scrollView) } action: { geometry.frames[topic.id] = $0 }
+                            .id(topic.id)
+                    }
                     if state.loading && state.loaded { ProgressView().frame(maxWidth: .infinity).padding(24) }
                     if let error = state.error {
                         InfoCard(title: state.loaded ? "Couldn’t load more" : "Discussions unavailable", message: error) { Button("Try again") { Task { await load() } }.frame(minHeight: 44) }.padding(20)
@@ -55,6 +66,11 @@ struct FeedView: View {
             }
         }
         .scrollPosition(id: $state.anchor)
+        .accessibilityIdentifier("feed-\(appearance.rawValue)")
+        // Card frames are read in the scroll view's space, whose origin is the inset-adjusted visible top.
+        .onScrollGeometryChange(for: FeedGeometry.Viewport.self) { .init(top: 0, height: $0.containerSize.height) } action: { geometry.viewport = $1 }
+        .onChange(of: appearance) { restore(proxy) }
+        }
         .background(Color.fomioBackground)
         .navigationTitle(category?.name ?? "Home")
         .navigationBarTitleDisplayMode(.inline)
@@ -67,6 +83,7 @@ struct FeedView: View {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button { app.navigate(.search) } label: { Image(systemName: "magnifyingglass") }.accessibilityLabel("Search discussions")
                 if category == nil { Button { app.create() } label: { Image(systemName: "square.and.pencil") }.accessibilityLabel("New discussion") }
+                optionsMenu
             }
         }
         .sheet(isPresented: $showingAbout) {
@@ -76,6 +93,40 @@ struct FeedView: View {
         .refreshable { await state.load(service: app.service, category: category, refresh: true) }
     }
     private func load() async { await state.load(service: app.service, category: category) }
+    private var optionsMenu: some View {
+        Menu {
+            Section("Feed appearance") {
+                Picker(selection: Binding(get: { appearance }, set: select)) {
+                    ForEach(FeedAppearance.allCases) { option in Label(option.title, systemImage: option.symbol).tag(option) }
+                } label: { Text("Feed appearance") }
+                .pickerStyle(.inline)
+            }
+        } label: {
+            // Titled so the item stays named when the toolbar overflows (iPad, accessibility text sizes).
+            Label(category == nil ? "Home options" : "Feed options", systemImage: "ellipsis")
+        }
+        .accessibilityIdentifier("feed-options")
+    }
+    /// Captures the topmost visible topic and how far into it the reader is, before row heights change.
+    private func select(_ value: FeedAppearance) {
+        guard value != appearance else { return }
+        pendingRestore = geometry.topAnchor(in: state.items)
+        var transaction = Transaction(); transaction.disablesAnimations = true
+        withTransaction(transaction) { appearance = value }
+    }
+    /// Keeps the same topic at the same relative reading position after the switch. No animated scrolling.
+    private func restore(_ proxy: ScrollViewProxy) {
+        // Another feed may change the shared preference; this feed then restores its own last-known reading position.
+        guard let anchor = pendingRestore ?? geometry.topAnchor(in: state.items) else { return }
+        pendingRestore = nil
+        var transaction = Transaction(); transaction.disablesAnimations = true
+        withTransaction(transaction) { proxy.scrollTo(anchor.id, anchor: .top) }
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(60))
+            let next = state.items.firstIndex { $0.id == anchor.id }.flatMap { state.items.indices.contains($0 + 1) ? state.items[$0 + 1].id : nil }
+            if let (id, point) = geometry.placement(for: anchor, next: next) { withTransaction(transaction) { proxy.scrollTo(id, anchor: point) } }
+        }
+    }
     private var guestNote: some View {
         HStack(alignment: .top, spacing: 8) {
             VStack(alignment: .leading, spacing: 6) {
@@ -117,55 +168,35 @@ struct FeedView: View {
     }
 
 }
-struct TopicRow: View {
-    @Environment(AppState.self) private var app
-    @Environment(\.dynamicTypeSize) private var typeSize
-    let topic: DiscussionSummary
-    var showCategory = true
-    var body: some View {
-        let _ = app.siteTheme
-        let stacked = typeSize.isAccessibilitySize
-        let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10)) : AnyLayout(HStackLayout(alignment: .top, spacing: 14))
-        VStack(alignment: .leading, spacing: 0) {
-            layout {
-                VStack(alignment: .leading, spacing: 4) {
-                    if topic.pinned { Label("Pinned", systemImage: "pin.fill").font(.caption2.weight(.semibold)).foregroundStyle(Color.fomioAccent).padding(.horizontal, 8).padding(.vertical, 3).background(Color.fomioHighlight, in: .capsule) }
-                    if showCategory {
-                        Button { app.navigate(.community(topic.categoryID)) } label: {
-                            HStack(spacing: 5) {
-                                if let category = app.category(topic.categoryID) { CategoryMark(category: category, size: 18) }
-                                Text(app.categoryName(topic.categoryID))
-                            }
-                        }
-                            .font(.footnote.weight(.semibold)).foregroundStyle(Color.fomioAccent).frame(minHeight: 44, alignment: .leading).padding(.vertical, -10)
-                            .accessibilityLabel("Open community \(app.categoryName(topic.categoryID))")
-                    }
-                    Button(action: open) {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(topic.title).font(.body.weight(.bold)).foregroundStyle(Color.fomioText).multilineTextAlignment(.leading)
-                            if !topic.excerpt.isEmpty { Text(topic.excerpt).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).lineLimit(stacked ? 4 : 2).multilineTextAlignment(.leading) }
-                            ViewThatFits(in: .horizontal) {
-                                HStack(spacing: 5) { metadata }
-                                VStack(alignment: .leading, spacing: 2) { metadata }
-                            }.font(.footnote).foregroundStyle(Color.fomioSecondaryText)
-                        }.frame(maxWidth: .infinity, alignment: .leading).contentShape(.rect)
-                    }.buttonStyle(.plain).accessibilityIdentifier("topic-\(topic.id.rawValue)")
-                    .accessibilityLabel("\(topic.title), in \(app.categoryName(topic.categoryID))\(topic.author.isEmpty ? "" : ", by \(topic.author)"), \(repliesText(topic.replyCount))\(topic.activity.isEmpty ? "" : ", active \(topic.activity)")")
-                }
-                if let image = topic.image {
-                    Button(action: open) {
-                        Image(image).resizable().scaledToFill().frame(width: stacked ? nil : 72, height: stacked ? 180 : 72).frame(maxWidth: stacked ? .infinity : 72).clipShape(.rect(cornerRadius: 12))
-                    }.buttonStyle(.plain).padding(.top, stacked ? 0 : 22).accessibilityLabel(SamplePhoto.description(image)).accessibilityHidden(true)
-                }
-            }.padding(.horizontal, 20).padding(.vertical, 14)
-            Divider().overlay(Color.fomioSeparator).padding(.leading, 20)
-        }
+/// Non-observed layout readings used only when the appearance changes; updating them never re-renders the feed.
+@MainActor final class FeedGeometry {
+    struct Viewport: Equatable { var top: CGFloat = 0; var height: CGFloat = 0 }
+    struct Anchor: Equatable { var id: TopicID; var offset: CGFloat; var height: CGFloat }
+    var frames: [TopicID: CGRect] = [:]
+    var viewport = Viewport()
+    /// The first topic whose bottom is below the visible top, with its offset from that top.
+    func topAnchor(in items: [DiscussionSummary]) -> Anchor? {
+        let current = Set(items.map(\.id))
+        frames = frames.filter { current.contains($0.key) }
+        let visible = frames.filter { $0.value.maxY > viewport.top + 1 && $0.value.minY < viewport.top + viewport.height }
+        guard let (id, frame) = visible.min(by: { $0.value.minY < $1.value.minY }) else { return nil }
+        return Anchor(id: id, offset: frame.minY - viewport.top, height: max(frame.height, 1))
     }
-    private func open() { app.navigate(.discussion(topic.id, topic.targetPostNumber)) }
-    @ViewBuilder private var metadata: some View {
-        if !topic.author.isEmpty { Avatar(name: topic.author, size: 20); Text(topic.author); Text("·").accessibilityHidden(true) }
-        Label(repliesText(topic.replyCount), systemImage: "bubble.left").labelStyle(CompactIconLabel()).padding(.horizontal, 7).padding(.vertical, 3).background(Color.fomioFill, in: .capsule)
-        if !topic.activity.isEmpty { Text("·").accessibilityHidden(true); Text(topic.activity) }
+    /// Called after the topic was scrolled to the top in the new appearance. Returns a scroll target that keeps
+    /// the same fraction of the topic above the visible top, or the same distance below it when it was fully visible.
+    /// Scroll anchors are clamped to 0...1, so a partly hidden topic is placed by positioning the topic after it.
+    func placement(for anchor: Anchor, next: TopicID?) -> (TopicID, UnitPoint)? {
+        guard let frame = frames[anchor.id], viewport.height > 0 else { return nil }
+        let target = anchor.offset < 0 ? anchor.offset * frame.height / anchor.height : min(anchor.offset, viewport.height * 0.6)
+        guard abs(target) > 0.5 else { return nil }
+        let reference = target < 0 ? next : anchor.id
+        guard let reference, let referenceFrame = frames[reference] else { return nil }
+        let desired = target + referenceFrame.minY - frame.minY
+        let span = viewport.height - referenceFrame.height
+        guard abs(span) > 1 else { return nil }
+        let value = desired / span
+        guard (0...1).contains(value) else { return nil }
+        return (reference, UnitPoint(x: 0, y: value))
     }
 }
 struct CompactIconLabel: LabelStyle {

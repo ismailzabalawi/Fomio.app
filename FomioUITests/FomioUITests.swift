@@ -7,6 +7,10 @@ import UIKit
         let app = launch(["--live"])
         let communities = app.buttons["Communities"].firstMatch
         XCTAssertTrue(communities.waitForExistence(timeout: 20)); communities.tap()
+        XCTAssertTrue(app.buttons["community-42"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.buttons["community-11"].exists)
+        for id in [34, 49, 50, 51, 52, 53] { XCTAssertFalse(app.buttons["community-\(id)"].exists) }
+        let consolidated = XCTAttachment(screenshot: app.screenshot()); consolidated.name = "Live consolidated General hierarchy and native icons"; consolidated.lifetime = .keepAlways; add(consolidated)
         let search = app.searchFields.firstMatch
         XCTAssertTrue(search.waitForExistence(timeout: 20)); search.tap(); search.typeText("Experiments\n")
         let child = app.buttons["community-54"]

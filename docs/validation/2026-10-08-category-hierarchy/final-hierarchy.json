@@ -1,0 +1,100 @@
+[
+  {
+    "children": [
+      {
+        "name": "Interesting Finds",
+        "url": "/c/general/interesting-finds/11"
+      },
+      {
+        "name": "Introductions",
+        "url": "/c/general/introducions/42"
+      }
+    ],
+    "root": "General",
+    "url": "/c/general/4"
+  },
+  {
+    "children": [],
+    "root": "Entertainment & Arts",
+    "url": "/c/entertainment-arts/62"
+  },
+  {
+    "children": [],
+    "root": "Politics",
+    "url": "/c/politics/57"
+  },
+  {
+    "children": [],
+    "root": "Science & Health",
+    "url": "/c/science-health/61"
+  },
+  {
+    "children": [],
+    "root": "Sports",
+    "url": "/c/sports/58"
+  },
+  {
+    "children": [],
+    "root": "Technology",
+    "url": "/c/technology/56"
+  },
+  {
+    "children": [],
+    "root": "Business & Finance",
+    "url": "/c/business-finance/60"
+  },
+  {
+    "children": [],
+    "root": "Gaming",
+    "url": "/c/gaming/59"
+  },
+  {
+    "children": [
+      {
+        "name": "Dev Blog",
+        "url": "/c/fomio/dev-blog/10"
+      },
+      {
+        "name": "Feature Requests",
+        "url": "/c/fomio/feature-requests/12"
+      },
+      {
+        "name": "Announcements",
+        "url": "/c/fomio/announcements/43"
+      },
+      {
+        "name": "Knowledge Base",
+        "url": "/c/fomio/knowledge-base/55"
+      },
+      {
+        "name": "Experiments & Ideas",
+        "url": "/c/fomio/experiments-ideas/54"
+      },
+      {
+        "name": "Help & Support",
+        "url": "/c/fomio/help-support/48"
+      },
+      {
+        "name": "Bug Reports",
+        "url": "/c/fomio/bug-reports/47"
+      }
+    ],
+    "root": "Fomio",
+    "url": "/c/fomio/45"
+  },
+  {
+    "children": [],
+    "root": "Lifestyle",
+    "url": "/c/lifestyle/63"
+  },
+  {
+    "children": [],
+    "root": "Staff",
+    "url": "/c/staff/3"
+  },
+  {
+    "children": [],
+    "root": "Off-topic Discussions",
+    "url": "/c/off-topic-discussions/9"
+  }
+]
