@@ -61,7 +61,7 @@ struct ComposerView: View {
                             }
                             ForEach(state.draft.activeAttachments) { attachment in photoStatusRow(attachment) }
                             if state.saveStatus == .failed { Label(L("composer.save.failed"), systemImage: "exclamationmark.triangle.fill").font(.footnote).foregroundStyle(Color.fomioDanger).accessibilityIdentifier("draft-save-status") }
-                            if let error = state.error { Text(error).font(.subheadline).foregroundStyle(Color.fomioDanger).accessibilityIdentifier("composer-error").id(Recovery.error).accessibilityFocused($recoveryFocus, equals: .error) }
+                            if let error = state.error { Text(error.text).font(.subheadline).foregroundStyle(Color.fomioDanger).accessibilityIdentifier("composer-error").id(Recovery.error).accessibilityFocused($recoveryFocus, equals: .error) }
                         }.padding(20)
                     }
                 }.background(Color.fomioBackground).scrollDismissesKeyboard(.interactively)
@@ -163,7 +163,7 @@ struct ComposerView: View {
                                 bodyEditor.send(.adopt(previous, EditorSelection(insertion)))
                                 insertion = NSRange(location: insertion.location + (state.draft.body as NSString).length - before, length: 0)
                             }
-                        } catch { state.error = L("composer.photo.read_failed") }
+                        } catch { state.error = .key("composer.photo.read_failed") }
                     }
                     photos = []
                 }
@@ -243,7 +243,7 @@ struct ComposerView: View {
         if let message = state.rejection {
             alertCard(symbol: "exclamationmark.triangle.fill", tint: .fomioDanger) {
                 Text(L("composer.rejected.title")).font(.headline).accessibilityFocused($recoveryFocus, equals: .rejection)
-                Text(message).font(.subheadline)
+                Text(message.text).font(.subheadline)
                 Text(L("composer.rejected.message")).font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
             }.id(Recovery.rejection)
         }
@@ -308,7 +308,7 @@ struct ComposerView: View {
         case .retained: L("composer.photo.status.retained")
         case .queued: L("composer.photo.status.queued")
         case let .uploading(value): L("composer.photo.status.uploading", ["percent": (value).formatted(.percent.precision(.fractionLength(0)).locale(Localizer.shared.formattingLocale))])
-        case let .failed(message): L("composer.photo.status.failed", ["reason": message])
+        case let .failed(message): L("composer.photo.status.failed", ["reason": message.text])
         case .uploaded: L("composer.photo.status.uploaded")
         case .missing: L("composer.photo.status.missing")
         }

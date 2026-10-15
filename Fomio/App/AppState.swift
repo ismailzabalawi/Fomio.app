@@ -51,9 +51,9 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     var tabs = Dictionary(uniqueKeysWithValues: AppTab.allCases.map { ($0, TabState()) })
     var communities: [Community] = []
     var siteTheme = SiteTheme()
-    var themeError: String?
+    var themeError: DisplayError?
     var communitiesLoaded = false
-    var communityError: String?
+    var communityError: DisplayError?
     var account: AccountID = .guest
     var username: String?
     var displayName: String?
@@ -92,11 +92,11 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
                 tab.expandedCommunities = Set(communities.filter { $0.parentID == nil }.prefix(2).map(\.id))
                 tab.directoryInitialized = true
             }
-        } catch { communityError = error.localizedDescription }
+        } catch { communityError = DisplayError(error) }
     }
     func loadTheme() async {
         do { siteTheme = try await service.siteTheme(); FomioTheme.current = siteTheme; themeError = nil }
-        catch { themeError = error.localizedDescription }
+        catch { themeError = DisplayError(error) }
     }
     func refreshUnread() async {
         guard username != nil else { unreadCount = 0; return }

@@ -8,12 +8,14 @@ import UIKit
 /// so views reading `L(...)` redraw in place when a catalog activates; view identity, navigation,
 /// drafts and editor selection are untouched.
 final class Localizer: Observable, Sendable {
-    static let shared = Localizer(english: Localizer.bundledEnglish())
+    static let shared = Localizer(english: Localizer.bundledEnglish(), drivesUIKit: true)
     let english: LocalizationCatalog
+    /// Only the app's shared localizer sets UIKit's global direction; test instances never do.
+    let drivesUIKit: Bool
     private let registrar = ObservationRegistrar()
     private let storage: Mutex<LocalizationCatalog>
 
-    init(english: LocalizationCatalog) { self.english = english; storage = Mutex(english) }
+    init(english: LocalizationCatalog, drivesUIKit: Bool = false) { self.english = english; self.drivesUIKit = drivesUIKit; storage = Mutex(english) }
 
     var catalog: LocalizationCatalog {
         registrar.access(self, keyPath: \.catalog)
@@ -21,13 +23,17 @@ final class Localizer: Observable, Sendable {
     }
     var formattingLocale: Locale { catalog.formattingLocale }
     var layoutDirection: LayoutDirection { catalog.direction == .rtl ? .rightToLeft : .leftToRight }
+    /// Explicit UIKit direction for app-owned UIKit views. Never `.unspecified`: on a device whose system
+    /// language is right-to-left, unspecified would mirror an English interface.
+    var uikitAttribute: UISemanticContentAttribute { catalog.direction == .rtl ? .forceRightToLeft : .forceLeftToRight }
 
     /// Activates an already validated catalog. Call on the main actor so SwiftUI observes one transaction.
     @MainActor func activate(_ value: LocalizationCatalog) {
-        guard storage.withLock({ $0 }) != value else { return }
         // UIKit-presented surfaces (menus, the editor's attachment cards) are created from UIKit's own
-        // direction; new views follow the catalog. Existing SwiftUI views follow LocalizationEnvironment.
-        UIView.appearance().semanticContentAttribute = value.direction == .rtl ? .forceRightToLeft : .unspecified
+        // direction, so it is set for every activation, including the initial English fallback at launch
+        // (which equals the stored catalog). Existing SwiftUI views follow LocalizationEnvironment.
+        if drivesUIKit { UIView.appearance().semanticContentAttribute = value.direction == .rtl ? .forceRightToLeft : .forceLeftToRight }
+        guard storage.withLock({ $0 }) != value else { return }
         registrar.withMutation(of: self, keyPath: \.catalog) { storage.withLock { $0 = value } }
     }
 

@@ -12,9 +12,9 @@ import Observation
     var childrenLoaded: Set<PostID> = []
     var expanded: Set<PostID> = []
     var loadingChildren: Set<PostID> = []
-    var childErrors: [PostID: String] = [:]
+    var childErrors: [PostID: DisplayError] = [:]
     var loading = false
-    var error: String?
+    var error: DisplayError?
     var errorKind: RepositoryError?
     var focus: FocusReason?
     var highlight: PostID?
@@ -79,7 +79,7 @@ import Observation
     private func recordFailure(_ error: Error) {
         let kind = error as? RepositoryError
         if kind == .unauthorized || kind == .denied || kind == .unavailable { resetContent() }
-        self.error = error.localizedDescription; errorKind = kind
+        self.error = DisplayError(error); errorKind = kind
     }
     private func restoreBranch(_ id: PostID, depth: Int, wanted: Set<PostID>) async {
         guard depth < 2, wanted.contains(id), let post = nodes[id], post.childCount > 0 else { return }
@@ -118,7 +118,7 @@ import Observation
         } catch {
             guard generation == requestGeneration else { return }
             if let kind = error as? RepositoryError, kind == .unauthorized || kind == .denied { recordFailure(error) }
-            else { childErrors[id] = error.localizedDescription }
+            else { childErrors[id] = DisplayError(error) }
         }
     }
     func act(_ id: PostID, bookmark: Bool) async throws {

@@ -189,26 +189,63 @@ enum RepositoryError: LocalizedError, Equatable {
     case configuration, offline, unauthorized, denied, unavailable, unsupported, invalid(String), rateLimited, server(Int), unconfirmed
     /// App-side validation and recovery text, resolved from the active catalog when shown.
     case message(String)
-    var errorDescription: String? {
+    /// Text shown for this error: a catalog key with arguments, or Discourse's own message.
+    var display: DisplayError {
         switch self {
-        case .configuration: L("error.configuration")
-        case .offline: L("error.offline")
-        case .unauthorized: L("error.unauthorized")
-        case .denied: L("error.denied")
-        case .unavailable: L("error.unavailable")
-        case .unsupported: L("error.unsupported")
+        case .configuration: .key("error.configuration")
+        case .offline: .key("error.offline")
+        case .unauthorized: .key("error.unauthorized")
+        case .denied: .key("error.denied")
+        case .unavailable: .key("error.unavailable")
+        case .unsupported: .key("error.unsupported")
         // Discourse validation messages are server-owned and shown as returned.
-        case let .invalid(message): message
-        case .rateLimited: L("error.rate_limited")
-        case let .server(code): L("error.server", ["code": String(code)])
-        case .unconfirmed: L("error.unconfirmed")
-        case let .message(key): L(key)
+        case let .invalid(message): .verbatim(message)
+        case .rateLimited: .key("error.rate_limited")
+        case let .server(code): .key("error.server", ["code": String(code)])
+        case .unconfirmed: .key("error.unconfirmed")
+        case let .message(key): .key(key)
+        }
+    }
+    var errorDescription: String? { display.text }
+}
+
+/// An error kept on screen or in a draft. App-authored text stays semantic and resolves from the active
+/// catalog each time it is shown, so a retained error follows a language change; Discourse and system
+/// messages are kept verbatim. Decodes legacy plain-string values as verbatim text.
+enum DisplayError: Equatable, Codable, Sendable {
+    case key(String, [String: String] = [:])
+    case verbatim(String)
+    init(_ error: any Error) {
+        if let error = error as? RepositoryError { self = error.display }
+        else if let error = error as? DisplayErrorConvertible { self = error.display }
+        else { self = .verbatim(error.localizedDescription) }
+    }
+    var text: String {
+        switch self {
+        case let .key(key, arguments): Localizer.shared.string(key, arguments.sorted { $0.key < $1.key }.map { ($0.key, $0.value) })
+        case let .verbatim(message): message
+        }
+    }
+    private enum CodingKeys: String, CodingKey { case key, arguments, verbatim }
+    init(from decoder: any Decoder) throws {
+        if let legacy = try? decoder.singleValueContainer().decode(String.self) { self = .verbatim(legacy); return }
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        if let key = try c.decodeIfPresent(String.self, forKey: .key) { self = .key(key, try c.decodeIfPresent([String: String].self, forKey: .arguments) ?? [:]) }
+        else { self = .verbatim(try c.decode(String.self, forKey: .verbatim)) }
+    }
+    func encode(to encoder: any Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case let .key(key, arguments): try c.encode(key, forKey: .key); if !arguments.isEmpty { try c.encode(arguments, forKey: .arguments) }
+        case let .verbatim(message): try c.encode(message, forKey: .verbatim)
         }
     }
 }
+/// Errors that carry their own semantic display text.
+protocol DisplayErrorConvertible: Error { var display: DisplayError { get } }
 
 struct ComposerAttachment: Identifiable, Codable, Equatable, Sendable {
-    enum Status: Codable, Equatable, Sendable { case retained, queued, uploading(Double), failed(String), uploaded, missing }
+    enum Status: Codable, Equatable, Sendable { case retained, queued, uploading(Double), failed(DisplayError), uploaded, missing }
     var id = UUID()
     var description = L("composer.photo.default_description")
     var localFileName: String?

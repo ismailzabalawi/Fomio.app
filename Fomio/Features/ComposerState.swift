@@ -3,7 +3,7 @@ import UIKit
 import Observation
 
 @MainActor @Observable final class ComposerState: Identifiable {
-    enum UploadState: Equatable { case none, uploading(Double), failed(String), uploaded }
+    enum UploadState: Equatable { case none, uploading(Double), failed(DisplayError), uploaded }
     nonisolated let id: UUID
     var draft: Draft
     var uploadState: UploadState {
@@ -11,16 +11,16 @@ import Observation
         switch attachment.status {
         case let .uploading(value): return .uploading(value)
         case let .failed(message): return .failed(message)
-        case .retained, .queued, .missing: return .failed(L("composer.photo.resume_or_remove"))
+        case .retained, .queued, .missing: return .failed(.key("composer.photo.resume_or_remove"))
         case .uploaded: return .uploaded
         }
     }
     var photoData: Data? { draft.activeAttachments.first.flatMap { try? app.draftStore.photo(draft: draft, attachment: $0) } }
     private var uploadGeneration = UUID()
     private var currentUploadID: UUID?
-    var error: String?
-    /// The community's validation message, shown as returned. Editing clears it.
-    var rejection: String?
+    var error: DisplayError?
+    /// The community's validation message, shown as returned (app-side rejections stay semantic). Editing clears it.
+    var rejection: DisplayError?
     /// Authorization expired while writing. Post stays a separate tap after signing in again.
     var expired = false
     enum SaveStatus: Equatable { case notSaved, saved, failed }
@@ -135,13 +135,13 @@ import Observation
         var value = draft
         value.attachments = draft.activeAttachments
         do { try app.draftStore.save(value); stored = true; saveStatus = .saved; error = nil; app.draftsRevision += 1; return true }
-        catch { saveStatus = .failed; self.error = error.localizedDescription; return false }
+        catch { saveStatus = .failed; self.error = DisplayError(error); return false }
     }
     func keepDraft(message: String? = nil) {
         autosave?.cancel(); uploadTask?.cancel()
         stopUploads()
         if save() {
-            do { try app.draftStore.reconcileFiles(account: draft.account) } catch { self.error = error.localizedDescription; return }
+            do { try app.draftStore.reconcileFiles(account: draft.account) } catch { self.error = DisplayError(error); return }
             app.composer = nil
             app.toast(message ?? L("composer.draft_kept"))
         }
@@ -150,7 +150,7 @@ import Observation
     func discard() {
         autosave?.cancel(); stopUploads()
         do { try app.draftStore.delete(draft.id); app.draftsRevision += 1; app.composer = nil; if resumed { app.toast(L("composer.draft_discarded")) } }
-        catch { self.error = error.localizedDescription }
+        catch { self.error = DisplayError(error) }
     }
     func stopUploads() {
         uploadGeneration = UUID(); uploadTask?.cancel(); uploadTask = nil; currentUploadID = nil
@@ -169,10 +169,10 @@ import Observation
     }
     func addPhoto(_ data: Data, at selection: NSRange? = nil) {
         guard !locked else { return }
-        if let limit = app.service.composerCapabilities.maximumUploadBytes, data.count > limit { error = L("composer.photo.too_large"); return }
+        if let limit = app.service.composerCapabilities.maximumUploadBytes, data.count > limit { error = .key("composer.photo.too_large"); return }
         var attachment = ComposerAttachment(status: app.isOffline ? .retained : .queued)
         do { attachment.localFileName = try app.draftStore.retain(data, draft: draft, attachment: attachment.id) }
-        catch { self.error = L("composer.photo.retain_failed", ["reason": error.localizedDescription]); return }
+        catch { self.error = .key("composer.photo.retain_failed", ["reason": error.localizedDescription]); return }
         let range = selection ?? NSRange(location: (draft.body as NSString).length, length: 0)
         draft.body = DiscourseMarkupCodec.replace(draft.body, range: range, with: "\n" + attachment.markup + "\n")
         draft.attachments.append(attachment)
@@ -212,7 +212,7 @@ import Observation
                 } catch is CancellationError { return }
                 catch {
                     guard uploadGeneration == generation, let index = draft.attachments.firstIndex(where: { $0.id == id }) else { return }
-                    draft.attachments[index].status = .failed(error.localizedDescription); save()
+                    draft.attachments[index].status = .failed(DisplayError(error)); save()
                 }
             }
         }
@@ -238,10 +238,9 @@ import Observation
             else { draft.submission = .editing }
             save()
             switch error as? RepositoryError {
-            case let .invalid(message)?: rejection = message
-            case .message?: rejection = error.localizedDescription
+            case .invalid?, .message?: rejection = DisplayError(error)
             case .unauthorized?: app.username = nil; app.pendingAction = nil; expired = true
-            default: self.error = error.localizedDescription
+            default: self.error = DisplayError(error)
             }
         }
     }
@@ -251,8 +250,8 @@ import Observation
         app.pendingAction = { [self] in
             guard app.account == draft.account else { return }
             if let topic = draft.intent.topicID {
-                do { let page = try await app.service.discussion(topic, page: 0); guard page.canReply else { error = L("composer.reply_permission_lost"); app.composer = self; return } }
-                catch { self.error = error.localizedDescription; app.composer = self; return }
+                do { let page = try await app.service.discussion(topic, page: 0); guard page.canReply else { error = .key("composer.reply_permission_lost"); app.composer = self; return } }
+                catch { self.error = DisplayError(error); app.composer = self; return }
             }
             reauthorized(); app.composer = self
         }
@@ -268,7 +267,7 @@ import Observation
             case let .published(topic, number): finish(topic: topic, number: number); app.toast(draft.intent.isNew ? L("composer.found.discussion") : L("composer.found.reply"))
             case .unresolved: app.toast(L("composer.still_unconfirmed"))
             }
-        } catch { self.error = error.localizedDescription }
+        } catch { self.error = DisplayError(error) }
     }
     func allowManualRetry() { draft.submission = .editing; save() }
     /// Explicit, warned retry. It may duplicate the first post if that one went through.

@@ -6,8 +6,10 @@ import Observation
     var nextPage: Int? = 0
     var loading = false
     var loaded = false
-    var error: String?
+    var error: DisplayError?
     var anchor: TopicID?
+    /// Advances on each successful explicit refresh, so cards can retry media whose source did not change.
+    var refreshGeneration = 0
     func load(service: any CommunityService, category: Community?, refresh: Bool = false) async {
         guard !loading, refresh || nextPage != nil else { return }
         loading = true; defer { loading = false }
@@ -15,7 +17,8 @@ import Observation
             let page = try await service.feed(category: category, page: refresh ? 0 : nextPage ?? 0)
             items = refresh ? page.items : items + page.items.filter { item in !items.contains { $0.id == item.id } }
             nextPage = page.nextPage; error = nil; loaded = true
-        } catch is CancellationError {} catch { self.error = error.localizedDescription }
+            if refresh { refreshGeneration += 1 }
+        } catch is CancellationError {} catch { self.error = DisplayError(error) }
     }
 }
 func repliesText(_ count: Int) -> String { L("discussion.replies", count: count) }
@@ -47,7 +50,7 @@ struct FeedView: View {
                     if state.loading && !state.loaded { SkeletonRows() }
                     if appearance == .cards && !state.items.isEmpty { Color.clear.frame(height: 6).accessibilityHidden(true) }
                     ForEach(state.items) { topic in
-                        TopicCard(topic: topic, appearance: appearance, showCategory: category == nil || topic.categoryID != category?.id,
+                        TopicCard(topic: topic, appearance: appearance, showCategory: category == nil || topic.categoryID != category?.id, refreshGeneration: state.refreshGeneration,
                                   onOpen: { app.navigate(.discussion(topic.id, topic.targetPostNumber)) },
                                   onCategory: { app.navigate(.community($0)) })
                             .onGeometryChange(for: CGRect.self) { $0.frame(in: .scrollView) } action: { geometry.frames[topic.id] = $0 }
@@ -55,7 +58,7 @@ struct FeedView: View {
                     }
                     if state.loading && state.loaded { ProgressView().frame(maxWidth: .infinity).padding(24) }
                     if let error = state.error {
-                        InfoCard(title: state.loaded ? L("common.load_more_failed") : L("feed.unavailable"), message: error) { Button(L("common.try_again")) { Task { await load() } }.frame(minHeight: 44) }.padding(20)
+                        InfoCard(title: state.loaded ? L("common.load_more_failed") : L("feed.unavailable"), message: error.text) { Button(L("common.try_again")) { Task { await load() } }.frame(minHeight: 44) }.padding(20)
                     } else if state.loaded && state.items.isEmpty {
                         InfoCard(title: L("feed.empty.title"), message: category.map { L("feed.empty.community_message", ["community": $0.name]) } ?? L("feed.empty.home_message")).padding(20)
                     }
@@ -89,7 +92,9 @@ struct FeedView: View {
         .sheet(isPresented: $showingAbout) {
             if let category { CommunityAboutView(category: category) }
         }
-        .task { if !state.loaded { await load() } }
+        // A failed load waits for Try again or pull to refresh: reappearing (tab return, or the tab rebuild after a
+        // direction change) keeps the retained error instead of silently refetching.
+        .task { if !state.loaded && state.error == nil { await load() } }
         .refreshable { await state.load(service: app.service, category: category, refresh: true) }
     }
     private func load() async { await state.load(service: app.service, category: category) }
@@ -217,12 +222,12 @@ struct CommunitiesView: View {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     PendingNoticeSlot()
                     ScaledTitle(L("tab.communities"), size: 26).padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 14)
-                    if let error = app.communityError, app.communities.isEmpty { ScreenMessage(title: L("communities.unavailable"), message: error, action: { Task { await app.loadCommunities() } }) }
+                    if let error = app.communityError, app.communities.isEmpty { ScreenMessage(title: L("communities.unavailable"), message: error.text, action: { Task { await app.loadCommunities() } }) }
                     else if app.communities.isEmpty && app.communitiesLoaded { InfoCard(title: L("communities.empty.title"), message: L("communities.empty.message")).padding(20) }
                     else if app.communities.isEmpty { ProgressView().frame(maxWidth: .infinity).padding(40).accessibilityLabel(L("communities.loading")) }
                     else {
                         if let error = app.communityError {
-                            InfoCard(title: L("communities.refresh_failed"), message: error) { Button(L("common.try_again")) { Task { await app.loadCommunities() } }.frame(minHeight: 44) }.padding(20)
+                            InfoCard(title: L("communities.refresh_failed"), message: error.text) { Button(L("common.try_again")) { Task { await app.loadCommunities() } }.frame(minHeight: 44) }.padding(20)
                         }
                         let groups = self.groups
                         if !query.isEmpty && !groups.isEmpty {

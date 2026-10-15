@@ -38,6 +38,8 @@ import SwiftUI
             fixture.uploadFails = arguments.contains("--upload-fails")
             fixture.failNextPage = arguments.contains("--feed-more-fails")
             if arguments.contains("--card-cases") { fixture.addCardCases() }
+            fixture.failFirstFeed = arguments.contains("--feed-fails-once")
+            if arguments.contains("--media-recovery"), let photo = Bundle.main.url(forResource: "fixture-photo", withExtension: "jpg") { fixture.enableMediaRecovery(photo: photo) }
             if DevelopmentPresets.requested == "loading" { fixture.feedDelay = .seconds(120) }
             #endif
             var store = DraftStore()

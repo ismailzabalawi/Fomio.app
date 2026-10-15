@@ -86,7 +86,7 @@ struct ProfileView: View {
     @Environment(AppState.self) private var app
     let username: String
     @State private var member: Member?
-    @State private var error: String?
+    @State private var error: DisplayError?
     var body: some View {
         ScrollView {
             ReadingColumn {
@@ -114,23 +114,23 @@ struct ProfileView: View {
                                 Divider().overlay(Color.fomioSeparator)
                             }
                         }
-                    } else if let error { ScreenMessage(title: L("profile.unavailable"), message: error, action: { Task { await load() } }) }
+                    } else if let error { ScreenMessage(title: L("profile.unavailable"), message: error.text, action: { Task { await load() } }) }
                     else { ProgressView().frame(maxWidth: .infinity).padding(40) }
                 }.padding(20)
             }
         }.background(Color.fomioBackground).navigationTitle(username == app.username ? L("profile.title") : username).navigationBarTitleDisplayMode(.inline).task { await load() }
     }
-    private func load() async { do { member = try await app.service.profile(username); error = nil } catch { self.error = error.localizedDescription } }
+    private func load() async { do { member = try await app.service.profile(username); error = nil } catch { self.error = DisplayError(error) } }
 }
 struct DraftsView: View {
     @Environment(AppState.self) private var app
     @State private var drafts: [Draft] = []
-    @State private var error: String?
+    @State private var error: DisplayError?
     @State private var deleting: Draft?
     @State private var titles: [TopicID: String] = [:]
     var body: some View {
         List {
-            if let error { Text(error).foregroundStyle(Color.fomioDanger) }
+            if let error { Text(error.text).foregroundStyle(Color.fomioDanger) }
             if drafts.isEmpty && error == nil {
                 VStack(alignment: .leading, spacing: 6) { Text(L("drafts.empty.title")).font(.headline); Text(L("drafts.empty.message")).font(.subheadline).foregroundStyle(Color.fomioSecondaryText) }.padding(.vertical, 8)
             }
@@ -158,7 +158,7 @@ struct DraftsView: View {
         }.navigationTitle(L("me.drafts")).task(id: app.draftsRevision) { reload(); await loadTitles() }
         .alert(L("drafts.discard.title"), isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } })) {
             Button(L("common.cancel"), role: .cancel) { deleting = nil }
-            Button(L("composer.discard"), role: .destructive) { if let deleting { do { try app.draftStore.delete(deleting.id); reload(); app.toast(L("composer.draft_discarded")) } catch { self.error = error.localizedDescription } }; deleting = nil }
+            Button(L("composer.discard"), role: .destructive) { if let deleting { do { try app.draftStore.delete(deleting.id); reload(); app.toast(L("composer.draft_discarded")) } catch { self.error = DisplayError(error) } }; deleting = nil }
         } message: { Text(deleting?.submission == .editing ? L("drafts.discard.message") : L("drafts.discard.message_submitted")) }
     }
     private func kind(_ draft: Draft) -> String {
@@ -173,7 +173,7 @@ struct DraftsView: View {
         if case let .reply(topic, _) = draft.intent { return draft.contextTitle ?? titles[topic] ?? L("composer.discussion_number", ["number": String(topic.rawValue)]) }
         return draft.title.isEmpty ? L("drafts.untitled") : draft.title
     }
-    private func reload() { do { drafts = try app.draftStore.list(account: app.account); error = nil } catch { self.error = error.localizedDescription } }
+    private func reload() { do { drafts = try app.draftStore.list(account: app.account); error = nil } catch { self.error = DisplayError(error) } }
     private func loadTitles() async {
         for case let .reply(topic, _) in drafts.filter({ $0.contextTitle == nil }).map(\.intent) where titles[topic] == nil {
             if let page = try? await app.service.discussion(topic, page: 0) { titles[topic] = page.summary.title }
@@ -184,7 +184,7 @@ struct SavedView: View {
     @Environment(AppState.self) private var app
     @State private var items: [SavedItem] = []
     @State private var nextPage: Int? = 0
-    @State private var error: String?
+    @State private var error: DisplayError?
     @State private var loading = false
     @State private var loaded = false
     var body: some View {
@@ -200,7 +200,7 @@ struct SavedView: View {
                 }.buttonStyle(.plain).accessibilityLabel(reply ? L("saved.reply_a11y", ["number": String(item.number!.rawValue), "title": item.title]) : L("saved.discussion_a11y", ["title": item.title]))
             }
             if loading { ProgressView() }
-            if let error { Text(error); Button(L("common.try_again")) { Task { await load() } } }
+            if let error { Text(error.text); Button(L("common.try_again")) { Task { await load() } } }
             else if nextPage != nil && loaded { Button(L("saved.more")) { Task { await load() } } }
             else if items.isEmpty && loaded {
                 VStack(alignment: .leading, spacing: 6) { Text(L("saved.empty.title")).font(.headline); Text(L("saved.empty.message")).font(.subheadline).foregroundStyle(Color.fomioSecondaryText) }.padding(.vertical, 8)
@@ -209,14 +209,14 @@ struct SavedView: View {
     }
     private func load() async {
         guard !loading, let page = nextPage, let username = app.username else { return }; loading = true; defer { loading = false }
-        do { let result = try await app.service.saved(username: username, page: page); items += result.items.filter { item in !items.contains { $0.id == item.id } }; nextPage = result.nextPage; error = nil; loaded = true } catch { self.error = error.localizedDescription }
+        do { let result = try await app.service.saved(username: username, page: page); items += result.items.filter { item in !items.contains { $0.id == item.id } }; nextPage = result.nextPage; error = nil; loaded = true } catch { self.error = DisplayError(error) }
     }
 }
 struct NotificationsView: View {
     @Environment(AppState.self) private var app
     @State private var items: [Notice] = []
     @State private var nextPage: Int? = 0
-    @State private var error: String?
+    @State private var error: DisplayError?
     @State private var loading = false
     var body: some View {
         Group {
@@ -233,7 +233,7 @@ struct NotificationsView: View {
                             .accessibilityLabel(accessibilityText(notice))
                     }
                     if loading { ProgressView() }
-                    if let error { Text(error); Button(L("common.try_again")) { Task { await load() } } }
+                    if let error { Text(error.text); Button(L("common.try_again")) { Task { await load() } } }
                     else if nextPage != nil && !items.isEmpty { Button(L("notifications.more")) { Task { await load() } } }
                     else if items.isEmpty && !loading { Text(L("notifications.empty")).foregroundStyle(Color.fomioSecondaryText) }
                 }.listStyle(.plain)
@@ -271,7 +271,7 @@ struct NotificationsView: View {
         do {
             let result = try await app.service.notifications(page: page); items += result.items.filter { notice in !items.contains { $0.id == notice.id } }; nextPage = result.nextPage; error = nil
             app.unreadCount = items.filter { !$0.read }.count
-        } catch { self.error = error.localizedDescription }
+        } catch { self.error = DisplayError(error) }
     }
 }
 struct SearchView: View {
@@ -279,12 +279,12 @@ struct SearchView: View {
     @Bindable var state: TabState
     @FocusState private var searchFocused: Bool
     @State private var loading = false
-    @State private var error: String?
+    @State private var error: DisplayError?
     var body: some View {
         ScrollView {
             ReadingColumn {
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    if let error { ScreenMessage(title: L("search.unavailable"), message: error, action: { Task { await search(reset: true) } }) }
+                    if let error { ScreenMessage(title: L("search.unavailable"), message: error.text, action: { Task { await search(reset: true) } }) }
                     else if state.searchCompletedQuery == nil && !loading {
                         Text(L("search.intro")).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).padding(20)
                     } else if let query = state.searchCompletedQuery, state.searchResults.isEmpty && !loading {
@@ -309,7 +309,7 @@ struct SearchView: View {
         let requestQuery = query
         loading = true; defer { loading = false }
         do { let result = try await app.service.search(query, page: reset ? 1 : state.searchNextPage ?? 1); guard !Task.isCancelled, state.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines) == requestQuery else { return }; state.searchResults = reset ? result.items : state.searchResults + result.items.filter { item in !state.searchResults.contains { $0.id == item.id } }; state.searchNextPage = result.nextPage; error = nil; state.searchCompletedQuery = requestQuery }
-        catch is CancellationError {} catch { self.error = error.localizedDescription }
+        catch is CancellationError {} catch { self.error = DisplayError(error) }
     }
 }
 /// A match inside a reply opens that exact post; the label says where the match is.

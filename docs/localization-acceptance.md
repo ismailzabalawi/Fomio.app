@@ -63,5 +63,16 @@ Topic cards/appearances, category identities/hierarchy, authentication gates, pr
 | E4 | Native-speaker review of `Localization/catalogs/ar.json` | Manual pending |
 | E5 | Release build contains no `catalogs` folder | Pass |
 | E6 | VoiceOver walk-through in Arabic on a physical device; Increase Contrast/Reduce Motion | Manual pending |
+| E7 | Product agreement on the terminology policy (native discussion/community vs the forum's Byte/Hub/Teret overrides) | **Open**: documented implementation choice, not yet agreed |
 
 The branch is **not merged**: the task's merge condition requires live contract verification (E1–E3).
+
+## F. Independent review of 6162c57 (2026-10-15)
+
+| # | Finding | Resolution and evidence | Status |
+| --- | --- | --- | --- |
+| F1 | Retained app errors resolved at catch time, not render time | `DisplayError` (semantic keys rendered on display, server/system text verbatim); all retained error states converted; a failed feed waits for an explicit retry. Unit + UI regressions on iPhone and iPad | Pass |
+| F2 | UIKit direction `.unspecified` for LTR, skipped on the initial fallback | Explicit `.forceLeftToRight`/`.forceRightToLeft` on every activation; composer cards set direction; UI regressions with Arabic iOS language (cold English fallback, Arabic → English) | Pass for app-owned UIKit; system back-chevron glyph follows the iOS language (recorded limit) |
+| F3 | Failed topic media never recovered | `MediaFailure` scoped to source + refresh generation; restored-source and replacement paths verified in Compact and Cards, English and Arabic accessibility3, iPhone and iPad | Pass |
+
+Details, commands, counts and screenshots: [review-fixes validation](validation/2026-10-15-review-fixes/README.md). Gates E1–E4, E6 and E7 remain open; the branch is not merged.

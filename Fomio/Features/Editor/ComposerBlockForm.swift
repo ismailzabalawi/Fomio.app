@@ -104,11 +104,11 @@ struct ComposerBlockForm: View {
     @State var value: ComposerBlockValue
     let maximumOptions: Int
     let onSave: (String) -> Void
-    @State private var error: String?
+    @State private var error: DisplayError?
     @State private var revealed = false
     var body: some View {
         Form {
-            if let error { Text(error).foregroundStyle(Color.fomioDanger).accessibilityIdentifier("block-error") }
+            if let error { Text(error.text).foregroundStyle(Color.fomioDanger).accessibilityIdentifier("block-error") }
             switch value.kind {
             case .poll:
                 TextField(L("composer.block.poll.question"), text: $value.heading, axis: .vertical)
@@ -142,7 +142,7 @@ struct ComposerBlockForm: View {
             }
         }.navigationTitle(value.kind.title).navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button(L("common.save")) {
-            do { onSave(try value.markup(maximumOptions: maximumOptions)); dismiss() } catch { self.error = error.localizedDescription }
+            do { onSave(try value.markup(maximumOptions: maximumOptions)); dismiss() } catch { self.error = DisplayError(error) }
         }.accessibilityIdentifier("block-save") } }
     }
     private var textBody: some View { TextEditor(text: $value.body).frame(minHeight: 200).accessibilityLabel(value.kind == .code ? L("composer.block.code") : L("composer.block.body")).accessibilityIdentifier("block-body") }
@@ -152,15 +152,15 @@ struct ComposerSuggestionView: View {
     let topic: TopicID
     let service: any CommunityService
     @State private var page: DiscussionPage?
-    @State private var error: String?
+    @State private var error: DisplayError?
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 if let page { Text(page.summary.title).font(.title2); Text(page.opening.body).textSelection(.enabled) }
-                else if let error { Text(error) }
+                else if let error { Text(error.text) }
                 else { ProgressView() }
             }.padding(20)
         }.navigationTitle(L("composer.similar_one")).navigationBarTitleDisplayMode(.inline)
-        .task { do { page = try await service.discussion(topic, page: 0) } catch { self.error = error.localizedDescription } }
+        .task { do { page = try await service.discussion(topic, page: 0) } catch { self.error = DisplayError(error) } }
     }
 }

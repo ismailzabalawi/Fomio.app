@@ -39,7 +39,7 @@ struct DiscussionView: View {
                             }
                         }
                         if state.loading { ProgressView().frame(maxWidth: .infinity).padding().accessibilityLabel(L("discussion.loading")) }
-                        if let error = state.error { failure(error) }
+                        if let error = state.error { failure(error.text) }
                     }.padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 24).scrollTargetLayout()
                 }
             }.scrollPosition(id: $state.anchor)
@@ -140,7 +140,7 @@ struct ThreadBranch: View {
                                 ThreadBranch(id: child, depth: depth + 1, state: state).padding(.leading, 14).overlay(alignment: .leading) { Rectangle().fill(Color.fomioSeparator).frame(width: 2) }
                             }
                             if state.loadingChildren.contains(id) { ProgressView() }
-                            if let error = state.childErrors[id] { Text(error).font(.subheadline).foregroundStyle(Color.fomioSecondaryText); Button(L("discussion.retry_replies")) { Task { await state.loadChildren(id, depth: depth, first: !state.childrenLoaded.contains(id)) } }.frame(minHeight: 44) }
+                            if let error = state.childErrors[id] { Text(error.text).font(.subheadline).foregroundStyle(Color.fomioSecondaryText); Button(L("discussion.retry_replies")) { Task { await state.loadChildren(id, depth: depth, first: !state.childrenLoaded.contains(id)) } }.frame(minHeight: 44) }
                             else if state.childNext[id] != nil { Button(L("discussion.more_branch_replies")) { Task { await state.loadChildren(id, depth: depth) } }.frame(minHeight: 44) }
                         }
                     }

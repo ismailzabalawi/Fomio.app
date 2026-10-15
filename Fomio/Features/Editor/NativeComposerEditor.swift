@@ -550,6 +550,7 @@ final class ComposerAttachmentCard: UIView {
     /// Re-reads interface text from the active catalog; community text in the caption is left as written.
     func relabel() {
         guard let attachment else { return }
+        applyDirection()
         title.text = attachment.node.kind?.title ?? L("composer.block.generic")
         edit.setTitle(attachment.node.kind == .opaque ? L("composer.edit_markdown") : L("common.edit"), for: .normal)
         remove.setTitle(L("common.remove"), for: .normal)
@@ -560,6 +561,7 @@ final class ComposerAttachmentCard: UIView {
     init(attachment: ComposerTextAttachment) {
         super.init(frame: attachment.bounds)
         self.attachment = attachment
+        defer { applyDirection() }
         backgroundColor = .secondarySystemBackground; layer.cornerRadius = 12
         title.font = .preferredFont(forTextStyle: .headline); title.adjustsFontForContentSizeCategory = true
         title.text = attachment.node.kind?.title ?? L("composer.block.generic")
@@ -609,6 +611,12 @@ final class ComposerAttachmentCard: UIView {
         accessibilityElements = stack.arrangedSubviews
     }
     required init?(coder: NSCoder) { nil }
+    /// App-owned controls follow the interface catalog explicitly, never the device's system direction.
+    private func applyDirection() {
+        let attribute = Localizer.shared.uikitAttribute
+        var pending: [UIView] = [self]
+        while let view = pending.popLast() { view.semanticContentAttribute = attribute; pending += view.subviews }
+    }
 }
 
 

@@ -12,6 +12,11 @@ import Observation
     var feedDelay: Duration = .zero
     /// Development-only: the next "load more" page fails once, then succeeds on retry.
     var failNextPage = false
+    /// Development-only (`--feed-fails-once`): the first feed request fails with an app-authored error.
+    var failFirstFeed = false
+    /// Development-only (`--media-recovery`): topic media that recovers on the next explicit refresh.
+    private(set) var mediaRecovery: MediaRecovery?
+    private(set) var feedRequests = 0
     var uploadStep: Duration = .milliseconds(100)
     var bookmarks: [PostID: Int] = [PostID(418201): 1, PostID(419014): 2]
     var readNotices: Set<Int> = [3]
@@ -140,6 +145,26 @@ import Observation
         ]
         summaries.insert(contentsOf: cases, at: min(1, summaries.count))
     }
+    /// Two fictional topics at the top of Home: one whose image file is missing until the next explicit
+    /// refresh (an image server that was unreachable, then restored), and one whose failing image URL the
+    /// next refresh replaces with a working one. Files live in the app's temporary directory.
+    struct MediaRecovery { var restoredFile: URL; var replacement: URL; var photo: URL }
+    func enableMediaRecovery(photo: URL) {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("fomio-fixture-media", isDirectory: true)
+        try? FileManager.default.removeItem(at: folder)
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let recovery = MediaRecovery(restoredFile: folder.appendingPathComponent("restored.jpg"), replacement: folder.appendingPathComponent("replacement.jpg"), photo: photo)
+        try? FileManager.default.copyItem(at: photo, to: recovery.replacement)
+        mediaRecovery = recovery
+        summaries.insert(contentsOf: [
+            .init(id: .init(5006), title: "Image server was offline: this photo returns after a refresh", slug: "media-restored", categoryID: .init(6), excerpt: "The same image address fails first and works after the next pull to refresh.", author: "theo", replyCount: 0, activity: "5m", imageURL: recovery.restoredFile),
+            .init(id: .init(5007), title: "Broken image link replaced by a working one", slug: "media-replaced", categoryID: .init(2), excerpt: "The first response points at a missing file; the refreshed topic has a new image address.", author: "mara_k", replyCount: 2, activity: "8m", imageURL: folder.appendingPathComponent("missing-original.jpg"))
+        ], at: 0)
+    }
+    private func recover(_ recovery: MediaRecovery) {
+        if !FileManager.default.fileExists(atPath: recovery.restoredFile.path) { try? FileManager.default.copyItem(at: recovery.photo, to: recovery.restoredFile) }
+        if let index = summaries.firstIndex(where: { $0.id == .init(5007) }) { summaries[index].imageURL = recovery.replacement }
+    }
     static func sampleDrafts(account: AccountID) -> [Draft] {
         var reply = Draft(account: account, intent: .reply(topic: .init(4170), parent: .init(1)), body: "Mine survived at 0°C wrapped in burlap, but I brought it in when it dropped below −5°C.")
         reply.contextTitle = "Overwintering a fig in a large container"; reply.contextCategory = .init(8)
@@ -159,7 +184,10 @@ import Observation
         }
     }
     func feed(category: Community?, page: Int) async throws -> Page<DiscussionSummary> {
+        feedRequests += 1
+        if failFirstFeed { failFirstFeed = false; throw RepositoryError.offline }
         try check()
+        if page == 0, feedRequests > 1, let recovery = mediaRecovery { recover(recovery) }
         if feedDelay > .zero { try await Task.sleep(for: feedDelay) }
         if category?.restricted == true { throw RepositoryError.denied }
         if page > 0 && failNextPage { failNextPage = false; throw RepositoryError.server(503) }

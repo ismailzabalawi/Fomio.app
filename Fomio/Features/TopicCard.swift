@@ -41,19 +41,30 @@ struct TopicCard: View {
     let topic: DiscussionSummary
     var appearance: FeedAppearance = .compact
     var showCategory = true
+    /// The feed's explicit-refresh counter; a refresh retries media that failed for the same source.
+    var refreshGeneration = 0
     var onOpen: () -> Void
     var onCategory: (CategoryID) -> Void
-    @State private var mediaFailed = false
+    /// The source and refresh generation that failed. Failure is never permanent for a topic: a different
+    /// source (replaced URL) or a later explicit refresh loads again; nothing retries automatically.
+    @State private var mediaFailure: MediaFailure?
     @ScaledMetric(relativeTo: .body) private var thumbnailSize: CGFloat = 72
 
     private var stacked: Bool { typeSize.isAccessibilitySize }
     private var category: Community? { app.category(topic.categoryID) }
-    private var media: TopicMedia.Source? {
-        if mediaFailed { return nil }
+    private var source: TopicMedia.Source? {
         if let url = topic.imageURL { return .remote(url) }
         // Bundled photos exist only in the fixture service; the live adapter never sets them.
         if app.fixture != nil, let name = topic.image { return .asset(name) }
         return nil
+    }
+    private var media: TopicMedia.Source? {
+        guard let source, mediaFailure?.matches(source, generation: refreshGeneration) != true else { return nil }
+        return source
+    }
+    private var failed: Binding<Bool> {
+        Binding(get: { media == nil && source != nil },
+                set: { if $0, let source { mediaFailure = MediaFailure(source: source, generation: refreshGeneration) } })
     }
 
     var body: some View {
@@ -100,11 +111,11 @@ struct TopicCard: View {
             if let media, appearance == .compact, !stacked {
                 HStack(alignment: .top, spacing: 14) {
                     texts
-                    TopicMedia(source: media, style: .thumbnail(thumbnailSize), failed: $mediaFailed)
+                    TopicMedia(source: media, style: .thumbnail(thumbnailSize), failed: failed).id(MediaFailure.attemptID(source: media, retry: mediaFailure?.source == media ? refreshGeneration : nil))
                 }
             } else {
                 texts
-                if let media { TopicMedia(source: media, style: .wide, failed: $mediaFailed) }
+                if let media { TopicMedia(source: media, style: .wide, failed: failed).id(MediaFailure.attemptID(source: media, retry: mediaFailure?.source == media ? refreshGeneration : nil)) }
             }
             TopicMetadata(author: topic.author, replyCount: topic.replyCount, activity: topic.activity)
         }
@@ -196,6 +207,19 @@ struct TopicMetadata: View {
     }
     private var replies: some View { Label(feedRepliesText(replyCount), systemImage: "bubble.left").labelStyle(CompactIconLabel()) }
     private var dot: some View { Text("·").accessibilityHidden(true) }
+}
+
+/// A failed media load, remembered only for that exact source and refresh generation.
+struct MediaFailure: Equatable {
+    var source: TopicMedia.Source
+    var generation: Int
+    func matches(_ current: TopicMedia.Source, generation: Int) -> Bool { source == current && self.generation == generation }
+    /// Identity for one load attempt; a new value replaces AsyncImage so the image is requested again.
+    /// Only a retry after an earlier failure changes identity, so loaded images are not re-requested on refresh.
+    static func attemptID(source: TopicMedia.Source?, retry: Int?) -> String {
+        let base = switch source { case let .remote(url)?: url.absoluteString; case let .asset(name)?: "asset:" + name; case nil: "none" }
+        return retry.map { base + "#retry-\($0)" } ?? base
+    }
 }
 
 /// Optional topic media. Loading shows a quiet placeholder; failure removes the slot so the card falls back to text.
