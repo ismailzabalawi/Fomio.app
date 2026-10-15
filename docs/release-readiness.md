@@ -82,3 +82,12 @@ The denied-refresh and removed-child cache findings now have passing acceptance 
 Build 0.8.0 (3) was archived from commit `7f1ec12` (composer bar and category navigation fixes from `bee84a8`) and uploaded on 2026-10-08; the upload succeeded and entered processing.
 
 Build 0.8.0 (4) was archived from commit `9a56c71` (topic cards, native category identities and hierarchy) and uploaded on 2026-10-15; the upload succeeded and entered processing.
+
+
+## Visual composer build 0.8.0 (5) — 2026-10-15
+
+Archived commit `067d8f0` (visual composer, optional Markdown mode, native Preview and draft recovery regression) with Xcode 27.0, Release/generic iOS, existing automatic signing team and bundle `com.fomio.mobile`. The archive's Info.plist confirms version 0.8.0 and build 5. The signed archive succeeded with the existing unreachable fixture-branch warning and the App Intents metadata-extraction notice.
+
+Uploaded with `xcodebuild -exportArchive`, method `app-store-connect`, destination `upload`. Apple reported “Uploaded package is processing” and “Upload succeeded”; export exited successfully on 2026-10-15 at 21:22 Asia/Amman. This is an App Store Connect upload, not an App Review submission or public release. Archive/export logs are retained locally in `.build/release-0.8.0-5/` (ignored build artifacts).
+
+Immediately preceding release, all four requested iPad Simulator composer journeys passed, including exact Markdown recovery after app termination/relaunch; see [editor validation](editor-validation.md#release-verification--2026-10-15). A separate “Composer release handoff” Claude Code thread was opened with the results and told to await further instructions without modifying or running anything. No pending localization worktree was merged and the unrelated topic-card review file was excluded from the release commit.
