@@ -75,16 +75,38 @@ import UIKit
 
     // MARK: 3. Topic media recovers on a replacement source or an explicit refresh
 
-    func testMediaFailureIsScopedToSourceAndRefreshGeneration() {
+    func testMediaLoadStateRetriesOnlyDeliberatelyAndKeepsRecoveredIdentity() {
         let a = TopicMedia.Source.remote(URL(string: "https://cdn.example/a.jpg")!)
         let b = TopicMedia.Source.remote(URL(string: "https://cdn.example/b.jpg")!)
-        let failure = MediaFailure(source: a, generation: 0)
-        XCTAssertTrue(failure.matches(a, generation: 0), "the failed source stays text-only, no retry loop")
-        XCTAssertFalse(failure.matches(b, generation: 0), "a replacement source loads")
-        XCTAssertFalse(failure.matches(a, generation: 1), "an explicit refresh retries the same source")
-        XCTAssertEqual(MediaFailure.attemptID(source: a, retry: nil), "https://cdn.example/a.jpg", "loaded media keep their identity on refresh")
-        XCTAssertNotEqual(MediaFailure.attemptID(source: a, retry: 1), MediaFailure.attemptID(source: a, retry: 2))
+        var state = MediaLoadState()
+        XCTAssertEqual(state.identity(a), "https://cdn.example/a.jpg")
+        state.fail(a, generation: 0)
+        XCTAssertTrue(state.isHidden(a), "failed source falls back to text")
+        state.refreshed(to: 0, current: a)
+        XCTAssertTrue(state.isHidden(a), "no retry without a new explicit refresh — no loop")
+        state.refreshed(to: 1, current: a)
+        XCTAssertFalse(state.isHidden(a)); let retried = state.identity(a)
+        XCTAssertEqual(retried, "https://cdn.example/a.jpg#attempt-1", "a deliberate retry is a new load attempt")
+        // The retry succeeded (no further fail). Later refreshes keep the same attempt: no reload.
+        state.refreshed(to: 2, current: a); state.refreshed(to: 3, current: a)
+        XCTAssertEqual(state.identity(a), retried)
+        // A retry that fails again hides the source until the next refresh, then retries once more.
+        state.fail(a, generation: 3); XCTAssertTrue(state.isHidden(a))
+        state.refreshed(to: 4, current: a); XCTAssertEqual(state.identity(a), "https://cdn.example/a.jpg#attempt-2")
+        // A replacement source loads immediately with its own identity; it is not hidden by A's history.
+        state.fail(a, generation: 4)
+        XCTAssertFalse(state.isHidden(b)); XCTAssertEqual(state.identity(b), "https://cdn.example/b.jpg")
+        state.refreshed(to: 5, current: b)
+        XCTAssertEqual(state.identity(b), "https://cdn.example/b.jpg", "a refresh never reloads a source that has not failed")
     }
+
+    func testBackIndicatorOverridesOnlyMismatchedDirections() {
+        XCTAssertNil(Localizer.backIndicatorSymbol(interface: .ltr, systemRightToLeft: false), "English on English iOS keeps the system chevron")
+        XCTAssertNil(Localizer.backIndicatorSymbol(interface: .rtl, systemRightToLeft: true), "Arabic on Arabic iOS keeps the system chevron")
+        XCTAssertEqual(Localizer.backIndicatorSymbol(interface: .ltr, systemRightToLeft: true), "chevron.right", "UIKit mirrors it into a left chevron")
+        XCTAssertEqual(Localizer.backIndicatorSymbol(interface: .rtl, systemRightToLeft: false), "chevron.right")
+    }
+
 
     func testRefreshGenerationAdvancesOnlyOnSuccessfulExplicitRefresh() async {
         let fixture = FixtureService()
@@ -108,12 +130,13 @@ import UIKit
         let first = try await fixture.feed(category: nil, page: 0).items
         let restored = try XCTUnwrap(first.first { $0.id == .init(5006) }?.imageURL)
         let original = try XCTUnwrap(first.first { $0.id == .init(5007) }?.imageURL)
-        XCTAssertFalse(FileManager.default.fileExists(atPath: restored.path))
-        XCTAssertFalse(FileManager.default.fileExists(atPath: original.path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: FixtureMediaURLProtocol.file(for: restored).path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: FixtureMediaURLProtocol.file(for: original).path))
         let second = try await fixture.feed(category: nil, page: 0).items
         XCTAssertEqual(second.first { $0.id == .init(5006) }?.imageURL, restored, "same source")
-        XCTAssertTrue(FileManager.default.fileExists(atPath: restored.path), "now available")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: FixtureMediaURLProtocol.file(for: restored).path), "now available")
         let replacement = try XCTUnwrap(second.first { $0.id == .init(5007) }?.imageURL)
-        XCTAssertNotEqual(replacement, original); XCTAssertTrue(FileManager.default.fileExists(atPath: replacement.path))
+        XCTAssertNotEqual(replacement, original); XCTAssertTrue(FileManager.default.fileExists(atPath: FixtureMediaURLProtocol.file(for: replacement).path))
     }
+
 }

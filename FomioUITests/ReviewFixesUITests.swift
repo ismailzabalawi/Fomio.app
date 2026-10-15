@@ -125,32 +125,64 @@ import XCTest
 
     // MARK: 3. Media recovery: same source after refresh, and replaced source
 
+    /// Actual image requests per fixture file, counted by the Debug fixture media server.
+    private func mediaRequests(_ app: XCUIApplication) -> [String: Int] {
+        let label = app.staticTexts["fixture-media-requests"].firstMatch.label
+        return Dictionary(uniqueKeysWithValues: label.split(separator: ";").compactMap { pair -> (String, Int)? in
+            let parts = pair.split(separator: "="); guard parts.count == 2, let n = Int(parts[1]) else { return nil }
+            return (String(parts[0]), n)
+        })
+    }
+    private func waitForRequests(_ app: XCUIApplication, _ expected: [String: Int], file: StaticString = #filePath, line: UInt = #line) {
+        let readout = app.staticTexts["fixture-media-requests"].firstMatch
+        XCTAssertTrue(readout.waitForExistence(timeout: 5), file: file, line: line)
+        let deadline = Date().addingTimeInterval(8)
+        while Date() < deadline && mediaRequests(app) != expected { Thread.sleep(forTimeInterval: 0.25) }
+        XCTAssertEqual(mediaRequests(app), expected, file: file, line: line)
+    }
+
     func testFailedMediaRecoversAfterRefreshAndReplacementInCompactThenCards() {
         let app = launch(["--media-recovery"])
         let restored = app.buttons["topic-5006"], replaced = app.buttons["topic-5007"]
         XCTAssertTrue(restored.waitForExistence(timeout: 8))
         wait(restored, label: "CONTAINS", "started by theo"); wait(replaced, label: "CONTAINS", "started by mara_k")
         wait(restored, label: "ENDSWITH", "ago"); wait(replaced, label: "ENDSWITH", "ago")
+        // One request each, both fail; the failed sources are not retried on their own.
+        waitForRequests(app, ["missing-original.jpg": 1, "restored.jpg": 1])
+        Thread.sleep(forTimeInterval: 2)
+        XCTAssertEqual(mediaRequests(app), ["missing-original.jpg": 1, "restored.jpg": 1], "no automatic retry loop")
         XCTAssertFalse(restored.label.contains("Has image"), "failed media falls back to text")
         XCTAssertFalse(replaced.label.contains("Has image"))
         capture(app, "3a Compact: both images failed, text only")
         pullToRefresh(app, from: restored)
         wait(restored, label: "CONTAINS", "Has image"); wait(replaced, label: "CONTAINS", "Has image")
-        Thread.sleep(forTimeInterval: 1.5)
-        XCTAssertTrue(restored.label.contains("Has image"), "same source loaded after explicit refresh and did not fail again")
+        // The failed same source is retried once; the replacement is loaded once; the old URL is not requested again.
+        waitForRequests(app, ["missing-original.jpg": 1, "restored.jpg": 2, "replacement.jpg": 1])
         capture(app, "3b Compact: restored source and replacement both shown after refresh")
-        // Appearance switch, navigation return and a second refresh keep the recovered media.
+        // A later refresh keeps both recovered images: no new load attempt for either.
+        pullToRefresh(app, from: restored)
+        Thread.sleep(forTimeInterval: 2.5)
+        XCTAssertEqual(mediaRequests(app), ["missing-original.jpg": 1, "restored.jpg": 2, "replacement.jpg": 1], "recovered images are not reloaded by a later refresh")
+        XCTAssertTrue(restored.label.contains("Has image") && replaced.label.contains("Has image"))
+        capture(app, "3b2 Compact: second refresh, no reload")
+        // Cards use a different (wide) media view; it may load each image at most once for the new layout.
         openOptions(app, overflowLabel: "Home options"); app.buttons["Cards"].tap()
         XCTAssertTrue(app.scrollViews["feed-cards"].waitForExistence(timeout: 5))
+        Thread.sleep(forTimeInterval: 2)
+        let switched = mediaRequests(app)
+        XCTAssertEqual(switched["missing-original.jpg"], 1)
+        XCTAssertTrue((2...3).contains(switched["restored.jpg"] ?? 0) && (1...2).contains(switched["replacement.jpg"] ?? 0), "\(switched)")
         XCTAssertTrue(restored.label.contains("Has image") && replaced.label.contains("Has image"))
         capture(app, "3c Cards: recovered media kept after appearance switch")
-        replaced.tap(); XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "unavailable")).firstMatch.waitForExistence(timeout: 5) || app.navigationBars.count > 0)
+        let afterSwitch = mediaRequests(app)
+        replaced.tap(); XCTAssertTrue(app.navigationBars.firstMatch.waitForExistence(timeout: 5))
         back(app)
         XCTAssertTrue(app.scrollViews["feed-cards"].waitForExistence(timeout: 5))
         XCTAssertTrue(restored.label.contains("Has image"), "Back keeps recovered media")
         pullToRefresh(app, from: restored)
-        Thread.sleep(forTimeInterval: 2)
+        Thread.sleep(forTimeInterval: 2.5)
         XCTAssertTrue(restored.label.contains("Has image") && replaced.label.contains("Has image"), "a refresh of loaded media keeps it")
+        XCTAssertEqual(mediaRequests(app), afterSwitch, "Back and another refresh request nothing again")
         capture(app, "3d Cards after Back and a second refresh")
     }
 

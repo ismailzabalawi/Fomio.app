@@ -39,7 +39,10 @@ import SwiftUI
             fixture.failNextPage = arguments.contains("--feed-more-fails")
             if arguments.contains("--card-cases") { fixture.addCardCases() }
             fixture.failFirstFeed = arguments.contains("--feed-fails-once")
-            if arguments.contains("--media-recovery"), let photo = Bundle.main.url(forResource: "fixture-photo", withExtension: "jpg") { fixture.enableMediaRecovery(photo: photo) }
+            if arguments.contains("--media-recovery"), let photo = Bundle.main.url(forResource: "fixture-photo", withExtension: "jpg") {
+                URLProtocol.registerClass(FixtureMediaURLProtocol.self)
+                fixture.enableMediaRecovery(photo: photo)
+            }
             if DevelopmentPresets.requested == "loading" { fixture.feedDelay = .seconds(120) }
             #endif
             var store = DraftStore()
@@ -145,7 +148,14 @@ struct TabRoot: View {
             .navigationDestination(for: Route.self) { route in destination(route) }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
+            VStack(spacing: 0) {
+            if app.fixture?.mediaRecovery != nil {
+                // Debug-only readout of fixture image requests for UI tests; visually empty.
+                Text(verbatim: FixtureMediaLog.shared.summary).font(.system(size: 2)).foregroundStyle(.clear).frame(width: 2, height: 2)
+                    .accessibilityLabel(FixtureMediaLog.shared.summary.isEmpty ? "none" : FixtureMediaLog.shared.summary).accessibilityIdentifier("fixture-media-requests")
+            }
             if app.fixture != nil { Text(DevText("FIXTURE PREVIEW · fictional community content")).font(.caption2).foregroundStyle(.secondary).padding(.horizontal, 10).padding(.vertical, 3).background(.regularMaterial, in: .capsule).padding(.bottom, 4).dynamicTypeSize(...DynamicTypeSize.large).allowsHitTesting(false).accessibilityIdentifier("fixture-banner") }
+            }
         }
     }
     @ViewBuilder private func destination(_ route: Route) -> some View {

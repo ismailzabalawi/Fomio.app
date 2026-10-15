@@ -148,21 +148,23 @@ import Observation
     /// Two fictional topics at the top of Home: one whose image file is missing until the next explicit
     /// refresh (an image server that was unreachable, then restored), and one whose failing image URL the
     /// next refresh replaces with a working one. Files live in the app's temporary directory.
-    struct MediaRecovery { var restoredFile: URL; var replacement: URL; var photo: URL }
+    /// Image URLs use `FixtureMediaURLProtocol`, which counts every load; the files live in its folder.
+    struct MediaRecovery { var restored: URL; var replacement: URL; var photo: URL }
     func enableMediaRecovery(photo: URL) {
-        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("fomio-fixture-media", isDirectory: true)
+        let folder = FixtureMediaURLProtocol.folder
         try? FileManager.default.removeItem(at: folder)
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        let recovery = MediaRecovery(restoredFile: folder.appendingPathComponent("restored.jpg"), replacement: folder.appendingPathComponent("replacement.jpg"), photo: photo)
-        try? FileManager.default.copyItem(at: photo, to: recovery.replacement)
+        let recovery = MediaRecovery(restored: FixtureMediaURLProtocol.url("restored.jpg"), replacement: FixtureMediaURLProtocol.url("replacement.jpg"), photo: photo)
+        try? FileManager.default.copyItem(at: photo, to: FixtureMediaURLProtocol.file(for: recovery.replacement))
         mediaRecovery = recovery
         summaries.insert(contentsOf: [
-            .init(id: .init(5006), title: "Image server was offline: this photo returns after a refresh", slug: "media-restored", categoryID: .init(6), excerpt: "The same image address fails first and works after the next pull to refresh.", author: "theo", replyCount: 0, activity: "5m", imageURL: recovery.restoredFile),
-            .init(id: .init(5007), title: "Broken image link replaced by a working one", slug: "media-replaced", categoryID: .init(2), excerpt: "The first response points at a missing file; the refreshed topic has a new image address.", author: "mara_k", replyCount: 2, activity: "8m", imageURL: folder.appendingPathComponent("missing-original.jpg"))
+            .init(id: .init(5006), title: "Image server was offline: this photo returns after a refresh", slug: "media-restored", categoryID: .init(6), excerpt: "The same image address fails first and works after the next pull to refresh.", author: "theo", replyCount: 0, activity: "5m", imageURL: recovery.restored),
+            .init(id: .init(5007), title: "Broken image link replaced by a working one", slug: "media-replaced", categoryID: .init(2), excerpt: "The first response points at a missing file; the refreshed topic has a new image address.", author: "mara_k", replyCount: 2, activity: "8m", imageURL: FixtureMediaURLProtocol.url("missing-original.jpg"))
         ], at: 0)
     }
     private func recover(_ recovery: MediaRecovery) {
-        if !FileManager.default.fileExists(atPath: recovery.restoredFile.path) { try? FileManager.default.copyItem(at: recovery.photo, to: recovery.restoredFile) }
+        let restored = FixtureMediaURLProtocol.file(for: recovery.restored)
+        if !FileManager.default.fileExists(atPath: restored.path) { try? FileManager.default.copyItem(at: recovery.photo, to: restored) }
         if let index = summaries.firstIndex(where: { $0.id == .init(5007) }) { summaries[index].imageURL = recovery.replacement }
     }
     static func sampleDrafts(account: AccountID) -> [Draft] {

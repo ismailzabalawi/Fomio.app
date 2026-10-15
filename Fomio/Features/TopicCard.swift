@@ -45,9 +45,8 @@ struct TopicCard: View {
     var refreshGeneration = 0
     var onOpen: () -> Void
     var onCategory: (CategoryID) -> Void
-    /// The source and refresh generation that failed. Failure is never permanent for a topic: a different
-    /// source (replaced URL) or a later explicit refresh loads again; nothing retries automatically.
-    @State private var mediaFailure: MediaFailure?
+    /// Media load attempts for this card: which source failed and which attempt is current.
+    @State private var mediaState = MediaLoadState()
     @ScaledMetric(relativeTo: .body) private var thumbnailSize: CGFloat = 72
 
     private var stacked: Bool { typeSize.isAccessibilitySize }
@@ -59,12 +58,12 @@ struct TopicCard: View {
         return nil
     }
     private var media: TopicMedia.Source? {
-        guard let source, mediaFailure?.matches(source, generation: refreshGeneration) != true else { return nil }
+        guard let source, !mediaState.isHidden(source) else { return nil }
         return source
     }
     private var failed: Binding<Bool> {
         Binding(get: { media == nil && source != nil },
-                set: { if $0, let source { mediaFailure = MediaFailure(source: source, generation: refreshGeneration) } })
+                set: { if $0, let source { mediaState.fail(source, generation: refreshGeneration) } })
     }
 
     var body: some View {
@@ -77,6 +76,8 @@ struct TopicCard: View {
                 .accessibilityHint(L("topic.open_hint"))
                 .accessibilityIdentifier("topic-\(topic.id.rawValue)")
         }
+        // An explicit refresh is the only retry trigger, so failed media never retries in a loop.
+        .onChange(of: refreshGeneration) { _, generation in mediaState.refreshed(to: generation, current: source) }
         switch appearance {
         case .compact:
             VStack(alignment: .leading, spacing: 0) {
@@ -111,11 +112,11 @@ struct TopicCard: View {
             if let media, appearance == .compact, !stacked {
                 HStack(alignment: .top, spacing: 14) {
                     texts
-                    TopicMedia(source: media, style: .thumbnail(thumbnailSize), failed: failed).id(MediaFailure.attemptID(source: media, retry: mediaFailure?.source == media ? refreshGeneration : nil))
+                    TopicMedia(source: media, style: .thumbnail(thumbnailSize), failed: failed).id(mediaState.identity(media))
                 }
             } else {
                 texts
-                if let media { TopicMedia(source: media, style: .wide, failed: failed).id(MediaFailure.attemptID(source: media, retry: mediaFailure?.source == media ? refreshGeneration : nil)) }
+                if let media { TopicMedia(source: media, style: .wide, failed: failed).id(mediaState.identity(media)) }
             }
             TopicMetadata(author: topic.author, replyCount: topic.replyCount, activity: topic.activity)
         }
@@ -209,16 +210,26 @@ struct TopicMetadata: View {
     private var dot: some View { Text("·").accessibilityHidden(true) }
 }
 
-/// A failed media load, remembered only for that exact source and refresh generation.
-struct MediaFailure: Equatable {
-    var source: TopicMedia.Source
-    var generation: Int
-    func matches(_ current: TopicMedia.Source, generation: Int) -> Bool { source == current && self.generation == generation }
-    /// Identity for one load attempt; a new value replaces AsyncImage so the image is requested again.
-    /// Only a retry after an earlier failure changes identity, so loaded images are not re-requested on refresh.
-    static func attemptID(source: TopicMedia.Source?, retry: Int?) -> String {
+/// Load attempts for one topic's media. A failed source stays hidden (no automatic retry, so no loop) until
+/// a deliberate retry — the next successful explicit refresh — or until the topic has a different source.
+/// Only a deliberate retry advances the attempt; success changes nothing, so a recovered image keeps its view
+/// identity, and is not requested again, on every later refresh.
+struct MediaLoadState: Equatable {
+    private(set) var failed: TopicMedia.Source?
+    private(set) var failedGeneration = 0
+    private(set) var attempt = 0
+    private(set) var attemptSource: TopicMedia.Source?
+    func isHidden(_ source: TopicMedia.Source) -> Bool { failed == source }
+    mutating func fail(_ source: TopicMedia.Source, generation: Int) { failed = source; failedGeneration = generation }
+    /// The feed's explicit refresh generation changed. Retries the current source only if it is presently failed.
+    mutating func refreshed(to generation: Int, current: TopicMedia.Source?) {
+        guard let failed, failed == current, generation > failedGeneration else { return }
+        self.failed = nil; attempt += 1; attemptSource = failed
+    }
+    /// View identity of the current load attempt.
+    func identity(_ source: TopicMedia.Source?) -> String {
         let base = switch source { case let .remote(url)?: url.absoluteString; case let .asset(name)?: "asset:" + name; case nil: "none" }
-        return retry.map { base + "#retry-\($0)" } ?? base
+        return attemptSource == source && source != nil ? base + "#attempt-\(attempt)" : base
     }
 }
 

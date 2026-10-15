@@ -44,7 +44,7 @@ Set arguments in the Xcode scheme’s Run action. Fixture account defaults to `j
 | `--l10n-incomplete-ar` | Debug, fixture mode. The fixture Arabic response omits a required key (must be rejected) |
 | `--l10n-changed-override` | Debug, fixture mode. The fixture English response has a new revision renaming Home (site-text override change) |
 | `--feed-fails-once` | Debug, fixture mode. The first feed request fails with the app-authored offline error; a retry succeeds |
-| `--media-recovery` | Debug, fixture mode. Adds two Home topics: an image file that is missing until the next explicit refresh, and a missing image URL that the next refresh replaces with a working one |
+| `--media-recovery` | Debug, fixture mode. Adds two Home topics: an image file that is missing until the next explicit refresh, and a missing image URL that the next refresh replaces with a working one. Their images are served by `FixtureMediaURLProtocol` (`fomio-fixture-media://`), which counts every request; the counts appear in the hidden `fixture-media-requests` element for UI tests |
 
 UI tests set `FOMIO_UI_TEST_NAMESPACE` to a fresh UUID and use `Application Support/UITests/<UUID>`. Normal drafts use `Application Support/Drafts`. Use simulator container inspection for debugging; local records may contain private writing. Do not commit credentials or real private draft data.
 

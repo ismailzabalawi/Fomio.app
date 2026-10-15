@@ -38,6 +38,7 @@ Fixes were made in the same worktree and branch; `main` was not touched. No merg
   - `testArabicSystemLanguageSwitchArabicToEnglishRestoresAppUIKitDirection`: Arabic shows a mirrored card and menu; switching to English restores left-to-right tabs, card and menu.
 
 **Observed system-owned behaviour, intentionally unchanged.**
+> **Superseded 2026-10-15 by the [re-review fixes](../2026-10-15-rereview-fixes/README.md):** the reversed Back chevron is now fixed in the app; the observation below records what `b8eb0b0` showed.
 - With Arabic as the iOS language and English as the interface, the system navigation back button is on the left, but its chevron glyph still points right. The same is true of the localized SF Symbol variant for "Edit in Markdown" (`textformat` shows أ).
 - These follow the app's iOS language, which UIKit resolves at launch. A window layout-direction trait override was tried, had no visible effect on the glyph, risked a launch crash (reading an absent override throws), and was removed.
 - Choosing English in iOS Settings › Fomio › Language aligns them. Captures: `*-2a…`, `*-2b…`, `*-2e…`.
@@ -51,6 +52,7 @@ Fixes were made in the same worktree and branch; `main` was not touched. No merg
 - A different source (replaced URL) loads at once.
 - A successful explicit refresh (`FeedState.load(refresh: true)`) advances the generation and retries a failed source once. A failure in that generation hides it again, with no automatic retry loop.
 - Only a retry changes the image view's identity, so loaded images are not re-requested on refresh.
+- *Correction (re-review):* in `b8eb0b0` this held only until the next refresh. A recovered image was recreated on every later refresh. It is fixed and measured with request counts in the [re-review record](../2026-10-15-rereview-fixes/README.md).
 - Load-more and failed refreshes keep the current media state.
 
 **Tests.**
@@ -105,7 +107,7 @@ During verification, the iPad media tests first failed because a fixed 420-point
 ## Limits
 
 - Fixture data and fixture catalogs only; no live Discourse calls.
-- System-owned glyphs (back chevron, localized SF Symbol variants) follow the iOS language, as described above.
+- Localized SF Symbol variants follow the iOS language. The back chevron was fixed later; see the re-review record.
 - `FomioUITests` (the original journeys) ran on iPhone only, as before.
 - Physical-device and VoiceOver checks were not part of this pass.
 

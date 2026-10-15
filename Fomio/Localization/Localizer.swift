@@ -32,9 +32,37 @@ final class Localizer: Observable, Sendable {
         // UIKit-presented surfaces (menus, the editor's attachment cards) are created from UIKit's own
         // direction, so it is set for every activation, including the initial English fallback at launch
         // (which equals the stored catalog). Existing SwiftUI views follow LocalizationEnvironment.
-        if drivesUIKit { UIView.appearance().semanticContentAttribute = value.direction == .rtl ? .forceRightToLeft : .forceLeftToRight }
+        if drivesUIKit {
+            UIView.appearance().semanticContentAttribute = value.direction == .rtl ? .forceRightToLeft : .forceLeftToRight
+            Self.applyBackIndicator(value.direction)
+        }
         guard storage.withLock({ $0 }) != value else { return }
         registrar.withMutation(of: self, keyPath: \.catalog) { storage.withLock { $0 = value } }
+    }
+
+    /// The back indicator image a navigation bar should use, or nil to keep the system's own chevron.
+    /// UIKit mirrors the indicator whenever the app's system direction (its preferred bundle localization,
+    /// which follows the iOS language) is right-to-left, independent of the interface. Observed on iOS 26.1:
+    /// Arabic iOS + English interface drew the default chevron pointing right. When the directions differ, a
+    /// fixed glyph is supplied so that UIKit's mirroring yields the interface's direction; when they match,
+    /// the system chevron is left untouched.
+    static func backIndicatorSymbol(interface: CatalogDirection, systemRightToLeft: Bool) -> String? {
+        let interfaceRightToLeft = interface == .rtl
+        guard interfaceRightToLeft != systemRightToLeft else { return nil }
+        // Mismatch: system RTL mirrors "chevron.right" into a left chevron for an LTR interface; system LTR
+        // leaves "chevron.right" as the right chevron an RTL interface needs. Either way the glyph is the same.
+        return "chevron.right"
+    }
+    static var systemIsRightToLeft: Bool {
+        Locale.Language(identifier: Bundle.main.preferredLocalizations.first ?? "en").characterDirection == .rightToLeft
+    }
+    /// The native back button, its title, accessibility and interactive pop gesture are kept; only the indicator
+    /// image changes. Bars created afterwards use it (the tab container rebuilds on a direction change).
+    @MainActor static func applyBackIndicator(_ direction: CatalogDirection) {
+        let image = backIndicatorSymbol(interface: direction, systemRightToLeft: systemIsRightToLeft)
+            .flatMap { UIImage(systemName: $0, withConfiguration: UIImage.SymbolConfiguration(textStyle: .body, scale: .large)) }
+        let bar = UINavigationBar.appearance()
+        bar.backIndicatorImage = image; bar.backIndicatorTransitionMaskImage = image
     }
 
     /// Resolves a key. Arguments are inserted as text; `count` selects the plural form and is formatted
