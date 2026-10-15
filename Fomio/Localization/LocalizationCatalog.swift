@@ -227,22 +227,8 @@ enum PluralRules {
     }
 }
 
-/// Maps Apple language identifiers to Discourse locale codes using explicit rules.
+/// Discourse locale code helpers. The app never maps device languages to site locales: the choice is manual.
 enum LocaleMatcher {
     static func isValidCode(_ code: String) -> Bool { code.range(of: #"^[a-z]{2,3}(_[A-Za-z0-9]{2,8})?$"#, options: .regularExpression) != nil }
     static func language(_ code: String) -> String { String(code.split(whereSeparator: { $0 == "_" || $0 == "-" }).first ?? "").lowercased() }
-    /// Discourse spells Chinese by region; Apple uses scripts.
-    private static let scripted = ["zh-Hans": "zh_CN", "zh-Hant": "zh_TW"]
-    /// Returns the first Discourse locale in `available` matching the user's ordered preferences.
-    static func match(preferred: [String], available: [String]) -> String? {
-        let set = Set(available)
-        for identifier in preferred {
-            let parts = identifier.replacingOccurrences(of: "_", with: "-").split(separator: "-").map(String.init)
-            guard let language = parts.first?.lowercased() else { continue }
-            if parts.count > 1, let mapped = scripted["\(language)-\(parts[1])"], set.contains(mapped) { return mapped }
-            if let region = parts.dropFirst().first(where: { $0.count == 2 && $0.uppercased() == $0 }), set.contains("\(language)_\(region)") { return "\(language)_\(region)" }
-            if set.contains(language) { return language }
-        }
-        return nil
-    }
 }

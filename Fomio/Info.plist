@@ -13,7 +13,6 @@
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>
-		<string>ar</string>
 	</array>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
@@ -27,6 +26,10 @@
 	<string>fomio://auth_redirect</string>
 	<key>FomioBaseURL</key>
 	<string>https://meta.fomio.app</string>
+	<key>FomioLocaleCatalogPath</key>
+	<string>fomio/app-locales/{schema}/{locale}.json</string>
+	<key>FomioLocaleIndexPath</key>
+	<string>fomio/app-locales/{schema}/index.json</string>
 	<key>FomioUserAPIScopes</key>
 	<string>read,write,notifications,session_info</string>
 	<key>ITSAppUsesNonExemptEncryption</key>

@@ -24,9 +24,9 @@ struct UnavailableLocalizationTransport: LocalizationTransport {
     func catalog(locale: String, etag: String?) async throws -> TransportResponse { throw TransportError.unavailable }
 }
 
-/// HTTP transport for the proposed public catalog endpoints. Paths come from the app's Info values
-/// (`FomioLocaleIndexPath`, `FomioLocaleCatalogPath` with `{schema}` and `{locale}`); they are not set
-/// until the backend contract is deployed and verified, so live builds use `UnavailableLocalizationTransport`.
+/// HTTP transport for the public catalog endpoints served by the `discourse-fomio-app-locales` plugin. Paths come
+/// from the app's Info values (`FomioLocaleIndexPath`, `FomioLocaleCatalogPath` with `{schema}` and `{locale}`).
+/// Anonymous: no cookies, credentials or member keys. A 404 (the plugin is not deployed yet) keeps bundled English.
 struct DiscourseLocalizationTransport: LocalizationTransport {
     let configuration: LiveConfiguration
     let indexPath: String

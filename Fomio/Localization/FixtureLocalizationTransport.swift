@@ -13,6 +13,10 @@ final class FixtureLocalizationTransport: LocalizationTransport {
         var changedOverride = false
         /// Simulates a server bug: Arabic omits one required key.
         var incompleteArabic = false
+        /// The site's default locale in the index; the app must ignore it.
+        var siteDefaultLocale = "en"
+        /// Simulates the site no longer offering Arabic: the index omits it and its catalog 404s.
+        var removedArabic = false
     }
     let bundle: Bundle
     let options: Mutex<Options>
@@ -32,14 +36,19 @@ final class FixtureLocalizationTransport: LocalizationTransport {
         return etag == tag ? .notModified : .payload(data, etag: tag)
     }
     func index(etag: String?) async throws -> TransportResponse {
-        let locales = ["en", "ar"].compactMap { code -> [String: Any]? in
+        let current = options.withLock { $0 }
+        var locales: [[String: Any]] = (current.removedArabic ? ["en"] : ["en", "ar"]).compactMap { code in
             guard let data = source(code), let payload = try? CatalogValidator.decode(data) else { return nil }
             return ["locale": code, "name": code == "ar" ? "Arabic" : "English", "native_name": code == "ar" ? "العربية" : "English", "direction": payload.direction, "complete": payload.complete, "revision": payload.revision]
         }
-        let data = try JSONSerialization.data(withJSONObject: ["schema": LocalizationCatalog.schema, "default_locale": "en", "locales": locales], options: [.sortedKeys])
+        // Entries the app must not offer: French has no plural rules in this app; German is incomplete.
+        locales.append(["locale": "fr", "name": "French", "native_name": "Français", "direction": "ltr", "complete": true, "revision": "fixture-fr"])
+        locales.append(["locale": "de", "name": "German", "native_name": "Deutsch", "direction": "ltr", "complete": false])
+        let data = try JSONSerialization.data(withJSONObject: ["schema": LocalizationCatalog.schema, "default_locale": current.siteDefaultLocale, "locales": locales], options: [.sortedKeys])
         return try await respond(data, etag: etag)
     }
     func catalog(locale: String, etag: String?) async throws -> TransportResponse {
+        if options.withLock({ $0.removedArabic }) && locale == "ar" { try await Task.sleep(for: options.withLock { $0.delay }); throw TransportError.unavailable }
         guard var data = source(locale) else { try await Task.sleep(for: options.withLock { $0.delay }); throw TransportError.status(404) }
         let current = options.withLock { $0 }
         if (current.changedOverride && locale == "en") || (current.incompleteArabic && locale == "ar"), var payload = try? CatalogValidator.decode(data) {

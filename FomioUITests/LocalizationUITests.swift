@@ -5,9 +5,10 @@ import XCTest
 @MainActor final class LocalizationUITests: XCTestCase {
     override func setUp() { continueAfterFailure = false }
 
-    private func launch(_ arguments: [String], namespace: String = UUID().uuidString, keepPreferences: Bool = false) -> XCUIApplication {
+    private func launch(_ arguments: [String], namespace: String = UUID().uuidString, keepPreferences: Bool = false, systemArabic: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--fixture", "--ui-testing"] + arguments + (keepPreferences ? ["--keep-preferences"] : [])
+            + (systemArabic ? ["-AppleLanguages", "(ar)", "-AppleLocale", "ar_SA"] : [])
         app.launchEnvironment["FOMIO_UI_TEST_NAMESPACE"] = namespace
         app.launch()
         return app
@@ -51,8 +52,9 @@ import XCTest
         XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
 
         me.tap(); app.buttons["me-language"].tap()
-        XCTAssertTrue(app.buttons["language-system"].waitForExistence(timeout: 5))
         let arabic = app.buttons["language-ar"]; XCTAssertTrue(arabic.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["language-en"].isSelected, "English is the default choice")
+        XCTAssertFalse(app.buttons["language-system"].exists, "no implicit device-language row")
         capture(app, "Language screen, English")
         arabic.tap()
         waitForArabic(app)
@@ -105,6 +107,91 @@ import XCTest
         XCTAssertTrue(tab(app, "Me").waitForExistence(timeout: 10))
         XCTAssertFalse(tab(app, "أنا").waitForExistence(timeout: 4), "a partial catalog must never activate")
         capture(app, "Incomplete Arabic response rejected")
+    }
+
+    private func element(_ app: XCUIApplication, _ identifier: String) -> XCUIElement { app.descendants(matching: .any)[identifier].firstMatch }
+    private func text(_ app: XCUIApplication, containing value: String) -> XCUIElement {
+        app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", value)).firstMatch
+    }
+    private func openLanguage(_ app: XCUIApplication, me: String) {
+        tab(app, me).tap()
+        let row = app.buttons["language-en"]
+        if !row.waitForExistence(timeout: 2) { app.buttons["me-language"].tap() }
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+    }
+
+    func testArabicDeviceFreshInstallStaysEnglishAfterCatalogDiscovery() {
+        // Arabic iOS language, a site whose default locale is Arabic, and Arabic offered: still English.
+        let namespace = UUID().uuidString
+        let app = launch(["--l10n-reset", "--l10n-site-default-ar"], namespace: namespace, systemArabic: true)
+        XCTAssertTrue(tab(app, "Home").waitForExistence(timeout: 10))
+        openLanguage(app, me: "Me")
+        XCTAssertTrue(app.buttons["language-ar"].waitForExistence(timeout: 5), "Arabic was discovered")
+        XCTAssertTrue(app.buttons["language-en"].isSelected)
+        XCTAssertFalse(app.buttons["language-fr"].exists, "French: complete but no plural rules in this app")
+        XCTAssertFalse(app.buttons["language-de"].exists, "German: incomplete")
+        XCTAssertFalse(app.buttons["language-system"].exists)
+        XCTAssertFalse(tab(app, "أنا").waitForExistence(timeout: 2), "discovery never switches the language")
+        capture(app, "Arabic iOS fresh install: English after catalog discovery")
+        app.terminate()
+        let again = launch(["--l10n-site-default-ar"], namespace: namespace, keepPreferences: true, systemArabic: true)
+        XCTAssertTrue(tab(again, "Home").waitForExistence(timeout: 10))
+        XCTAssertFalse(tab(again, "أنا").waitForExistence(timeout: 3), "relaunch after background download stays English")
+    }
+
+    func testExplicitSelectionPersistsAcrossRelaunchAndOffline() {
+        let namespace = UUID().uuidString
+        let app = launch([], namespace: namespace)
+        XCTAssertTrue(tab(app, "Home").waitForExistence(timeout: 10))
+        openLanguage(app, me: "Me")
+        app.buttons["language-ar"].tap()
+        waitForArabic(app)
+        app.terminate()
+        let offline = launch(["--l10n-offline"], namespace: namespace, keepPreferences: true)
+        waitForArabic(offline, timeout: 3)
+        openLanguage(offline, me: "أنا")
+        XCTAssertTrue(offline.buttons["language-ar"].isSelected, "the explicit choice persisted")
+        capture(offline, "Explicit Arabic choice after relaunch, offline")
+    }
+
+    func testFailedSelectionKeepsEnglishAndOffersRetry() {
+        let namespace = UUID().uuidString
+        let app = launch(["--l10n-incomplete-ar"], namespace: namespace)
+        XCTAssertTrue(tab(app, "Home").waitForExistence(timeout: 10))
+        openLanguage(app, me: "Me")
+        app.buttons["language-ar"].tap()
+        XCTAssertTrue(element(app, "language-failed").waitForExistence(timeout: 8), "failure is reported")
+        XCTAssertTrue(app.buttons["language-en"].isSelected, "the choice is unchanged")
+        XCTAssertTrue(tab(app, "Me").exists)
+        capture(app, "Incomplete Arabic selection rejected, English kept")
+        app.terminate()
+        let again = launch(["--l10n-incomplete-ar"], namespace: namespace, keepPreferences: true)
+        XCTAssertTrue(tab(again, "Home").waitForExistence(timeout: 10))
+        XCTAssertFalse(tab(again, "أنا").waitForExistence(timeout: 3), "a failed selection is not persisted")
+    }
+
+    func testRemovedLanguageKeepsCachedCopyAndSaysSo() {
+        let namespace = UUID().uuidString
+        let first = launch(["--language", "ar"], namespace: namespace)
+        waitForArabic(first)
+        first.terminate()
+        let app = launch(["--l10n-removed-ar"], namespace: namespace, keepPreferences: true)
+        waitForArabic(app, timeout: 3)
+        openLanguage(app, me: "أنا")
+        XCTAssertTrue(text(app, containing: "آخر نسخة").waitForExistence(timeout: 5), "says the last downloaded copy is shown")
+        XCTAssertFalse(app.buttons["language-ar"].exists, "a removed language is not offered")
+        waitForArabic(app, timeout: 1)
+        capture(app, "Removed Arabic: cached copy kept, notice shown")
+    }
+
+    func testRemovedLanguageWithoutCacheShowsEnglishAndSaysSo() {
+        let app = launch(["--language", "ar", "--l10n-removed-ar", "--l10n-reset"])
+        XCTAssertTrue(tab(app, "Home").waitForExistence(timeout: 10), "no cache: English")
+        openLanguage(app, me: "Me")
+        XCTAssertTrue(text(app, containing: "so Fomio shows English").waitForExistence(timeout: 5), "honest English fallback notice")
+        XCTAssertFalse(text(app, containing: "last downloaded version").exists)
+        XCTAssertFalse(text(app, containing: "hasn’t downloaded yet").exists)
+        capture(app, "Removed Arabic without cache: English, notice shown")
     }
 
     func testChangedSiteOverrideAppearsAfterRefresh() {

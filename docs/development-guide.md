@@ -38,11 +38,13 @@ Set arguments in the Xcode scheme’s Run action. Fixture account defaults to `j
 | `--rtl` | Override layout direction |
 | `--preset <name>` | Debug only. Open a Screen Pack state: `communities`, `findcom`, `findnone`, `community`, `subcommunity`, `empty`, `denied`, `discussion`, `offline`, `linked`, `unavailable`, `search`, `notifications`, `me`, `profile`, `saved`, `drafts`, `draftlost`, `resumelost`, `chooser`, `reply`, `quote`, `newtopic`, `uploading`, `uploadfail`, `rejected`, `expired`, `unconfirmed`, `pending`, `loading`. Combine with `--guest`, `--dark` or `--accessibility-text`. |
 | `--ui-testing` | Enables isolated fixture draft directory when a valid namespace is supplied |
-| `--language <code\|system>` | Debug only. Stores the interface language preference (for example `ar`) before launch |
+| `--language <code>` | Debug only. Stores an interface language choice (for example `ar`) as if chosen earlier in Me › Language; `en` clears it. There is no device-language mode |
 | `--l10n-reset` | Debug only. Deletes cached interface catalogs for this launch's storage root |
 | `--l10n-offline` | Debug, fixture mode. The fixture catalog transport fails as offline |
 | `--l10n-incomplete-ar` | Debug, fixture mode. The fixture Arabic response omits a required key (must be rejected) |
 | `--l10n-changed-override` | Debug, fixture mode. The fixture English response has a new revision renaming Home (site-text override change) |
+| `--l10n-site-default-ar` | Debug, fixture mode. The fixture index reports `default_locale` `ar` (the app must ignore it) |
+| `--l10n-removed-ar` | Debug, fixture mode. The fixture index no longer lists Arabic and its catalog is unavailable (removed language) |
 | `--feed-fails-once` | Debug, fixture mode. The first feed request fails with the app-authored offline error; a retry succeeds |
 | `--media-recovery` | Debug, fixture mode. Adds two Home topics: an image file that is missing until the next explicit refresh, and a missing image URL that the next refresh replaces with a working one. Their images are served by `FixtureMediaURLProtocol` (`fomio-fixture-media://`), which counts every request; the counts appear in the hidden `fixture-media-requests` element for UI tests |
 

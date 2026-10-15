@@ -56,6 +56,8 @@ import SwiftUI
             options.offline = arguments.contains("--l10n-offline")
             options.changedOverride = arguments.contains("--l10n-changed-override")
             options.incompleteArabic = arguments.contains("--l10n-incomplete-ar")
+            options.siteDefaultLocale = arguments.contains("--l10n-site-default-ar") ? "ar" : "en"
+            options.removedArabic = arguments.contains("--l10n-removed-ar")
             #endif
             #if DEBUG
             let transport: any LocalizationTransport = unitTestHost ? UnavailableLocalizationTransport() : FixtureLocalizationTransport(options: options)
@@ -65,7 +67,8 @@ import SwiftUI
             let localization = LocalizationController(store: LocalizationStore(root: localizationRoot, site: "fixture"), transport: transport)
             _state = State(initialValue: AppState(service: fixture, fixture: fixture, configuration: nil, store: store, localization: localization))
         } else {
-            // A catalog transport exists only once the site publishes the contract and its paths are configured.
+            // The site's public catalog endpoint (discourse-fomio-app-locales). While the deployed site does not
+            // serve it, requests 404 and the app stays in bundled English.
             let transport: any LocalizationTransport = configuration.flatMap { DiscourseLocalizationTransport.fromBundle($0) } ?? UnavailableLocalizationTransport()
             let site = configuration.map { LocalizationStore.siteKey($0.baseURL) } ?? "unconfigured"
             let localization = LocalizationController(store: LocalizationStore(root: localizationRoot, site: site), transport: transport)
@@ -73,13 +76,14 @@ import SwiftUI
         }
     }
     #if DEBUG
-    /// `--language <code|system>` sets the stored interface preference; `--l10n-reset` clears cached catalogs.
+    /// `--language <code>` stores an interface choice as if made earlier in Me › Language (UI tests only);
+    /// `--l10n-reset` clears cached catalogs.
     private static func applyLanguageArguments(_ arguments: [String], root: URL) {
         if arguments.contains("--l10n-reset") { try? FileManager.default.removeItem(at: root) }
         if arguments.contains("--ui-testing") && !arguments.contains("--keep-preferences") { UserDefaults.standard.removeObject(forKey: LocalizationController.preferenceKey) }
         guard let index = arguments.firstIndex(of: "--language"), arguments.indices.contains(index + 1) else { return }
         let value = arguments[index + 1]
-        if value == "system" { UserDefaults.standard.removeObject(forKey: LocalizationController.preferenceKey) }
+        if value == "en" { UserDefaults.standard.removeObject(forKey: LocalizationController.preferenceKey) }
         else if LocaleMatcher.isValidCode(value) { UserDefaults.standard.set(value, forKey: LocalizationController.preferenceKey) }
     }
     #endif

@@ -1,18 +1,22 @@
 import Foundation
 import Observation
 
-/// Chooses the interface language and keeps its public catalog current.
+/// Manual interface-language choice backed by the site's catalog endpoint.
 ///
-/// Startup never waits for the network: a valid cached catalog for the chosen language activates during
-/// `init`, otherwise the bundled English catalog stays active. `refresh()` runs on launch and foreground,
-/// revalidates stale data (24 hours) with `If-None-Match`, and activates a changed revision in place.
-/// Every response is validated before it is stored; a failure leaves the last good catalog active.
+/// - English (bundled) is the default and the fallback. Nothing chooses another language automatically:
+///   not the device or per-app iOS language, not the site's default locale, not a member's Discourse locale,
+///   and not a catalog that becomes available in the background.
+/// - Me › Language lists English plus the languages the site offers (its allowed locales with complete
+///   catalogs) that this app can validate (known plural rules and direction). Selecting one persists it only
+///   after its catalog is validated, from the last good cache or a fresh download.
+/// - Startup activates the selected language's validated cache synchronously; `refresh()` revalidates it
+///   (24 hours, `If-None-Match`/304) and may update its wording, never which language is selected.
+/// - Removed language: if the site's index no longer offers the selected language, the last good cache stays
+///   active and is no longer refreshed; without a valid cache English is shown. The choice and any cache are
+///   kept, and `removedNoticeKey` tells Me › Language which of the two it is.
+///   Launch uses the cached index for 24 hours; opening Me › Language always revalidates it.
+/// - Failed or incomplete selection: the current language and the stored choice are unchanged.
 @MainActor @Observable final class LocalizationController {
-    enum Preference: Equatable, Sendable {
-        /// Follow the device's ordered language preferences among the languages the site offers.
-        case system
-        case locale(String)
-    }
     enum Status: Equatable, Sendable { case idle, downloading(String), failed(String) }
     static let preferenceKey = "interfaceLanguage"
     static let refreshInterval: TimeInterval = 24 * 60 * 60
@@ -22,9 +26,11 @@ import Observation
     @ObservationIgnored let transport: any LocalizationTransport
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let now: @Sendable () -> Date
-    @ObservationIgnored private let preferredLanguages: @Sendable () -> [String]
-    private(set) var preference: Preference
+    /// The explicitly selected language; "en" until the member chooses another.
+    private(set) var selected: String
     private(set) var index: CatalogIndex?
+    /// The last successful index response came from the server in this session (not only the cache).
+    private(set) var indexIsFresh = false
     private(set) var status: Status = .idle
     /// The site offered no catalog contract on the last attempt; only English is available.
     private(set) var contractUnavailable = false
@@ -32,10 +38,10 @@ import Observation
     @ObservationIgnored private var indexTask: Task<Void, Never>?
 
     init(localizer: Localizer = .shared, store: LocalizationStore, transport: any LocalizationTransport, defaults: UserDefaults = .standard,
-         now: @escaping @Sendable () -> Date = { Date() }, preferredLanguages: @escaping @Sendable () -> [String] = { Locale.preferredLanguages }) {
-        self.localizer = localizer; self.store = store; self.transport = transport; self.defaults = defaults; self.now = now; self.preferredLanguages = preferredLanguages
+         now: @escaping @Sendable () -> Date = { Date() }) {
+        self.localizer = localizer; self.store = store; self.transport = transport; self.defaults = defaults; self.now = now
         let saved = defaults.string(forKey: Self.preferenceKey)
-        preference = saved.flatMap { LocaleMatcher.isValidCode($0) ? .locale($0) : nil } ?? .system
+        selected = saved.flatMap { LocaleMatcher.isValidCode($0) ? $0 : nil } ?? "en"
         store.removeOtherSchemas()
         index = store.index().flatMap { Self.decodeIndex($0.payload) }
         activateCached()
@@ -43,35 +49,33 @@ import Observation
 
     var english: LocalizationCatalog { localizer.english }
 
-    /// English first, then complete languages the app can validate (plural rules known), in server order.
+    /// English first, then the site's complete languages that this app can validate, in server order.
     var languages: [CatalogIndex.Entry] {
-        let english = index?.locales.first { $0.locale == "en" } ?? .init(locale: "en", name: "English", nativeName: "English", direction: "ltr", complete: true)
-        let others = (index?.locales ?? []).filter { $0.locale != "en" && $0.complete && PluralRules.categories(for: $0.locale) != nil && CatalogDirection(rawValue: $0.direction) != nil }
-        return [english] + others
+        let english = index?.locales.first { $0.locale == "en" } ?? Self.englishEntry
+        return [english] + (index?.locales ?? []).filter { $0.locale != "en" && Self.isSupported($0) }
     }
-    private var offered: [String] { languages.map(\.locale) }
-    private func offersRemote(_ code: String) -> Bool { index?.locales.contains { $0.locale == code && $0.complete } == true }
-
-    /// The language the interface should show; its catalog may not have downloaded yet.
-    func resolve(_ preference: Preference) -> String {
-        switch preference {
-        case let .locale(code): code
-        case .system: LocaleMatcher.match(preferred: preferredLanguages(), available: offered) ?? "en"
-        }
+    static let englishEntry = CatalogIndex.Entry(locale: "en", name: "English", nativeName: "English", direction: "ltr", complete: true)
+    static func isSupported(_ entry: CatalogIndex.Entry) -> Bool {
+        entry.complete && PluralRules.categories(for: entry.locale) != nil && CatalogDirection(rawValue: entry.direction) != nil
     }
-    var target: String { resolve(preference) }
-    /// What the device language resolves to, shown beside the "Device language" choice.
-    var systemLanguage: CatalogIndex.Entry? { languages.first { $0.locale == resolve(.system) } }
+    private func offered(_ code: String) -> Bool { code == "en" || languages.contains { $0.locale == code } }
+    private func offersRemote(_ code: String) -> Bool { index?.locales.contains { $0.locale == code && Self.isSupported($0) } == true }
+    /// A fresh index no longer lists the selected (non-English) language.
+    var selectionRemoved: Bool { selected != "en" && indexIsFresh && !offersRemote(selected) }
+    /// Me › Language's notice for a removed language: its last good copy is still shown, or (no valid cache) English is.
+    /// Either way the choice is kept, so the language returns if the site offers it again.
+    var removedNoticeKey: String? {
+        guard selectionRemoved else { return nil }
+        return localizer.catalog.locale == selected ? "language.removed" : "language.removed_english"
+    }
 
     // MARK: Activation
 
-    /// Synchronous and offline: the chosen language's validated cache, otherwise bundled English.
+    /// Synchronous and offline: the selected language's validated cache, otherwise bundled English.
     func activateCached() {
-        let code = target
-        if let catalog = cachedCatalog(code) { localizer.activate(catalog); markUsed(code) }
+        if let catalog = cachedCatalog(selected) { localizer.activate(catalog); markUsed(selected) }
         else { localizer.activate(english) }
     }
-
     /// A cached catalog that still validates against this build. Invalid records are deleted, never shown.
     func cachedCatalog(_ code: String) -> LocalizationCatalog? {
         guard let record = store.record(code) else { return nil }
@@ -85,19 +89,19 @@ import Observation
 
     // MARK: Refresh
 
-    /// Launch/foreground refresh. Skips fresh data unless `force` is set (manual refresh).
+    /// Launch/foreground: refreshes the language list and the selected language's wording when stale.
+    /// It never changes which language is selected.
     func refresh(force: Bool = false) async {
         await refreshIndex(force: force)
-        let code = target
-        guard code != "en" || offersRemote("en") else {
-            // English is bundled; with no server English catalog, a previously cached one is no longer current.
-            if code == "en" { localizer.activate(english) }
-            return
-        }
+        let code = selected
+        // English without a site English catalog is the bundled English.
+        guard code != "en" || offersRemote("en") else { localizer.activate(english); return }
+        // A removed language keeps its last good cache; the server no longer serves it.
+        if selectionRemoved { activateCached(); return }
         let record = store.record(code)
         let stale = force || record.map { now().timeIntervalSince($0.fetchedAt) >= Self.refreshInterval || $0.fetchedAt > now() } ?? true
-        if stale, let catalog = await download(code), target == code { localizer.activate(catalog); return }
-        if target == code { activateCached() }
+        if stale, let catalog = await download(code), selected == code { localizer.activate(catalog); return }
+        if selected == code { activateCached() }
     }
 
     func refreshIndex(force: Bool = false) async {
@@ -109,9 +113,10 @@ import Observation
                 switch try await transport.index(etag: index == nil ? nil : cached?.etag) {
                 case .notModified:
                     if var cached { cached.fetchedAt = now(); try? store.saveIndex(cached) }
+                    indexIsFresh = index != nil
                 case let .payload(data, etag):
                     guard let value = Self.decodeIndex(data) else { return }
-                    index = value
+                    index = value; indexIsFresh = true
                     try? store.saveIndex(.init(etag: etag, fetchedAt: now(), payload: data))
                 }
                 contractUnavailable = false
@@ -122,6 +127,9 @@ import Observation
         await task.value
         indexTask = nil
     }
+    /// Me › Language: always revalidates the list (conditional, so usually a 304), even when the cached index is
+    /// younger than 24 hours, so a removed or newly offered language is seen when the member looks for it.
+    func revalidateLanguages() async { await refreshIndex(force: true) }
     private static func decodeIndex(_ data: Data) -> CatalogIndex? {
         guard data.count <= CatalogValidator.maximumPayloadBytes, let value = try? JSONDecoder().decode(CatalogIndex.self, from: data),
               value.schema == LocalizationCatalog.schema, value.locales.allSatisfy({ LocaleMatcher.isValidCode($0.locale) }) else { return nil }
@@ -150,29 +158,30 @@ import Observation
             case let .payload(data, etag):
                 let catalog = try CatalogValidator.validate(data, requested: code, reference: english)
                 try store.save(.init(locale: code, revision: catalog.revision, etag: etag, fetchedAt: now(), lastUsedAt: now(), payload: data))
-                store.evict(keeping: target == code ? code : target)
+                store.evict(keeping: selected == code ? code : selected)
                 return catalog
             }
         } catch {
-            if error as? TransportError == .unavailable { contractUnavailable = true }
+            // A 404 for one locale (not offered, or removed) says nothing about the contract as a whole.
             return nil
         }
     }
 
     // MARK: Selection
 
-    /// Switches the interface language. A language that is neither cached nor downloadable leaves the
-    /// current language and preference unchanged and reports `.failed`.
-    @discardableResult func select(_ value: Preference) async -> Bool {
-        let code = resolve(value)
+    /// Explicit choice from Me › Language. Persists only after the language's catalog validates: English
+    /// (bundled, or the site's English when offered), the last good cache (also offline), or a download.
+    /// A language the site does not offer, or whose catalog fails, leaves everything unchanged.
+    @discardableResult func select(_ code: String) async -> Bool {
         func commit(_ catalog: LocalizationCatalog) {
-            preference = value
-            switch value { case .system: defaults.removeObject(forKey: Self.preferenceKey); case let .locale(code): defaults.set(code, forKey: Self.preferenceKey) }
+            selected = code
+            if code == "en" { defaults.removeObject(forKey: Self.preferenceKey) } else { defaults.set(code, forKey: Self.preferenceKey) }
             localizer.activate(catalog); status = .idle
             markUsed(code); store.evict(keeping: code)
         }
-        if code == "en" && cachedCatalog("en") == nil {
-            commit(english)
+        guard offered(code) else { status = .failed(code); return false }
+        if code == "en" {
+            commit(cachedCatalog("en") ?? english)
             if offersRemote("en") { Task { await refresh() } }
             return true
         }

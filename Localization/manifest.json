@@ -1479,14 +1479,6 @@
    "source": "fomio",
    "plural": false
   },
-  "language.device": {
-   "source": "fomio",
-   "plural": false
-  },
-  "language.device_unavailable": {
-   "source": "fomio",
-   "plural": false
-  },
   "language.download_failed.message": {
    "source": "fomio",
    "plural": false
@@ -1508,6 +1500,14 @@
    "plural": false
   },
   "language.pending": {
+   "source": "fomio",
+   "plural": false
+  },
+  "language.removed": {
+   "source": "fomio",
+   "plural": false
+  },
+  "language.removed_english": {
    "source": "fomio",
    "plural": false
   },

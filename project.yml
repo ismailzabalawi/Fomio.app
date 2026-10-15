@@ -42,9 +42,12 @@ targets:
         FomioBaseURL: https://meta.fomio.app
         FomioAuthCallback: fomio://auth_redirect
         FomioUserAPIScopes: read,write,notifications,session_info
-        # Verified interface languages. iOS offers these in Settings › Fomio › Language and localizes
-        # system-provided controls to match. Interface text itself comes from the catalogs (see docs).
-        CFBundleLocalizations: [en, ar]
+        # English only: the interface language is chosen manually in Me › Language, never from the device or
+        # iOS per-app setting, so iOS offers no competing per-app language and system direction stays LTR.
+        CFBundleLocalizations: [en]
+        # Public catalog endpoint served by the discourse-fomio-app-locales plugin (not yet deployed).
+        FomioLocaleIndexPath: "fomio/app-locales/{schema}/index.json"
+        FomioLocaleCatalogPath: "fomio/app-locales/{schema}/{locale}.json"
     settings:
       base:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon

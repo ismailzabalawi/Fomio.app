@@ -308,13 +308,13 @@ import UIKit
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
     }
     func testArabicHomeRotationKeepsFeedReachable() {
-        let app = launch(["-AppleLanguages", "(ar)", "-AppleLocale", "ar_JO", "--rtl"])
+        let app = launch(["--language", "ar", "-AppleLanguages", "(ar)", "-AppleLocale", "ar_JO", "--rtl"])
         XCUIDevice.shared.orientation = .landscapeLeft
         XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 5))
         XCUIDevice.shared.orientation = .portrait
     }
     func testArabicComposerPreservesMixedTextAcrossModesAndRotation() {
-        let app = launch(["-AppleLanguages", "(ar)", "-AppleLocale", "ar_JO", "--rtl"])
+        let app = launch(["--language", "ar", "-AppleLanguages", "(ar)", "-AppleLocale", "ar_JO", "--rtl"])
         app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
         let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5))
         body.tap(); body.typeText("مرحبا Fomio")

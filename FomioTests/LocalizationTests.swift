@@ -58,17 +58,22 @@ final class TestClock: @unchecked Sendable { var now = Date(timeIntervalSince197
         value.messages = value.messages.mapValues { if case let .plural(forms) = $0 { return .plural(["other": forms["other"]!]) }; return $0 }
         return try encode(value)
     }
-    func controller(_ transport: some LocalizationTransport, site: String = "https://forum.example", clock: TestClock = TestClock(), languages: [String] = ["en-US"]) -> (LocalizationController, Localizer) {
+    func controller(_ transport: some LocalizationTransport, site: String = "https://forum.example", clock: TestClock = TestClock()) -> (LocalizationController, Localizer) {
         let localizer = Localizer(english: english)
         let store = LocalizationStore(root: root, site: site)
-        return (LocalizationController(localizer: localizer, store: store, transport: transport, defaults: defaults, now: { clock.now }, preferredLanguages: { languages }), localizer)
+        return (LocalizationController(localizer: localizer, store: store, transport: transport, defaults: defaults, now: { clock.now }), localizer)
+    }
+    /// Loads a site index into the controller, as Me › Language does before offering languages.
+    func offer(_ controller: LocalizationController, _ transport: ScriptedTransport, _ locales: [(String, Bool)] = [("en", true), ("ar", true)], defaultLocale: String = "en") async throws {
+        transport.enqueueIndex(.success(.payload(try Self.index(locales, defaultLocale: defaultLocale), etag: "\"i\(transport.state.withLock { $0.indexCalls })\"")))
+        await controller.refreshIndex(force: true)
     }
     func seed(_ locale: String, _ data: Data, site: String = "https://forum.example", fetchedAt: Date, etag: String? = "\"e1\"") throws {
         let catalog = try CatalogValidator.validate(data, requested: locale, reference: english)
         try LocalizationStore(root: root, site: site).save(.init(locale: locale, revision: catalog.revision, etag: etag, fetchedAt: fetchedAt, lastUsedAt: fetchedAt, payload: data))
     }
-    static func index(_ locales: [(String, Bool)]) throws -> Data {
-        try JSONSerialization.data(withJSONObject: ["schema": 1, "default_locale": "en", "locales": locales.map { ["locale": $0.0, "name": $0.0, "native_name": $0.0, "direction": $0.0 == "ar" ? "rtl" : "ltr", "complete": $0.1] }])
+    static func index(_ locales: [(String, Bool)], defaultLocale: String = "en") throws -> Data {
+        try JSONSerialization.data(withJSONObject: ["schema": 1, "default_locale": defaultLocale, "locales": locales.map { ["locale": $0.0, "name": $0.0, "native_name": $0.0, "direction": $0.0 == "ar" ? "rtl" : "ltr", "complete": $0.1] }])
     }
 
     // MARK: Catalog validation
@@ -146,33 +151,42 @@ final class TestClock: @unchecked Sendable { var now = Date(timeIntervalSince197
         XCTAssertEqual(localizer.formattingLocale.language.languageCode?.identifier, "ar")
     }
 
-    func testLocaleMatchingUsesExplicitMapping() {
-        XCTAssertEqual(LocaleMatcher.match(preferred: ["ar-SA", "en"], available: ["en", "ar"]), "ar")
-        XCTAssertEqual(LocaleMatcher.match(preferred: ["en-GB"], available: ["en", "ar"]), "en")
-        XCTAssertEqual(LocaleMatcher.match(preferred: ["pt-BR"], available: ["en", "pt", "pt_BR"]), "pt_BR")
-        XCTAssertEqual(LocaleMatcher.match(preferred: ["zh-Hans-CN"], available: ["en", "zh_CN", "zh_TW"]), "zh_CN")
-        XCTAssertNil(LocaleMatcher.match(preferred: ["fr-FR", "de"], available: ["en", "ar"]))
-        XCTAssertEqual(LocalizationController.autonym("ar"), "العربية", "a language not yet listed by the site is named in its own language")
+    func testAutonymNamesALanguageTheSiteNoLongerLists() {
+        XCTAssertEqual(LocalizationController.autonym("ar"), "العربية")
         XCTAssertEqual(LocalizationController.autonym("en"), "English")
     }
 
     // MARK: Startup and refresh
 
-    func testColdOfflineLaunchShowsEnglishAndSelectionFailsWithoutChangingPreference() async throws {
+    func testColdOfflineLaunchShowsEnglishAndSelectionFailsWithoutChangingChoice() async throws {
         let transport = ScriptedTransport()                      // every call fails offline
-        let (controller, localizer) = controller(transport, languages: ["ar-SA"])
-        defaults.set("ar", forKey: LocalizationController.preferenceKey)
-        let (chosen, chosenLocalizer) = self.controller(transport, languages: ["ar-SA"])
+        let (controller, localizer) = controller(transport)
         XCTAssertEqual(localizer.catalog.locale, "en")
-        XCTAssertEqual(chosenLocalizer.catalog.locale, "en", "a chosen language that never downloaded shows English")
+        XCTAssertEqual(controller.languages.map(\.locale), ["en"], "nothing to offer before the site index has ever loaded")
+        defaults.set("ar", forKey: LocalizationController.preferenceKey)
+        let (chosen, chosenLocalizer) = self.controller(transport)
+        XCTAssertEqual(chosenLocalizer.catalog.locale, "en", "a choice whose catalog is not cached shows English")
         await chosen.refresh()
         XCTAssertEqual(chosenLocalizer.catalog.locale, "en")
-        let switched = await controller.select(.locale("ar"))
-        XCTAssertFalse(switched)
+        let switched = await controller.select("ar")
+        XCTAssertFalse(switched, "not offered while the index is unknown")
         XCTAssertEqual(controller.status, .failed("ar"))
-        XCTAssertEqual(controller.preference, .system)
-        XCTAssertEqual(localizer.catalog.locale, "en")
+        XCTAssertEqual(controller.selected, "en")
         XCTAssertTrue(localizer.catalog.messages.values.allSatisfy { if case let .text(value) = $0 { return !value.isEmpty }; return true })
+    }
+
+    func testFreshInstallStaysEnglishAfterCatalogDiscoveryRegardlessOfDeviceSiteOrMemberLocale() async throws {
+        // The device/per-app language is not an input; the site's default locale ("ar") in the index is ignored.
+        let transport = ScriptedTransport()
+        transport.enqueue("ar", .success(.payload(try Self.data("ar"), etag: "\"a\"")))
+        let (controller, localizer) = controller(transport)
+        try await offer(controller, transport, defaultLocale: "ar")
+        await controller.refresh(force: true)
+        XCTAssertEqual(controller.languages.map(\.locale), ["en", "ar"], "Arabic is offered")
+        XCTAssertEqual(controller.selected, "en")
+        XCTAssertEqual(localizer.catalog.locale, "en", "discovery never switches the language")
+        XCTAssertEqual(transport.calls("ar"), 0, "an unselected language is never downloaded in the background")
+        XCTAssertNil(defaults.string(forKey: LocalizationController.preferenceKey))
     }
 
     func testCachedArabicActivatesImmediatelyOfflineWithoutNetwork() throws {
@@ -255,33 +269,123 @@ final class TestClock: @unchecked Sendable { var now = Date(timeIntervalSince197
 
     // MARK: Switching, eviction and isolation
 
-    func testSwitchingLanguagesPersistsPreferenceAndChangesCatalogTogether() async throws {
+    func testExplicitSelectionPersistsOnlyValidatedChoicesAcrossRelaunchAndOffline() async throws {
         let transport = ScriptedTransport()
         transport.enqueue("ar", .success(.payload(try Self.data("ar"), etag: "\"a\"")))
         let (controller, localizer) = controller(transport)
-        do { let ok = await controller.select(.locale("ar")); XCTAssertTrue(ok) }
+        try await offer(controller, transport)
+        do { let ok = await controller.select("ar"); XCTAssertTrue(ok) }
         XCTAssertEqual(defaults.string(forKey: LocalizationController.preferenceKey), "ar")
         XCTAssertEqual(localizer.catalog.locale, "ar"); XCTAssertEqual(localizer.layoutDirection, .rightToLeft)
         XCTAssertEqual(localizer.formattingLocale.language.languageCode?.identifier, "ar")
-        do { let ok = await controller.select(.locale("en")); XCTAssertTrue(ok) }
-        XCTAssertEqual(localizer.catalog.locale, "en"); XCTAssertEqual(localizer.layoutDirection, .leftToRight)
-        // Switching back uses the retained Arabic catalog without another download.
-        do { let ok = await controller.select(.locale("ar")); XCTAssertTrue(ok) }
-        XCTAssertEqual(transport.calls("ar"), 1)
-        do { let ok = await controller.select(.system); XCTAssertTrue(ok) }
+        // Relaunch offline: the choice and its last good cache are used immediately.
+        let (relaunched, relaunchedLocalizer) = self.controller(ScriptedTransport())
+        XCTAssertEqual(relaunched.selected, "ar"); XCTAssertEqual(relaunchedLocalizer.catalog.locale, "ar")
+        // Back to English, then Arabic again offline from the retained cache (no second download).
+        do { let ok = await controller.select("en"); XCTAssertTrue(ok) }
         XCTAssertNil(defaults.string(forKey: LocalizationController.preferenceKey))
-        XCTAssertEqual(localizer.catalog.locale, "en")
+        XCTAssertEqual(localizer.catalog.locale, "en"); XCTAssertEqual(localizer.layoutDirection, .leftToRight)
+        do { let ok = await controller.select("ar"); XCTAssertTrue(ok) }
+        XCTAssertEqual(transport.calls("ar"), 1)
     }
 
-    func testDeviceLanguageFollowsSiteIndexAndIgnoresIncompleteLanguages() async throws {
+    func testFailedIncompleteAndUnsupportedSelectionsChangeNothing() async throws {
         let transport = ScriptedTransport()
-        transport.enqueueIndex(.success(.payload(try Self.index([("en", true), ("ar", true), ("fr", false)]), etag: "\"i\"")))
-        transport.enqueue("ar", .success(.payload(try Self.data("ar"), etag: "\"a\"")))
-        let (controller, localizer) = controller(transport, languages: ["fr-FR", "ar-EG", "en"])
-        XCTAssertEqual(controller.target, "en", "unknown before the site index arrives")
+        let (controller, localizer) = controller(transport)
+        try await offer(controller, transport, [("en", true), ("ar", true), ("fr", true), ("de", false)])
+        XCTAssertEqual(controller.languages.map(\.locale), ["en", "ar"], "French lacks app plural rules; German is incomplete")
+        for code in ["fr", "de", "xx"] {
+            let ok = await controller.select(code)
+            XCTAssertFalse(ok, code); XCTAssertEqual(transport.calls(code), 0, "not offered, never requested: \(code)")
+        }
+        var partial = try Self.payload("ar"); partial.messages["tab.me"] = nil
+        transport.enqueue("ar", .success(.payload(try Self.encode(partial), etag: "\"p\"")))
+        do { let ok = await controller.select("ar"); XCTAssertFalse(ok) }
+        transport.enqueue("ar", .failure(.offline))
+        do { let ok = await controller.select("ar"); XCTAssertFalse(ok) }
+        XCTAssertEqual(controller.status, .failed("ar"))
+        XCTAssertEqual(controller.selected, "en"); XCTAssertEqual(localizer.catalog.locale, "en")
+        XCTAssertNil(defaults.string(forKey: LocalizationController.preferenceKey), "only validated choices persist")
+        XCTAssertNil(controller.store.record("ar"), "an invalid catalog is never stored")
+    }
+
+    func testRemovedLanguageKeepsLastGoodCacheWithoutAutoSwitching() async throws {
+        let clock = TestClock()
+        try seed("ar", Self.data("ar"), fetchedAt: clock.now.addingTimeInterval(-2 * 86_400))
+        defaults.set("ar", forKey: LocalizationController.preferenceKey)
+        let transport = ScriptedTransport()
+        let (controller, localizer) = controller(transport, clock: clock)
+        XCTAssertFalse(controller.selectionRemoved, "unknown until a fresh index arrives")
+        try await offer(controller, transport, [("en", true)])
         await controller.refresh()
-        XCTAssertEqual(controller.languages.map(\.locale), ["en", "ar"])
-        XCTAssertEqual(localizer.catalog.locale, "ar")
+        XCTAssertTrue(controller.selectionRemoved)
+        XCTAssertEqual(controller.selected, "ar"); XCTAssertEqual(localizer.catalog.locale, "ar", "no automatic switch")
+        XCTAssertEqual(transport.calls("ar"), 0, "a removed language is not requested")
+        XCTAssertNotNil(controller.store.record("ar"), "the last good cache is kept")
+        XCTAssertEqual(controller.languages.map(\.locale), ["en"])
+        XCTAssertEqual(controller.removedNoticeKey, "language.removed", "says the last downloaded copy is shown")
+        // The member can still choose English; the site offering Arabic again clears the notice.
+        try await offer(controller, transport)
+        XCTAssertFalse(controller.selectionRemoved)
+        XCTAssertNil(controller.removedNoticeKey)
+    }
+
+    func testOpeningLanguageRevalidatesAFreshCachedIndexAndFindsARemovedLanguage() async throws {
+        let clock = TestClock()
+        let store = LocalizationStore(root: root, site: "https://forum.example")
+        try store.saveIndex(.init(etag: "\"i0\"", fetchedAt: clock.now.addingTimeInterval(-60), payload: try Self.index([("en", true), ("ar", true)])))
+        try seed("ar", Self.data("ar"), fetchedAt: clock.now.addingTimeInterval(-60))
+        defaults.set("ar", forKey: LocalizationController.preferenceKey)
+        let transport = ScriptedTransport()
+        let (controller, localizer) = controller(transport, clock: clock)
+        await controller.refresh()
+        XCTAssertEqual(transport.state.withLock { $0.indexCalls }, 0, "launch trusts an index younger than 24 hours")
+        XCTAssertFalse(controller.selectionRemoved)
+        // Me › Language: the site has since removed Arabic.
+        transport.enqueueIndex(.success(.payload(try Self.index([("en", true)]), etag: "\"i1\"")))
+        await controller.revalidateLanguages()
+        XCTAssertEqual(transport.state.withLock { $0.indexCalls }, 1, "opening Language revalidates despite the fresh cache")
+        XCTAssertTrue(controller.selectionRemoved)
+        XCTAssertEqual(controller.removedNoticeKey, "language.removed")
+        XCTAssertEqual(controller.languages.map(\.locale), ["en"])
+        XCTAssertEqual(localizer.catalog.locale, "ar", "no automatic switch"); XCTAssertEqual(controller.selected, "ar")
+        XCTAssertNotNil(store.record("ar"), "the last good cache is kept")
+        // Unchanged list: a 304 still counts as fresh and keeps the removal visible.
+        transport.enqueueIndex(.success(.notModified))
+        await controller.revalidateLanguages()
+        XCTAssertTrue(controller.selectionRemoved)
+    }
+
+    func testRemovedLanguageWithMissingCorruptOrIncompatibleCacheShowsEnglishAndKeepsTheChoice() async throws {
+        var incompatible = try CatalogValidator.decode(Self.data("ar"))
+        incompatible.messages["tab.home"] = nil
+        let caches: [(String, Data?)] = [("missing", nil), ("corrupt", Data("{not json".utf8)), ("incompatible", try JSONEncoder().encode(incompatible))]
+        for (name, payload) in caches {
+            try? FileManager.default.removeItem(at: root)
+            if let payload {
+                try LocalizationStore(root: root, site: "https://forum.example").save(.init(locale: "ar", revision: "r", etag: "\"e\"", fetchedAt: Date(), lastUsedAt: Date(), payload: payload))
+            }
+            defaults.set("ar", forKey: LocalizationController.preferenceKey)
+            let transport = ScriptedTransport()
+            let (controller, localizer) = controller(transport)
+            XCTAssertEqual(localizer.catalog.locale, "en", "\(name): English fallback at launch")
+            XCTAssertNil(controller.store.record("ar"), "\(name): an invalid cache is never kept or shown")
+            try await offer(controller, transport, [("en", true)])
+            await controller.refresh()
+            XCTAssertTrue(controller.selectionRemoved, name)
+            XCTAssertEqual(controller.removedNoticeKey, "language.removed_english", "\(name): says English is shown, not a downloaded copy")
+            XCTAssertEqual(localizer.catalog.locale, "en", name)
+            XCTAssertEqual(controller.selected, "ar", "\(name): the saved choice is kept")
+            XCTAssertEqual(defaults.string(forKey: LocalizationController.preferenceKey), "ar", name)
+            XCTAssertEqual(transport.calls("ar"), 0, "\(name): a removed language is not requested")
+            XCTAssertNotEqual(L("language.removed_english", ["language": "العربية"]), L("language.removed", ["language": "العربية"]))
+            // Offered again: the kept choice downloads on the next refresh.
+            transport.enqueue("ar", .success(.payload(try Self.data("ar"), etag: "\"a\"")))
+            try await offer(controller, transport)
+            await controller.refresh()
+            XCTAssertNil(controller.removedNoticeKey, name)
+            XCTAssertEqual(localizer.catalog.locale, "ar", "\(name): returns when offered again")
+        }
     }
 
     func testEvictionKeepsCurrentAndOneRecentLanguage() async throws {
@@ -292,7 +396,8 @@ final class TestClock: @unchecked Sendable { var now = Date(timeIntervalSince197
         let transport = ScriptedTransport()
         transport.enqueue("ja", .success(.payload(try Self.japaneseLike(), etag: "\"j\"")))
         let (controller, _) = controller(transport, clock: clock)
-        do { let ok = await controller.select(.locale("ja")); XCTAssertTrue(ok) }
+        try await offer(controller, transport, [("en", true), ("ja", true)])
+        do { let ok = await controller.select("ja"); XCTAssertTrue(ok) }
         XCTAssertEqual(store.storedLocales(), ["en", "ja"], "the least recently used language is removed")
     }
 
@@ -344,7 +449,9 @@ final class TestClock: @unchecked Sendable { var now = Date(timeIntervalSince197
         CatalogStubProtocol.respond = { _ in (404, [:], Data()) }
         do { _ = try await transport.catalog(locale: "ar", etag: nil); XCTFail() } catch { XCTAssertEqual(error as? TransportError, .unavailable) }
         do { _ = try await transport.catalog(locale: "../x", etag: nil); XCTFail() } catch { XCTAssertEqual(error as? TransportError, .unavailable) }
-        XCTAssertNil(DiscourseLocalizationTransport.fromBundle(configuration), "no catalog paths are configured until the backend contract is deployed")
+        let configured = try XCTUnwrap(DiscourseLocalizationTransport.fromBundle(configuration), "live builds use the site's catalog endpoint")
+        XCTAssertEqual(configured.indexPath, "fomio/app-locales/{schema}/index.json")
+        XCTAssertEqual(configured.catalogPath, "fomio/app-locales/{schema}/{locale}.json")
     }
 }
 

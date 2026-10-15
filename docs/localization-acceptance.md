@@ -22,19 +22,24 @@ Fixture catalogs are served by `FixtureLocalizationTransport` in Debug builds. T
 | B1 | Required keys, placeholders, plurals validated before activation | `testValidatorRejectsIncompatibleCatalogs` (16 rejection cases incl. live `js.hubs.all` bug), `testValidatorAcceptsReorderedPlaceholdersAndUnknownExtraKeys`, `testBundledEnglishAndMaintainedArabicAreCompleteAndCompatible` | Pass |
 | B2 | Arabic plural rules (zero/one/two/few/many/other) and locale number formatting | `testArabicPluralRulesAndFormattedCounts` | Pass |
 | B3 | Mixed-direction arguments | `testArgumentsKeepTheirOwnDirection` | Pass |
-| B4 | Apple language → Discourse locale mapping | `testLocaleMatchingUsesExplicitMapping` | Pass |
-| B5 | English on cold offline first launch; failed selection leaves preference/catalog intact | `testColdOfflineLaunchShowsEnglishAndSelectionFailsWithoutChangingPreference`; UI `testColdOfflineFirstLaunchShowsCompleteEnglish` | Pass |
+| B4 | Only languages the site offers *and* the app can validate are listed (complete, plural rules, direction), English first | `testAutonymNamesALanguageTheSiteNoLongerLists`, `testFailedIncompleteAndUnsupportedSelectionsChangeNothing`; UI `testArabicDeviceFreshInstallStaysEnglishAfterCatalogDiscovery` (fixture fr and de rows absent) | Pass |
+| B5 | English on cold offline first launch; failed selection leaves choice/catalog intact | `testColdOfflineLaunchShowsEnglishAndSelectionFailsWithoutChangingChoice`; UI `testColdOfflineFirstLaunchShowsCompleteEnglish`, `testFailedSelectionKeepsEnglishAndOffersRetry` | Pass |
 | B6 | Cached Arabic used immediately offline | `testCachedArabicActivatesImmediatelyOfflineWithoutNetwork`; UI `testWarmOfflineLaunchUsesCachedArabicImmediately` (offline transport, Arabic within 3 s) | Pass |
 | B7 | Stale refresh at 24 h with ETag; 304 renews | `testFreshCacheSkipsNetworkStaleCacheRevalidatesWithETagAnd304KeepsCatalog` | Pass |
 | B8 | Changed site-text revision shows on next successful refresh | `testChangedOverrideRevisionAppearsOnNextSuccessfulRefresh`; UI `testChangedSiteOverrideAppearsAfterRefresh` | Pass |
 | B9 | Malformed/partial/5xx keep last good catalog; corrupt cache deleted, never shown | `testMalformedOrPartialResponsesKeepLastGoodCatalog`, `testCorruptedCacheIsDeletedAndEnglishShown`; UI `testIncompleteServerCatalogIsRejectedAndEnglishRemains` | Pass |
-| B10 | Locale switching changes catalog, formatting locale and direction together | `testSwitchingLanguagesPersistsPreferenceAndChangesCatalogTogether`; UI `testSwitchingLanguageKeepsNavigationDraftsAndMirrorsLayout` | Pass |
-| B11 | Device language followed by default among complete site languages | `testDeviceLanguageFollowsSiteIndexAndIgnoresIncompleteLanguages` | Pass |
+| B10 | Locale switching changes catalog, formatting locale and direction together | `testExplicitSelectionPersistsOnlyValidatedChoicesAcrossRelaunchAndOffline`; UI `testSwitchingLanguageKeepsNavigationDraftsAndMirrorsLayout` | Pass |
+| B11 | No automatic language: fresh install is English after catalog discovery on an Arabic device, with site `default_locale` ar and a member locale ar; no device-language row | `testFreshInstallStaysEnglishAfterCatalogDiscoveryRegardlessOfDeviceSiteOrMemberLocale`; UI `testArabicDeviceFreshInstallStaysEnglishAfterCatalogDiscovery` (incl. relaunch) | Pass |
 | B12 | Retain current + one recent language | `testEvictionKeepsCurrentAndOneRecentLanguage` | Pass |
 | B13 | Site/relative-root/schema/locale isolation | `testCachesAreIsolatedBySiteRelativeRootAndSchema` | Pass |
 | B14 | Concurrent refreshes coalesced | `testConcurrentRefreshesShareOneRequest` | Pass |
-| B15 | Transport: public conditional GET, relative root, 304/404 mapping, no member key, no configured path yet | `testDiscourseTransportSendsConditionalPublicRequestsUnderRelativeRoot` | Pass |
+| B15 | Transport: public conditional GET, relative root, 304/404 mapping, no cookies or member key, configured plugin paths | `testDiscourseTransportSendsConditionalPublicRequestsUnderRelativeRoot` | Pass |
 | B16 | Language change does not reset navigation, drafts, editor selection or uploads | UI B10 test on iPhone and iPad (pushed community and discussion kept; kept draft listed). Editor relabels in place (`Coordinator.relabel`) without re-rendering text; the composer sheet is outside the tab container that rebuilds on a direction change. A language change while a composer is open is only possible through a background first download; it was not automated | Pass (navigation, drafts); editor/upload continuity by design, not automated |
+| B17 | Explicit selection persists only after validation; relaunch and offline use the last good cache | `testExplicitSelectionPersistsOnlyValidatedChoicesAcrossRelaunchAndOffline`; UI `testExplicitSelectionPersistsAcrossRelaunchAndOffline`, `testWarmOfflineLaunchUsesCachedArabicImmediately` | Pass |
+| B18 | Failed, incomplete or unsupported selection changes nothing | `testFailedIncompleteAndUnsupportedSelectionsChangeNothing`; UI `testFailedSelectionKeepsEnglishAndOffersRetry` (incl. relaunch), `testIncompleteServerCatalogIsRejectedAndEnglishRemains` | Pass |
+| B19 | Removed language: no auto-switch, no request, choice kept; valid cache kept and shown with an honest notice; missing/corrupt/incompatible cache → English with an English-fallback notice | `testRemovedLanguageKeepsLastGoodCacheWithoutAutoSwitching`, `testOpeningLanguageRevalidatesAFreshCachedIndexAndFindsARemovedLanguage`, `testRemovedLanguageWithMissingCorruptOrIncompatibleCacheShowsEnglishAndKeepsTheChoice`; UI `testRemovedLanguageKeepsCachedCopyAndSaysSo`, `testRemovedLanguageWithoutCacheShowsEnglishAndSaysSo` | Pass |
+| B20 | Refresh updates the selected language's wording, never the selection | `testChangedOverrideRevisionAppearsOnNextSuccessfulRefresh`, `testFreshCacheSkipsNetworkStaleCacheRevalidatesWithETagAnd304KeepsCatalog`; UI `testChangedSiteOverrideAppearsAfterRefresh` | Pass |
+| B21 | No iOS per-app language competes with the in-app choice | `CFBundleLocalizations` = `[en]` (project.yml/Info.plist); Back direction regressions in `NavigationDirectionUITests` with English and Arabic iOS languages | Pass |
 
 ## C. Native UI (simulator)
 
@@ -53,19 +58,26 @@ See [validation record](validation/2026-10-15-localization/README.md) for screen
 
 Topic cards/appearances, category identities/hierarchy, authentication gates, protected drafts, posting outcomes and photo uploads are covered by the pre-existing unit and UI suites (C5). Strings changed only through keys whose English values are identical to before, except: proper plurals ("1 like" instead of "1 likes" in accessibility labels), the community breadcrumb chevron now follows the interface direction, and `ContentUnavailableView.search` was replaced with catalog text.
 
-## E. Release and backend gates
+## E. Gates
+
+Merge gates (required before merging this branch):
 
 | # | Gate | Status |
 | --- | --- | --- |
-| E1 | Backend catalog endpoint per [contract](localization-catalog-contract.md) implemented with request specs | **Blocked**: needs an authorized backend task |
-| E2 | Endpoint deployed; anonymous and member verification on the live site; Info paths configured | **Blocked** on E1 and deployment |
-| E3 | Live non-English interface on a device | **Blocked** on E2 |
-| E4 | Native-speaker review of `Localization/catalogs/ar.json` | Manual pending |
+| E1 | Backend catalog endpoint per [contract](localization-catalog-contract.md) implemented with request specs, client-equivalent validation, English-only default allowlist, member-header compatibility with the deployed revision | **Pass (local)**: plugin on backend branch `fomio/app-locale-catalog` (`245a6b63e10`, `6eca1a33a4a`), 46 examples, 0 failures; awaiting independent review |
+| E2 | Plugin deployed; anonymous and signed-in verification on the live site (200, ETag/304, no `X-Discourse-Username`, only allowlisted locales) | **Blocked**: deployment not authorized; live paths 404 at 7b4f0970 (2026-10-15T17:46Z) |
+| E3 | Live non-English interface on a device, selected in Me › Language from the deployed endpoint (requires a language enabled on the live site, which in turn requires E4 for Arabic) | **Blocked** on E2 (and the enabling decision) |
 | E5 | Release build contains no `catalogs` folder | Pass |
-| E6 | VoiceOver walk-through in Arabic on a physical device; Increase Contrast/Reduce Motion | Manual pending |
-| E7 | Product agreement on the terminology policy (native discussion/community vs the forum's Byte/Hub/Teret overrides) | **Open**: documented implementation choice, not yet agreed |
 
-The branch is **not merged**: the task's merge condition requires live contract verification (E1–E3).
+Release-only gates (required before offering a language other than English to members; not waived):
+
+| # | Gate | Status |
+| --- | --- | --- |
+| E4 | Native-speaker review of `Localization/catalogs/ar.json`, then add `ar` to `fomio_app_locales` | Manual pending |
+| E6 | VoiceOver walk-through in Arabic on a physical device; Increase Contrast/Reduce Motion | Manual pending |
+| E7 | Product agreement on the terminology policy (native discussion/community vs the forum's Byte/Hub/Teret overrides) | **Open**: documented implementation choice, explicit in the manifest, not yet agreed |
+
+The branch is **not merged**: E2 and E3 are open.
 
 ## F. Independent review of 6162c57 (2026-10-15)
 
@@ -76,4 +88,4 @@ The branch is **not merged**: the task's merge condition requires live contract 
 | F2b | Re-review of b8eb0b0: system Back chevron reversed when iOS and interface directions differ | Targeted back indicator for mismatched directions only; native Back, label, tap/edge-swipe and return anchor verified in both mismatches, cold launch and switching (`NavigationDirectionUITests`) | Pass ([record](validation/2026-10-15-rereview-fixes/README.md)) |
 | F3 | Failed topic media never recovered | `MediaLoadState` (re-review: a recovered image keeps its load attempt across later refreshes, verified with fixture request counts); restored-source and replacement paths verified in Compact and Cards, English and Arabic accessibility3, iPhone and iPad | Pass |
 
-Details, commands, counts and screenshots: [review-fixes validation](validation/2026-10-15-review-fixes/README.md). Gates E1–E4, E6 and E7 remain open; the branch is not merged.
+Details, commands, counts and screenshots: [review-fixes validation](validation/2026-10-15-review-fixes/README.md). Gate status at that review is superseded by §E.

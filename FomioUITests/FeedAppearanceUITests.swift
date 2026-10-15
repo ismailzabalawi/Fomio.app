@@ -126,7 +126,7 @@ import XCTest
     }
 
     func testDarkAccessibilityTextAndRightToLeftCaptures() {
-        for (name, arguments) in [("Dark AX3", ["--dark", "--accessibility-text"]), ("Arabic RTL", ["-AppleLanguages", "(ar)", "-AppleLocale", "ar_JO", "--rtl"]), ("Teal dark", ["--dark", "--teal-theme"])] {
+        for (name, arguments) in [("Dark AX3", ["--dark", "--accessibility-text"]), ("Arabic RTL", ["--language", "ar", "-AppleLanguages", "(ar)", "-AppleLocale", "ar_JO", "--rtl"]), ("Teal dark", ["--dark", "--teal-theme"])] {
             let app = launch(arguments)
             let arabic = arguments.contains("(ar)")
             for value in ["Compact", "Cards"] {

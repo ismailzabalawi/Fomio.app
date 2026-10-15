@@ -87,7 +87,7 @@ import XCTest
     // MARK: 2. Explicit UIKit direction on an Arabic-language device
 
     func testArabicSystemLanguageColdEnglishFallbackKeepsAppUIKitLeftToRight() {
-        let app = launch(["--l10n-offline", "--l10n-reset", "--language", "system"], systemArabic: true)
+        let app = launch(["--l10n-offline", "--l10n-reset"], systemArabic: true)
         XCTAssertTrue(tab(app, "Home").waitForExistence(timeout: 10), "cold offline: bundled English")
         XCTAssertLessThan(tab(app, "Home").frame.midX, tab(app, "Me").frame.midX, "English tabs run left to right on an Arabic device")
         capture(app, "2a Arabic iOS language, cold offline English fallback")
