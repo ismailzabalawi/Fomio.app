@@ -33,7 +33,8 @@ struct ComposerCapabilities: Equatable, Sendable {
     var maximumUploadBytes: Int?
     var similarDiscussions = false
     var onebox = false
-    static let fixture = ComposerCapabilities(blocks: [.poll, .table, .details, .spoiler, .date, .code], maximumUploadBytes: 10 * 1024 * 1024, similarDiscussions: true, onebox: true)
+    var checklists = false
+    static let fixture = ComposerCapabilities(blocks: [.poll, .table, .details, .spoiler, .date, .code], maximumUploadBytes: 10 * 1024 * 1024, similarDiscussions: true, onebox: true, checklists: true)
 }
 struct OneboxContext: Sendable { var category: CategoryID?; var topic: TopicID? }
 struct OneboxMetadata: Equatable, Sendable { var url: URL; var title: String; var summary: String }

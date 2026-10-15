@@ -33,6 +33,7 @@ struct ComposerBar<More: View>: View {
     var canRedo: Bool
     var canFormatInline: Bool
     var actions: Actions
+    var textStyles = ComposerTextStyle.offered.filter { $0 != .checklist }
     /// Labelled More for the compact fallback, icon-only More for the full row.
     @ViewBuilder var more: (_ labelled: Bool) -> More
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -171,7 +172,7 @@ struct ComposerBar<More: View>: View {
                 ScrollView(.horizontal) {
                     HStack(spacing: 6) {
                         Text("Turn into").font(.footnote).foregroundStyle(Color.fomioSecondaryText).padding(.horizontal, 4).accessibilityAddTraits(.isHeader)
-                        ForEach(ComposerTextStyle.offered + (ComposerTextStyle.offered.contains(current) ? [] : [current]), id: \.self) { style in
+                        ForEach(textStyles + (textStyles.contains(current) ? [] : [current]), id: \.self) { style in
                             let selected = style == current
                             Button { actions.turnInto(style) } label: {
                                 Text(style.title).font(.subheadline.weight(.semibold))
@@ -205,6 +206,7 @@ struct ComposerInserter: View {
     var placement: String
     var blocks: [ComposerBlockKind]
     var samplePhoto: Bool
+    var textStyles = ComposerTextStyle.offered.filter { $0 != .checklist }
     var pick: (Choice) -> Void
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicType
@@ -229,11 +231,13 @@ struct ComposerInserter: View {
         case .heading: detail = "Add a smaller section heading"
         case .quote: detail = "Give a passage its own space"
         case .list: detail = "Make your points easy to scan"
+        case .numberedList: detail = "Put steps in order"
+        case .checklist: detail = "Keep track of tasks"
         }
         return Item(choice: .text(style), title: style == .paragraph ? localized("Text") : style.title, detail: localized(detail), symbol: style.symbol)
     }
     private var sections: [(String, [Item])] {
-        let text = ComposerTextStyle.offered.map(textItem)
+        let text = textStyles.map(textItem)
         var media = [quickItems[0]]
         if samplePhoto { media.append(Item(choice: .samplePhoto, title: localized("Sample photo"), detail: localized("Fixture preview"), symbol: "photo.badge.checkmark")) }
         let advanced = blocks.map { Item(choice: .block($0), title: localized($0.title), detail: localized(Self.detail($0)), symbol: Self.symbol($0)) }

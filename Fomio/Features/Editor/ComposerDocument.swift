@@ -16,15 +16,17 @@ enum EditorCommand {
 }
 /// The line-level type of a text block. The composer bar's type chip changes it in place; raw keeps the Markdown prefix.
 enum ComposerTextStyle: Hashable, Sendable {
-    case paragraph, heading(Int), quote, list
+    case paragraph, heading(Int), quote, list, numberedList, checklist
     /// Types offered by Turn into and the inserter. Other heading levels are still recognised.
-    static let offered: [ComposerTextStyle] = [.paragraph, .heading(2), .heading(3), .quote, .list]
+    static let offered: [ComposerTextStyle] = [.paragraph, .heading(2), .heading(3), .quote, .list, .numberedList, .checklist]
     var title: String {
         switch self {
         case .paragraph: String(localized: "Paragraph")
         case let .heading(level): String(localized: "Heading \(level)")
         case .quote: String(localized: "Quote")
         case .list: String(localized: "Bulleted list")
+        case .numberedList: String(localized: "Numbered list")
+        case .checklist: String(localized: "Checklist")
         }
     }
     var symbol: String {
@@ -33,14 +35,19 @@ enum ComposerTextStyle: Hashable, Sendable {
         case .heading: "textformat.size"
         case .quote: "text.quote"
         case .list: "list.bullet"
+        case .numberedList: "list.number"
+        case .checklist: "checklist"
         }
     }
+    var isList: Bool { self == .list || self == .numberedList || self == .checklist }
     var prefix: String {
         switch self {
         case .paragraph: ""
         case let .heading(level): String(repeating: "#", count: min(6, max(1, level))) + " "
         case .quote: "> "
         case .list: "- "
+        case .numberedList: "1. "
+        case .checklist: "- [ ] "
         }
     }
 }
@@ -60,6 +67,14 @@ enum ComposerBlockKind: String, CaseIterable, Codable, Sendable {
         }
     }
 }
+struct InlineMark: Equatable, Sendable {
+    var range: NSRange
+    var bold: Bool
+    var italic: Bool
+    var code: Bool
+    var strike: Bool
+    var link: String? = nil
+}
 struct MarkupNode: Equatable, Identifiable, Sendable {
     var range: NSRange
     var raw: String
@@ -70,33 +85,92 @@ struct MarkupNode: Equatable, Identifiable, Sendable {
     var link: String?
     var contentRange: NSRange?
     var sourceOffsets: [Int]?
+    var textStyle: ComposerTextStyle?
+    /// Presentation-only list marker; it is never part of the editable string.
+    var listMarker: String?
+    var inlineCode = false
+    var strike = false
+    var inlineMarks: [InlineMark] = []
+    var sourceEndOffsets: [Int]?
     var id: Int { range.location }
 }
 struct DiscourseMarkupCodec {
     /// Deliberately bounded grammar. Anything outside it stays byte-for-byte in raw.
     static func parse(_ raw: String) -> [MarkupNode] {
+        tokenize(raw).flatMap { node -> [MarkupNode] in
+            guard node.kind == nil else { return [node] }
+            // Inline tokens are already source-mapped. Plain text is split into lines
+            // so block prefixes can disappear without changing a single source byte.
+            guard node.contentRange == nil else { return [projectInline(node)] }
+            let text = node.raw as NSString
+            var result: [MarkupNode] = [], cursor = 0
+            while cursor < text.length {
+                let line = text.paragraphRange(for: NSRange(location: cursor, length: 0))
+                let value = text.substring(with: line)
+                let atLineStart = node.range.location + cursor == 0 || (raw as NSString).character(at: node.range.location + cursor - 1) == 10
+                let style = atLineStart ? Self.style(ofLine: value) : (.paragraph, 0)
+                let base = node.range.location + cursor
+                if style.prefix > 0 {
+                    let prefix = (value as NSString).substring(to: style.prefix)
+                    result.append(MarkupNode(range: NSRange(location: base, length: style.prefix), raw: prefix, text: "", contentRange: NSRange(location: base + style.prefix, length: 0), sourceOffsets: [base + style.prefix], textStyle: style.style))
+                }
+                let body = (value as NSString).substring(from: style.prefix)
+                let pieces = tokenize(body)
+                for original in pieces {
+                    var piece = projectInline(original)
+                    let shift = base + style.prefix
+                    piece.range.location += shift
+                    if piece.contentRange != nil { piece.contentRange!.location += shift }
+                    if let offsets = piece.sourceOffsets { piece.sourceOffsets = offsets.map { $0 + shift } }
+                    if let offsets = piece.sourceEndOffsets { piece.sourceEndOffsets = offsets.map { $0 + shift } }
+                    piece.textStyle = style.style
+                    if style.style.isList {
+                        let prefix = (value as NSString).substring(to: style.prefix)
+                        if prefix.contains("[x]") || prefix.contains("[X]") { piece.listMarker = "☑" }
+                        else if prefix.contains("[ ]") { piece.listMarker = "☐" }
+                        else if let number = prefix.first, number.isNumber { piece.listMarker = String(prefix.prefix { $0.isNumber }) + "." }
+                        else { piece.listMarker = "•" }
+                    }
+                    result.append(piece)
+                }
+                cursor = NSMaxRange(line)
+            }
+            return result
+        }
+    }
+    private static let tokenRegex: NSRegularExpression = {
+        var pattern = #"(?m)^(`{3,})[^\n]*\n[\s\S]*?^\1[^\n]*(?:\n|$)|\[(poll|details|spoiler|quote)(?:[ =][^\]\n]*)?\][\s\S]*?\[/\2\]|\[date[ =][^\]\n]+\]|!\[(?:\\.|[^\\\]\n])*\]\([^\)\n]+\)|(?m)^\|[^\n]+\|\n\|[ :|\-]+\|(?:\n\|[^\n]*\|)+|\[([a-zA-Z][\w-]*)(?:[ =][^\]\n]*)?\][\s\S]*?\[/\3\]|\*\*\*(?!\s)(?:[^*\n]|\*(?!\*))+?\*\*\*?\*|\*\*(?!\s)(?:[^*\n]|\*(?!\*))+?\*\*\*?|(?<!\*)\*(?!\s)[^*\n]+\*(?!\*)|\[(?:\\.|[^\\\]\n])+\]\([^\)\n]+\)|__[^_\n]+__|(?<!\w)_[^_\n]+_(?!\w)|`[^`\n]+`|~~[^~\n]+~~"#
+        pattern += #"|(?m)^~{3,}[^\n]*\n[\s\S]*?^~{3,}[ \t]*(?:\n|$)|(?m)^(?:#{1,6}[ \t]+)[^\n]*(?:\n|$)|(?m)^[ \t]{0,3}(?:[-*_][ \t]*){3,}(?:\n|$)"#
+        return try! NSRegularExpression(pattern: pattern)
+    }()
+    private static func tokenize(_ raw: String) -> [MarkupNode] {
         let source = raw as NSString
-        var pattern = #"(?m)^(`{3,})[^\n]*\n[\s\S]*?^\1[^\n]*(?:\n|$)|\[(poll|details|spoiler|quote)(?:[ =][^\]\n]*)?\][\s\S]*?\[/\2\]|\[date[ =][^\]\n]+\]|!\[(?:\\.|[^\\\]\n])*\]\([^\)\n]+\)|(?m)^\|[^\n]+\|\n\|[ :|\-]+\|(?:\n\|[^\n]*\|)+|\[([a-zA-Z][\w-]*)(?:[ =][^\]\n]*)?\][\s\S]*?\[/\3\]|\*\*\*[^*\n]+\*\*\*|\*\*[^*\n]+\*\*|(?<!\*)\*(?!\s)[^*\n]+\*(?!\*)|\[(?:\\.|[^\\\]\n])+\]\([^\)\n]+\)"#
-        pattern += #"|(?m)^~{3,}[^\n]*\n[\s\S]*?^~{3,}[ \t]*(?:\n|$)|(?m)^(?:#{1,6}[ \t]+|[0-9]+[.)][ \t]+|[-*][ \t]+\[[ xX]\][ \t]+)[^\n]*(?:\n|$)|(?m)^[ \t]{0,3}(?:[-*_][ \t]*){3,}(?:\n|$)"#
-        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [MarkupNode(range: NSRange(location: 0, length: source.length), raw: raw, text: raw)] }
+        let regex = tokenRegex
         var nodes: [MarkupNode] = [], cursor = 0
         for match in regex.matches(in: raw, range: NSRange(location: 0, length: source.length)) {
+            var preceding = match.range.location, slashes = 0
+            while preceding > 0, source.character(at: preceding - 1) == 92 { slashes += 1; preceding -= 1 }
+            if slashes % 2 == 1 { continue }
             if match.range.location > cursor {
                 let range = NSRange(location: cursor, length: match.range.location - cursor)
                 nodes.append(MarkupNode(range: range, raw: source.substring(with: range), text: source.substring(with: range)))
             }
             let value = source.substring(with: match.range)
             var node = MarkupNode(range: match.range, raw: value, text: value)
-            if value.hasPrefix("```") {
+            if value.hasPrefix("```") || value.hasPrefix("~~~") {
                 node.kind = .code
                 var lines = value.components(separatedBy: "\n"); if lines.last == "" { lines.removeLast() }
                 node.text = lines.dropFirst().dropLast().joined(separator: "\n")
             }
             else if value.hasPrefix("![") { node.kind = .photo; if let close = value.range(of: "](", options: .backwards) { node.text = unescapeInline(String(value[value.index(value.startIndex, offsetBy: 2)..<close.lowerBound])) } }
             else if value.hasPrefix("|") { node.kind = .table; node.text = value }
-            // ATX headings stay editable text; the marker remains visible so display and raw offsets coincide.
+            // Headings are split into hidden prefixes and editable inline runs by parse().
             else if value.hasPrefix("#") { node.text = value }
             else if value.hasPrefix("[date ") || value.hasPrefix("[date=") { node.kind = .date; node.text = value }
+            else if value.hasPrefix("`"), !value.hasPrefix("```") { node.inlineCode = true; node.text = String(value.dropFirst().dropLast()); node.contentRange = NSRange(location: match.range.location + 1, length: (node.text as NSString).length) }
+            else if value.hasPrefix("~~") { node.strike = true; node.text = String(value.dropFirst(2).dropLast(2)); node.contentRange = NSRange(location: match.range.location + 2, length: (node.text as NSString).length) }
+            else if value.hasPrefix("__") { node.bold = true; node.text = String(value.dropFirst(2).dropLast(2)); node.contentRange = NSRange(location: match.range.location + 2, length: (node.text as NSString).length) }
+            else if value.hasPrefix("_") { node.italic = true; node.text = String(value.dropFirst().dropLast()); node.contentRange = NSRange(location: match.range.location + 1, length: (node.text as NSString).length) }
             else if value.hasPrefix("***") { node.bold = true; node.italic = true; node.text = String(value.dropFirst(3).dropLast(3)); node.contentRange = NSRange(location: match.range.location + 3, length: (node.text as NSString).length) }
             else if value.hasPrefix("**") { node.bold = true; node.text = String(value.dropFirst(2).dropLast(2)); node.contentRange = NSRange(location: match.range.location + 2, length: (node.text as NSString).length) }
             else if value.hasPrefix("*") { node.italic = true; node.text = String(value.dropFirst().dropLast()); node.contentRange = NSRange(location: match.range.location + 1, length: (node.text as NSString).length) }
@@ -118,6 +192,46 @@ struct DiscourseMarkupCodec {
         }
         if cursor < source.length { let range = NSRange(location: cursor, length: source.length - cursor); nodes.append(MarkupNode(range: range, raw: source.substring(with: range), text: source.substring(with: range))) }
         return nodes
+    }
+    /// One run retains its original wrapper while nested marks get visual attributes
+    /// and explicit UTF-16 boundaries. Parsing never serializes or normalizes raw.
+    private static func projectInline(_ original: MarkupNode) -> MarkupNode {
+        guard original.kind == nil, !original.inlineCode else { return original }
+        var node = original
+        let content = node.contentRange ?? node.range
+        let originalText = (node.raw as NSString).substring(with: NSRange(location: content.location - node.range.location, length: content.length))
+        // Plain text only needs escape decoding. Recursing into an unstyled plain
+        // run would rediscover the same input indefinitely.
+        let children = node.contentRange == nil ? [] : tokenize(originalText)
+        if children.contains(where: { $0.kind != nil }) {
+            // Never flatten a plugin/structured block into an inline run; a later
+            // formatting edit could otherwise discard its original wrapper.
+            node.kind = .opaque; node.text = String(localized: "Preserved block"); return node
+        }
+        if children.isEmpty || (children.count == 1 && children[0].contentRange == nil) {
+            let projection = inlineProjection(originalText)
+            node.text = projection.text
+            node.sourceOffsets = projection.offsets.map { content.location + $0 }
+            let count = (node.text as NSString).length
+            node.sourceEndOffsets = (0..<count).map { content.location + projection.offsets[$0 + 1] }
+            return node
+        }
+        var text = "", offsets: [Int] = [], ends: [Int] = [], marks: [InlineMark] = []
+        for child in children {
+            let projected = projectInline(child)
+            let start = (text as NSString).length, length = (projected.text as NSString).length
+            let childContent = projected.contentRange ?? projected.range
+            let boundaries = projected.sourceOffsets ?? Array(childContent.location...NSMaxRange(childContent))
+            offsets += boundaries.prefix(length).map { content.location + $0 }
+            ends += (projected.sourceEndOffsets ?? (0..<length).map { boundaries[$0 + 1] }).map { content.location + $0 }
+            text += projected.text
+            marks.append(InlineMark(range: NSRange(location: start, length: length), bold: node.bold || projected.bold, italic: node.italic || projected.italic, code: projected.inlineCode, strike: node.strike || projected.strike, link: projected.link ?? node.link))
+            for var mark in projected.inlineMarks {
+                mark.range.location += start; mark.bold = mark.bold || node.bold; mark.italic = mark.italic || node.italic; mark.link = mark.link ?? node.link; marks.append(mark)
+            }
+        }
+        offsets.append(NSMaxRange(content)); node.text = text; node.sourceOffsets = offsets; node.sourceEndOffsets = ends; node.inlineMarks = marks
+        return node
     }
     static func replace(_ raw: String, range: NSRange, with replacement: String) -> String {
         let source = raw as NSString
@@ -153,12 +267,16 @@ struct DiscourseMarkupCodec {
         return "[\(escapeInline(label.replacingOccurrences(of: "\n", with: " ")))](\(destination))"
     }
     static func image(description: String, url: String) -> String { "![\(escapeInline(description.replacingOccurrences(of: "\n", with: " ")))](\(url))" }
-    private static let stylePrefix = try! NSRegularExpression(pattern: #"^(?:(#{1,6})[ \t]+|>[ \t]?|[-*][ \t]+)"#)
+    private static let stylePrefix = try! NSRegularExpression(pattern: #"^(?:(#{1,6})[ \t]+|>[ \t]?|[-*+][ \t]+(?:\[[ xX]\][ \t]+)?|[0-9]+[.)][ \t]+)"#)
     static func style(ofLine line: String) -> (style: ComposerTextStyle, prefix: Int) {
         let text = line as NSString
         guard let match = stylePrefix.firstMatch(in: line, range: NSRange(location: 0, length: text.length)) else { return (.paragraph, 0) }
         if match.range(at: 1).location != NSNotFound { return (.heading(match.range(at: 1).length), match.range.length) }
-        return (text.hasPrefix(">") ? .quote : .list, match.range.length)
+        let prefix = text.substring(with: match.range)
+        if prefix.hasPrefix(">") { return (.quote, match.range.length) }
+        if prefix.contains("[") { return (.checklist, match.range.length) }
+        if prefix.first?.isNumber == true { return (.numberedList, match.range.length) }
+        return (.list, match.range.length)
     }
     /// Lines touched by a range, or nil when they belong to a structured block (code, table, poll…) that text styles must not rewrite.
     static func textLines(_ raw: String, range: NSRange) -> NSRange? {
@@ -175,13 +293,8 @@ struct DiscourseMarkupCodec {
         guard let lines = textLines(raw, range: NSRange(location: range.location, length: 0)) else { return nil }
         return style(ofLine: (raw as NSString).substring(with: lines)).style
     }
-    /// Heading projections keep inline markup literal; do not offer commands that imply rich formatting there.
     static func supportsInlineFormatting(_ raw: String, range: NSRange) -> Bool {
-        guard let lines = textLines(raw, range: range) else { return false }
-        return !(raw as NSString).substring(with: lines).components(separatedBy: .newlines).contains {
-            if case .heading = style(ofLine: $0).style { return true }
-            return false
-        }
+        textLines(raw, range: range) != nil
     }
     /// Rewrites the line prefixes of every line the range touches, keeping each line's text and the selection relative to it.
     static func restyle(_ raw: String, range: NSRange, to style: ComposerTextStyle) -> (raw: String, selection: NSRange)? {
@@ -195,8 +308,9 @@ struct DiscourseMarkupCodec {
             let length = (line as NSString).length
             let old = Self.style(ofLine: line).prefix
             let content = (line as NSString).substring(from: old)
-            shifts.append((cursor, old, (style.prefix as NSString).length, length))
-            output += (shifts.count == 1 ? "" : "\n") + style.prefix + content
+            let prefix = style == .numberedList ? "\(shifts.count + 1). " : style.prefix
+            shifts.append((cursor, old, (prefix as NSString).length, length))
+            output += (shifts.count == 1 ? "" : "\n") + prefix + content
             cursor += length + 1
         }
         output += trailing

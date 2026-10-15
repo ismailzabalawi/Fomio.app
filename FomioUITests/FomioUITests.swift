@@ -75,7 +75,7 @@ import UIKit
         XCTAssertEqual(XCTWaiter.wait(for: [hidden], timeout: 5), .completed, "Cancel should preserve hidden keyboard")
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
     }
-    func testHeadingMenuDisablesUnsupportedInlineFormatting() {
+    func testHeadingMenuEnablesVisualInlineFormatting() {
         let app = launch(["--preset", "newtopic"])
         let body = app.textViews["composer-body"]
         XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("Heading")
@@ -84,9 +84,70 @@ import UIKit
         app.buttons["composer-more"].tap(); app.buttons["Format"].tap()
         for label in ["Bold", "Italic", "Link"] {
             let action = app.buttons[label].firstMatch
-            XCTAssertTrue(action.waitForExistence(timeout: 5)); XCTAssertFalse(action.isEnabled)
+            XCTAssertTrue(action.waitForExistence(timeout: 5)); XCTAssertTrue(action.isEnabled)
         }
-        XCTAssertEqual(body.value as? String, "## Heading")
+        XCTAssertEqual(body.value as? String, "Heading")
+    }
+    func testVisualDraftRecoversAfterTerminationWithExactMarkdown() {
+        let app = launch()
+        app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
+        let body = app.textViews["composer-body"]
+        XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("Recovery check")
+        app.buttons["composer-block-type"].tap(); app.buttons["composer-turn-into-Heading 2"].tap()
+        XCTAssertEqual(body.value as? String, "Recovery check")
+        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        XCTAssertEqual(body.value as? String, "## Recovery check")
+        app.buttons["composer-more"].tap(); app.buttons["Rich text"].tap()
+        app.buttons["composer-close"].tap(); app.buttons["Keep draft"].tap()
+        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 10))
+        app.buttons.matching(identifier: "Me").firstMatch.tap()
+        XCTAssertTrue(app.buttons["me-drafts"].waitForExistence(timeout: 5)); app.buttons["me-drafts"].tap()
+        let draft = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Resume draft:")).firstMatch
+        XCTAssertTrue(draft.waitForExistence(timeout: 5)); draft.tap()
+        XCTAssertTrue(body.waitForExistence(timeout: 5)); XCTAssertEqual(body.value as? String, "Recovery check")
+        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        XCTAssertEqual(body.value as? String, "## Recovery check")
+        let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Recovered formatted draft after relaunch"; capture.lifetime = .keepAlways; add(capture)
+    }
+    func testVisualChecklistCanBeCreatedAndCheckedWithoutSource() {
+        let app = launch(["--preset", "newtopic"])
+        let body = app.textViews["composer-body"]
+        XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("Sand the surface")
+        app.buttons["composer-block-type"].tap(); app.buttons["composer-turn-into-Checklist"].tap()
+        XCTAssertEqual(body.value as? String, "Sand the surface")
+        let check = app.buttons["composer-task-0"]
+        XCTAssertTrue(check.waitForExistence(timeout: 5)); XCTAssertEqual(check.value as? String, "Unchecked"); check.tap()
+        XCTAssertEqual(check.value as? String, "Checked")
+        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        XCTAssertEqual(body.value as? String, "- [x] Sand the surface")
+    }
+    func testVisualHeadingMarkdownPreviewAndReturnPreserveDraft() {
+        let app = launch(["--preset", "newtopic"])
+        let body = app.textViews["composer-body"]
+        XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("What I tried")
+        app.buttons["composer-block-type"].tap(); app.buttons["composer-turn-into-Heading 2"].tap()
+        XCTAssertEqual(body.value as? String, "What I tried")
+        let visual = XCTAttachment(screenshot: app.screenshot()); visual.name = "WYSIWYG heading without syntax"; visual.lifetime = .keepAlways; add(visual)
+        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        XCTAssertEqual(body.value as? String, "## What I tried")
+        body.typeText("\n> A quieter finish\n- Thin coats")
+        let source = body.value as? String
+        let markdown = XCTAttachment(screenshot: app.screenshot()); markdown.name = "Markdown source with Preview"; markdown.lifetime = .keepAlways; add(markdown)
+        app.buttons["composer-preview"].tap()
+        let preview = app.textViews["composer-preview-body"]
+        XCTAssertTrue(preview.waitForExistence(timeout: 5))
+        XCTAssertEqual(preview.value as? String, "What I tried\nA quieter finish\nThin coats")
+        XCTAssertFalse(preview.isEnabled && app.keyboards.firstMatch.exists)
+        let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Rendered Markdown preview"; capture.lifetime = .keepAlways; add(capture)
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(body.waitForExistence(timeout: 5)); XCTAssertEqual(body.value as? String, source)
+        app.buttons["composer-more"].tap(); app.buttons["Rich text"].tap()
+        XCTAssertEqual(body.value as? String, "What I tried\nA quieter finish\nThin coats")
+        body.typeText(" matter")
+        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        XCTAssertEqual(body.value as? String, source! + " matter")
     }
     func testLargestTextSelectionFitsBar() {
         let app = launch(["--preset", "newtopic", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])

@@ -1,5 +1,11 @@
 # Native implementation status — 2026-10-03
 
+## Visual composer and Markdown preview — 2026-10-15
+
+The default native editor hides heading, quote, bullet, numbered-list and task prefixes; renders nested emphasis, links, inline code and strikethrough; and retains raw Discourse markup for drafts/submission. Heading formatting is now enabled. Numbered lists have native insertion/transformation; checklists have tappable draft checkboxes and continuation, gated by an explicit capability (enabled for fixtures, unverified/disabled in live). Formatting edits serialize only touched text runs, preserving block prefixes and unrelated source. Return continues lists/quotes or exits empty items; Backspace removes a hidden block prefix before joining text. Structured blocks retain native forms/cards. Unknown blocks remain preserved with an explicit source-edit action.
+
+More → Edit in Markdown exposes the source as an optional monospaced mode. More → Preview works from either mode, and source mode also exposes Preview directly. The preview is a separate read-only native projection of the same source, with no formatting bar or block edit/remove controls. Back restores the suspended editor/caret; preview and mode switches do not save a rewritten version or add undo steps. Local preview does not establish exact server/plugin rendering parity. [Validation and captures](editor-validation.md#visual-editing-and-markdown-preview--2026-10-15).
+
 ## Topic cards: Compact and Cards appearances — 2026-10-15
 
 Home and category feeds render the composed `TopicCard` in Compact (default) or Cards, chosen from the Home/Feed options menu beside Search/Create and stored per device. Switching keeps the same topic at the same relative reading position, along with loaded pages, pagination errors, tab and navigation state. Live feeds now map Discourse `image_url` (public HTTPS media, failure falls back to text) and `unicode_title`. Swipe actions, feed Like/Save/Share and author profile targets are deferred. Simulator results, captures and limits: [validation](validation/2026-10-15-topic-cards/README.md). Not uploaded to TestFlight.

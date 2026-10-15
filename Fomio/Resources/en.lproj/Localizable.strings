@@ -155,3 +155,18 @@
 "Feed appearance" = "Feed appearance";
 "Compact" = "Compact";
 "Cards" = "Cards";
+
+"Preserved block" = "Preserved block";
+"Nothing to preview yet" = "Nothing to preview yet";
+
+"Preview" = "Preview";
+"Markdown" = "Markdown";
+
+"Numbered list" = "Numbered list";
+"Checklist" = "Checklist";
+"Put steps in order" = "Put steps in order";
+"Keep track of tasks" = "Keep track of tasks";
+"Task" = "Task";
+"Checked" = "Checked";
+"Unchecked" = "Unchecked";
+"Edit task" = "Edit task";

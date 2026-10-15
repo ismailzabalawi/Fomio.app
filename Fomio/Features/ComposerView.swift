@@ -8,7 +8,7 @@ struct ComposerView: View {
     @State private var photos: [PhotosPickerItem] = []
     @State private var photoInsertion = EditorSelection()
     @State private var presentation: EditorPresentation?
-    private enum EditorPresentation: Hashable { case link, photos, exit, retry, inserter, photo(UUID), block(ComposerBlockKind, Int, Int, String), discussion(TopicID) }
+    private enum EditorPresentation: Hashable { case link, preview, photos, exit, retry, inserter, photo(UUID), block(ComposerBlockKind, Int, Int, String), discussion(TopicID) }
     private var navigationPresentation: Binding<EditorPresentation?> { Binding(get: { presentation.flatMap { Self.isPushed($0) ? $0 : nil } }, set: { presentation = $0 }) }
     private func presented(_ value: EditorPresentation) -> Binding<Bool> { Binding(get: { presentation == value }, set: { presentation = $0 ? value : nil }) }
     private var showExit: Bool { get { presentation == .exit } nonmutating set { presentation = newValue ? .exit : nil } }
@@ -50,7 +50,14 @@ struct ComposerView: View {
                                 NativeComposerEditor(raw: $state.draft.title, controller: titleEditor, isTitle: true, locked: state.locked, onNext: { bodyEditor.focus(); focusedField = .body }, onFocus: { bodyEditor.blur(); focusedField = .title }, identifier: "composer-title", label: "Title", placeholder: "Title")
                                 Divider().overlay(Color.fomioSeparator)
                             }
-                            NativeComposerEditor(raw: $state.draft.body, controller: bodyEditor, locked: state.locked, attachmentData: { state.data(for: $0) }, attachmentCaption: { node in state.attachment(for: node).map(photoStatus) }, onBlock: { node in if let attachment = state.attachment(for: node) { suspendEditingFocus(); photoDescription = attachment.description; editingPhoto = attachment } else { openBlock(node) } }, onRemove: { node in bodyEditor.send(.replace(node.range, "")) }, onFocus: { titleEditor.blur(); focusedField = .body; bodyEngaged = true }, label: state.draft.intent.isNew ? "Opening post" : "Reply text", placeholder: state.draft.intent.isNew ? "Write the opening post" : "Write your reply")
+                            if bodyEditor.markdown {
+                                HStack {
+                                    Label("Markdown", systemImage: "chevron.left.forwardslash.chevron.right").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
+                                    Spacer()
+                                    Button("Preview", systemImage: "eye") { suspendEditingFocus(); presentation = .preview }.accessibilityIdentifier("composer-preview").frame(minHeight: 44)
+                                }
+                            }
+                            NativeComposerEditor(raw: $state.draft.body, controller: bodyEditor, locked: state.locked, allowChecklists: app.service.composerCapabilities.checklists, attachmentData: { state.data(for: $0) }, attachmentCaption: { node in state.attachment(for: node).map(photoStatus) }, onBlock: { node in if let attachment = state.attachment(for: node) { suspendEditingFocus(); photoDescription = attachment.description; editingPhoto = attachment } else { openBlock(node) } }, onRemove: { node in bodyEditor.send(.replace(node.range, "")) }, onFocus: { titleEditor.blur(); focusedField = .body; bodyEngaged = true }, label: state.draft.intent.isNew ? "Opening post" : "Reply text", placeholder: state.draft.intent.isNew ? "Write the opening post" : "Write your reply")
                             if !state.suggestions.isEmpty {
                                 DisclosureGroup("Similar discussions") {
                                     ForEach(state.suggestions) { topic in Button(topic.title) { if state.save() { suspendEditingFocus(); presentation = .discussion(topic.id) } }.frame(minHeight: 44) }
@@ -105,7 +112,7 @@ struct ComposerView: View {
             } message: { Text("If your first \(state.noun) went through, this will create a duplicate.") }
             .photosPicker(isPresented: presented(.photos), selection: $photos, matching: .images)
             .sheet(isPresented: presented(.inserter), onDismiss: completeInsert) {
-                ComposerInserter(placement: insertionPlacement, blocks: insertableBlocks, samplePhoto: app.fixture != nil) { choice in
+                ComposerInserter(placement: insertionPlacement, blocks: insertableBlocks, samplePhoto: app.fixture != nil, textStyles: composerTextStyles) { choice in
                     pendingInsert = choice; presentation = nil
                 }
             }
@@ -114,6 +121,8 @@ struct ComposerView: View {
             .modifier(ToastHost(message: app.toastMessage, bottom: 12))
             .navigationDestination(item: navigationPresentation) { route in
                 switch route {
+                case .preview:
+                    ComposerPreviewView(raw: state.draft.body, attachmentData: { state.data(for: $0) }, attachmentCaption: { node in state.attachment(for: node).map(photoStatus) })
                 case .link:
                     Form {
                         TextField("Text", text: $linkLabel)
@@ -328,7 +337,7 @@ struct ComposerView: View {
         }.padding(12).frame(maxWidth: .infinity, alignment: .leading).background(Color.fomioFill, in: .rect(cornerRadius: 12))
     }
     private static func isPushed(_ presentation: EditorPresentation) -> Bool {
-        switch presentation { case .link, .photo, .block, .discussion: true; default: false }
+        switch presentation { case .link, .preview, .photo, .block, .discussion: true; default: false }
     }
     // MARK: Bar
     private var barMode: ComposerBar<ComposerMoreMenu>.Mode {
@@ -337,6 +346,9 @@ struct ComposerView: View {
         if bodyEditor.focused && bodyEditor.selection.length > 0 { return .selection(bodyEditor.textStyle) }
         if bodyEditor.focused || bodyEngaged { return .write(bodyEditor.textStyle) }
         return .entry
+    }
+    private var composerTextStyles: [ComposerTextStyle] {
+        ComposerTextStyle.offered.filter { $0 != .checklist || app.service.composerCapabilities.checklists }
     }
     private var composerBar: some View {
         ComposerBar(
@@ -356,7 +368,7 @@ struct ComposerView: View {
                 keyboard: toggleKeyboard,
                 undo: { bodyEditor.send(.undo) },
                 redo: { bodyEditor.send(.redo) }
-            )
+            ), textStyles: composerTextStyles
         ) { labelled in editorMenu(labelled: labelled) }
     }
     private func toggleKeyboard() {
@@ -438,7 +450,7 @@ struct ComposerView: View {
             .init("Link", "link", enabled: canFormatInline, group: "Format") { openLink() }
         ]
         // Turn into stays reachable here when large text drops the type chip from the bar.
-        for style in ComposerTextStyle.offered {
+        for style in composerTextStyles {
             actions.append(.init(style.title, style.symbol, enabled: bodyEditor.textStyle != nil, group: "Turn into") { bodyEditor.send(.style(style)); bodyEditor.focus() })
         }
         actions.append(.init("Add block…", "plus") { openInserter() })
@@ -450,6 +462,7 @@ struct ComposerView: View {
                 }
             })
         }
+        actions.append(.init("Preview", "eye") { suspendEditingFocus(); presentation = .preview })
         actions.append(.init(bodyEditor.markdown ? "Rich text" : "Edit in Markdown", "textformat") { bodyEditor.send(.markdown); bodyEditor.focus() })
         actions.append(.init("Undo", "arrow.uturn.backward", enabled: bodyEditor.canUndo) { bodyEditor.send(.undo) })
         actions.append(.init("Redo", "arrow.uturn.forward", enabled: bodyEditor.canRedo) { bodyEditor.send(.redo) })
@@ -650,5 +663,22 @@ struct CommunityField: View {
     }
     private func pick(_ id: CategoryID) {
         close(); onPick(id)
+    }
+}
+
+
+/// A read-only projection of the exact draft source. Opening it never rewrites the draft or history.
+private struct ComposerPreviewView: View {
+    let raw: String
+    var attachmentData: (MarkupNode) -> Data?
+    var attachmentCaption: (MarkupNode) -> String?
+    @State private var editor = EditorController()
+    var body: some View {
+        ScrollView {
+            ReadingColumn {
+                NativeComposerEditor(raw: .constant(raw), controller: editor, locked: true, preview: true, attachmentData: attachmentData, attachmentCaption: attachmentCaption, identifier: "composer-preview-body", label: "Preview", placeholder: "Nothing to preview yet")
+                    .padding(20)
+            }
+        }.background(Color.fomioBackground).navigationTitle("Preview").navigationBarTitleDisplayMode(.inline)
     }
 }

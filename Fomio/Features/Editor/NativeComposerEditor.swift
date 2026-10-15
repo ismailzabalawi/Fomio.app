@@ -25,6 +25,8 @@ struct NativeComposerEditor: UIViewRepresentable {
     var controller: EditorController
     var isTitle = false
     var locked = false
+    var preview = false
+    var allowChecklists = true
     var attachmentData: (MarkupNode) -> Data? = { _ in nil }
     var attachmentCaption: (MarkupNode) -> String? = { _ in nil }
     var onBlock: (MarkupNode) -> Void = { _ in }
@@ -45,6 +47,8 @@ struct NativeComposerEditor: UIViewRepresentable {
         view.keyboardDismissMode = .interactive
         view.returnKeyType = isTitle ? .next : .default
         view.delegate = context.coordinator
+        view.toggleTask = { [weak coordinator = context.coordinator] offset in coordinator?.toggleTask(at: offset) }
+        view.deleteAtDocumentStart = { [weak coordinator = context.coordinator] in coordinator?.removeInitialBlockPrefix() ?? false }
         // The SwiftUI formatting bar follows the keyboard safe area. A separate
         // UIKit accessory would add an extra row between the bar and the keys.
         view.accessibilityIdentifier = identifier
@@ -58,6 +62,7 @@ struct NativeComposerEditor: UIViewRepresentable {
     func updateUIView(_ view: ComposerTextView, context: Context) {
         context.coordinator.parent = self; controller.coordinator = context.coordinator
         if view.isEditable != !locked { view.isEditable = !locked }
+        view.allowsTaskEditing = !locked && !preview && allowChecklists
         if view.markedTextRange == nil, context.coordinator.lastRaw != raw || context.coordinator.lastMarkdown != controller.markdown {
             context.coordinator.render(raw, selection: context.coordinator.remapExternal(controller.selection.range, to: raw))
         } else if view.markedTextRange == nil { context.coordinator.refreshAppearance() }
@@ -116,11 +121,16 @@ struct NativeComposerEditor: UIViewRepresentable {
             controller.textStyle = parent.isTitle ? nil : DiscourseMarkupCodec.textStyle(lastRaw, at: range)
             // A range reports the marks of the styled run that holds it; a caret keeps its typing attributes.
             guard range.length > 0, !controller.markdown, !parent.isTitle else { return }
-            let run = spans.first { span in
-                let content = span.node.contentRange ?? span.node.range
-                return span.node.kind == nil && range.location >= span.node.range.location && NSMaxRange(range) <= NSMaxRange(span.node.range) && NSIntersectionRange(range, content).length > 0
+            let display = displayRange(range)
+            let selected = spans.flatMap { span -> [VisualMark] in
+                guard span.node.kind == nil else { return [] }
+                let overlap = NSIntersectionRange(display, span.display)
+                guard overlap.length > 0 else { return [] }
+                let all = marks(for: span.node)
+                return Array(all[(overlap.location - span.display.location)..<(NSMaxRange(overlap) - span.display.location)])
             }
-            controller.boldTyping = run?.node.bold ?? false; controller.italicTyping = run?.node.italic ?? false
+            controller.boldTyping = !selected.isEmpty && selected.allSatisfy(\.bold)
+            controller.italicTyping = !selected.isEmpty && selected.allSatisfy(\.italic)
         }
         func render(_ raw: String, selection: NSRange) {
             guard let view, view.markedTextRange == nil else { return }
@@ -128,51 +138,78 @@ struct NativeComposerEditor: UIViewRepresentable {
             let suspend = history.isUndoRegistrationEnabled
             if suspend { history.disableUndoRegistration() }
             defer { if suspend { history.enableUndoRegistration() }; rendering = false }
+            var retainedAttachments: [ComposerTextAttachment] = []
+            view.textStorage.enumerateAttribute(.attachment, in: NSRange(location: 0, length: view.textStorage.length)) { value, _, _ in
+                if let attachment = value as? ComposerTextAttachment { retainedAttachments.append(attachment) }
+            }
             lastRaw = raw; lastMarkdown = controller.markdown; spans = []
             let result = NSMutableAttributedString(string: "")
             let paragraph = NSMutableParagraphStyle(); paragraph.baseWritingDirection = .natural; paragraph.alignment = .natural; paragraph.paragraphSpacing = 6
             let base: [NSAttributedString.Key: Any] = [.font: font(), .foregroundColor: UIColor.label, .paragraphStyle: paragraph]
-            if controller.markdown || parent.isTitle { result.append(NSAttributedString(string: raw, attributes: base)) }
+            if controller.markdown || parent.isTitle {
+                var attributes = base
+                if controller.markdown { attributes[.font] = UIFont.monospacedSystemFont(ofSize: font().pointSize, weight: .regular) }
+                result.append(NSAttributedString(string: raw, attributes: attributes))
+            }
             else {
                 for node in DiscourseMarkupCodec.parse(raw) {
                     let start = result.length
                     if node.kind != nil {
-                        let attachment = ComposerTextAttachment(node: node, data: parent.attachmentData(node), caption: parent.attachmentCaption(node), width: max(180, view.bounds.width))
+                        let attachment: ComposerTextAttachment
+                        if let index = retainedAttachments.firstIndex(where: { $0.node.raw == node.raw && $0.preview == parent.preview }) {
+                            attachment = retainedAttachments.remove(at: index); attachment.node = node
+                            attachment.caption = parent.attachmentCaption(node)
+                        } else {
+                            attachment = ComposerTextAttachment(node: node, data: parent.attachmentData(node), caption: parent.attachmentCaption(node), width: max(180, view.bounds.width), preview: parent.preview)
+                        }
                         attachment.edit = { [weak self, weak attachment] in if let attachment { self?.parent.onBlock(attachment.node) } }
                         attachment.remove = { [weak self, weak attachment] in if let attachment { self?.parent.onRemove(attachment.node) } }
                         result.append(NSAttributedString(attachment: attachment))
                     } else {
                         var attributes = base; attributes[.font] = font(bold: node.bold, italic: node.italic)
                         if let link = node.link, let url = URL(string: link), ["http", "https"].contains(url.scheme ?? "") { attributes[.link] = url }
+                        if node.inlineCode { attributes[.font] = UIFont.monospacedSystemFont(ofSize: font().pointSize, weight: .regular); attributes[.backgroundColor] = UIColor.secondarySystemBackground }
+                        if node.strike { attributes[.strikethroughStyle] = NSUnderlineStyle.single.rawValue }
                         result.append(NSAttributedString(string: node.text, attributes: attributes))
+                        for mark in node.inlineMarks {
+                            let range = NSRange(location: start + mark.range.location, length: mark.range.length)
+                            result.addAttribute(.font, value: mark.code ? UIFont.monospacedSystemFont(ofSize: font().pointSize, weight: .regular) : font(bold: mark.bold, italic: mark.italic), range: range)
+                            if let link = mark.link, let url = URL(string: link), ["http", "https"].contains(url.scheme ?? "") { result.addAttribute(.link, value: url, range: range) }
+                            if mark.strike { result.addAttribute(.strikethroughStyle, value: NSUnderlineStyle.single.rawValue, range: range) }
+                        }
                     }
                     spans.append(Span(display: NSRange(location: start, length: result.length - start), node: node))
                 }
             }
             if !controller.markdown && !parent.isTitle {
+                view.blockDecorations = []
+                let source = raw as NSString
+                var decorated = Set<Int>()
                 for span in spans where span.node.kind == nil {
-                    guard case let .heading(level) = DiscourseMarkupCodec.style(ofLine: span.node.raw).style else { continue }
-                    let marker = DiscourseMarkupCodec.style(ofLine: span.node.raw).prefix
-                    result.addAttribute(.font, value: headingFont(level), range: span.display)
-                    // The Markdown marker stays in the text, quieter, so heading offsets match raw exactly.
-                    result.addAttribute(.foregroundColor, value: UIColor.tertiaryLabel, range: NSRange(location: span.display.location, length: min(marker, span.display.length)))
-                }
-                let displayed = result.string as NSString
-                var start = 0
-                while start < displayed.length {
-                    let range = displayed.paragraphRange(for: NSRange(location: start, length: 0))
-                    let text = displayed.substring(with: range)
-                    if text.hasPrefix("* ") || text.hasPrefix("- ") {
-                        result.replaceCharacters(in: NSRange(location: range.location, length: 1), with: "•")
-                        let style = paragraph.mutableCopy() as! NSMutableParagraphStyle; style.headIndent = 20
-                        result.addAttribute(.paragraphStyle, value: style, range: range)
-                    } else if text.hasPrefix("> ") {
-                        let style = paragraph.mutableCopy() as! NSMutableParagraphStyle; style.headIndent = 16; style.firstLineHeadIndent = 16
-                        result.addAttributes([.paragraphStyle: style, .foregroundColor: UIColor.secondaryLabel], range: range)
+                    let line = source.paragraphRange(for: NSRange(location: span.node.range.location, length: 0))
+                    let block = DiscourseMarkupCodec.style(ofLine: source.substring(with: line)).style
+                    if case let .heading(level) = block {
+                        var heading = headingFont(level)
+                        if span.node.italic, let descriptor = heading.fontDescriptor.withSymbolicTraits([.traitBold, .traitItalic]) { heading = UIFont(descriptor: descriptor, size: 0) }
+                        result.addAttribute(.font, value: heading, range: span.display)
+                        for mark in span.node.inlineMarks where mark.italic {
+                            if let descriptor = heading.fontDescriptor.withSymbolicTraits([.traitBold, .traitItalic]) {
+                                result.addAttribute(.font, value: UIFont(descriptor: descriptor, size: 0), range: NSRange(location: span.display.location + mark.range.location, length: mark.range.length))
+                            }
+                        }
                     }
-                    start = NSMaxRange(range)
+                    guard span.display.length > 0, block == .quote || block.isList else { continue }
+                    let style = paragraph.mutableCopy() as! NSMutableParagraphStyle
+                    style.headIndent = block == .quote ? 18 : block == .checklist ? 44 : 28; style.firstLineHeadIndent = style.headIndent
+                    result.addAttribute(.paragraphStyle, value: style, range: span.display)
+                    if block == .quote { result.addAttribute(.foregroundColor, value: UIColor.secondaryLabel, range: span.display) }
+                    if decorated.insert(line.location).inserted {
+                        let prefix = source.substring(with: line).prefix(DiscourseMarkupCodec.style(ofLine: source.substring(with: line)).prefix)
+                        let marker = block == .checklist ? (prefix.contains("[x]") || prefix.contains("[X]") ? "☑" : "☐") : block == .numberedList ? String(prefix.prefix { $0.isNumber }) + "." : "•"
+                        view.blockDecorations.append(.init(offset: span.display.location, marker: marker, quote: block == .quote))
+                    }
                 }
-            }
+            } else { view.blockDecorations = [] }
             view.attributedText = result
             var typing = base; typing[.font] = font(bold: controller.boldTyping, italic: controller.italicTyping)
             view.typingAttributes = typing
@@ -213,7 +250,10 @@ struct NativeComposerEditor: UIViewRepresentable {
         }
         func sourceOffset(_ offset: Int, end: Bool = false) -> Int {
             if controller.markdown || parent.isTitle { return max(0, min(offset, (lastRaw as NSString).length)) }
-            for span in spans where offset >= span.display.location && offset <= NSMaxRange(span.display) {
+            if !end, let prefix = spans.last(where: { $0.display.length == 0 && $0.display.location == offset }) {
+                return NSMaxRange(prefix.node.range)
+            }
+            for span in spans where span.display.length > 0 && offset >= span.display.location && offset <= NSMaxRange(span.display) {
                 if span.node.kind != nil { return end || offset == NSMaxRange(span.display) ? NSMaxRange(span.node.range) : span.node.range.location }
                 let content = span.node.contentRange ?? span.node.range
                 if offset == span.display.location { return end ? content.location : span.node.range.location }
@@ -226,13 +266,14 @@ struct NativeComposerEditor: UIViewRepresentable {
         func sourceRange(_ range: NSRange) -> NSRange {
             let start = sourceOffset(range.location)
             if range.length == 0 { return NSRange(location: start, length: 0) }
-            if let span = spans.first(where: { $0.node.kind == nil && range.location >= $0.display.location && NSMaxRange(range) <= NSMaxRange($0.display) }), let content = span.node.contentRange {
+            if let span = spans.first(where: { $0.display.length > 0 && $0.node.kind == nil && range.location >= $0.display.location && NSMaxRange(range) <= NSMaxRange($0.display) }), let content = span.node.contentRange {
                 if range == span.display { return span.node.range }
                 func boundary(_ offset: Int) -> Int {
                     let local = max(0, min(offset - span.display.location, span.display.length))
                     return span.node.sourceOffsets?[local] ?? (content.location + local)
                 }
-                let lower = boundary(range.location), upper = boundary(NSMaxRange(range))
+                let lower = boundary(range.location)
+                let upper = span.node.sourceEndOffsets?[max(0, min(NSMaxRange(range) - span.display.location - 1, span.display.length - 1))] ?? boundary(NSMaxRange(range))
                 return NSRange(location: lower, length: upper - lower)
             }
             return NSRange(location: start, length: max(0, sourceOffset(NSMaxRange(range), end: true) - start))
@@ -242,6 +283,7 @@ struct NativeComposerEditor: UIViewRepresentable {
             for span in spans where offset >= span.node.range.location && offset <= NSMaxRange(span.node.range) {
                 if span.node.kind != nil { return offset == NSMaxRange(span.node.range) ? NSMaxRange(span.display) : span.display.location }
                 let content = span.node.contentRange ?? span.node.range
+                if let ends = span.node.sourceEndOffsets { return span.display.location + ends.prefix { $0 <= offset }.count }
                 if let offsets = span.node.sourceOffsets { return span.display.location + (offsets.lastIndex(where: { $0 <= offset }) ?? 0) }
                 return span.display.location + max(0, min(offset - content.location, span.display.length))
             }
@@ -284,38 +326,13 @@ struct NativeComposerEditor: UIViewRepresentable {
                     if case .bold = command { controller.boldTyping.toggle() } else { controller.italicTyping.toggle() }
                     view.typingAttributes[.font] = font(bold: controller.boldTyping, italic: controller.italicTyping)
                 } else {
-                    if let span = spans.first(where: {
-                        guard $0.node.link == nil, $0.node.bold || $0.node.italic, let content = $0.node.contentRange else { return false }
-                        return range == $0.node.range || (range.location >= content.location && NSMaxRange(range) <= NSMaxRange(content))
-                    }), let content = span.node.contentRange {
-                        let selection = range == span.node.range ? content : range
-                        let source = lastRaw as NSString
-                        let before = source.substring(with: NSRange(location: content.location, length: selection.location - content.location))
-                        let text = source.substring(with: selection)
-                        let after = source.substring(with: NSRange(location: NSMaxRange(selection), length: NSMaxRange(content) - NSMaxRange(selection)))
-                        func marked(_ text: String, bold: Bool, italic: Bool) -> String {
-                            guard !text.isEmpty else { return "" }
-                            let marker = bold && italic ? "***" : bold ? "**" : italic ? "*" : ""
-                            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-                            guard !trimmed.isEmpty, !marker.isEmpty else { return text }
-                            let leading = String(text.prefix { $0.isWhitespace })
-                            let trailing = String(text.reversed().prefix { $0.isWhitespace }.reversed())
-                            return leading + marker + trimmed + marker + trailing
-                        }
-                        var bold = span.node.bold, italic = span.node.italic
-                        if case .bold = command { bold.toggle() } else { italic.toggle() }
-                        let prefix = marked(before, bold: span.node.bold, italic: span.node.italic)
-                        let selected = marked(text, bold: bold, italic: italic)
-                        let suffix = marked(after, bold: span.node.bold, italic: span.node.italic)
-                        let replacement = prefix + selected + suffix
-                        commit(DiscourseMarkupCodec.replace(lastRaw, range: span.node.range, with: replacement), selection: NSRange(location: span.node.range.location + (prefix as NSString).length, length: (selected as NSString).length), action: "Format")
+                    if controller.markdown {
+                        let marker = { if case .bold = command { return "**" }; return "*" }()
+                        let text = (lastRaw as NSString).substring(with: range)
+                        commit(DiscourseMarkupCodec.replace(lastRaw, range: range, with: marker + text + marker), selection: NSRange(location: range.location, length: range.length + marker.count * 2), action: "Format")
                         break
                     }
-                    let marker = { if case .bold = command { return "**" }; return "*" }()
-                    let selected = (lastRaw as NSString).substring(with: clamp(range, in: lastRaw))
-                    let stripped = selected.hasPrefix(marker) && selected.hasSuffix(marker) && selected.count > marker.count * 2
-                    let replacement = stripped ? String(selected.dropFirst(marker.count).dropLast(marker.count)) : marker + selected + marker
-                    commit(DiscourseMarkupCodec.replace(lastRaw, range: range, with: replacement), selection: NSRange(location: range.location, length: (replacement as NSString).length), action: "Format")
+                    formatSelection(bold: { if case .bold = command { return true }; return false }())
                 }
             case let .style(style):
                 guard !parent.isTitle, let result = DiscourseMarkupCodec.restyle(lastRaw, range: clamp(range, in: lastRaw), to: style) else { break }
@@ -332,6 +349,65 @@ struct NativeComposerEditor: UIViewRepresentable {
             }
             controller.canUndo = history.canUndo; controller.canRedo = history.canRedo
         }
+        private struct VisualMark: Equatable {
+            var bold: Bool; var italic: Bool; var code: Bool; var strike: Bool; var link: String?
+        }
+        private func marks(for node: MarkupNode) -> [VisualMark] {
+            var result = Array(repeating: VisualMark(bold: node.bold, italic: node.italic, code: node.inlineCode, strike: node.strike, link: node.link), count: (node.text as NSString).length)
+            for mark in node.inlineMarks {
+                for index in mark.range.location..<min(result.count, NSMaxRange(mark.range)) {
+                    result[index] = VisualMark(bold: mark.bold, italic: mark.italic, code: mark.code, strike: mark.strike, link: mark.link ?? node.link)
+                }
+            }
+            return result
+        }
+        /// Serialize only edited runs. Block prefixes, opaque blocks and unrelated
+        /// source remain untouched; selection mapping uses the visible UTF-16 range.
+        private func formatSelection(bold: Bool) {
+            guard let view else { return }
+            let selection = view.selectedRange
+            let runs = spans.filter { $0.node.kind == nil && NSIntersectionRange($0.display, selection).length > 0 }
+            let selectedMarks = runs.flatMap { span -> [VisualMark] in
+                let intersection = NSIntersectionRange(span.display, selection)
+                let local = NSRange(location: intersection.location - span.display.location, length: intersection.length)
+                return Array(marks(for: span.node)[local.location..<NSMaxRange(local)])
+            }
+            let enabled = !selectedMarks.allSatisfy { bold ? $0.bold : $0.italic }
+            var raw = lastRaw
+            for span in runs.reversed() {
+                let intersection = NSIntersectionRange(span.display, selection)
+                var styles = marks(for: span.node)
+                for index in (intersection.location - span.display.location)..<(NSMaxRange(intersection) - span.display.location) {
+                    if bold { styles[index].bold = enabled } else { styles[index].italic = enabled }
+                }
+                let replacement = serialize(span.node.text, styles: styles)
+                raw = DiscourseMarkupCodec.replace(raw, range: span.node.range, with: replacement)
+            }
+            commit(raw, selection: controller.selection.range, action: "Format")
+            let restored = sourceRange(selection)
+            render(raw, selection: restored)
+        }
+        private func serialize(_ value: String, styles: [VisualMark]) -> String {
+            let text = value as NSString
+            var replacement = "", cursor = 0
+                while cursor < styles.count {
+                    var end = cursor + 1
+                    while end < styles.count, styles[end] == styles[cursor] { end += 1 }
+                    let value = text.substring(with: NSRange(location: cursor, length: end - cursor))
+                    let leading = String(value.prefix { $0.isWhitespace })
+                    let trailing = String(value.dropFirst(leading.count).reversed().prefix { $0.isWhitespace }.reversed())
+                    let body = String(value.dropFirst(leading.count).dropLast(trailing.count))
+                    let style = styles[cursor]
+                    var content = DiscourseMarkupCodec.escapeInline(body)
+                    if style.code { content = "`" + body + "`" }
+                    if let link = style.link { content = DiscourseMarkupCodec.link(label: body, url: link) }
+                    if style.strike, !body.isEmpty { content = "~~" + content + "~~" }
+                    let marker = style.bold && style.italic ? "***" : style.bold ? "**" : style.italic ? "*" : ""
+                    replacement += leading + (body.isEmpty ? "" : marker + content + marker) + trailing
+                    cursor = end
+                }
+            return replacement
+        }
         func textViewDidBeginEditing(_ textView: UITextView) { controller.focused = true; parent.onFocus() }
         func textViewDidEndEditing(_ textView: UITextView) { controller.focused = false }
         func textViewDidChangeSelection(_ textView: UITextView) {
@@ -341,34 +417,76 @@ struct NativeComposerEditor: UIViewRepresentable {
             if controller.selection.length > 0 { return }
             if case .heading = controller.textStyle {
                 // A heading's weight comes from its level, not from bold markup.
-                controller.boldTyping = false; controller.italicTyping = false
+                let run = spans.first { $0.display.length > 0 && $0.node.contentRange.map { NSLocationInRange(controller.selection.location, $0) } == true }
+                controller.boldTyping = run?.node.bold ?? false; controller.italicTyping = run?.node.italic ?? false
             } else if let font = textView.typingAttributes[.font] as? UIFont {
                 controller.boldTyping = font.fontDescriptor.symbolicTraits.contains(.traitBold)
                 controller.italicTyping = font.fontDescriptor.symbolicTraits.contains(.traitItalic)
+            }
+        }
+        private func insertVisualNewline(_ range: NSRange, prefix: String) {
+            let source = sourceRange(range), replacement = "\n" + prefix
+            if range.length == 0, let span = spans.first(where: { $0.node.contentRange != nil && $0.display.length > 0 && range.location >= $0.display.location && range.location <= NSMaxRange($0.display) }) {
+                let local = range.location - span.display.location, styles = marks(for: span.node), text = span.node.text as NSString
+                let before = serialize(text.substring(to: local), styles: Array(styles.prefix(local)))
+                let after = serialize(text.substring(from: local), styles: Array(styles.dropFirst(local)))
+                let value = before + replacement + after
+                commit(DiscourseMarkupCodec.replace(lastRaw, range: span.node.range, with: value), selection: NSRange(location: span.node.range.location + (before as NSString).length + (replacement as NSString).length, length: 0))
+            } else {
+                commit(DiscourseMarkupCodec.replace(lastRaw, range: source, with: replacement), selection: NSRange(location: source.location + (replacement as NSString).length, length: 0))
             }
         }
         func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
             guard !parent.locked else { return false }
             if textView.markedTextRange != nil { suspendNativeUndo(); return true }
             if parent.isTitle && text == "\n" { parent.onNext(); return false }
-            if text == "\n" && !controller.markdown && !parent.isTitle {
-                let range = sourceRange(range)
-                let paragraph = (lastRaw as NSString).paragraphRange(for: range)
-                let line = (lastRaw as NSString).substring(with: paragraph).trimmingCharacters(in: .newlines)
-                if line.hasPrefix("* ") || line.hasPrefix("- ") {
-                    if line.count == 2 {
-                        let marker = NSRange(location: paragraph.location, length: 2)
-                        commit(DiscourseMarkupCodec.replace(lastRaw, range: marker, with: ""), selection: NSRange(location: paragraph.location, length: 0)); return false
-                    }
-                    let replacement = "\n" + String(line.prefix(2))
-                    commit(DiscourseMarkupCodec.replace(lastRaw, range: range, with: replacement), selection: NSRange(location: range.location + (replacement as NSString).length, length: 0)); return false
+            if !controller.markdown && !parent.isTitle {
+                let caret = sourceOffset(textView.selectedRange.location)
+                let lineRange = (lastRaw as NSString).paragraphRange(for: NSRange(location: caret, length: 0))
+                let line = (lastRaw as NSString).substring(with: lineRange).trimmingCharacters(in: .newlines)
+                let block = DiscourseMarkupCodec.style(ofLine: line)
+                if text.isEmpty, range.length == 1, textView.selectedRange.length == 0,
+                   block.prefix > 0, caret == lineRange.location + block.prefix {
+                    let prefix = NSRange(location: lineRange.location, length: block.prefix)
+                    commit(DiscourseMarkupCodec.replace(lastRaw, range: prefix, with: ""), selection: NSRange(location: prefix.location, length: 0)); return false
                 }
+                if text == "\n", block.style.isList || block.style == .quote {
+                    if (line as NSString).length == block.prefix {
+                        let prefix = NSRange(location: lineRange.location, length: block.prefix)
+                        commit(DiscourseMarkupCodec.replace(lastRaw, range: prefix, with: ""), selection: NSRange(location: prefix.location, length: 0)); return false
+                    }
+                    var prefix = (line as NSString).substring(to: block.prefix)
+                    if let number = Int(String(prefix.prefix { $0.isNumber })) { prefix = "\(number + 1). " }
+                    prefix = prefix.replacingOccurrences(of: "[x]", with: "[ ]").replacingOccurrences(of: "[X]", with: "[ ]")
+                    insertVisualNewline(range, prefix: prefix); return false
+                }
+                if text == "\n" { insertVisualNewline(range, prefix: ""); return false }
             }
             let source = sourceRange(range)
             let replacement = parent.isTitle ? text.components(separatedBy: .newlines).joined(separator: " ") : text
             if replacement == text { suspendNativeUndo(); return true }
             commit(DiscourseMarkupCodec.replace(lastRaw, range: source, with: replacement), selection: NSRange(location: source.location + (replacement as NSString).length, length: 0))
             return false
+        }
+        func toggleTask(at displayOffset: Int) {
+            guard !parent.locked, !parent.preview, parent.allowChecklists, !controller.markdown, view?.markedTextRange == nil else { return }
+            let source = lastRaw as NSString
+            let line = source.paragraphRange(for: NSRange(location: sourceOffset(displayOffset), length: 0))
+            let value = source.substring(with: line) as NSString
+            guard DiscourseMarkupCodec.style(ofLine: value as String).style == .checklist else { return }
+            let bracket = value.range(of: "[")
+            guard bracket.location != NSNotFound else { return }
+            let target = NSRange(location: line.location + bracket.location + 1, length: 1)
+            let replacement = source.substring(with: target) == " " ? "x" : " "
+            commit(DiscourseMarkupCodec.replace(lastRaw, range: target, with: replacement), selection: controller.selection.range, action: "Edit task")
+        }
+        func removeInitialBlockPrefix() -> Bool {
+            guard let view, !parent.locked, !parent.isTitle, !controller.markdown, view.markedTextRange == nil,
+                  view.selectedRange.location == 0, view.selectedRange.length == 0 else { return false }
+            let prefix = DiscourseMarkupCodec.style(ofLine: lastRaw).prefix
+            guard prefix > 0 else { return false }
+            commit(DiscourseMarkupCodec.replace(lastRaw, range: NSRange(location: 0, length: prefix), with: ""), selection: NSRange(location: 0, length: 0))
+            return true
         }
         func suspendNativeUndo() {
             if !nativeUndoSuspended { history.disableUndoRegistration(); nativeUndoSuspended = true }
@@ -414,44 +532,32 @@ struct NativeComposerEditor: UIViewRepresentable {
             let previous = lastRaw, previousSelection = controller.selection.range
             let raw = DiscourseMarkupCodec.replace(lastRaw, range: source, with: replacement)
             let caret = NSRange(location: source.location + (replacement as NSString).length, length: 0)
-            let restyled = !controller.markdown && !parent.isTitle && DiscourseMarkupCodec.textStyle(previous, at: NSRange(location: source.location, length: 0)) != DiscourseMarkupCodec.textStyle(raw, at: caret)
             registerUndo { target in target.commit(previous, selection: previousSelection) }
-            lastRaw = raw; lastDisplay = textView.text ?? ""
-            if !controller.markdown && !parent.isTitle {
-                var position = 0
-                spans = DiscourseMarkupCodec.parse(raw).map { node in
-                    let length = node.kind == nil ? (node.text as NSString).length : 1
-                    defer { position += length }
-                    return Span(display: NSRange(location: position, length: length), node: node)
-                }
-                textView.textStorage.enumerateAttribute(.attachment, in: NSRange(location: 0, length: textView.textStorage.length)) { value, range, _ in
-                    if let attachment = value as? ComposerTextAttachment, let span = spans.first(where: { $0.display.location == range.location && $0.node.kind != nil }) { attachment.node = span.node }
-                }
-            }
-            let projected = controller.markdown || parent.isTitle ? raw : DiscourseMarkupCodec.parse(raw).map { $0.kind == nil ? $0.text : "\u{fffc}" }.joined()
-            if restyled || (projected.replacingOccurrences(of: "(?m)^[-*] ", with: "• ", options: .regularExpression) != lastDisplay && projected != lastDisplay) {
-                parent.raw = raw
-                render(raw, selection: caret)
-                return
-            }
             parent.raw = raw
-            controller.selection = EditorSelection(sourceRange(textView.selectedRange))
-            reportStyle()
-            controller.canUndo = history.canUndo; controller.canRedo = history.canRedo
-            (textView as? ComposerTextView)?.placeholder = raw.isEmpty ? String(localized: String.LocalizationValue(parent.placeholder)) : nil
-            textView.invalidateIntrinsicContentSize()
+            render(raw, selection: caret)
         }
     }
 }
 
 final class ComposerTextView: UITextView {
     var documentUndoManager: UndoManager?
+    var deleteAtDocumentStart: (() -> Bool)?
+    override func deleteBackward() {
+        if selectedRange.location == 0, selectedRange.length == 0, deleteAtDocumentStart?() == true { return }
+        super.deleteBackward()
+    }
     private var arrangingAttachments = false
+    var toggleTask: ((Int) -> Void)?
+    var allowsTaskEditing = true
+    private final class TaskButton: UIButton { var offset = 0 }
+    struct BlockDecoration { var offset: Int; var marker: String; var quote: Bool }
+    var blockDecorations: [BlockDecoration] = [] { didSet { setNeedsDisplay(); setNeedsLayout() } }
     override var undoManager: UndoManager? { documentUndoManager ?? super.undoManager }
     override func layoutSubviews() {
         guard !arrangingAttachments else { return }
         arrangingAttachments = true; defer { arrangingAttachments = false }
         super.layoutSubviews()
+        arrangeTasks()
         var hasAttachments = false
         textStorage.enumerateAttribute(.attachment, in: NSRange(location: 0, length: textStorage.length)) { value, _, stop in
             if value is ComposerTextAttachment { hasAttachments = true; stop.pointee = true }
@@ -482,9 +588,43 @@ final class ComposerTextView: UITextView {
         }
         for card in subviews.compactMap({ $0 as? ComposerAttachmentCard }) where !visible.contains(ObjectIdentifier(card)) { card.removeFromSuperview() }
     }
+    private func arrangeTasks() {
+        let tasks = blockDecorations.filter { $0.marker == "☐" || $0.marker == "☑" }
+        var buttons = subviews.compactMap { $0 as? TaskButton }
+        while buttons.count > tasks.count { buttons.removeLast().removeFromSuperview() }
+        while buttons.count < tasks.count {
+            let button = TaskButton(type: .system)
+            button.addAction(UIAction { [weak self, weak button] _ in if let button { self?.toggleTask?(button.offset) } }, for: .touchUpInside)
+            addSubview(button); buttons.append(button)
+        }
+        for (button, task) in zip(buttons, tasks) {
+            guard let position = position(from: beginningOfDocument, offset: task.offset) else { continue }
+            let caret = caretRect(for: position)
+            let rtl = baseWritingDirection(for: position, in: .forward) == .rightToLeft
+            button.frame = CGRect(x: rtl ? bounds.width - 44 : 0, y: caret.midY - 22, width: 44, height: 44)
+            button.offset = task.offset; button.isEnabled = allowsTaskEditing
+            button.setImage(UIImage(systemName: task.marker == "☑" ? "checkmark.square.fill" : "square"), for: .normal)
+            button.accessibilityLabel = String(localized: "Task")
+            button.accessibilityValue = String(localized: task.marker == "☑" ? "Checked" : "Unchecked")
+            button.accessibilityIdentifier = "composer-task-\(task.offset)"
+        }
+    }
     var placeholder: String? { didSet { setNeedsDisplay() } }
     override func draw(_ rect: CGRect) {
         super.draw(rect)
+        for decoration in blockDecorations {
+            if decoration.marker == "☐" || decoration.marker == "☑" { continue }
+            guard let position = position(from: beginningOfDocument, offset: decoration.offset) else { continue }
+            let caret = caretRect(for: position)
+            let rtl = baseWritingDirection(for: position, in: .forward) == .rightToLeft
+            let x = rtl ? bounds.width - 18 : 0.0
+            if decoration.quote {
+                UIColor.tertiaryLabel.setFill()
+                UIBezierPath(roundedRect: CGRect(x: x + 2, y: caret.minY, width: 3, height: caret.height), cornerRadius: 1.5).fill()
+            } else {
+                (decoration.marker as NSString).draw(in: CGRect(x: rtl ? bounds.width - 26 : 0, y: caret.minY, width: 26, height: caret.height + 4), withAttributes: [.font: UIFont.preferredFont(forTextStyle: .body), .foregroundColor: UIColor.secondaryLabel])
+            }
+        }
         guard let placeholder, text.isEmpty else { return }
         (placeholder as NSString).draw(in: CGRect(x: 0, y: 8, width: bounds.width, height: 80), withAttributes: [.font: UIFont.preferredFont(forTextStyle: .body), .foregroundColor: UIColor.tertiaryLabel])
     }
@@ -492,12 +632,14 @@ final class ComposerTextView: UITextView {
 
 final class ComposerTextAttachment: NSTextAttachment, @unchecked Sendable {
     var node: MarkupNode
+    var preview = false
     var photo: UIImage?
-    var caption: String? { didSet { let label = card?.caption; let value = caption ?? node.text; let concealed = node.kind == .spoiler; MainActor.assumeIsolated { label?.text = concealed ? String(localized: "Concealed text") : value } } }
+    var caption: String? { didSet { let label = card?.caption; let value = caption ?? ComposerAttachmentCard.summary(node); let concealed = node.kind == .spoiler; MainActor.assumeIsolated { label?.text = concealed ? String(localized: "Concealed text") : value } } }
     var edit: (() -> Void)?
     var remove: (() -> Void)?
     weak var card: ComposerAttachmentCard?
-    init(node: MarkupNode, data: Data?, caption: String?, width: CGFloat) {
+    init(node: MarkupNode, data: Data?, caption: String?, width: CGFloat, preview: Bool = false) {
+        self.preview = preview
         self.node = node; photo = data.flatMap(Self.previewImage); self.caption = caption
         super.init(data: Data(node.raw.utf8), ofType: "app.fomio.composer-block")
         contents = Data(node.raw.utf8)
@@ -521,10 +663,10 @@ final class ComposerAttachmentCard: UIView {
         backgroundColor = .secondarySystemBackground; layer.cornerRadius = 12
         let title = UILabel(); title.font = .preferredFont(forTextStyle: .headline); title.adjustsFontForContentSizeCategory = true
         title.text = String(localized: String.LocalizationValue(attachment.node.kind?.title ?? "Block"))
-        caption.font = .preferredFont(forTextStyle: .subheadline); caption.adjustsFontForContentSizeCategory = true; caption.numberOfLines = 2
+        caption.font = .preferredFont(forTextStyle: .subheadline); caption.adjustsFontForContentSizeCategory = true; caption.numberOfLines = attachment.preview ? 0 : 2
         if attachment.node.kind == .code { caption.font = .monospacedSystemFont(ofSize: UIFont.preferredFont(forTextStyle: .subheadline).pointSize, weight: .regular) }
         title.setContentHuggingPriority(.required, for: .vertical); caption.setContentHuggingPriority(.required, for: .vertical)
-        caption.text = attachment.caption ?? (attachment.node.kind == .spoiler ? String(localized: "Concealed text") : attachment.node.text)
+        caption.text = attachment.caption ?? Self.summary(attachment.node)
         let edit = UIButton(type: .system); edit.setTitle(String(localized: attachment.node.kind == .opaque ? "Edit in Markdown" : "Edit"), for: .normal)
         edit.accessibilityIdentifier = "composer-block-edit-" + (attachment.node.kind?.rawValue ?? "unknown")
         edit.addAction(UIAction { _ in attachment.edit?() }, for: .touchUpInside)
@@ -555,7 +697,7 @@ final class ComposerAttachmentCard: UIView {
             }, for: .touchUpInside)
             content.append(collapse)
         }
-        content.append(UIView()); content.append(actions)
+        content.append(UIView()); if !attachment.preview { content.append(actions) }
         let stack = UIStackView(arrangedSubviews: content); stack.axis = .vertical; stack.spacing = 8; stack.translatesAutoresizingMaskIntoConstraints = false
         addSubview(stack)
         NSLayoutConstraint.activate([stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12), stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12), stack.topAnchor.constraint(equalTo: topAnchor, constant: 12), stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12)])
@@ -564,7 +706,23 @@ final class ComposerAttachmentCard: UIView {
             photo.isAccessibilityElement = true; photo.accessibilityLabel = attachment.node.text
             stack.insertArrangedSubview(photo, at: 1); attachment.bounds.size.height = UIFontMetrics.default.scaledValue(for: 310)
         }
+        if attachment.preview {
+            let size = systemLayoutSizeFitting(CGSize(width: attachment.bounds.width, height: UIView.layoutFittingCompressedSize.height), withHorizontalFittingPriority: .required, verticalFittingPriority: .fittingSizeLevel)
+            attachment.bounds.size.height = max(100, size.height); frame.size.height = attachment.bounds.height
+        }
         accessibilityElements = stack.arrangedSubviews
+    }
+    nonisolated static func summary(_ node: MarkupNode) -> String {
+        if node.kind == .spoiler { return String(localized: "Concealed text") }
+        if node.kind == .opaque { return String(localized: "Preserved block") }
+        guard let value = ComposerBlockValue.editing(node) else { return node.kind == .photo || node.kind == .code || node.kind == .quote ? node.text : String(localized: String.LocalizationValue(node.kind?.title ?? "Block")) }
+        switch value.kind {
+        case .table: return value.cells.map { $0.joined(separator: "    ") }.joined(separator: "\n")
+        case .poll: return value.heading + "\n" + value.options.map { "○ " + $0 }.joined(separator: "\n")
+        case .date: return value.date.formatted(date: .abbreviated, time: .shortened)
+        case .details: return value.heading + "\n" + value.body
+        default: return value.body
+        }
     }
     required init?(coder: NSCoder) { nil }
 }

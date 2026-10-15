@@ -188,3 +188,18 @@
 "Feed appearance" = "مظهر الموجز";
 "Compact" = "مضغوط";
 "Cards" = "بطاقات";
+
+"Preserved block" = "كتلة محفوظة";
+"Nothing to preview yet" = "لا يوجد محتوى لمعاينته بعد";
+
+"Preview" = "معاينة";
+"Markdown" = "Markdown";
+
+"Numbered list" = "قائمة مرقمة";
+"Checklist" = "قائمة مهام";
+"Put steps in order" = "رتّب الخطوات";
+"Keep track of tasks" = "تابع المهام";
+"Task" = "مهمة";
+"Checked" = "مكتملة";
+"Unchecked" = "غير مكتملة";
+"Edit task" = "تعديل المهمة";
