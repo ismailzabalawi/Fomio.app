@@ -60,7 +60,7 @@ struct SiteTheme: Equatable, Sendable {
     var dark: [String: String] = [:]
 }
 
-struct LatestPreview: Codable, Hashable, Sendable { var topicID: TopicID; var title: String; var categoryID: CategoryID; var activity: String }
+struct LatestPreview: Codable, Hashable, Sendable { var topicID: TopicID; var title: String; var categoryID: CategoryID; var activity: AgeValue }
 struct DiscussionSummary: Identifiable, Codable, Hashable, Sendable {
     var id: TopicID
     var title: String
@@ -69,7 +69,7 @@ struct DiscussionSummary: Identifiable, Codable, Hashable, Sendable {
     var excerpt: String
     var author: String
     var replyCount: Int
-    var activity: String
+    var activity: AgeValue
     var image: String?
     var targetPostNumber: PostNumber?
     /// Author of the matched post when a search hit is inside the discussion.
@@ -110,7 +110,7 @@ struct Post: Identifiable, Codable, Hashable, Sendable {
     var deleted = false
     var ignored = false
     var childCount = 0
-    var age = ""
+    var age: AgeValue = ""
     var quote: QuoteExcerpt? = nil
     var authorName: String? = nil
 }
@@ -141,9 +141,13 @@ struct Notice: Identifiable, Sendable {
     var title: String
     var topicID: TopicID?
     var number: PostNumber?
-    var age = ""
+    var age: AgeValue = ""
     var read: Bool
-    var text: String { actor + (kind == .reply ? " replied to you" : " mentioned you") }
+    /// `actor` is empty when Discourse omits the display name.
+    var text: String {
+        let name = actor.isEmpty ? L("notifications.someone") : actor
+        return kind == .reply ? L("notifications.replied", ["name": name]) : L("notifications.mentioned", ["name": name])
+    }
 }
 struct SavedItem: Identifiable, Sendable { var id: Int; var title: String; var topicID: TopicID; var number: PostNumber?; var categoryID: CategoryID? = nil; var postAuthor: String? = nil }
 
@@ -183,18 +187,22 @@ enum PostingOutcome: Sendable { case published(topic: TopicID, number: PostNumbe
 enum Reconciliation: Sendable { case published(topic: TopicID, number: PostNumber); case unresolved }
 enum RepositoryError: LocalizedError, Equatable {
     case configuration, offline, unauthorized, denied, unavailable, unsupported, invalid(String), rateLimited, server(Int), unconfirmed
+    /// App-side validation and recovery text, resolved from the active catalog when shown.
+    case message(String)
     var errorDescription: String? {
         switch self {
-        case .configuration: "Live community configuration is unavailable."
-        case .offline: "You’re offline. Your writing is kept on this device."
-        case .unauthorized: "Sign in again to continue. Your writing is kept."
-        case .denied: "You don’t have permission to access this content."
-        case .unavailable: "This content is no longer available."
-        case .unsupported: "This community does not provide the required nested reply capability."
+        case .configuration: L("error.configuration")
+        case .offline: L("error.offline")
+        case .unauthorized: L("error.unauthorized")
+        case .denied: L("error.denied")
+        case .unavailable: L("error.unavailable")
+        case .unsupported: L("error.unsupported")
+        // Discourse validation messages are server-owned and shown as returned.
         case let .invalid(message): message
-        case .rateLimited: "Too many requests. Please try again later."
-        case let .server(code): "The community could not complete the request (\(code))."
-        case .unconfirmed: "The post could not be confirmed. Check before trying again."
+        case .rateLimited: L("error.rate_limited")
+        case let .server(code): L("error.server", ["code": String(code)])
+        case .unconfirmed: L("error.unconfirmed")
+        case let .message(key): L(key)
         }
     }
 }
@@ -202,7 +210,7 @@ enum RepositoryError: LocalizedError, Equatable {
 struct ComposerAttachment: Identifiable, Codable, Equatable, Sendable {
     enum Status: Codable, Equatable, Sendable { case retained, queued, uploading(Double), failed(String), uploaded, missing }
     var id = UUID()
-    var description = "Photo"
+    var description = L("composer.photo.default_description")
     var localFileName: String?
     var sourceLocation: Int?
     var inDocument: Bool?

@@ -2,7 +2,7 @@
 
 Decision: English is the only guaranteed offline fallback. Fetch and retain only the user's chosen non-English interface language on demand. Keep Discourse authoritative for its existing terms, content, and locale rules.
 
-Status: planned; implementation scope clarified 2026-10-15. The live admin values below were observed on 2026-10-04 and must be rechecked before changing site settings. No live settings or backend files were changed in this review.
+Status: steps 1, 2, 4, 5 and the app half of 6 implemented on 2026-10-15 (branch `claude/fomio-localization-impl-48ecab`, unmerged); step 3 (backend endpoint) and live verification remain. Evidence: [acceptance checklist](localization-acceptance.md), [contract/handoff](localization-catalog-contract.md). Implementation scope clarified 2026-10-15. The live admin values below were observed on 2026-10-04 and must be rechecked before changing site settings. No live settings or backend files were changed in this review.
 
 The target is a **complete native UI catalog per enabled language**, not only a Byte/Hub terminology feed. Built-in Discourse keys can supply equivalent labels. Fomio-only navigation, recovery, accessibility, editor, and offline messages need their own translations managed alongside the backend catalog. The app should accept a language only when all required keys and plural/format rules validate; otherwise it displays the complete English interface. Discourse's language list does not prove every Fomio-specific sentence has a translation.
 
@@ -30,3 +30,7 @@ Admin access was visible. One settings navigation timed out; a fresh tab loaded 
 ## Readiness gate
 
 At the 2026-10-04 admin inspection, the backend was **not ready for automatic native translation inheritance**: the site was English-only at the interface setting level, its content localization was off, and the reviewed Discourse source exposed translation bundles as JavaScript rather than a native JSON contract. Existing site-text overrides are usable source data for a future contract. Recheck the deployed state before implementation. No live setting needs to be changed to start steps 1 and 2. Step 3 and any backend changes require a task authorizing edits to `/Volumes/Develop/Projects/Dicourse`.
+
+## Recheck, 2026-10-15
+
+Public, read-only, anonymous: deployed revision still `7b4f0970`; preloaded client settings still default English, `allow_user_locale` off, negotiation off, content localization off, `login_required` off. No localization plugin or native catalog route exists. The admin settings snapshot above was not repeated (no admin session was used). Local backend HEAD unchanged at `d4296c5e`.

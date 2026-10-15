@@ -83,7 +83,9 @@ final class UploadProgressDelegate: SameOriginDelegate, @unchecked Sendable {
         case 404: throw RepositoryError.unavailable
         case 400, 409, 422:
             let error = try? JSONDecoder().decode(ErrorEnvelope.self, from: data)
-            throw RepositoryError.invalid(error?.errors?.joined(separator: "\n") ?? error?.message ?? "The community could not accept the request.")
+            // Discourse's validation text is shown as returned; only the empty-body fallback is app copy.
+            if let message = error?.errors?.joined(separator: "\n") ?? error?.message { throw RepositoryError.invalid(message) }
+            throw RepositoryError.message("error.request_rejected")
         case 429: throw RepositoryError.rateLimited
         default: if method == "POST" { throw RepositoryError.unconfirmed }; throw RepositoryError.server(http.statusCode)
         }

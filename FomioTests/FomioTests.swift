@@ -34,7 +34,7 @@ import XCTest
         let state = ComposerState(draft: Draft(account: .fixture, intent: .newDiscussion, title: "Title", body: "Body", categoryID: .init(2)), app: app, origin: .home)
         await state.submit()
         XCTAssertEqual(state.draft.submission, .editing)
-        XCTAssertEqual(state.saveStatus, "Couldn’t save on this device")
+        XCTAssertEqual(state.saveStatus, .failed)
     }
     func testUnfinishedPhotoKeepAndResume() async throws {
         let (app, service, directory) = try await setup(); defer { try? FileManager.default.removeItem(at: directory) }

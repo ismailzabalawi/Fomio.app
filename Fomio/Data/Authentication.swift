@@ -9,7 +9,7 @@ struct KeychainCredentialStore {
         var result: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
         if status == errSecItemNotFound { return nil }
-        guard status == errSecSuccess, let data = result as? Data else { throw RepositoryError.invalid("Could not read the saved authorization.") }
+        guard status == errSecSuccess, let data = result as? Data else { throw RepositoryError.message("auth.error.read") }
         return try JSONDecoder().decode(Credential.self, from: data)
     }
     static func save(_ credential: Credential) throws {
@@ -17,12 +17,12 @@ struct KeychainCredentialStore {
         let attributes: [String: Any] = [kSecValueData as String: try JSONEncoder().encode(credential), kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly]
         let result = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
         if result == errSecItemNotFound {
-            guard SecItemAdd(query.merging(attributes) { _, new in new } as CFDictionary, nil) == errSecSuccess else { throw RepositoryError.invalid("Could not save authorization securely.") }
-        } else if result != errSecSuccess { throw RepositoryError.invalid("Could not update authorization securely.") }
+            guard SecItemAdd(query.merging(attributes) { _, new in new } as CFDictionary, nil) == errSecSuccess else { throw RepositoryError.message("auth.error.save") }
+        } else if result != errSecSuccess { throw RepositoryError.message("auth.error.update") }
     }
     static func delete(site: String) throws {
         let status = SecItemDelete([kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: "Fomio.UserAPI", kSecAttrAccount as String: site] as CFDictionary)
-        guard status == errSecSuccess || status == errSecItemNotFound else { throw RepositoryError.invalid("Could not remove saved authorization.") }
+        guard status == errSecSuccess || status == errSecItemNotFound else { throw RepositoryError.message("auth.error.remove") }
     }
 }
 @MainActor final class AuthenticationService: NSObject, ASWebAuthenticationPresentationContextProviding {
@@ -35,15 +35,15 @@ struct KeychainCredentialStore {
         anchor!
     }
     func signIn() async throws -> String {
-        guard session == nil else { throw RepositoryError.invalid("Sign-in is already in progress.") }
-        guard let window = UIApplication.shared.connectedScenes.compactMap({ ($0 as? UIWindowScene)?.keyWindow }).first else { throw RepositoryError.invalid("No active window is available for sign-in.") }
+        guard session == nil else { throw RepositoryError.message("auth.error.in_progress") }
+        guard let window = UIApplication.shared.connectedScenes.compactMap({ ($0 as? UIWindowScene)?.keyWindow }).first else { throw RepositoryError.message("auth.error.no_window") }
         anchor = window
         defer { session = nil; anchor = nil }
         let nonce = UUID().uuidString
         let clientID = try KeychainCredentialStore.read(site: configuration.baseURL.absoluteString)?.clientID ?? UUID().uuidString
         var keyError: Unmanaged<CFError>?
         guard let privateKey = SecKeyCreateRandomKey([kSecAttrKeyType as String: kSecAttrKeyTypeRSA, kSecAttrKeySizeInBits as String: 2048] as CFDictionary, &keyError),
-              let publicKey = SecKeyCopyPublicKey(privateKey), let bytes = SecKeyCopyExternalRepresentation(publicKey, &keyError) as Data? else { throw RepositoryError.invalid("Could not prepare secure authorization.") }
+              let publicKey = SecKeyCopyPublicKey(privateKey), let bytes = SecKeyCopyExternalRepresentation(publicKey, &keyError) as Data? else { throw RepositoryError.message("auth.error.prepare") }
         let authorizationURL = Self.authorizationURL(configuration: configuration, clientID: clientID, nonce: nonce, publicKeyPEM: Self.publicKeyPEM(bytes))
         let callback = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<URL, any Error>) in
             pendingCallback = continuation
@@ -54,14 +54,14 @@ struct KeychainCredentialStore {
                 }
             }
             session?.presentationContextProvider = self
-            if session?.start() != true { session = nil; finishCallback(.failure(RepositoryError.invalid("Could not open authorization."))) }
+            if session?.start() != true { session = nil; finishCallback(.failure(RepositoryError.message("auth.error.open"))) }
         }
         session = nil
         guard Self.matchesCallback(callback, expected: configuration.callbackURL),
               let encrypted = Self.encryptedPayload(from: callback),
-              let clear = SecKeyCreateDecryptedData(privateKey, .rsaEncryptionOAEPSHA1, encrypted as CFData, &keyError) as Data? else { throw RepositoryError.invalid("Authorization callback was invalid.") }
+              let clear = SecKeyCreateDecryptedData(privateKey, .rsaEncryptionOAEPSHA1, encrypted as CFData, &keyError) as Data? else { throw RepositoryError.message("auth.error.callback_invalid") }
         let payload = try JSONDecoder().decode(AuthPayload.self, from: clear)
-        guard payload.nonce == nonce, !payload.key.isEmpty else { throw RepositoryError.invalid("Authorization callback did not match this attempt.") }
+        guard payload.nonce == nonce, !payload.key.isEmpty else { throw RepositoryError.message("auth.error.callback_mismatch") }
         let credential = Credential(key: payload.key, clientID: clientID, site: configuration.baseURL.absoluteString)
         try KeychainCredentialStore.save(credential)
         do { return try await currentUsername() }

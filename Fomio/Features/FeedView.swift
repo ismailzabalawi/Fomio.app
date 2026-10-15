@@ -18,7 +18,7 @@ import Observation
         } catch is CancellationError {} catch { self.error = error.localizedDescription }
     }
 }
-func repliesText(_ count: Int) -> String { count == 1 ? "1 reply" : "\(count) replies" }
+func repliesText(_ count: Int) -> String { L("discussion.replies", count: count) }
 
 struct FeedView: View {
     @Environment(AppState.self) private var app
@@ -36,12 +36,12 @@ struct FeedView: View {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     PendingNoticeSlot()
                     if let category { communityHeader(category) }
-                    else { ScaledTitle("Home", size: 26).padding(.horizontal, 20).padding(.top, 4) }
+                    else { ScaledTitle(L("tab.home"), size: 26).padding(.horizontal, 20).padding(.top, 4) }
                     if category == nil && app.username == nil && !app.guestNoteDismissed { guestNote }
                     VStack(alignment: .leading, spacing: 6) {
-                        ScaledTitle("Latest", size: 20)
+                        ScaledTitle(L("feed.latest"), size: 20)
                         if let category, category.parentID == nil, app.communities.contains(where: { $0.parentID == category.id }) {
-                            Label("Includes subcommunities", systemImage: "square.stack.3d.up").font(.caption.weight(.medium)).foregroundStyle(Color.fomioSecondaryText)
+                            Label(L("feed.includes_subcommunities"), systemImage: "square.stack.3d.up").font(.caption.weight(.medium)).foregroundStyle(Color.fomioSecondaryText)
                         }
                     }.padding(.horizontal, 20).padding(.top, 18).padding(.bottom, 4)
                     if state.loading && !state.loaded { SkeletonRows() }
@@ -55,12 +55,12 @@ struct FeedView: View {
                     }
                     if state.loading && state.loaded { ProgressView().frame(maxWidth: .infinity).padding(24) }
                     if let error = state.error {
-                        InfoCard(title: state.loaded ? "Couldn’t load more" : "Discussions unavailable", message: error) { Button("Try again") { Task { await load() } }.frame(minHeight: 44) }.padding(20)
+                        InfoCard(title: state.loaded ? L("common.load_more_failed") : L("feed.unavailable"), message: error) { Button(L("common.try_again")) { Task { await load() } }.frame(minHeight: 44) }.padding(20)
                     } else if state.loaded && state.items.isEmpty {
-                        InfoCard(title: "No discussions yet", message: category.map { "Start the first discussion in \($0.name)." } ?? "Start a discussion in a community you can post to.").padding(20)
+                        InfoCard(title: L("feed.empty.title"), message: category.map { L("feed.empty.community_message", ["community": $0.name]) } ?? L("feed.empty.home_message")).padding(20)
                     }
                     if state.nextPage != nil && state.loaded && !state.loading && state.error == nil {
-                        Button("More discussions") { Task { await load() } }.frame(maxWidth: .infinity, minHeight: 44).padding()
+                        Button(L("feed.more")) { Task { await load() } }.frame(maxWidth: .infinity, minHeight: 44).padding()
                     }
                 }.padding(.bottom, 20).scrollTargetLayout()
             }
@@ -72,17 +72,17 @@ struct FeedView: View {
         .onChange(of: appearance) { restore(proxy) }
         }
         .background(Color.fomioBackground)
-        .navigationTitle(category?.name ?? "Home")
+        .navigationTitle(category?.name ?? L("tab.home"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if category == nil {
-                ToolbarItem(placement: .topBarLeading) { Image("wordmark").renderingMode(.template).resizable().scaledToFit().foregroundStyle(Color.fomioText).frame(width: 76, height: 28).accessibilityLabel("Fomio") }.sharedBackgroundVisibility(.hidden)
+                ToolbarItem(placement: .topBarLeading) { Image("wordmark").renderingMode(.template).resizable().scaledToFit().foregroundStyle(Color.fomioText).frame(width: 76, height: 28).accessibilityLabel(L("app.name")) }.sharedBackgroundVisibility(.hidden)
             }
             // The page heading carries the title; the bar stays clear.
             ToolbarItem(placement: .principal) { Color.clear.frame(width: 1, height: 1).accessibilityHidden(true) }
             ToolbarItemGroup(placement: .topBarTrailing) {
-                Button { app.navigate(.search) } label: { Image(systemName: "magnifyingglass") }.accessibilityLabel("Search discussions")
-                if category == nil { Button { app.create() } label: { Image(systemName: "square.and.pencil") }.accessibilityLabel("New discussion") }
+                Button { app.navigate(.search) } label: { Image(systemName: "magnifyingglass") }.accessibilityLabel(L("search.discussions"))
+                if category == nil { Button { app.create() } label: { Image(systemName: "square.and.pencil") }.accessibilityLabel(L("composer.new_discussion")) }
                 optionsMenu
             }
         }
@@ -95,15 +95,15 @@ struct FeedView: View {
     private func load() async { await state.load(service: app.service, category: category) }
     private var optionsMenu: some View {
         Menu {
-            Section("Feed appearance") {
+            Section(L("feed.appearance")) {
                 Picker(selection: Binding(get: { appearance }, set: select)) {
                     ForEach(FeedAppearance.allCases) { option in Label(option.title, systemImage: option.symbol).tag(option) }
-                } label: { Text("Feed appearance") }
+                } label: { Text(L("feed.appearance")) }
                 .pickerStyle(.inline)
             }
         } label: {
             // Titled so the item stays named when the toolbar overflows (iPad, accessibility text sizes).
-            Label(category == nil ? "Home options" : "Feed options", systemImage: "ellipsis")
+            Label(category == nil ? L("feed.options.home") : L("feed.options.community"), systemImage: "ellipsis")
         }
         .accessibilityIdentifier("feed-options")
     }
@@ -130,28 +130,28 @@ struct FeedView: View {
     private var guestNote: some View {
         HStack(alignment: .top, spacing: 8) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("You're reading as a guest. Sign in to reply and save discussions.").font(.subheadline)
-                Button("Sign in") { app.requestSignIn() }.font(.subheadline.weight(.semibold)).frame(minHeight: 44)
+                Text(L("feed.guest_note")).font(.subheadline)
+                Button(L("auth.sign_in")) { app.requestSignIn() }.font(.subheadline.weight(.semibold)).frame(minHeight: 44)
             }
             Spacer(minLength: 0)
-            Button { app.guestNoteDismissed = true } label: { Image(systemName: "xmark").frame(width: 44, height: 44) }.accessibilityLabel("Dismiss guest note")
+            Button { app.guestNoteDismissed = true } label: { Image(systemName: "xmark").frame(width: 44, height: 44) }.accessibilityLabel(L("feed.guest_note.dismiss"))
         }.padding(.leading, 16).padding(.top, 10).background(Color.fomioSelected, in: .rect(cornerRadius: 16)).padding(.horizontal, 20).padding(.top, 8)
     }
     @ViewBuilder private func communityHeader(_ category: Community) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             if let parent = category.parentID.flatMap(app.category) {
-                Button { app.navigate(.community(parent.id)) } label: { Label(parent.name, systemImage: "arrow.turn.up.left") }
+                Button { app.navigate(.community(parent.id)) } label: { Label { Text(parent.name) } icon: { Image(systemName: "arrow.turn.up.left").flipsForRightToLeftLayoutDirection(true) } }
                     .font(.subheadline.weight(.medium)).frame(minHeight: 44)
             }
             CategoryHeading(category: category)
-            if !category.description.isEmpty { Text(category.description).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).fixedSize(horizontal: false, vertical: true) }
+            if !category.description.isEmpty { Text(category.description).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).fixedSize(horizontal: false, vertical: true).contentDirection(category.description) }
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: 12) { headerActions(category) }
                 VStack(alignment: .leading, spacing: 8) { headerActions(category) }
             }
             let children = category.parentID == nil ? app.communities.filter { $0.parentID == category.id } : []
             if !children.isEmpty {
-                SectionLabel("Subcommunities").padding(.top, 4)
+                SectionLabel(L("community.subcommunities")).padding(.top, 4)
                 FlowLayout { ForEach(children) { child in CategoryChip(category: child) } }
             }
         }.padding(20)
@@ -159,11 +159,11 @@ struct FeedView: View {
         .overlay(alignment: .bottom) { Rectangle().fill(Color.fomioSeparator).frame(height: 1) }
     }
     @ViewBuilder private func headerActions(_ category: Community) -> some View {
-        Button { showingAbout = true } label: { Label("About", systemImage: "info.circle").font(.subheadline.weight(.semibold)).frame(minHeight: 44).padding(.horizontal, 12) }
+        Button { showingAbout = true } label: { Label(L("community.about"), systemImage: "info.circle").font(.subheadline.weight(.semibold)).frame(minHeight: 44).padding(.horizontal, 12) }
             .buttonStyle(.glass).accessibilityIdentifier("community-about")
         if category.canCreate || app.username == nil {
-            Button { app.create(category: category.id) } label: { Label("New discussion", systemImage: "square.and.pencil").font(.subheadline.weight(.semibold)).frame(minHeight: 44).padding(.horizontal, 6) }
-                .buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).accessibilityLabel("New discussion in \(category.name)")
+            Button { app.create(category: category.id) } label: { Label(L("composer.new_discussion"), systemImage: "square.and.pencil").font(.subheadline.weight(.semibold)).frame(minHeight: 44).padding(.horizontal, 6) }
+                .buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).accessibilityLabel(L("composer.new_discussion_in", ["community": category.name]))
         }
     }
 
@@ -216,22 +216,22 @@ struct CommunitiesView: View {
             ReadingColumn {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     PendingNoticeSlot()
-                    ScaledTitle("Communities", size: 26).padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 14)
-                    if let error = app.communityError, app.communities.isEmpty { ScreenMessage(title: "Communities unavailable", message: error, action: { Task { await app.loadCommunities() } }) }
-                    else if app.communities.isEmpty && app.communitiesLoaded { InfoCard(title: "No communities available", message: "There are no communities visible to this account.").padding(20) }
-                    else if app.communities.isEmpty { ProgressView().frame(maxWidth: .infinity).padding(40).accessibilityLabel("Loading communities") }
+                    ScaledTitle(L("tab.communities"), size: 26).padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 14)
+                    if let error = app.communityError, app.communities.isEmpty { ScreenMessage(title: L("communities.unavailable"), message: error, action: { Task { await app.loadCommunities() } }) }
+                    else if app.communities.isEmpty && app.communitiesLoaded { InfoCard(title: L("communities.empty.title"), message: L("communities.empty.message")).padding(20) }
+                    else if app.communities.isEmpty { ProgressView().frame(maxWidth: .infinity).padding(40).accessibilityLabel(L("communities.loading")) }
                     else {
                         if let error = app.communityError {
-                            InfoCard(title: "Couldn’t refresh communities", message: error) { Button("Try again") { Task { await app.loadCommunities() } }.frame(minHeight: 44) }.padding(20)
+                            InfoCard(title: L("communities.refresh_failed"), message: error) { Button(L("common.try_again")) { Task { await app.loadCommunities() } }.frame(minHeight: 44) }.padding(20)
                         }
                         let groups = self.groups
                         if !query.isEmpty && !groups.isEmpty {
-                            Text("\(groups.count) \(groups.count == 1 ? "community matches" : "communities match") “\(query)”. This filters the list below only.")
+                            Text(L("communities.filter.matches", count: groups.count, ["query": query]))
                                 .font(.footnote).foregroundStyle(Color.fomioSecondaryText).padding(.horizontal, 20).padding(.top, 8).accessibilityAddTraits(.updatesFrequently)
                         }
                         if !query.isEmpty && groups.isEmpty {
-                            InfoCard(title: "No communities match “\(query)”", message: "This box only filters the communities listed here.") {
-                                Button("Search discussions for “\(query)”") { app.search(query) }.font(.subheadline.weight(.semibold)).frame(minHeight: 44)
+                            InfoCard(title: L("communities.filter.none", ["query": query]), message: L("communities.filter.scope")) {
+                                Button(L("communities.filter.search_discussions", ["query": query])) { app.search(query) }.font(.subheadline.weight(.semibold)).frame(minHeight: 44)
                             }.padding(20)
                         }
                         ForEach(groups) { group in
@@ -241,16 +241,16 @@ struct CommunitiesView: View {
                     }
                 }.padding(.bottom, 20)
             }
-        }.scrollDismissesKeyboard(.interactively).background(Color.fomioBackground).navigationTitle("Communities").navigationBarTitleDisplayMode(.inline)
-        .searchable(text: $state.communityQuery, placement: .navigationBarDrawer(displayMode: .always), prompt: "Find communities")
+        }.scrollDismissesKeyboard(.interactively).background(Color.fomioBackground).navigationTitle(L("tab.communities")).navigationBarTitleDisplayMode(.inline)
+        .searchable(text: $state.communityQuery, placement: .navigationBarDrawer(displayMode: .always), prompt: Text(L("communities.find")))
         .searchFocused($searchFocused)
         .onSubmit(of: .search) { searchFocused = false }
         .onDisappear { searchFocused = false }
         .toolbar {
             ToolbarItem(placement: .principal) { Color.clear.frame(width: 1, height: 1).accessibilityHidden(true) }
             ToolbarItemGroup(placement: .topBarTrailing) {
-                Button { app.navigate(.search) } label: { Image(systemName: "magnifyingglass") }.accessibilityLabel("Search discussions")
-                Button { app.create() } label: { Image(systemName: "square.and.pencil") }.accessibilityLabel("New discussion")
+                Button { app.navigate(.search) } label: { Image(systemName: "magnifyingglass") }.accessibilityLabel(L("search.discussions"))
+                Button { app.create() } label: { Image(systemName: "square.and.pencil") }.accessibilityLabel(L("composer.new_discussion"))
             }
         }
         .refreshable { await app.loadCommunities() }
@@ -283,11 +283,11 @@ struct CommunitiesView: View {
                             if root.restricted { restrictedBadge }
                             else if !root.description.isEmpty {
                                 Text(root.descriptionExcerpt ?? root.description).font(.system(size: descriptionSize)).foregroundStyle(Color.fomioSecondaryText)
-                                    .lineLimit(typeSize.isAccessibilitySize ? nil : 2).multilineTextAlignment(.leading)
+                                    .lineLimit(typeSize.isAccessibilitySize ? nil : 2).multilineTextAlignment(.leading).contentDirection(root.descriptionExcerpt ?? root.description)
                             }
                         }.frame(maxWidth: .infinity, alignment: .leading)
                     }.frame(minHeight: 44).contentShape(.rect)
-                }.buttonStyle(.plain).accessibilityLabel("\(root.name)\(root.restricted ? ", restricted" : ""). \(root.description)").accessibilityIdentifier("community-\(root.id.rawValue)")
+                }.buttonStyle(.plain).accessibilityLabel(root.restricted ? L("communities.row.restricted", ["name": root.name, "description": root.description]) : L("communities.row", ["name": root.name, "description": root.description])).accessibilityIdentifier("community-\(root.id.rawValue)")
                 if !group.kids.isEmpty && query.isEmpty {
                     Button {
                         withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) {
@@ -297,7 +297,7 @@ struct CommunitiesView: View {
                     } label: {
                         Image(systemName: expanded ? "chevron.up" : "chevron.down").font(.caption.weight(.bold))
                             .foregroundStyle(Color.fomioText).frame(width: 44, height: 44).background(color.opacity(0.16), in: .rect(cornerRadius: 14))
-                    }.buttonStyle(.plain).accessibilityLabel("\(expanded ? "Hide" : "Show") subcommunities of \(root.name)").accessibilityIdentifier("category-expand-\(root.id.rawValue)")
+                    }.buttonStyle(.plain).accessibilityLabel(expanded ? L("communities.hide_children", ["name": root.name]) : L("communities.show_children", ["name": root.name])).accessibilityIdentifier("category-expand-\(root.id.rawValue)")
                 }
             }
             if expanded {
@@ -308,9 +308,9 @@ struct CommunitiesView: View {
                                 CategoryMark(category: child, size: 28)
                                 Text(child.name).font(.subheadline.weight(.semibold)).foregroundStyle(Color.fomioText).multilineTextAlignment(.leading)
                                 Spacer(minLength: 0)
-                                Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(Color.fomioSecondaryText)
+                                Image(systemName: "chevron.forward").font(.caption.weight(.semibold)).foregroundStyle(Color.fomioSecondaryText)
                             }.frame(minHeight: 44).padding(.vertical, 3).contentShape(.rect)
-                        }.buttonStyle(.plain).accessibilityLabel("\(child.name), subcommunity of \(root.name)").accessibilityIdentifier("community-\(child.id.rawValue)")
+                        }.buttonStyle(.plain).accessibilityLabel(L("communities.child_row", ["name": child.name, "parent": root.name])).accessibilityIdentifier("community-\(child.id.rawValue)")
                     }
                 }.padding(.leading, typeSize.isAccessibilitySize ? 0 : 24).padding(.top, 8)
                 .overlay(alignment: .leading) { if !typeSize.isAccessibilitySize { Capsule().fill(color.opacity(0.2)).frame(width: 2).padding(.leading, 20).padding(.vertical, 14).accessibilityHidden(true) } }
@@ -318,7 +318,7 @@ struct CommunitiesView: View {
         }.padding(14).background(expanded ? color.opacity(0.055) : Color.clear, in: .rect(cornerRadius: 22))
         .padding(.horizontal, 20).padding(.bottom, 8)
     }
-    private var restrictedBadge: some View { Label("Restricted", systemImage: "lock.fill").font(.caption.weight(.semibold)).foregroundStyle(Color.fomioSecondaryText).labelStyle(CompactIconLabel()) }
+    private var restrictedBadge: some View { Label(L("communities.restricted"), systemImage: "lock.fill").font(.caption.weight(.semibold)).foregroundStyle(Color.fomioSecondaryText).labelStyle(CompactIconLabel()) }
 }
 
 struct CommunityAboutView: View {
@@ -332,15 +332,15 @@ struct CommunityAboutView: View {
                 ReadingColumn {
                     VStack(alignment: .leading, spacing: 16) {
                         CategoryHeading(category: category)
-                        Text(category.description.isEmpty ? "No community description is available." : category.description).textSelection(.enabled)
+                        Text(category.description.isEmpty ? L("community.about.no_description") : category.description).textSelection(.enabled).contentDirection(category.description.isEmpty ? L("community.about.no_description") : category.description)
                         if let value = category.aboutURL, let base = app.configuration?.baseURL,
                            let url = URL(string: value, relativeTo: base)?.absoluteURL, url.scheme == "https", url.host == base.host {
-                            Link("Read the community introduction", destination: url).frame(minHeight: 44)
+                            Link(L("community.about.introduction"), destination: url).frame(minHeight: 44)
                         }
                     }.padding(20)
                 }
-            }.background(Color.fomioBackground).navigationTitle("About").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+            }.background(Color.fomioBackground).navigationTitle(L("community.about")).navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button(L("common.done")) { dismiss() } } }
         }
     }
 }

@@ -1,5 +1,9 @@
 # Native implementation status — 2026-10-03
 
+## Interface localization (English + Arabic) — 2026-10-15
+
+Branch `claude/fomio-localization-impl-48ecab`, **not merged**. All interface copy (SwiftUI, UIKit editor, errors, accessibility, dates and plurals) uses 481 semantic keys; English is the only bundled language. Me › Language and the device language select a server-provided catalog that is validated, cached atomically per site/locale/schema, refreshed every 24 hours with ETag/304 and never activated when incomplete. Arabic (RTL) is complete and verified against fixture catalogs on iPhone and iPad simulators. Live non-English text is blocked on a backend catalog endpoint that does not exist yet. [Acceptance](localization-acceptance.md), [contract/handoff](localization-catalog-contract.md), [validation](validation/2026-10-15-localization/README.md).
+
 ## Topic cards: Compact and Cards appearances — 2026-10-15
 
 Home and category feeds render the composed `TopicCard` in Compact (default) or Cards, chosen from the Home/Feed options menu beside Search/Create and stored per device. Switching keeps the same topic at the same relative reading position, along with loaded pages, pagination errors, tab and navigation state. Live feeds now map Discourse `image_url` (public HTTPS media, failure falls back to text) and `unicode_title`. Swipe actions, feed Like/Save/Share and author profile targets are deferred. Simulator results, captures and limits: [validation](validation/2026-10-15-topic-cards/README.md). Not uploaded to TestFlight.

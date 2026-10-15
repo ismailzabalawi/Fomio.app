@@ -5,25 +5,31 @@ enum FeedAppearance: String, CaseIterable, Identifiable {
     case compact, cards
     static let storageKey = "feedAppearance"
     var id: String { rawValue }
-    var title: LocalizedStringKey { self == .compact ? "Compact" : "Cards" }
+    var title: String { self == .compact ? L("feed.appearance.compact") : L("feed.appearance.cards") }
     var symbol: String { self == .compact ? "list.bullet" : "rectangle.grid.1x2" }
 }
 
 /// Reply count for feed metadata. Zero is shown, not omitted.
-func feedRepliesText(_ count: Int) -> String { count == 0 ? "No replies yet" : repliesText(count) }
+func feedRepliesText(_ count: Int) -> String { count == 0 ? L("discussion.no_replies_yet") : repliesText(count) }
 
 /// Topic activity (`bumped_at`) labelled as activity, never as creation age.
 enum ActiveAge {
-    static func text(_ activity: String) -> String? {
-        guard !activity.isEmpty else { return nil }
-        return activity == "now" ? "Active now" : "Active \(activity) ago"
+    static func text(_ activity: AgeValue) -> String? {
+        switch activity {
+        case .none: nil
+        case .now: L("topic.active.now")
+        default: L("topic.active.ago", ["age": activity.compact])
+        }
     }
-    static func spoken(_ activity: String) -> String? {
-        guard !activity.isEmpty else { return nil }
-        if activity == "now" { return "active just now" }
-        guard let unit = activity.last, let value = Int(activity.dropLast()) else { return "active \(activity) ago" }
-        let name = unit == "m" ? "minute" : unit == "h" ? "hour" : unit == "d" ? "day" : nil
-        return name.map { "active \(value) \($0)\(value == 1 ? "" : "s") ago" } ?? "active \(activity) ago"
+    /// Full words for VoiceOver ("active 3 hours ago"); compact units are not reliably spoken.
+    static func spoken(_ activity: AgeValue) -> String? {
+        switch activity {
+        case .none: nil
+        case .now: L("topic.active.spoken.now")
+        case let .minutes(n): L("topic.active.spoken.minutes", count: n)
+        case let .hours(n): L("topic.active.spoken.hours", count: n)
+        case let .days(n): L("topic.active.spoken.days", count: n)
+        }
     }
 }
 
@@ -57,7 +63,7 @@ struct TopicCard: View {
             Button(action: onOpen) { mainLabel }
                 .buttonStyle(TopicPressStyle())
                 .accessibilityLabel(accessibilityText)
-                .accessibilityHint("Opens the discussion")
+                .accessibilityHint(L("topic.open_hint"))
                 .accessibilityIdentifier("topic-\(topic.id.rawValue)")
         }
         switch appearance {
@@ -82,7 +88,7 @@ struct TopicCard: View {
                 if let label { TopicCategoryLabel(category: label, parent: label.parentID.flatMap(app.category)) { onCategory(label.id) } }
                 if !stacked { Spacer(minLength: 0) }
                 if topic.pinned {
-                    Label("Pinned", systemImage: "pin.fill").labelStyle(CompactIconLabel())
+                    Label(L("topic.pinned"), systemImage: "pin.fill").labelStyle(CompactIconLabel())
                         .font(.footnote.weight(.semibold)).foregroundStyle(Color.fomioAccent).accessibilityHidden(true)
                 }
             }
@@ -126,14 +132,16 @@ struct TopicCard: View {
 
     private var accessibilityText: String {
         var parts = [topic.title]
-        if topic.pinned { parts.append("Pinned") }
-        if let category { parts.append("in \(category.parentID.flatMap(app.category).map { "\(category.name), \($0.name)" } ?? category.name)") }
-        if !topic.author.isEmpty { parts.append("started by \(topic.author)") }
+        if topic.pinned { parts.append(L("topic.pinned")) }
+        if let category {
+            parts.append(category.parentID.flatMap(app.category).map { L("topic.a11y.in_child", ["community": category.name, "parent": $0.name]) } ?? L("topic.a11y.in", ["community": category.name]))
+        }
+        if !topic.author.isEmpty { parts.append(L("topic.a11y.started_by", ["name": topic.author])) }
         parts.append(feedRepliesText(topic.replyCount))
         if let active = ActiveAge.spoken(topic.activity) { parts.append(active) }
-        if case let .asset(name)? = media { parts.append("Photo: \(SamplePhoto.description(name))") }
-        else if media != nil { parts.append("Has image") }
-        return parts.joined(separator: ", ")
+        if case let .asset(name)? = media { parts.append(L("topic.a11y.photo", ["description": SamplePhoto.description(name)])) }
+        else if media != nil { parts.append(L("topic.a11y.has_image")) }
+        return parts.joined(separator: L("common.list_separator"))
     }
 }
 
@@ -148,7 +156,8 @@ struct TopicCategoryLabel: View {
                 CategoryMark(category: category, size: 20)
                 Group {
                     if let parent {
-                        Text("\(Text(parent.name).foregroundStyle(Color.fomioSecondaryText)) \(parent.name.naturalDirection == .rightToLeft ? "‹" : "›") \(Text(category.name))")
+                        // The chevron follows the interface direction; each name keeps its own script direction.
+                        LText("topic.category_path", ["parent": parent.name, "community": category.name]) { name, text in name == "parent" ? text.foregroundStyle(Color.fomioSecondaryText) : text }
                     } else { Text(category.name) }
                 }
                 .font(.footnote.weight(.semibold)).foregroundStyle(Color.fomioText).multilineTextAlignment(.leading)
@@ -156,7 +165,7 @@ struct TopicCategoryLabel: View {
             .frame(minHeight: 44, alignment: .leading).contentShape(.rect)
         }
         .buttonStyle(.plain).padding(.vertical, -10)
-        .accessibilityLabel(parent.map { "Open community \(category.name), in \($0.name)" } ?? "Open community \(category.name)")
+        .accessibilityLabel(parent.map { L("community.open_in", ["name": category.name, "parent": $0.name]) } ?? L("community.open", ["name": category.name]))
         .accessibilityIdentifier("topic-category-\(category.id.rawValue)")
     }
 }
@@ -166,7 +175,7 @@ struct TopicMetadata: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     let author: String
     let replyCount: Int
-    let activity: String
+    let activity: AgeValue
     var body: some View {
         let active = ActiveAge.text(activity)
         ViewThatFits(in: .horizontal) {
@@ -181,7 +190,7 @@ struct TopicMetadata: View {
             HStack(spacing: 6) {
                 // Decorative initials; omitted at accessibility sizes where the fixed mark cannot scale with the text.
                 if !typeSize.isAccessibilitySize { Avatar(name: author, size: 20) }
-                Text("Started by \(Text(author).fontWeight(.semibold).foregroundStyle(Color.fomioText))").fixedSize(horizontal: false, vertical: true)
+                LText("topic.started_by", ["name": author]) { _, text in text.fontWeight(.semibold).foregroundStyle(Color.fomioText) }.fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -204,7 +213,7 @@ struct TopicMedia: View {
                 switch phase {
                 case let .success(image): framed(image.resizable().scaledToFill())
                 case .failure: Color.clear.frame(width: 0, height: 0).onAppear { failed = true }
-                default: framed(Color.fomioFill).accessibilityLabel("Loading image")
+                default: framed(Color.fomioFill).accessibilityLabel(L("media.loading_image"))
                 }
             }
         }

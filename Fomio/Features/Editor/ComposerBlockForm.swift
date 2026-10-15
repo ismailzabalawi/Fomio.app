@@ -20,30 +20,30 @@ struct ComposerBlockValue {
         switch kind {
         case .poll:
             let values = options.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            guard !heading.isEmpty, values.count >= 2, values.count <= maximumOptions, values.allSatisfy({ !$0.isEmpty && !$0.contains("\n") }), Set(values).count == values.count, minimum >= 1, maximum >= minimum, maximum <= values.count else { throw RepositoryError.invalid("Enter a question and unique options within the permitted selection limits.") }
+            guard !heading.isEmpty, values.count >= 2, values.count <= maximumOptions, values.allSatisfy({ !$0.isEmpty && !$0.contains("\n") }), Set(values).count == values.count, minimum >= 1, maximum >= minimum, maximum <= values.count else { throw RepositoryError.message("composer.block.error.poll") }
             let attrs = multiple ? " type=multiple min=\(minimum) max=\(maximum)" : ""
             return "[poll name=\(pollName)\(attrs)]\n# \(Self.literal(heading.replacingOccurrences(of: "\n", with: " ")))\n" + values.map { "* " + Self.literal($0) }.joined(separator: "\n") + "\n[/poll]"
         case .table:
-            guard cells.count >= 2, let width = cells.first?.count, width >= 1, cells.allSatisfy({ $0.count == width }) else { throw RepositoryError.invalid("A table needs headers and at least one row.") }
+            guard cells.count >= 2, let width = cells.first?.count, width >= 1, cells.allSatisfy({ $0.count == width }) else { throw RepositoryError.message("composer.block.error.table") }
             func row(_ values: [String]) -> String { "| " + values.map { $0.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "|", with: "\\|").replacingOccurrences(of: "\n", with: "<br>") }.joined(separator: " | ") + " |" }
             return ([row(cells[0]), row(Array(repeating: "---", count: width))] + cells.dropFirst().map(row)).joined(separator: "\n")
         case .details:
-            guard !heading.trimmingCharacters(in: .whitespaces).isEmpty, !body.isEmpty else { throw RepositoryError.invalid("Enter a summary and body.") }
+            guard !heading.trimmingCharacters(in: .whitespaces).isEmpty, !body.isEmpty else { throw RepositoryError.message("composer.block.error.details") }
             return "[details=\"\(Self.literal(heading).replacingOccurrences(of: "\"", with: "&quot;").replacingOccurrences(of: "\n", with: " "))\"]\n\(body.replacingOccurrences(of: "[/details]", with: "&#91;/details&#93;"))\n[/details]"
         case .spoiler:
-            guard !body.isEmpty else { throw RepositoryError.invalid("Enter concealed text.") }
+            guard !body.isEmpty else { throw RepositoryError.message("composer.block.error.spoiler") }
             return "[spoiler]\(Self.literal(body))[/spoiler]"
         case .code:
-            guard !body.isEmpty, language.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "-" || $0 == "+" }) else { throw RepositoryError.invalid("Enter code and a valid language name.") }
+            guard !body.isEmpty, language.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "-" || $0 == "+" }) else { throw RepositoryError.message("composer.block.error.code") }
             let fence = String(repeating: "`", count: max(3, body.components(separatedBy: "\n").map { $0.prefix { $0 == "`" }.count + 1 }.max() ?? 3))
             return fence + language + "\n" + body + "\n" + fence
         case .date:
-            guard let zone = TimeZone(identifier: timezone) else { throw RepositoryError.invalid("Choose a valid timezone.") }
+            guard let zone = TimeZone(identifier: timezone) else { throw RepositoryError.message("composer.block.error.timezone") }
             let formatter = DateFormatter(); formatter.locale = Locale(identifier: "en_US_POSIX"); formatter.timeZone = zone; formatter.dateFormat = "yyyy-MM-dd"
             let day = formatter.string(from: date); formatter.dateFormat = "HH:mm:ss"
             return "[date=\(day) time=\"\(formatter.string(from: date))\" timezone=\"\(timezone)\"]"
         case .quote:
-            guard quoteHeader.hasPrefix("[quote"), !body.isEmpty else { throw RepositoryError.invalid("Enter quotation text.") }
+            guard quoteHeader.hasPrefix("[quote"), !body.isEmpty else { throw RepositoryError.message("composer.block.error.quote") }
             return quoteHeader + "\n" + body.replacingOccurrences(of: "[/quote]", with: "&#91;/quote&#93;") + "\n[/quote]"
         default: throw RepositoryError.unsupported
         }
@@ -108,44 +108,44 @@ struct ComposerBlockForm: View {
     @State private var revealed = false
     var body: some View {
         Form {
-            if let error { Text(LocalizedStringKey(error)).foregroundStyle(Color.fomioDanger).accessibilityIdentifier("block-error") }
+            if let error { Text(error).foregroundStyle(Color.fomioDanger).accessibilityIdentifier("block-error") }
             switch value.kind {
             case .poll:
-                TextField("Question", text: $value.heading, axis: .vertical)
-                Section("Options") {
+                TextField(L("composer.block.poll.question"), text: $value.heading, axis: .vertical)
+                Section(L("composer.block.poll.options")) {
                     ForEach(value.options.indices, id: \.self) { index in
-                        HStack { TextField("Option", text: $value.options[index]); if value.options.count > 2 { Button("Remove", systemImage: "minus.circle") { value.options.remove(at: index) }.labelStyle(.iconOnly).frame(minHeight: 44) } }
+                        HStack { TextField(L("composer.block.poll.option"), text: $value.options[index]); if value.options.count > 2 { Button(L("common.remove"), systemImage: "minus.circle") { value.options.remove(at: index) }.labelStyle(.iconOnly).frame(minHeight: 44) } }
                     }
-                    Button("Add option") { value.options.append("") }.disabled(value.options.count >= maximumOptions)
+                    Button(L("composer.block.poll.add_option")) { value.options.append("") }.disabled(value.options.count >= maximumOptions)
                 }
-                Toggle("Multiple choice", isOn: $value.multiple)
-                if value.multiple { Stepper("Minimum selections: \(value.minimum)", value: $value.minimum, in: 1...max(1, value.options.count)); Stepper("Maximum selections: \(value.maximum)", value: $value.maximum, in: 1...max(1, value.options.count)) }
+                Toggle(L("composer.block.poll.multiple"), isOn: $value.multiple)
+                if value.multiple { Stepper(L("composer.block.poll.minimum", ["value": value.minimum.formatted(.number.locale(Localizer.shared.formattingLocale))]), value: $value.minimum, in: 1...max(1, value.options.count)); Stepper(L("composer.block.poll.maximum", ["value": value.maximum.formatted(.number.locale(Localizer.shared.formattingLocale))]), value: $value.maximum, in: 1...max(1, value.options.count)) }
             case .table:
                 ForEach(value.cells.indices, id: \.self) { row in
-                    Section(row == 0 ? String(localized: "Headers") : String(localized: "Row \(row)")) { ForEach(value.cells[row].indices, id: \.self) { column in TextField("Cell \(column + 1)", text: $value.cells[row][column], axis: .vertical) } }
+                    Section(row == 0 ? L("composer.block.table.headers") : L("composer.block.table.row", ["number": row.formatted(.number.locale(Localizer.shared.formattingLocale))])) { ForEach(value.cells[row].indices, id: \.self) { column in TextField(L("composer.block.table.cell", ["number": (column + 1).formatted(.number.locale(Localizer.shared.formattingLocale))]), text: $value.cells[row][column], axis: .vertical) } }
                 }
-                Button("Add row") { value.cells.append(Array(repeating: "", count: value.cells[0].count)) }
-                Button("Add column") { for row in value.cells.indices { value.cells[row].append("") } }
-                Button("Remove last row") { value.cells.removeLast() }.disabled(value.cells.count <= 2)
-                Button("Remove last column") { for row in value.cells.indices { value.cells[row].removeLast() } }.disabled(value.cells[0].count <= 1)
-            case .details: TextField("Summary", text: $value.heading, axis: .vertical); textBody
+                Button(L("composer.block.table.add_row")) { value.cells.append(Array(repeating: "", count: value.cells[0].count)) }
+                Button(L("composer.block.table.add_column")) { for row in value.cells.indices { value.cells[row].append("") } }
+                Button(L("composer.block.table.remove_row")) { value.cells.removeLast() }.disabled(value.cells.count <= 2)
+                Button(L("composer.block.table.remove_column")) { for row in value.cells.indices { value.cells[row].removeLast() } }.disabled(value.cells[0].count <= 1)
+            case .details: TextField(L("composer.block.details.summary"), text: $value.heading, axis: .vertical); textBody
             case .spoiler:
                 textBody
-                Button(revealed ? "Conceal preview" : "Reveal preview") { revealed.toggle() }
-                if revealed { Text(value.body).accessibilityLabel("Spoiler preview: " + value.body) }
+                Button(revealed ? L("composer.block.spoiler.conceal") : L("composer.block.spoiler.reveal")) { revealed.toggle() }
+                if revealed { Text(value.body).accessibilityLabel(L("composer.block.spoiler.preview_a11y", ["text": value.body])) }
             case .date:
-                DatePicker("Date and time", selection: $value.date).environment(\.timeZone, TimeZone(identifier: value.timezone) ?? .current)
-                Picker("Timezone", selection: $value.timezone) { ForEach(TimeZone.knownTimeZoneIdentifiers, id: \.self) { Text($0).tag($0) } }
-            case .code: TextField("Language (optional)", text: $value.language).textInputAutocapitalization(.never).autocorrectionDisabled(); textBody
+                DatePicker(L("composer.block.date"), selection: $value.date).environment(\.timeZone, TimeZone(identifier: value.timezone) ?? .current)
+                Picker(L("composer.block.date.timezone"), selection: $value.timezone) { ForEach(TimeZone.knownTimeZoneIdentifiers, id: \.self) { Text($0).tag($0) } }
+            case .code: TextField(L("composer.block.code.language"), text: $value.language).textInputAutocapitalization(.never).autocorrectionDisabled(); textBody
             case .quote: textBody
             default: EmptyView()
             }
-        }.navigationTitle(Text(LocalizedStringKey(value.kind.title))).navigationBarTitleDisplayMode(.inline)
-        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Save") {
+        }.navigationTitle(value.kind.title).navigationBarTitleDisplayMode(.inline)
+        .toolbar { ToolbarItem(placement: .confirmationAction) { Button(L("common.save")) {
             do { onSave(try value.markup(maximumOptions: maximumOptions)); dismiss() } catch { self.error = error.localizedDescription }
         }.accessibilityIdentifier("block-save") } }
     }
-    private var textBody: some View { TextEditor(text: $value.body).frame(minHeight: 200).accessibilityLabel(Text(LocalizedStringKey(value.kind == .code ? "Code" : "Body"))).accessibilityIdentifier("block-body") }
+    private var textBody: some View { TextEditor(text: $value.body).frame(minHeight: 200).accessibilityLabel(value.kind == .code ? L("composer.block.code") : L("composer.block.body")).accessibilityIdentifier("block-body") }
 }
 
 struct ComposerSuggestionView: View {
@@ -160,7 +160,7 @@ struct ComposerSuggestionView: View {
                 else if let error { Text(error) }
                 else { ProgressView() }
             }.padding(20)
-        }.navigationTitle("Similar discussion").navigationBarTitleDisplayMode(.inline)
+        }.navigationTitle(L("composer.similar_one")).navigationBarTitleDisplayMode(.inline)
         .task { do { page = try await service.discussion(topic, page: 0) } catch { self.error = error.localizedDescription } }
     }
 }

@@ -121,10 +121,10 @@ import Observation
                 let number = index + 1
                 return Post(id: .init(item.id * 100 + number), number: .init(number), topicID: topic, parent: number == 1 ? nil : Self.parent(topic: item.id, number: number),
                             author: seed.author, body: seed.body, image: seed.image, likeCount: seed.likes, canLike: seed.author != Self.member, canReply: true,
-                            age: seed.age, authorName: Self.people[seed.author]?.name)
+                            age: AgeValue(token: seed.age), authorName: Self.people[seed.author]?.name)
             }
             let opening = item.posts[0]
-            summaries.append(DiscussionSummary(id: topic, title: item.title, slug: "topic-\(item.id)", categoryID: .init(item.category), excerpt: opening.body, author: opening.author, replyCount: item.posts.count - 1, activity: item.activity, image: opening.image))
+            summaries.append(DiscussionSummary(id: topic, title: item.title, slug: "topic-\(item.id)", categoryID: .init(item.category), excerpt: opening.body, author: opening.author, replyCount: item.posts.count - 1, activity: AgeValue(token: item.activity), image: opening.image))
         }
     }
     /// Fictional topic-card edge cases (`--card-cases`): pinned with no replies, Arabic, absent author/excerpt/activity,

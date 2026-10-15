@@ -48,7 +48,7 @@ struct HTMLContent {
             let preceding = markdown(String(html[cursor..<range.lowerBound])); if !preceding.isEmpty { blocks.append(.text(preceding)) }
             let segment = String(html[range]), lower = segment.lowercased()
             if lower.hasPrefix("<details") {
-                let summary = segment.range(of: "<summary[^>]*>[\\s\\S]*?</summary>", options: [.regularExpression, .caseInsensitive]).map { plainText(String(segment[$0])) } ?? String(localized: "Details")
+                let summary = segment.range(of: "<summary[^>]*>[\\s\\S]*?</summary>", options: [.regularExpression, .caseInsensitive]).map { plainText(String(segment[$0])) } ?? L("content.details")
                 let body = segment.replacingOccurrences(of: "<summary[^>]*>[\\s\\S]*?</summary>", with: "", options: [.regularExpression, .caseInsensitive])
                 blocks.append(.details(summary, markdown(body)))
             } else if lower.hasPrefix("<span"), lower.contains("spoiler") { blocks.append(.spoiler(plainText(segment))) }
@@ -64,7 +64,7 @@ struct HTMLContent {
             }
             else if lower.hasPrefix("<pre") { blocks.append(.code(plainText(segment))) }
             else if lower.hasPrefix("<blockquote") || lower.hasPrefix("<aside") { blocks.append(.quote(markdown(segment))) }
-            else if lower.hasPrefix("<img"), let source = attribute("src", in: segment) { blocks.append(.image(source, attribute("alt", in: segment) ?? "Community photo")) }
+            else if lower.hasPrefix("<img"), let source = attribute("src", in: segment) { blocks.append(.image(source, attribute("alt", in: segment) ?? L("content.community_photo"))) }
             else if !lower.hasPrefix("<script") && !lower.hasPrefix("<style") { blocks.append(.unsupported) }
             cursor = range.upperBound
         }
@@ -83,16 +83,17 @@ struct CookedContent: View {
         VStack(alignment: .leading, spacing: 12) {
             ForEach(Array(blocks.enumerated()), id: \.offset) { _, block in
                 switch block {
-                case let .text(text): Text(.init(text)).font(textStyle).textSelection(.enabled)
-                case let .quote(text): Text(.init(text)).font(textStyle).textSelection(.enabled).padding(12).background(Color.fomioHighlight, in: .rect(cornerRadius: 8)).accessibilityLabel("Quote: " + HTMLContent.plainText(text))
-                case let .code(text): ScrollView(.horizontal) { Text(text).font(.system(.body, design: .monospaced)).textSelection(.enabled).padding(12) }.background(Color.fomioHighlight, in: .rect(cornerRadius: 8))
-                case let .details(summary, body): DisclosureGroup(summary) { Text(.init(body)).textSelection(.enabled) }
-                case let .spoiler(text): DisclosureGroup("Reveal spoiler") { Text(text).textSelection(.enabled) }.accessibilityLabel("Concealed text. Reveal spoiler")
+                case let .text(text): Text(.init(text)).font(textStyle).textSelection(.enabled).contentDirection(text)
+                case let .quote(text): Text(.init(text)).font(textStyle).textSelection(.enabled).contentDirection(text).padding(12).background(Color.fomioHighlight, in: .rect(cornerRadius: 8)).accessibilityLabel(L("content.quote_a11y", ["text": HTMLContent.plainText(text)]))
+                // Code stays left-to-right in every interface language.
+                case let .code(text): ScrollView(.horizontal) { Text(text).font(.system(.body, design: .monospaced)).textSelection(.enabled).padding(12) }.background(Color.fomioHighlight, in: .rect(cornerRadius: 8)).environment(\.layoutDirection, .leftToRight)
+                case let .details(summary, body): DisclosureGroup(summary) { Text(.init(body)).textSelection(.enabled).contentDirection(body) }
+                case let .spoiler(text): DisclosureGroup(L("content.reveal_spoiler")) { Text(text).textSelection(.enabled).contentDirection(text) }.accessibilityLabel(L("content.spoiler_a11y"))
                 case let .date(text): Label(text, systemImage: "calendar")
                 case let .table(rows):
                     ScrollView(.horizontal) {
                         Grid(alignment: .leading, horizontalSpacing: 20, verticalSpacing: 12) {
-                            ForEach(rows.indices, id: \.self) { row in GridRow { ForEach(rows[row].indices, id: \.self) { column in Text(rows[row][column]).fontWeight(row == 0 ? .semibold : .regular).frame(minWidth: 80, alignment: .leading).accessibilityLabel("Row \(row + 1), column \(column + 1): " + rows[row][column]) } } }
+                            ForEach(rows.indices, id: \.self) { row in GridRow { ForEach(rows[row].indices, id: \.self) { column in Text(rows[row][column]).fontWeight(row == 0 ? .semibold : .regular).frame(minWidth: 80, alignment: .leading).accessibilityLabel(L("content.table_cell_a11y", ["row": String(row + 1), "column": String(column + 1), "text": rows[row][column]])) } } }
                         }.padding(12)
                     }
                 case let .image(source, alt):
@@ -100,19 +101,26 @@ struct CookedContent: View {
                         AsyncImage(url: url) { phase in
                             switch phase {
                             case let .success(image): image.resizable().scaledToFit().clipShape(.rect(cornerRadius: 10)).accessibilityLabel(alt)
-                            case .failure: Label("Photo unavailable in app", systemImage: "photo.badge.exclamationmark").foregroundStyle(.secondary)
-                            default: ProgressView("Loading photo")
+                            case .failure: Label(L("content.photo_unavailable"), systemImage: "photo.badge.exclamationmark").foregroundStyle(.secondary)
+                            default: ProgressView(L("content.loading_photo"))
                             }
                         }
                     }
-                case .unsupported: Label("Additional content is available in the community", systemImage: "arrow.up.right.square").font(.subheadline).foregroundStyle(.secondary)
+                case .unsupported: Label(L("content.unsupported"), systemImage: "arrow.up.right.square").font(.subheadline).foregroundStyle(.secondary)
                 }
             }
-            if let url = app.configuration?.topicURL(topic, number: number) { Link("View original post", destination: url).font(.caption).frame(minHeight: 44) }
+            if let url = app.configuration?.topicURL(topic, number: number) { Link(L("content.view_original"), destination: url).font(.caption).frame(minHeight: 44) }
         }.environment(\.openURL, OpenURLAction { url in
             guard url.scheme == "https" || url.scheme == "http" else { return .discarded }
             if let base = app.configuration?.baseURL, let route = LinkRouter.route(url, baseURL: base) { app.navigate(route); return .handled }
             return .systemAction
         })
+    }
+}
+
+extension View {
+    /// Community text keeps its own reading direction inside the interface, like HTML `dir="auto"`.
+    func contentDirection(_ text: String) -> some View {
+        frame(maxWidth: .infinity, alignment: .leading).environment(\.layoutDirection, text.naturalDirection)
     }
 }

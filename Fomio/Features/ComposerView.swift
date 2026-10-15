@@ -47,12 +47,12 @@ struct ComposerView: View {
                             statusCards
                             if state.draft.intent.isNew { destinationRow } else { replyContext }
                             if state.draft.intent.isNew {
-                                NativeComposerEditor(raw: $state.draft.title, controller: titleEditor, isTitle: true, locked: state.locked, onNext: { bodyEditor.focus(); focusedField = .body }, onFocus: { bodyEditor.blur(); focusedField = .title }, identifier: "composer-title", label: "Title", placeholder: "Title")
+                                NativeComposerEditor(raw: $state.draft.title, controller: titleEditor, isTitle: true, locked: state.locked, onNext: { bodyEditor.focus(); focusedField = .body }, onFocus: { bodyEditor.blur(); focusedField = .title }, identifier: "composer-title", label: L("composer.title_field"), placeholder: L("composer.title_field"))
                                 Divider().overlay(Color.fomioSeparator)
                             }
-                            NativeComposerEditor(raw: $state.draft.body, controller: bodyEditor, locked: state.locked, attachmentData: { state.data(for: $0) }, attachmentCaption: { node in state.attachment(for: node).map(photoStatus) }, onBlock: { node in if let attachment = state.attachment(for: node) { suspendEditingFocus(); photoDescription = attachment.description; editingPhoto = attachment } else { openBlock(node) } }, onRemove: { node in bodyEditor.send(.replace(node.range, "")) }, onFocus: { titleEditor.blur(); focusedField = .body; bodyEngaged = true }, label: state.draft.intent.isNew ? "Opening post" : "Reply text", placeholder: state.draft.intent.isNew ? "Write the opening post" : "Write your reply")
+                            NativeComposerEditor(raw: $state.draft.body, controller: bodyEditor, locked: state.locked, attachmentData: { state.data(for: $0) }, attachmentCaption: { node in state.attachment(for: node).map(photoStatus) }, onBlock: { node in if let attachment = state.attachment(for: node) { suspendEditingFocus(); photoDescription = attachment.description; editingPhoto = attachment } else { openBlock(node) } }, onRemove: { node in bodyEditor.send(.replace(node.range, "")) }, onFocus: { titleEditor.blur(); focusedField = .body; bodyEngaged = true }, label: state.draft.intent.isNew ? L("composer.body.opening_label") : L("composer.body.reply_label"), placeholder: state.draft.intent.isNew ? L("composer.body.opening_placeholder") : L("composer.body.reply_placeholder"))
                             if !state.suggestions.isEmpty {
-                                DisclosureGroup("Similar discussions") {
+                                DisclosureGroup(L("composer.similar")) {
                                     ForEach(state.suggestions) { topic in Button(topic.title) { if state.save() { suspendEditingFocus(); presentation = .discussion(topic.id) } }.frame(minHeight: 44) }
                                 }
                             }
@@ -60,7 +60,7 @@ struct ComposerView: View {
                                 VStack(alignment: .leading, spacing: 4) { Text(preview.title).font(.headline); Text(preview.summary).font(.subheadline); Text(preview.url.host ?? "").font(.caption) }.padding(12).background(Color.fomioFill, in: .rect(cornerRadius: 12))
                             }
                             ForEach(state.draft.activeAttachments) { attachment in photoStatusRow(attachment) }
-                            if state.saveStatus == "Couldn’t save on this device" { Label(LocalizedStringKey(state.saveStatus), systemImage: "exclamationmark.triangle.fill").font(.footnote).foregroundStyle(Color.fomioDanger).accessibilityIdentifier("draft-save-status") }
+                            if state.saveStatus == .failed { Label(L("composer.save.failed"), systemImage: "exclamationmark.triangle.fill").font(.footnote).foregroundStyle(Color.fomioDanger).accessibilityIdentifier("draft-save-status") }
                             if let error = state.error { Text(error).font(.subheadline).foregroundStyle(Color.fomioDanger).accessibilityIdentifier("composer-error").id(Recovery.error).accessibilityFocused($recoveryFocus, equals: .error) }
                         }.padding(20)
                     }
@@ -81,28 +81,28 @@ struct ComposerView: View {
                     recoveryFocus = target
                 }
             }
-            .navigationTitle(state.draft.intent.isNew ? "New discussion" : "Reply").navigationBarTitleDisplayMode(.inline)
+            .navigationTitle(state.draft.intent.isNew ? L("composer.new_discussion") : L("post.reply")).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if navigationPresentation.wrappedValue == nil {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel", systemImage: "xmark") { close() }.disabled(state.draft.submission == .submitting).accessibilityIdentifier("composer-close").keyboardShortcut(.cancelAction)
+                    Button(L("common.cancel"), systemImage: "xmark") { close() }.disabled(state.draft.submission == .submitting).accessibilityIdentifier("composer-close").keyboardShortcut(.cancelAction)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    if state.draft.submission == .submitting { ProgressView().accessibilityLabel("Posting") }
-                    else { Button("Post") { focusedField = nil; titleEditor.blur(); bodyEditor.blur(); Task { await state.submit() } }.buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).disabled(!state.canPost).accessibilityIdentifier("composer-post").keyboardShortcut(.return, modifiers: .command) }
+                    if state.draft.submission == .submitting { ProgressView().accessibilityLabel(L("composer.posting")) }
+                    else { Button(L("composer.post")) { focusedField = nil; titleEditor.blur(); bodyEditor.blur(); Task { await state.submit() } }.buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).disabled(!state.canPost).accessibilityIdentifier("composer-post").keyboardShortcut(.return, modifiers: .command) }
                 }
             }
             }
             .background(ComposerDismissGuard(blocked: state.hasChanges, submitting: state.draft.submission == .submitting, onAttempt: { close() }).frame(width: 0, height: 0))
             .confirmationDialog(keepTitle, isPresented: presented(.exit), titleVisibility: .visible) {
-                Button(state.photoWillBeLost && state.photoUnfinished ? "Keep draft without photo" : "Keep draft") { state.keepDraft() }
-                Button(state.resumed ? "Discard draft" : "Discard", role: .destructive) { state.discard() }
-                Button("Keep editing") { showExit = false; restoreEditingFocus() }.accessibilityIdentifier("composer-keep-editing")
+                Button(state.photoWillBeLost && state.photoUnfinished ? L("composer.keep_draft_without_photo") : L("composer.keep_draft")) { state.keepDraft() }
+                Button(state.resumed ? L("composer.discard_draft") : L("composer.discard"), role: .destructive) { state.discard() }
+                Button(L("composer.keep_editing")) { showExit = false; restoreEditingFocus() }.accessibilityIdentifier("composer-keep-editing")
             } message: { if let warning = keepPhotoWarning { Text(warning) } }
-            .alert("Post again?", isPresented: presented(.retry)) {
-                Button("Cancel", role: .cancel) {}
-                Button("Post again") { Task { await state.postAgain() } }
-            } message: { Text("If your first \(state.noun) went through, this will create a duplicate.") }
+            .alert(L("composer.retry.title"), isPresented: presented(.retry)) {
+                Button(L("common.cancel"), role: .cancel) {}
+                Button(L("composer.retry.action")) { Task { await state.postAgain() } }
+            } message: { Text(state.draft.intent.isNew ? L("composer.retry.message.discussion") : L("composer.retry.message.reply")) }
             .photosPicker(isPresented: presented(.photos), selection: $photos, matching: .images)
             .sheet(isPresented: presented(.inserter), onDismiss: completeInsert) {
                 ComposerInserter(placement: insertionPlacement, blocks: insertableBlocks, samplePhoto: app.fixture != nil) { choice in
@@ -116,13 +116,13 @@ struct ComposerView: View {
                 switch route {
                 case .link:
                     Form {
-                        TextField("Text", text: $linkLabel)
-                        TextField("URL", text: $linkURL).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
-                    }.navigationTitle("Link")
-                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Insert") { if let range = editingLinkRange { bodyEditor.send(.replace(range, DiscourseMarkupCodec.link(label: linkLabel, url: linkURL))) } else { bodyEditor.send(.link(linkLabel, linkURL)) }; presentation = nil }.disabled(URL(string: linkURL)?.scheme.map { !["https", "http"].contains($0) } ?? true) } }
+                        TextField(L("composer.link.text"), text: $linkLabel)
+                        TextField(L("composer.link.url"), text: $linkURL).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                    }.navigationTitle(L("composer.link"))
+                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button(L("composer.insert")) { if let range = editingLinkRange { bodyEditor.send(.replace(range, DiscourseMarkupCodec.link(label: linkLabel, url: linkURL))) } else { bodyEditor.send(.link(linkLabel, linkURL)) }; presentation = nil }.disabled(URL(string: linkURL)?.scheme.map { !["https", "http"].contains($0) } ?? true) } }
                 case let .photo(id):
-                    Form { TextField("Image description", text: $photoDescription, axis: .vertical) }.navigationTitle("Photo")
-                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Save") {
+                    Form { TextField(L("composer.photo.description"), text: $photoDescription, axis: .vertical) }.navigationTitle(L("composer.photo"))
+                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button(L("common.save")) {
                         if let node = DiscourseMarkupCodec.parse(state.draft.body).first(where: { state.attachment(for: $0)?.id == id }), let index = state.draft.attachments.firstIndex(where: { $0.id == id }) {
                             var changed = state.draft.attachments[index]; changed.description = photoDescription
                             bodyEditor.send(.replace(node.range, changed.markup)); state.draft.attachments[index].description = photoDescription
@@ -163,7 +163,7 @@ struct ComposerView: View {
                                 bodyEditor.send(.adopt(previous, EditorSelection(insertion)))
                                 insertion = NSRange(location: insertion.location + (state.draft.body as NSString).length - before, length: 0)
                             }
-                        } catch { state.error = "Could not read the selected photo. Your writing is kept." }
+                        } catch { state.error = L("composer.photo.read_failed") }
                     }
                     photos = []
                 }
@@ -172,7 +172,7 @@ struct ComposerView: View {
     }
     private func close() {
         suspendEditingFocus()
-        if state.locked { state.keepDraft(message: state.draft.submission == .unconfirmed ? "Kept as a draft. Check the discussion before posting again." : nil) }
+        if state.locked { state.keepDraft(message: state.draft.submission == .unconfirmed ? L("composer.kept_unconfirmed") : nil) }
         else if state.hasChanges { showExit = true }
         else { state.close() }
     }
@@ -213,12 +213,12 @@ struct ComposerView: View {
             else { bodyEditor.send(.select(selection)); bodyEditor.focus() }
         }
     }
-    private var keepTitle: String { state.resumed ? String(localized: "You changed this draft.") : String(localized: "Keep this \(state.noun) as a draft?") }
+    private var keepTitle: String { state.resumed ? L("composer.keep.changed") : state.draft.intent.isNew ? L("composer.keep.title.discussion") : L("composer.keep.title.reply") }
     private var keepPhotoWarning: String? {
         guard state.photoWillBeLost && state.photoUnfinished else { return nil }
-        let kept = state.draft.intent.isNew ? "title, text and community" : "text"
-        if case .uploading = state.uploadState { return "The photo is still uploading. Keeping the draft stops the upload and the photo won’t be kept. Your \(kept) will be kept." }
-        return "The photo didn’t upload, so it won’t be kept. Your \(kept) will be kept."
+        let isNew = state.draft.intent.isNew
+        if case .uploading = state.uploadState { return isNew ? L("composer.keep.photo_uploading.discussion") : L("composer.keep.photo_uploading.reply") }
+        return isNew ? L("composer.keep.photo_failed.discussion") : L("composer.keep.photo_failed.reply")
     }
     // MARK: Context
     private var destinationRow: some View {
@@ -229,12 +229,12 @@ struct ComposerView: View {
     @ViewBuilder private var replyContext: some View {
         if case let .reply(topic, parent) = state.draft.intent {
             let category = state.draft.contextCategory.map(app.categoryName)
-            let sub = state.draft.quote.map { String(localized: "Quoting \($0.author) · #\($0.number.rawValue)") }
-                ?? state.draft.targetAuthor.map { String(localized: "Replying to \($0) · #\(parent?.rawValue ?? 0)") }
-                ?? String(localized: "Replying to the discussion") + (category.map { " · \($0)" } ?? "")
+            let sub = state.draft.quote.map { L("composer.context.quoting", ["name": $0.author, "number": String($0.number.rawValue)]) }
+                ?? state.draft.targetAuthor.map { L("composer.context.replying_to", ["name": $0, "number": String(parent?.rawValue ?? 0)]) }
+                ?? category.map { L("composer.context.replying_in", ["community": $0]) } ?? L("composer.context.replying")
             VStack(alignment: .leading, spacing: 3) {
                 Text(sub).font(.caption).foregroundStyle(Color.fomioSecondaryText)
-                Text(state.draft.contextTitle ?? String(localized: "Discussion \(topic.rawValue)")).font(.subheadline.weight(.semibold)).lineLimit(2)
+                Text(state.draft.contextTitle ?? L("composer.discussion_number", ["number": String(topic.rawValue)])).font(.subheadline.weight(.semibold)).lineLimit(2).contentDirection(state.draft.contextTitle ?? "")
             }.padding(12).frame(maxWidth: .infinity, alignment: .leading).background(Color.fomioFill, in: .rect(cornerRadius: 12)).accessibilityElement(children: .combine)
         }
     }
@@ -242,45 +242,45 @@ struct ComposerView: View {
     @ViewBuilder private var statusCards: some View {
         if let message = state.rejection {
             alertCard(symbol: "exclamationmark.triangle.fill", tint: .fomioDanger) {
-                Text("Couldn't post").font(.headline).accessibilityFocused($recoveryFocus, equals: .rejection)
+                Text(L("composer.rejected.title")).font(.headline).accessibilityFocused($recoveryFocus, equals: .rejection)
                 Text(message).font(.subheadline)
-                Text("Your writing is kept. Edit and try again.").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
+                Text(L("composer.rejected.message")).font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
             }.id(Recovery.rejection)
         }
         if state.expired {
             alertCard(symbol: "person.crop.circle.badge.exclamationmark", tint: .fomioAccent) {
-                Text("You've been signed out").font(.headline).accessibilityFocused($recoveryFocus, equals: .authorization)
-                Text("Sign in again to post. Your \(state.noun) stays here and won't be sent automatically.").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
-                Button("Sign in") { suspendEditingFocus(); state.suspendForAuthentication() }.buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).frame(minHeight: 44)
+                Text(L("composer.expired.title")).font(.headline).accessibilityFocused($recoveryFocus, equals: .authorization)
+                Text(state.draft.intent.isNew ? L("composer.expired.message.discussion") : L("composer.expired.message.reply")).font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
+                Button(L("auth.sign_in")) { suspendEditingFocus(); state.suspendForAuthentication() }.buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).frame(minHeight: 44)
             }.id(Recovery.authorization)
         }
         if app.isOffline && !state.locked {
-            Text("\(Text("You're offline.").bold()) Keep writing. Post works again once you're back online; nothing is sent automatically.")
+            LText(lead: "offline.lead", rest: "offline.composer")
                 .font(.subheadline).padding(14).frame(maxWidth: .infinity, alignment: .leading).background(Color.fomioFill, in: .rect(cornerRadius: 14))
         }
         if state.draft.submission == .unconfirmed {
             alertCard(symbol: "questionmark.circle.fill", tint: .fomioAccent) {
-                Text("We couldn't confirm whether your \(state.noun) posted").font(.headline).accessibilityFocused($recoveryFocus, equals: .unconfirmed)
-                Text("Our check didn't find it yet. That doesn't mean it failed. Your text is kept here.").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
+                Text(state.draft.intent.isNew ? L("composer.unconfirmed.title.discussion") : L("composer.unconfirmed.title.reply")).font(.headline).accessibilityFocused($recoveryFocus, equals: .unconfirmed)
+                Text(L("composer.unconfirmed.message")).font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
                 ViewThatFits(in: .horizontal) {
                     HStack { unconfirmedActions }
                     VStack(alignment: .leading) { unconfirmedActions }
                 }
                 Divider()
-                Text("Posting again could create a duplicate if the first one went through.").font(.footnote).foregroundStyle(Color.fomioSecondaryText)
-                Button("Post again…") { presentation = .retry }.font(.subheadline.weight(.semibold)).frame(minHeight: 44)
+                Text(L("composer.unconfirmed.duplicate_warning")).font(.footnote).foregroundStyle(Color.fomioSecondaryText)
+                Button(L("composer.retry.open")) { presentation = .retry }.font(.subheadline.weight(.semibold)).frame(minHeight: 44)
             }.id(Recovery.unconfirmed)
         }
         if state.draft.submission == .pending {
             alertCard(symbol: "clock", tint: .fomioAccent) {
-                Text("Submitted for review").font(.headline).accessibilityFocused($recoveryFocus, equals: .pending)
-                Text("Your \(state.noun) isn’t published yet. This local record stays locked so it can’t be posted twice.").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
+                Text(L("pending.title")).font(.headline).accessibilityFocused($recoveryFocus, equals: .pending)
+                Text(state.draft.intent.isNew ? L("composer.pending.message.discussion") : L("composer.pending.message.reply")).font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
             }.id(Recovery.pending)
         }
         if state.draft.missingPhoto && state.photoData == nil {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Photo not kept").font(.headline).accessibilityFocused($recoveryFocus, equals: .missingPhoto)
-                Text("It hadn’t finished uploading. \(state.draft.intent.isNew ? "Title, text and community are restored." : "Your text is restored.")").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
+                Text(L("composer.photo_lost.title")).font(.headline).accessibilityFocused($recoveryFocus, equals: .missingPhoto)
+                Text(state.draft.intent.isNew ? L("composer.photo_lost.message.discussion") : L("composer.photo_lost.message.reply")).font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: 16) { lostPhotoActions }
                     VStack(alignment: .leading, spacing: 0) { lostPhotoActions }
@@ -289,12 +289,12 @@ struct ComposerView: View {
         }
     }
     @ViewBuilder private var unconfirmedActions: some View {
-        Button("Check again") { Task { await state.checkAgain() } }.buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).disabled(state.checking).frame(minHeight: 44)
-        Button(state.draft.intent.isNew ? "Keep as draft" : "Back to discussion") { state.keepDraft(message: "Kept as a draft. Check the discussion before posting again.") }.buttonStyle(.bordered).frame(minHeight: 44)
+        Button(L("composer.check_again")) { Task { await state.checkAgain() } }.buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).disabled(state.checking).frame(minHeight: 44)
+        Button(state.draft.intent.isNew ? L("composer.keep_as_draft") : L("composer.back_to_discussion")) { state.keepDraft(message: L("composer.kept_unconfirmed")) }.buttonStyle(.bordered).frame(minHeight: 44)
     }
     @ViewBuilder private var lostPhotoActions: some View {
-        photoPicker("Add photo again", symbol: nil)
-        Button("Continue without photo") { state.removePhoto() }.font(.subheadline.weight(.semibold)).frame(minHeight: 44)
+        photoPicker(L("composer.photo.add_again"), symbol: nil)
+        Button(L("composer.photo.continue_without")) { state.removePhoto() }.font(.subheadline.weight(.semibold)).frame(minHeight: 44)
     }
     private func alertCard<Content: View>(symbol: String, tint: Color, @ViewBuilder content: () -> Content) -> some View {
         HStack(alignment: .top, spacing: 12) {
@@ -305,23 +305,23 @@ struct ComposerView: View {
     // MARK: Photo
     private func photoStatus(_ attachment: ComposerAttachment) -> String {
         switch attachment.status {
-        case .retained: String(localized: "Photo kept on this device. Resume upload to post.")
-        case .queued: String(localized: "Waiting to upload")
-        case let .uploading(value): String(localized: "Uploading photo · \(Int(value * 100))%")
-        case let .failed(message): String(localized: "Photo didn’t upload. \(message)")
-        case .uploaded: String(localized: "Photo attached")
-        case .missing: String(localized: "Photo file unavailable. Remove it or select it again.")
+        case .retained: L("composer.photo.status.retained")
+        case .queued: L("composer.photo.status.queued")
+        case let .uploading(value): L("composer.photo.status.uploading", ["percent": (value).formatted(.percent.precision(.fractionLength(0)).locale(Localizer.shared.formattingLocale))])
+        case let .failed(message): L("composer.photo.status.failed", ["reason": message])
+        case .uploaded: L("composer.photo.status.uploaded")
+        case .missing: L("composer.photo.status.missing")
         }
     }
     private func photoStatusRow(_ attachment: ComposerAttachment) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(LocalizedStringKey(photoStatus(attachment))).font(.subheadline).accessibilityAddTraits(.updatesFrequently)
+            Text(photoStatus(attachment)).font(.subheadline).accessibilityAddTraits(.updatesFrequently)
             HStack {
                 switch attachment.status {
-                case .retained, .failed: Button(LocalizedStringKey(attachment.status == .retained ? "Resume upload" : "Retry upload")) { state.retryPhoto(attachment.id) }.frame(minHeight: 44)
+                case .retained, .failed: Button(attachment.status == .retained ? L("composer.photo.resume_upload") : L("composer.photo.retry_upload")) { state.retryPhoto(attachment.id) }.frame(minHeight: 44)
                 default: EmptyView()
                 }
-                Button("Remove photo") {
+                Button(L("composer.photo.remove")) {
                     if let node = DiscourseMarkupCodec.parse(state.draft.body).first(where: { state.attachment(for: $0)?.id == attachment.id }) { bodyEditor.send(.replace(node.range, "")) }
                 }.frame(minHeight: 44)
             }
@@ -383,13 +383,13 @@ struct ComposerView: View {
     /// States where the block will go, quoting the block it follows.
     private var insertionPlacement: String {
         let source = state.draft.body as NSString
-        guard insertion.location > 0, insertion.location <= source.length else { return String(localized: "Adds at the start.") }
-        if insertion.location == source.length && !bodyEngaged { return String(localized: "Adds at the end.") }
+        guard insertion.location > 0, insertion.location <= source.length else { return L("composer.insert.at_start") }
+        if insertion.location == source.length && !bodyEngaged { return L("composer.insert.at_end") }
         let line = source.substring(to: insertion.location).trimmingCharacters(in: .whitespacesAndNewlines).components(separatedBy: "\n").last ?? ""
         let text = (line as NSString).substring(from: DiscourseMarkupCodec.style(ofLine: line).prefix).trimmingCharacters(in: .whitespaces)
-        if text.isEmpty { return String(localized: "Adds at the cursor.") }
-        let excerpt = text.count > 40 ? String(text.prefix(40)) + "…" : text
-        return String(localized: "Adds after “\(excerpt)”")
+        if text.isEmpty { return L("composer.insert.at_cursor") }
+        let excerpt = text.count > 40 ? String(text.prefix(40)) + L("common.ellipsis") : text
+        return L("composer.insert.after", ["excerpt": excerpt])
     }
     private var insertableBlocks: [ComposerBlockKind] {
         ComposerBlockKind.allCases.filter { ![.photo, .opaque, .quote].contains($0) && app.service.composerCapabilities.blocks.contains($0) }
@@ -433,31 +433,31 @@ struct ComposerView: View {
     private func editorMenu(labelled: Bool) -> ComposerMoreMenu {
         let canFormatInline = DiscourseMarkupCodec.supportsInlineFormatting(state.draft.body, range: bodyEditor.selection.range)
         var actions: [ComposerMenuAction] = [
-            .init("Bold", "bold", enabled: canFormatInline, group: "Format") { bodyEditor.send(.bold); bodyEditor.focus() },
-            .init("Italic", "italic", enabled: canFormatInline, group: "Format") { bodyEditor.send(.italic); bodyEditor.focus() },
-            .init("Link", "link", enabled: canFormatInline, group: "Format") { openLink() }
+            .init(L("composer.format.bold"), "bold", enabled: canFormatInline, group: L("composer.format")) { bodyEditor.send(.bold); bodyEditor.focus() },
+            .init(L("composer.format.italic"), "italic", enabled: canFormatInline, group: L("composer.format")) { bodyEditor.send(.italic); bodyEditor.focus() },
+            .init(L("composer.link"), "link", enabled: canFormatInline, group: L("composer.format")) { openLink() }
         ]
         // Turn into stays reachable here when large text drops the type chip from the bar.
         for style in ComposerTextStyle.offered {
-            actions.append(.init(style.title, style.symbol, enabled: bodyEditor.textStyle != nil, group: "Turn into") { bodyEditor.send(.style(style)); bodyEditor.focus() })
+            actions.append(.init(style.title, style.symbol, enabled: bodyEditor.textStyle != nil, group: L("composer.turn_into")) { bodyEditor.send(.style(style)); bodyEditor.focus() })
         }
-        actions.append(.init("Add block…", "plus") { openInserter() })
-        actions.append(.init("Add photo", "photo") { photoInsertion = bodyEditor.selection; suspendEditingFocus(); showPhotoPicker = true })
+        actions.append(.init(L("composer.add_block_ellipsis"), "plus") { openInserter() })
+        actions.append(.init(L("composer.add_photo"), "photo") { photoInsertion = bodyEditor.selection; suspendEditingFocus(); showPhotoPicker = true })
         if app.fixture != nil {
-            actions.append(.init("Sample photo", "photo") {
+            actions.append(.init(DevText("Sample photo"), "photo") {
                 if let url = Bundle.main.url(forResource: "fixture-photo", withExtension: "jpg"), let data = try? Data(contentsOf: url) {
                     let previous = state.draft.body; state.addPhoto(data, at: bodyEditor.selection.range); bodyEditor.send(.adopt(previous, bodyEditor.selection))
                 }
             })
         }
-        actions.append(.init(bodyEditor.markdown ? "Rich text" : "Edit in Markdown", "textformat") { bodyEditor.send(.markdown); bodyEditor.focus() })
-        actions.append(.init("Undo", "arrow.uturn.backward", enabled: bodyEditor.canUndo) { bodyEditor.send(.undo) })
-        actions.append(.init("Redo", "arrow.uturn.forward", enabled: bodyEditor.canRedo) { bodyEditor.send(.redo) })
+        actions.append(.init(bodyEditor.markdown ? L("composer.rich_text") : L("composer.edit_markdown"), "textformat") { bodyEditor.send(.markdown); bodyEditor.focus() })
+        actions.append(.init(L("composer.undo"), "arrow.uturn.backward", enabled: bodyEditor.canUndo) { bodyEditor.send(.undo) })
+        actions.append(.init(L("composer.redo"), "arrow.uturn.forward", enabled: bodyEditor.canRedo) { bodyEditor.send(.redo) })
         return ComposerMoreMenu(actions: actions, labelled: labelled, onOpen: { restoreTask?.cancel(); turningInto = false })
     }
     private func photoPicker(_ title: String, symbol: String?) -> some View {
         Button { photoInsertion = bodyEditor.selection; suspendEditingFocus(); showPhotoPicker = true } label: {
-            if let symbol { Label(LocalizedStringKey(title), systemImage: symbol).frame(minHeight: 44) } else { Text(LocalizedStringKey(title)).frame(minHeight: 44) }
+            if let symbol { Label(title, systemImage: symbol).frame(minHeight: 44) } else { Text(title).frame(minHeight: 44) }
         }.font(.subheadline.weight(.semibold)).disabled(state.locked)
     }
 }
@@ -499,29 +499,29 @@ struct CommunityField: View {
                 VStack(alignment: .leading, spacing: 4) { collapsedParts(label) }
             }.padding(.horizontal, 14).padding(.vertical, 10).frame(maxWidth: .infinity, minHeight: 48, alignment: .leading).contentShape(.rect)
         }.buttonStyle(.plain).disabled(locked)
-        .accessibilityLabel(label.map { String(localized: "Posting in \($0). Change community") } ?? String(localized: "Choose a community, required")).accessibilityIdentifier("composer-destination")
+        .accessibilityLabel(label.map { L("composer.destination.a11y_selected", ["community": $0]) } ?? L("composer.destination.a11y_required")).accessibilityIdentifier("composer-destination")
     }
     @ViewBuilder private func collapsedParts(_ label: String?) -> some View {
-        Text("Post in").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
-        Text(label ?? String(localized: "Choose a community")).font(.subheadline.weight(.semibold)).foregroundStyle(label == nil ? Color.fomioSecondaryText : .primary)
+        Text(L("composer.destination.post_in")).font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
+        Text(label ?? L("composer.destination.choose")).font(.subheadline.weight(.semibold)).foregroundStyle(label == nil ? Color.fomioSecondaryText : .primary)
         Spacer(minLength: 0)
         HStack(spacing: 4) {
-            Text(LocalizedStringKey(label == nil ? "Required" : "Change"))
+            Text(label == nil ? L("composer.destination.required") : L("composer.destination.change"))
             Image(systemName: "chevron.down").font(.caption.weight(.bold)).accessibilityHidden(true)
         }.font(.subheadline.weight(.semibold)).foregroundStyle(Color.fomioAccent)
     }
     private var searchHeader: some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass").foregroundStyle(Color.fomioSecondaryText).accessibilityHidden(true)
-            TextField("Search communities", text: $query)
+            TextField(L("composer.destination.search"), text: $query)
                 .focused($searching).submitLabel(.done).autocorrectionDisabled().textInputAutocapitalization(.never)
                 .onSubmit { if let first = visibleOptions.first, !trimmedQuery.isEmpty { pick(first.id) } else { searching = false } }
                 .onKeyPress(.escape) { close(); return .handled }
                 .accessibilityIdentifier("destination-search")
             if !query.isEmpty {
-                Button("Clear search", systemImage: "xmark.circle.fill") { query = "" }.labelStyle(.iconOnly).foregroundStyle(Color.fomioSecondaryText).frame(minWidth: 32, minHeight: 44)
+                Button(L("common.clear_search"), systemImage: "xmark.circle.fill") { query = "" }.labelStyle(.iconOnly).foregroundStyle(Color.fomioSecondaryText).frame(minWidth: 32, minHeight: 44)
             }
-            Button("Close community list", systemImage: "chevron.up", action: close).labelStyle(.iconOnly).font(.subheadline.weight(.bold)).foregroundStyle(Color.fomioAccent).frame(minWidth: 32, minHeight: 44)
+            Button(L("composer.destination.close"), systemImage: "chevron.up", action: close).labelStyle(.iconOnly).font(.subheadline.weight(.bold)).foregroundStyle(Color.fomioAccent).frame(minWidth: 32, minHeight: 44)
                 .accessibilityIdentifier("destination-close")
         }.font(.subheadline).padding(.leading, 14).padding(.trailing, 8).frame(minHeight: 48)
     }
@@ -543,7 +543,7 @@ struct CommunityField: View {
                                 row(parent, style: .parent)
                                 if !children.isEmpty {
                                     Button { toggle(group) } label: { disclosure(group, count: children.count) }.buttonStyle(.plain)
-                                        .accessibilityLabel(String(localized: "Sub-communities of \(parent.community.name)")).accessibilityValue(expansionValue(group))
+                                        .accessibilityLabel(L("composer.destination.children_of", ["community": parent.community.name])).accessibilityValue(expansionValue(group))
                                         .accessibilityIdentifier("destination-toggle-\(parent.id.rawValue)")
                                 }
                             }.background(selected == parent.id ? Color.fomioSelected : .clear)
@@ -555,10 +555,10 @@ struct CommunityField: View {
                                 .transition(.opacity)
                         }
                     }
-                    if groups.isEmpty { message(String(localized: "No community you can post in is available.")) }
+                    if groups.isEmpty { message(L("composer.destination.none_available")) }
                 } else {
                     ForEach(visibleOptions) { row($0, style: .result) }
-                    if visibleOptions.isEmpty { message(String(localized: "No community matches “\(trimmedQuery)”.")) }
+                    if visibleOptions.isEmpty { message(L("composer.destination.no_match", ["query": trimmedQuery])) }
                 }
             }.padding(.vertical, 4)
             .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { listHeight = $0 }
@@ -584,7 +584,7 @@ struct CommunityField: View {
         }.padding(.horizontal, 14).frame(minWidth: 44, minHeight: 44).contentShape(.rect).accessibilityHidden(true)
     }
     private func expansionValue(_ group: OptionGroup) -> String {
-        (group.id.map(expanded.contains) ?? false) ? String(localized: "Expanded") : String(localized: "Collapsed")
+        (group.id.map(expanded.contains) ?? false) ? L("common.expanded") : L("common.collapsed")
     }
     private func toggle(_ group: OptionGroup) {
         guard let id = group.id else { return }
@@ -598,7 +598,7 @@ struct CommunityField: View {
                 if style != .child { CategoryMark(category: option.community, size: mark) }
                 VStack(alignment: .leading, spacing: 2) {
                     Text(matched(option.community.name)).font(option.parent == nil ? .body.weight(.semibold) : .body).foregroundStyle(style == .child ? AnyShapeStyle(.primary.opacity(0.8)) : AnyShapeStyle(.primary))
-                    if style == .result, let parent = option.parent { Text(matched(String(localized: "in \(parent.name)"))).font(.footnote).foregroundStyle(Color.fomioSecondaryText) }
+                    if style == .result, let parent = option.parent { Text(matched(L("composer.destination.in_parent", ["community": parent.name]))).font(.footnote).foregroundStyle(Color.fomioSecondaryText) }
                 }.multilineTextAlignment(.leading)
                 Spacer(minLength: 0)
                 if isSelected { Image(systemName: "checkmark").foregroundStyle(Color.fomioAccent).fontWeight(.semibold) }
@@ -607,8 +607,12 @@ struct CommunityField: View {
             .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
             .background(isSelected && style != .parent ? Color.fomioSelected : .clear).contentShape(.rect)
         }.buttonStyle(.plain)
-        .accessibilityLabel((option.parent.map { String(localized: "\(option.community.name), in \($0.name)") } ?? option.community.name) + (isSelected ? String(localized: ", selected") : ""))
+        .accessibilityLabel(rowLabel(option, selected: isSelected))
         .accessibilityIdentifier("destination-\(option.id.rawValue)")
+    }
+    private func rowLabel(_ option: Option, selected: Bool) -> String {
+        let name = option.parent.map { L("composer.destination.child_a11y", ["community": option.community.name, "parent": $0.name]) } ?? option.community.name
+        return selected ? L("common.selected_a11y", ["item": name]) : name
     }
     private func message(_ text: String) -> some View {
         Text(text).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).padding(14).frame(maxWidth: .infinity, alignment: .leading)

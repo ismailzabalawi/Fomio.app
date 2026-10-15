@@ -1,6 +1,6 @@
 # Localization and terminology strategy
 
-Status: design, source review, and read-only admin settings inspection, 2026-10-04. No native localization API has been connected or tested on the deployed forum. See the [implementation plan](localization-implementation-plan.md) for the live settings snapshot and English-only fallback decision.
+Status: design 2026-10-04; **iOS implementation 2026-10-15** (branch `claude/fomio-localization-impl-48ecab`, not merged). The app side of this strategy is built and tested against fixtures; no native localization API exists on the deployed forum yet. See [catalog contract and backend handoff](localization-catalog-contract.md) and [acceptance checklist](localization-acceptance.md). See the [implementation plan](localization-implementation-plan.md) for the live settings snapshot and English-only fallback decision.
 
 ## What the app can promise
 
@@ -72,3 +72,25 @@ Cache public terms separately for each site and locale. Do not mix terms across 
 - Test Arabic RTL and English LTR navigation, mixed-script posts, the UIKit composer, Dynamic Type, long translated labels, and VoiceOver. SwiftUI's automatic mirroring is a starting behavior, not full acceptance evidence.
 
 Until that contract exists and is live-verified, ship bundled localization and show server-provided community names/content. Do not promise complete Discourse translation inheritance or zero-update changes to all app copy.
+
+## Implementation, 2026-10-15
+
+- **Catalog runtime** (`Fomio/Localization/`): `Localizer` holds the active validated catalog behind a lock and registers SwiftUI Observation, so `L("key")` works in views, models and errors and views redraw in place. `LocalizationEnvironment` applies the catalog's formatting locale and layout direction at every presentation root (window, composer and sign-in sheets) together with the catalog.
+- **Keys**: 481 semantic keys in `Fomio/Resources/Localization/fomio-catalog-en.json` (bundled English, the only bundled language). `Localization/manifest.json` records per key whether it reuses an exact Discourse key (35) or is Fomio-owned (446). Sentences that embedded "reply"/"discussion" were split into separate keys for grammatical agreement. Relative ages are stored as values (`AgeValue`) and formatted at display time. Undo action names, UIKit attachment cards, the native More menu and accessibility labels use the same keys as SwiftUI.
+- **Arabic**: `Localization/catalogs/ar.json`, complete with six plural forms; Discourse's own Arabic for the 35 mapped keys. Agent-authored, needs native review. Debug builds serve it through `FixtureLocalizationTransport`; Release excludes it.
+- **Language choice**: Me › Language offers Device language (default, matched against the site's complete languages) and each complete language. iOS's per-app language setting offers the verified languages (`CFBundleLocalizations` en, ar). A choice that cannot download leaves the current language and preference unchanged; a chosen-but-missing language shows a pending notice and English.
+- **Cache**: `LocalizationStore` keeps one atomic record per locale under Application Support/Localization/site-<digest of origin+relative root>/schema-1/, excluded from backup, revalidated on every load, current plus one recent language.
+- **Refresh**: launch and foreground; 24-hour staleness; `If-None-Match`/304; concurrent callers share one request; failures and invalid responses keep the last good catalog.
+- **Live builds** use `UnavailableLocalizationTransport` (English only) until `FomioLocaleIndexPath`/`FomioLocaleCatalogPath` are set after the backend contract is deployed.
+- **Direction**: SF Symbols use forward/backward variants; the editor follows interface direction for its caret and placeholder while each paragraph keeps its own direction; community text uses `contentDirection(_:)`; arguments of the opposite direction are wrapped in first-strong isolates and RTL messages starting with an argument get a right-to-left mark.
+
+### Known limits
+
+- Apple-provided UI (keyboard, edit menu, Photos picker, share sheet, the search field's Close/Clear buttons, the iPad tab bar's overflow "More") follows the iOS language for the app, not an in-app choice. Observed in simulator runs with Arabic chosen in-app on an English device. Choosing Arabic in iOS Settings › Fomio › Language aligns them.
+- A change of interface direction rebuilds the tab container (`.id(layoutDirection)`), because UIKit bar views keep the direction they were created with (seen on the iPad top tab bar). Navigation paths, tab selection, feed and search state live in `AppState` and survive; view-local transient state (an open About sheet, an unsent search in a pushed screen's `@State`) can reset. The composer sheet is outside the rebuilt container. `UIView.appearance().semanticContentAttribute` follows the catalog so UIKit-presented menus mirror.
+- Server-generated text (Discourse validation errors, notification titles) arrives in the site's locale (English) because `allow_user_locale` is off.
+- Plural rules ship for English, Arabic and one-form languages only; other languages are rejected until rules and verification are added.
+
+## Terminology and override policy
+
+Native interface nouns stay "discussion" (topic) and "community"/"subcommunity" (category) in every locale. The deployed English overrides (Byte/Bytes, Hub, Teret) are branding for the web UI; they are inconsistent (casing differs across keys; `js.category.all` holds the literal "js.hubs.all") and exist only for English. Mapping them key by key would mix "Byte" with Fomio sentences that say "discussion". They are therefore not mapped; the catalog validator also rejects key-valued and markup values. An override never transfers to another locale. Adopting the branding natively requires a reviewed terminology variant of every sentence containing those nouns, per locale, mapped together (manifest `terminology.to_adopt_branding`).

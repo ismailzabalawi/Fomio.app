@@ -21,11 +21,15 @@ enum ComposerTextStyle: Hashable, Sendable {
     static let offered: [ComposerTextStyle] = [.paragraph, .heading(2), .heading(3), .quote, .list]
     var title: String {
         switch self {
-        case .paragraph: String(localized: "Paragraph")
-        case let .heading(level): String(localized: "Heading \(level)")
-        case .quote: String(localized: "Quote")
-        case .list: String(localized: "Bulleted list")
+        case .paragraph: L("composer.style.paragraph")
+        case let .heading(level): L("composer.style.heading", ["level": level.formatted(.number.locale(Localizer.shared.formattingLocale))])
+        case .quote: L("post.quote")
+        case .list: L("composer.style.list")
         }
+    }
+    /// Stable automation identifier; never shown and independent of the interface language.
+    var identifier: String {
+        switch self { case .paragraph: "Paragraph"; case let .heading(level): "Heading \(level)"; case .quote: "Quote"; case .list: "Bulleted list" }
     }
     var symbol: String {
         switch self {
@@ -48,15 +52,15 @@ enum ComposerBlockKind: String, CaseIterable, Codable, Sendable {
     case poll, table, details, spoiler, date, code, quote, photo, opaque
     var title: String {
         switch self {
-        case .poll: "Poll"
-        case .table: "Table"
-        case .details: "Hidden details"
-        case .spoiler: "Spoiler"
-        case .date: "Date and time"
-        case .code: "Code"
-        case .quote: "Quote"
-        case .photo: "Photo"
-        case .opaque: "Unsupported markup"
+        case .poll: L("composer.block.poll")
+        case .table: L("composer.block.table")
+        case .details: L("composer.block.details")
+        case .spoiler: L("composer.block.spoiler")
+        case .date: L("composer.block.date")
+        case .code: L("composer.block.code")
+        case .quote: L("post.quote")
+        case .photo: L("composer.photo")
+        case .opaque: L("composer.block.unsupported")
         }
     }
 }

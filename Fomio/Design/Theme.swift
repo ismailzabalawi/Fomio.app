@@ -51,13 +51,13 @@ struct ScreenMessage: View {
     var title: String
     var message: String
     var symbol = "exclamationmark.bubble"
-    var actionTitle = "Try again"
+    var actionTitle: String? = nil
     var action: (() -> Void)?
     var body: some View {
         ContentUnavailableView {
             Label(title, systemImage: symbol)
         } description: { Text(message) } actions: {
-            if let action { Button(actionTitle, action: action).buttonStyle(.bordered).frame(minHeight: 44) }
+            if let action { Button(actionTitle ?? L("common.try_again"), action: action).buttonStyle(.bordered).frame(minHeight: 44) }
         }
     }
 }
@@ -152,7 +152,7 @@ struct SkeletonRows: View {
                     RoundedRectangle(cornerRadius: 4).frame(width: 160, height: 10)
                 }.foregroundStyle(Color.fomioFill).padding(.horizontal, 20).padding(.vertical, 18)
             }
-        }.accessibilityElement(children: .ignore).accessibilityLabel("Loading discussions").accessibilityAddTraits(.updatesFrequently)
+        }.accessibilityElement(children: .ignore).accessibilityLabel(L("feed.loading")).accessibilityAddTraits(.updatesFrequently)
     }
 }
 struct ToastHost: ViewModifier {
@@ -175,41 +175,65 @@ struct SamplePhoto: View {
         Image(name).resizable().scaledToFit().clipShape(.rect(cornerRadius: 14))
             .accessibilityLabel(Self.description(name))
     }
-    static func description(_ name: String) -> String { name == "ph-walnut" ? "Close-up of a solid walnut table top" : name == "ph-fig" ? "Fig tree growing in a large container outdoors" : "Rigol oscilloscope and function generator on a bench" }
+    /// Alt text of the fictional fixture photos; it stands in for server-provided image descriptions.
+    static func description(_ name: String) -> String { DevText(name == "ph-walnut" ? "Close-up of a solid walnut table top" : name == "ph-fig" ? "Fig tree growing in a large container outdoors" : "Rigol oscilloscope and function generator on a bench") }
 }
 struct PhotoCreditsView: View {
     var body: some View {
         List {
-            Section("Fixture photos · unedited") {
-                credit("Walnut table top", "Martin Lorenz · CC BY-SA 3.0", "https://commons.wikimedia.org/wiki/File:Oberfl%C3%A4che_Wohnzimmertisch.JPG", "https://creativecommons.org/licenses/by-sa/3.0/")
-                credit("Rigol oscilloscope", "Dave Clausen · CC BY 2.0", "https://commons.wikimedia.org/wiki/File:Rigol_oscilloscope_DS_1052E.jpg", "https://creativecommons.org/licenses/by/2.0/")
-                credit("Fig tree", "Homoarborea · CC0 1.0", "https://commons.wikimedia.org/wiki/File:Ficus_carica_(1).jpg", "https://creativecommons.org/publicdomain/zero/1.0/")
+            Section(DevText("Fixture photos · unedited")) {
+                credit(DevText("Walnut table top"), "Martin Lorenz · CC BY-SA 3.0", "https://commons.wikimedia.org/wiki/File:Oberfl%C3%A4che_Wohnzimmertisch.JPG", "https://creativecommons.org/licenses/by-sa/3.0/")
+                credit(DevText("Rigol oscilloscope"), "Dave Clausen · CC BY 2.0", "https://commons.wikimedia.org/wiki/File:Rigol_oscilloscope_DS_1052E.jpg", "https://creativecommons.org/licenses/by/2.0/")
+                credit(DevText("Fig tree"), "Homoarborea · CC0 1.0", "https://commons.wikimedia.org/wiki/File:Ficus_carica_(1).jpg", "https://creativecommons.org/publicdomain/zero/1.0/")
             }
-        }.navigationTitle("Photo credits")
+        }.navigationTitle(L("me.photo_credits"))
     }
     private func credit(_ title: String, _ attribution: String, _ source: String, _ license: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) { Text(title).font(.headline); Text(attribution).font(.subheadline); Link("Original photo", destination: URL(string: source)!); Link("License", destination: URL(string: license)!) }.padding(.vertical, 6)
+        VStack(alignment: .leading, spacing: 8) { Text(title).font(.headline); Text(attribution).font(.subheadline); Link(DevText("Original photo"), destination: URL(string: source)!); Link(DevText("License"), destination: URL(string: license)!) }.padding(.vertical, 6)
+    }
+}
+/// A coarse elapsed time captured from a server timestamp. Formatting happens at display time with the
+/// active catalog, so a language change re-renders ages without refetching. Fixtures use literals ("3h").
+enum AgeValue: Hashable, Codable, Sendable, ExpressibleByStringLiteral {
+    case none, now, minutes(Int), hours(Int), days(Int)
+    init(seconds: TimeInterval) {
+        let seconds = max(0, seconds)
+        if seconds < 60 { self = .now } else if seconds < 3600 { self = .minutes(Int(seconds / 60)) }
+        else if seconds < 86_400 { self = .hours(Int(seconds / 3600)) } else { self = .days(Int(seconds / 86_400)) }
+    }
+    init(_ date: Date, now: Date = .now) { self.init(seconds: now.timeIntervalSince(date)) }
+    init(iso: String?, now: Date = .now) {
+        let formatter = ISO8601DateFormatter(); formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        guard let iso, let date = formatter.date(from: iso) ?? ISO8601DateFormatter().date(from: iso) else { self = .none; return }
+        self.init(date, now: now)
+    }
+    /// Stable, language-neutral token: "", "now", "40m", "3h", "2d".
+    init(stringLiteral value: String) { self.init(token: value) }
+    init(token value: String) {
+        guard let unit = value.last, let number = Int(value.dropLast()) else { self = value == "now" ? .now : .none; return }
+        switch unit { case "m": self = .minutes(number); case "h": self = .hours(number); case "d": self = .days(number); default: self = .none }
+    }
+    var token: String {
+        switch self { case .none: ""; case .now: "now"; case let .minutes(n): "\(n)m"; case let .hours(n): "\(n)h"; case let .days(n): "\(n)d" }
+    }
+    var isEmpty: Bool { self == .none }
+    init(from decoder: any Decoder) throws { self.init(token: try decoder.singleValueContainer().decode(String.self)) }
+    func encode(to encoder: any Encoder) throws { var container = encoder.singleValueContainer(); try container.encode(token) }
+    /// Compact age for metadata rows ("3h", "now"); empty when unknown.
+    var compact: String {
+        switch self {
+        case .none: ""
+        case .now: L("time.compact.now")
+        case let .minutes(n): L("time.compact.minutes", count: n)
+        case let .hours(n): L("time.compact.hours", count: n)
+        case let .days(n): L("time.compact.days", count: n)
+        }
     }
 }
 enum RelativeAge {
-    static func string(_ date: Date, now: Date = .now) -> String {
-        let seconds = max(0, now.timeIntervalSince(date))
-        if seconds < 60 { return "now" }
-        if seconds < 3600 { return "\(Int(seconds / 60))m" }
-        if seconds < 86_400 { return "\(Int(seconds / 3600))h" }
-        return "\(Int(seconds / 86_400))d"
-    }
-    static func string(iso: String?) -> String {
-        guard let iso else { return "" }
-        let formatter = ISO8601DateFormatter(); formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        guard let date = formatter.date(from: iso) ?? ISO8601DateFormatter().date(from: iso) else { return "" }
-        return string(date)
-    }
     static func edited(_ date: Date, now: Date = .now) -> String {
-        let value = string(date, now: now)
-        if value == "now" { return "Edited just now" }
-        let unit = value.last == "m" ? "m" : value.last == "h" ? "h" : "d"
-        return "Edited \(value.dropLast())\(unit) ago"
+        let age = AgeValue(date, now: now)
+        return age == .now ? L("drafts.edited_now") : L("drafts.edited_ago", ["age": age.compact])
     }
 }
 
@@ -282,7 +306,7 @@ struct CategoryChip: View {
                 .padding(.horizontal, 10).padding(.vertical, 6).frame(minHeight: 44)
                 .background(Color.fomioFill, in: .rect(cornerRadius: 14))
                 .overlay { RoundedRectangle(cornerRadius: 14).strokeBorder(Color.fomioSeparator, lineWidth: 1) }
-        }.buttonStyle(.plain).accessibilityLabel("Open community \(category.name)")
+        }.buttonStyle(.plain).accessibilityLabel(L("community.open", ["name": category.name]))
     }
 }
 

@@ -32,8 +32,12 @@ struct NativeComposerEditor: UIViewRepresentable {
     var onNext: () -> Void = {}
     var onFocus: () -> Void = {}
     var identifier = "composer-body"
-    var label = "Reply text"
-    var placeholder = "Write your reply"
+    var label = L("composer.body.reply_label")
+    var placeholder = L("composer.body.reply_placeholder")
+    /// The locale environment change re-runs `updateUIView`; the direction itself comes from the active
+    /// catalog, because a representable's environment direction is not the interface direction here.
+    @Environment(\.locale) private var locale
+    private var layoutDirection: LayoutDirection { Localizer.shared.layoutDirection }
     func makeCoordinator() -> Coordinator { Coordinator(self) }
     func makeUIView(context: Context) -> ComposerTextView {
         let view = ComposerTextView(usingTextLayoutManager: true)
@@ -48,7 +52,10 @@ struct NativeComposerEditor: UIViewRepresentable {
         // The SwiftUI formatting bar follows the keyboard safe area. A separate
         // UIKit accessory would add an extra row between the bar and the keys.
         view.accessibilityIdentifier = identifier
-        view.accessibilityLabel = String(localized: String.LocalizationValue(label))
+        view.accessibilityLabel = label
+        view.semanticContentAttribute = layoutDirection == .rightToLeft ? .forceRightToLeft : .forceLeftToRight
+        view.placeholderDirection = layoutDirection
+        context.coordinator.interface = (label, placeholder, layoutDirection)
         view.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         context.coordinator.view = view
         view.documentUndoManager = context.coordinator.history
@@ -58,6 +65,8 @@ struct NativeComposerEditor: UIViewRepresentable {
     func updateUIView(_ view: ComposerTextView, context: Context) {
         context.coordinator.parent = self; controller.coordinator = context.coordinator
         if view.isEditable != !locked { view.isEditable = !locked }
+        // A catalog or direction change relabels in place; the document, selection and undo stack are kept.
+        if context.coordinator.interface != (label, placeholder, layoutDirection) { context.coordinator.relabel(view, label: label, placeholder: placeholder, direction: layoutDirection) }
         if view.markedTextRange == nil, context.coordinator.lastRaw != raw || context.coordinator.lastMarkdown != controller.markdown {
             context.coordinator.render(raw, selection: context.coordinator.remapExternal(controller.selection.range, to: raw))
         } else if view.markedTextRange == nil { context.coordinator.refreshAppearance() }
@@ -98,6 +107,18 @@ struct NativeComposerEditor: UIViewRepresentable {
         var lastDisplay = ""
         var rendering = false
         var nativeUndoSuspended = false
+        var interface: (label: String, placeholder: String, direction: LayoutDirection) = ("", "", .leftToRight)
+        func relabel(_ view: ComposerTextView, label: String, placeholder: String, direction: LayoutDirection) {
+            interface = (label, placeholder, direction)
+            view.accessibilityLabel = label
+            view.semanticContentAttribute = direction == .rightToLeft ? .forceRightToLeft : .forceLeftToRight
+            view.placeholderDirection = direction
+            view.placeholder = lastRaw.isEmpty ? placeholder : nil
+            view.textStorage.enumerateAttribute(.attachment, in: NSRange(location: 0, length: view.textStorage.length)) { value, _, _ in
+                (value as? ComposerTextAttachment)?.card?.relabel()
+            }
+            view.setNeedsDisplay()
+        }
         init(_ parent: NativeComposerEditor) { self.parent = parent; history.groupsByEvent = false }
         var controller: EditorController { parent.controller }
         func font(bold: Bool = false, italic: Bool = false) -> UIFont {
@@ -176,7 +197,7 @@ struct NativeComposerEditor: UIViewRepresentable {
             view.attributedText = result
             var typing = base; typing[.font] = font(bold: controller.boldTyping, italic: controller.italicTyping)
             view.typingAttributes = typing
-            view.placeholder = raw.isEmpty ? String(localized: String.LocalizationValue(parent.placeholder)) : nil
+            view.placeholder = raw.isEmpty ? parent.placeholder : nil
             view.selectedRange = displayRange(selection)
             lastDisplay = view.text ?? ""
             controller.selection = EditorSelection(clamp(selection, in: raw))
@@ -251,18 +272,18 @@ struct NativeComposerEditor: UIViewRepresentable {
             let start = displayOffset(range.location), end = displayOffset(NSMaxRange(range))
             return NSRange(location: start, length: max(0, end - start))
         }
-        func commit(_ raw: String, selection: NSRange, action: String = "Edit") {
+        func commit(_ raw: String, selection: NSRange, action: String = "composer.undo_action.edit") {
             guard !parent.locked, raw != lastRaw else { return }
             let previous = lastRaw, previousSelection = controller.selection.range
             registerUndo(action: action) { target in target.commit(previous, selection: previousSelection, action: action) }
             parent.raw = raw
             render(raw, selection: selection)
         }
-        func registerUndo(action name: String = "Edit", _ action: @escaping (Coordinator) -> Void) {
+        func registerUndo(action name: String = "composer.undo_action.edit", _ action: @escaping (Coordinator) -> Void) {
             let needsGroup = history.groupingLevel == 0
             if needsGroup { history.beginUndoGrouping() }
             history.registerUndo(withTarget: self, handler: action)
-            history.setActionName(String(localized: String.LocalizationValue(name)))
+            history.setActionName(L(name))
             if needsGroup { history.endUndoGrouping() }
         }
         func command(_ command: EditorCommand) {
@@ -271,7 +292,7 @@ struct NativeComposerEditor: UIViewRepresentable {
             switch command {
             case let .adopt(previous, selection):
                 guard previous != parent.raw else { return }
-                registerUndo(action: "Insert photo") { target in target.commit(previous, selection: selection.range, action: "Insert photo") }
+                registerUndo(action: "composer.undo_action.insert_photo") { target in target.commit(previous, selection: selection.range, action: "composer.undo_action.insert_photo") }
                 render(parent.raw, selection: remapExternal(selection.range, to: parent.raw))
             case let .select(selection): render(lastRaw, selection: selection.range)
             case .undo: history.undo()
@@ -308,27 +329,27 @@ struct NativeComposerEditor: UIViewRepresentable {
                         let selected = marked(text, bold: bold, italic: italic)
                         let suffix = marked(after, bold: span.node.bold, italic: span.node.italic)
                         let replacement = prefix + selected + suffix
-                        commit(DiscourseMarkupCodec.replace(lastRaw, range: span.node.range, with: replacement), selection: NSRange(location: span.node.range.location + (prefix as NSString).length, length: (selected as NSString).length), action: "Format")
+                        commit(DiscourseMarkupCodec.replace(lastRaw, range: span.node.range, with: replacement), selection: NSRange(location: span.node.range.location + (prefix as NSString).length, length: (selected as NSString).length), action: "composer.undo_action.format")
                         break
                     }
                     let marker = { if case .bold = command { return "**" }; return "*" }()
                     let selected = (lastRaw as NSString).substring(with: clamp(range, in: lastRaw))
                     let stripped = selected.hasPrefix(marker) && selected.hasSuffix(marker) && selected.count > marker.count * 2
                     let replacement = stripped ? String(selected.dropFirst(marker.count).dropLast(marker.count)) : marker + selected + marker
-                    commit(DiscourseMarkupCodec.replace(lastRaw, range: range, with: replacement), selection: NSRange(location: range.location, length: (replacement as NSString).length), action: "Format")
+                    commit(DiscourseMarkupCodec.replace(lastRaw, range: range, with: replacement), selection: NSRange(location: range.location, length: (replacement as NSString).length), action: "composer.undo_action.format")
                 }
             case let .style(style):
                 guard !parent.isTitle, let result = DiscourseMarkupCodec.restyle(lastRaw, range: clamp(range, in: lastRaw), to: style) else { break }
                 if result.raw == lastRaw { render(lastRaw, selection: result.selection) }
-                else { commit(result.raw, selection: result.selection, action: "Change block type") }
+                else { commit(result.raw, selection: result.selection, action: "composer.undo_action.change_block") }
             case let .link(label, url):
                 guard DiscourseMarkupCodec.supportsInlineFormatting(lastRaw, range: range) else { break }
                 let text = DiscourseMarkupCodec.link(label: label, url: url)
-                commit(DiscourseMarkupCodec.replace(lastRaw, range: range, with: text), selection: NSRange(location: range.location + (text as NSString).length, length: 0), action: "Insert link")
+                commit(DiscourseMarkupCodec.replace(lastRaw, range: range, with: text), selection: NSRange(location: range.location + (text as NSString).length, length: 0), action: "composer.undo_action.insert_link")
             case let .insert(text):
-                commit(DiscourseMarkupCodec.replace(lastRaw, range: range, with: text), selection: NSRange(location: range.location + (text as NSString).length, length: 0), action: "Insert")
+                commit(DiscourseMarkupCodec.replace(lastRaw, range: range, with: text), selection: NSRange(location: range.location + (text as NSString).length, length: 0), action: "composer.undo_action.insert")
             case let .replace(target, text):
-                commit(DiscourseMarkupCodec.replace(lastRaw, range: target, with: text), selection: NSRange(location: target.location + (text as NSString).length, length: 0), action: "Edit block")
+                commit(DiscourseMarkupCodec.replace(lastRaw, range: target, with: text), selection: NSRange(location: target.location + (text as NSString).length, length: 0), action: "composer.undo_action.edit_block")
             }
             controller.canUndo = history.canUndo; controller.canRedo = history.canRedo
         }
@@ -438,7 +459,7 @@ struct NativeComposerEditor: UIViewRepresentable {
             controller.selection = EditorSelection(sourceRange(textView.selectedRange))
             reportStyle()
             controller.canUndo = history.canUndo; controller.canRedo = history.canRedo
-            (textView as? ComposerTextView)?.placeholder = raw.isEmpty ? String(localized: String.LocalizationValue(parent.placeholder)) : nil
+            (textView as? ComposerTextView)?.placeholder = raw.isEmpty ? parent.placeholder : nil
             textView.invalidateIntrinsicContentSize()
         }
     }
@@ -483,17 +504,21 @@ final class ComposerTextView: UITextView {
         for card in subviews.compactMap({ $0 as? ComposerAttachmentCard }) where !visible.contains(ObjectIdentifier(card)) { card.removeFromSuperview() }
     }
     var placeholder: String? { didSet { setNeedsDisplay() } }
+    var placeholderDirection = LayoutDirection.leftToRight { didSet { if oldValue != placeholderDirection { setNeedsDisplay() } } }
     override func draw(_ rect: CGRect) {
         super.draw(rect)
         guard let placeholder, text.isEmpty else { return }
-        (placeholder as NSString).draw(in: CGRect(x: 0, y: 8, width: bounds.width, height: 80), withAttributes: [.font: UIFont.preferredFont(forTextStyle: .body), .foregroundColor: UIColor.tertiaryLabel])
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = placeholderDirection == .rightToLeft ? .right : .left
+        paragraph.baseWritingDirection = placeholderDirection == .rightToLeft ? .rightToLeft : .leftToRight
+        (placeholder as NSString).draw(in: CGRect(x: 0, y: 8, width: bounds.width, height: 80), withAttributes: [.font: UIFont.preferredFont(forTextStyle: .body), .foregroundColor: UIColor.tertiaryLabel, .paragraphStyle: paragraph])
     }
 }
 
 final class ComposerTextAttachment: NSTextAttachment, @unchecked Sendable {
     var node: MarkupNode
     var photo: UIImage?
-    var caption: String? { didSet { let label = card?.caption; let value = caption ?? node.text; let concealed = node.kind == .spoiler; MainActor.assumeIsolated { label?.text = concealed ? String(localized: "Concealed text") : value } } }
+    var caption: String? { didSet { let label = card?.caption; let value = caption ?? node.text; let concealed = node.kind == .spoiler; MainActor.assumeIsolated { label?.text = concealed ? L("composer.block.concealed") : value } } }
     var edit: (() -> Void)?
     var remove: (() -> Void)?
     weak var card: ComposerAttachmentCard?
@@ -516,19 +541,36 @@ final class ComposerTextAttachment: NSTextAttachment, @unchecked Sendable {
 
 final class ComposerAttachmentCard: UIView {
     let caption = UILabel()
+    private let title = UILabel()
+    private let edit = UIButton(type: .system)
+    private let remove = UIButton(type: .system)
+    private var prompt: UILabel?
+    private var collapse: UIButton?
+    private weak var attachment: ComposerTextAttachment?
+    /// Re-reads interface text from the active catalog; community text in the caption is left as written.
+    func relabel() {
+        guard let attachment else { return }
+        title.text = attachment.node.kind?.title ?? L("composer.block.generic")
+        edit.setTitle(attachment.node.kind == .opaque ? L("composer.edit_markdown") : L("common.edit"), for: .normal)
+        remove.setTitle(L("common.remove"), for: .normal)
+        prompt?.text = L("composer.quote.reply_below")
+        collapse?.setTitle(caption.numberOfLines == 0 ? L("composer.quote.collapse") : L("composer.quote.expand"), for: .normal)
+        if attachment.node.kind == .spoiler { caption.text = L("composer.block.concealed") }
+    }
     init(attachment: ComposerTextAttachment) {
         super.init(frame: attachment.bounds)
+        self.attachment = attachment
         backgroundColor = .secondarySystemBackground; layer.cornerRadius = 12
-        let title = UILabel(); title.font = .preferredFont(forTextStyle: .headline); title.adjustsFontForContentSizeCategory = true
-        title.text = String(localized: String.LocalizationValue(attachment.node.kind?.title ?? "Block"))
+        title.font = .preferredFont(forTextStyle: .headline); title.adjustsFontForContentSizeCategory = true
+        title.text = attachment.node.kind?.title ?? L("composer.block.generic")
         caption.font = .preferredFont(forTextStyle: .subheadline); caption.adjustsFontForContentSizeCategory = true; caption.numberOfLines = 2
         if attachment.node.kind == .code { caption.font = .monospacedSystemFont(ofSize: UIFont.preferredFont(forTextStyle: .subheadline).pointSize, weight: .regular) }
         title.setContentHuggingPriority(.required, for: .vertical); caption.setContentHuggingPriority(.required, for: .vertical)
-        caption.text = attachment.caption ?? (attachment.node.kind == .spoiler ? String(localized: "Concealed text") : attachment.node.text)
-        let edit = UIButton(type: .system); edit.setTitle(String(localized: attachment.node.kind == .opaque ? "Edit in Markdown" : "Edit"), for: .normal)
+        caption.text = attachment.caption ?? (attachment.node.kind == .spoiler ? L("composer.block.concealed") : attachment.node.text)
+        edit.setTitle(attachment.node.kind == .opaque ? L("composer.edit_markdown") : L("common.edit"), for: .normal)
         edit.accessibilityIdentifier = "composer-block-edit-" + (attachment.node.kind?.rawValue ?? "unknown")
         edit.addAction(UIAction { _ in attachment.edit?() }, for: .touchUpInside)
-        let remove = UIButton(type: .system); remove.setTitle(String(localized: "Remove"), for: .normal)
+        remove.setTitle(L("common.remove"), for: .normal)
         remove.addAction(UIAction { _ in attachment.remove?() }, for: .touchUpInside)
         for button in [edit, remove] {
             button.titleLabel?.font = .preferredFont(forTextStyle: .body); button.titleLabel?.adjustsFontForContentSizeCategory = true
@@ -539,15 +581,15 @@ final class ComposerAttachmentCard: UIView {
         actions.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
         var content: [UIView] = [title, caption]
         if attachment.node.kind == .quote {
-            let prompt = UILabel(); prompt.font = .preferredFont(forTextStyle: .body); prompt.adjustsFontForContentSizeCategory = true; prompt.numberOfLines = 0; prompt.text = String(localized: "Write your reply below this quotation")
-            content.append(prompt)
-            let collapse = UIButton(type: .system); collapse.setTitle(String(localized: "Expand quotation"), for: .normal)
+            let prompt = UILabel(); prompt.font = .preferredFont(forTextStyle: .body); prompt.adjustsFontForContentSizeCategory = true; prompt.numberOfLines = 0; prompt.text = L("composer.quote.reply_below")
+            content.append(prompt); self.prompt = prompt
+            let collapse = UIButton(type: .system); collapse.setTitle(L("composer.quote.expand"), for: .normal); self.collapse = collapse
             collapse.titleLabel?.font = .preferredFont(forTextStyle: .body); collapse.titleLabel?.adjustsFontForContentSizeCategory = true
             collapse.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
             collapse.addAction(UIAction { [weak self, weak collapse, weak attachment] _ in
                 guard let self, let collapse, let attachment else { return }
                 let expanded = self.caption.numberOfLines == 0; self.caption.numberOfLines = expanded ? 2 : 0
-                collapse.setTitle(String(localized: expanded ? "Expand quotation" : "Collapse quotation"), for: .normal)
+                collapse.setTitle(expanded ? L("composer.quote.expand") : L("composer.quote.collapse"), for: .normal)
                 attachment.bounds.size.height = expanded ? UIFontMetrics.default.scaledValue(for: 300) : max(UIFontMetrics.default.scaledValue(for: 300), self.systemLayoutSizeFitting(CGSize(width: self.bounds.width, height: UIView.layoutFittingCompressedSize.height)).height)
                 if let editor = self.superview as? ComposerTextView, let manager = editor.textLayoutManager, let content = manager.textContentManager {
                     manager.invalidateLayout(for: content.documentRange); editor.invalidateIntrinsicContentSize(); editor.setNeedsLayout()
@@ -584,6 +626,7 @@ final class ComposerAttachmentCard: UIView {
 /// A native menu button keeps its UIKit hierarchy stable while the editor changes size.
 struct ComposerMoreMenu: UIViewRepresentable {
     @Environment(\.locale) private var locale
+    private var layoutDirection: LayoutDirection { Localizer.shared.layoutDirection }
     var actions: [ComposerMenuAction]
     /// Icon-only on the full bar; the compact fallback spells out More.
     var labelled = true
@@ -596,7 +639,7 @@ struct ComposerMoreMenu: UIViewRepresentable {
         // Insets give the icon-only button a 44 pt target; a SwiftUI frame around it would not enlarge the UIKit hit area.
         configuration.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
         button.configuration = configuration
-        button.accessibilityLabel = String(localized: "More", locale: locale)
+        button.accessibilityLabel = L("common.more")
         button.titleLabel?.font = .preferredFont(forTextStyle: .body); button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.showsMenuAsPrimaryAction = true; button.accessibilityIdentifier = "composer-more"
         button.addAction(UIAction { [weak coordinator = context.coordinator] _ in coordinator?.parent.onOpen() }, for: .touchDown)
@@ -605,16 +648,23 @@ struct ComposerMoreMenu: UIViewRepresentable {
     }
     func updateUIView(_ button: UIButton, context: Context) {
         let coordinator = context.coordinator; coordinator.parent = self
+        // UIKit lays out the presented menu from its source view's direction, not SwiftUI's environment.
+        let attribute: UISemanticContentAttribute = layoutDirection == .rightToLeft ? .forceRightToLeft : .forceLeftToRight
+        if button.semanticContentAttribute != attribute {
+            button.semanticContentAttribute = attribute
+            button.traitOverrides.layoutDirection = layoutDirection == .rightToLeft ? .rightToLeft : .leftToRight
+        }
         if (button.configuration?.title != nil) != labelled {
-            button.configuration?.title = labelled ? String(localized: "More", locale: locale) : nil
+            button.configuration?.title = labelled ? L("common.more") : nil
             button.tintColor = labelled ? nil : .label
         }
+        if button.accessibilityLabel != L("common.more") { button.accessibilityLabel = L("common.more"); if labelled { button.configuration?.title = L("common.more") } }
         let signature = locale.identifier + actions.map { "\($0.title)|\($0.enabled)|\($0.group ?? "")" }.joined(separator: ";")
         guard coordinator.signature != signature else { return }
         coordinator.signature = signature
         func element(_ index: Int) -> UIAction {
             let item = actions[index]
-            return UIAction(title: String(localized: String.LocalizationValue(item.title), locale: locale), image: UIImage(systemName: item.symbol), attributes: item.enabled ? [] : [.disabled]) { [weak coordinator] _ in
+            return UIAction(title: item.title, image: UIImage(systemName: item.symbol), attributes: item.enabled ? [] : [.disabled]) { [weak coordinator] _ in
                 guard let coordinator, coordinator.parent.actions.indices.contains(index) else { return }
                 coordinator.parent.actions[index].perform()
             }
@@ -623,7 +673,7 @@ struct ComposerMoreMenu: UIViewRepresentable {
         for index in actions.indices {
             if let group = actions[index].group {
                 if groups.insert(group).inserted {
-                    children.append(UIMenu(title: String(localized: String.LocalizationValue(group), locale: locale), children: actions.indices.filter { actions[$0].group == group }.map(element)))
+                    children.append(UIMenu(title: group, children: actions.indices.filter { actions[$0].group == group }.map(element)))
                 }
             } else { children.append(element(index)) }
         }

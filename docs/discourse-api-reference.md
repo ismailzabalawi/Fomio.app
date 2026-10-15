@@ -373,3 +373,17 @@ Two local diagnostic probes exposed cache invalidation gaps: a successful refres
 ## Audit cache corrections — 2026-10-07
 
 The native refresh defects recorded above are now corrected: successful refresh replaces reply caches and refetches reachable expanded branches; 401/403/404 remove the previously visible topic/controls, while offline refresh retains content. Late results from an older cache generation do not repopulate a replaced cache. Sanitized transport regressions cover all three status codes; fixture regressions cover deleted children, empty branches and offline retention. These are local client-state verifications, not a new deployed revocation experiment or API contract change. Backend HEAD was rechecked and remains `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`; no backend edits or live mutations. [Fixes and final test evidence](validation/2026-10-07-audit-fixes/README.md).
+
+## Interface localization contract — 2026-10-15
+
+Revisions: local reference HEAD `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2` (only the unrelated untracked `docs/sidebar-outlet-discovery.md`); deployed `7b4f0970506fb0ce7d4b6a851d252ace418330c8` (generator meta, rechecked 2026-10-15). Backend files read only; no request specs run; no settings changed; no admin or member credentials used.
+
+| Surface | Status | Evidence |
+| --- | --- | --- |
+| Native JSON interface catalog | **Does not exist** (source or deployed) | No route in `config/routes.rb`; no localization plugin in the deployed asset list; anonymous probes 404. Proposed contract: [localization-catalog-contract.md](localization-catalog-contract.md). App transport implemented and tested against a URLProtocol stub only. |
+| `/extra-locales/:digest/:locale/:bundle` | Source-reviewed 2026-10-04; deployed English `overrides.js` fetched once 2026-10-15 to inspect override keys | Browser JavaScript; not parsed or executed by the app. Findings recorded in the contract document. |
+| Client site settings (locale) | Deployed, anonymous, 2026-10-15 | Preloaded settings on `/latest`: `default_locale` en, `allow_user_locale` false, locale negotiation off, content localization off, `login_required` false. |
+| Discourse client keys reused by the app | Verified in `config/locales/client.{en,ar}.yml` at both revisions | 35 keys in `Localization/manifest.json`; English values equal the native English; Arabic values copied exactly. `js.composer.table.add_row/add_column` exist only at the local HEAD and are not mapped. |
+| Admin site-texts | Not called | Administrator-only; out of scope for the app. |
+
+Unresolved: endpoint path, ownership (plugin vs. core), anonymous policy under `login_required`, cache headers, translation review workflow and deployment. Until then live builds show bundled English.

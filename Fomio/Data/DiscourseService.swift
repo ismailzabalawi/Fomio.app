@@ -44,7 +44,7 @@ import Foundation
             envelope.categoryList.categories.forEach { append($0, canCreate: envelope.categoryList.canCreateTopic == true) }
             if seen.count == before { finished = true; break }
         }
-        guard finished else { throw RepositoryError.invalid("The community directory could not be fully loaded. Refresh to try again.") }
+        guard finished else { throw RepositoryError.message("communities.error.incomplete") }
         // Lazy lists embed only a child preview. Fetch the full immediate-child list when needed.
         for root in roots {
             let loaded = result.filter { $0.parentID == .init(root.id) }
@@ -59,7 +59,7 @@ import Foundation
                 envelope.categoryList.categories.forEach { append($0, canCreate: envelope.categoryList.canCreateTopic == true) }
                 if seen.count == before { childFinished = true; break }
             }
-            guard childFinished else { throw RepositoryError.invalid("Some subcommunities could not be loaded. Refresh to try again.") }
+            guard childFinished else { throw RepositoryError.message("communities.error.children_incomplete") }
         }
         return result
     }
@@ -138,7 +138,7 @@ import Foundation
     func notifications(page: Int) async throws -> Page<Notice> {
         let dto = try await api.get(NoticesDTO.self, "notifications.json", query: [URLQueryItem(name: "offset", value: String(page * 30)), URLQueryItem(name: "limit", value: "30"), URLQueryItem(name: "filter_by_types", value: "replied,mentioned")], member: true)
         let items = dto.notifications.filter { $0.notificationType == 1 || $0.notificationType == 2 }.map { notice in
-            Notice(id: notice.id, kind: notice.notificationType == 1 ? .mention : .reply, actor: notice.data?.displayUsername ?? "A member", title: notice.fancyTitle.map(HTMLContent.plainText) ?? "", topicID: notice.topicId.map { TopicID($0) }, number: notice.postNumber.map { PostNumber($0) }, age: RelativeAge.string(iso: notice.createdAt), read: notice.read)
+            Notice(id: notice.id, kind: notice.notificationType == 1 ? .mention : .reply, actor: notice.data?.displayUsername ?? "", title: notice.fancyTitle.map(HTMLContent.plainText) ?? "", topicID: notice.topicId.map { TopicID($0) }, number: notice.postNumber.map { PostNumber($0) }, age: AgeValue(iso: notice.createdAt), read: notice.read)
         }
         return Page(items: items, nextPage: (page + 1) * 30 < dto.totalRowsNotifications ? page + 1 : nil)
     }
@@ -150,15 +150,15 @@ import Foundation
     }
     func saved(username: String, page: Int) async throws -> Page<SavedItem> {
         let dto = try await api.get(SavedDTO.self, "u/\(username)/bookmarks.json", query: [URLQueryItem(name: "page", value: String(page))], member: true)
-        return Page(items: dto.bookmarks.compactMap { item in guard let topic = item.topicId else { return nil }; return SavedItem(id: item.id, title: item.title ?? "Saved discussion", topicID: .init(topic), number: item.linkedPostNumber.map { PostNumber($0) }) }, nextPage: dto.moreBookmarksUrl == nil ? nil : page + 1)
+        return Page(items: dto.bookmarks.compactMap { item in guard let topic = item.topicId else { return nil }; return SavedItem(id: item.id, title: item.title ?? "", topicID: .init(topic), number: item.linkedPostNumber.map { PostNumber($0) }) }, nextPage: dto.moreBookmarksUrl == nil ? nil : page + 1)
     }
     func publish(_ draft: Draft) async throws -> PostingOutcome {
-        guard !draft.body.contains("fomio-attachment://"), draft.activeAttachments.allSatisfy({ $0.status == .uploaded && $0.server?.shortURL.hasPrefix("upload://") == true }) else { throw RepositoryError.invalid("Resolve every photo before posting.") }
+        guard !draft.body.contains("fomio-attachment://"), draft.activeAttachments.allSatisfy({ $0.status == .uploaded && $0.server?.shortURL.hasPrefix("upload://") == true }) else { throw RepositoryError.message("composer.error.unresolved_photos") }
         let body = draft.composedBody
         var payload: [String: Any] = ["raw": body, "nested_post": true]
         switch draft.intent {
         case .newDiscussion:
-            guard let category = draft.categoryID else { throw RepositoryError.invalid("Choose a community.") }
+            guard let category = draft.categoryID else { throw RepositoryError.message("composer.error.choose_community") }
             payload["title"] = draft.title; payload["category"] = category.rawValue
         case let .reply(topic, parent): payload["topic_id"] = topic.rawValue; if let parent { payload["reply_to_post_number"] = parent.rawValue }
         }
@@ -221,7 +221,7 @@ struct TopicDTO: Decodable {
         let authorID = posters?.first(where: { $0.description?.contains("Original Poster") == true })?.userId ?? posters?.first?.userId
         let author = users.first { $0.id == authorID }?.username ?? ""
         // `unicode_title` is sent only when the title contains emoji shortcodes.
-        return DiscussionSummary(id: .init(id), title: unicodeTitle ?? title, slug: slug ?? "topic", categoryID: .init(categoryId ?? 0), excerpt: HTMLContent.plainText(excerpt ?? ""), author: author, replyCount: replyCount ?? max(0, (postsCount ?? 1) - 1), activity: RelativeAge.string(iso: bumpedAt), pinned: pinned == true, imageURL: PublicMedia.url(imageUrl, base: baseURL))
+        return DiscussionSummary(id: .init(id), title: unicodeTitle ?? title, slug: slug ?? "topic", categoryID: .init(categoryId ?? 0), excerpt: HTMLContent.plainText(excerpt ?? ""), author: author, replyCount: replyCount ?? max(0, (postsCount ?? 1) - 1), activity: AgeValue(iso: bumpedAt), pinned: pinned == true, imageURL: PublicMedia.url(imageUrl, base: baseURL))
     }
 }
 struct FeedEnvelope: Decodable { struct List: Decodable { var topics: [TopicDTO]; var moreTopicsUrl: String? }; var topicList: List; var users: [UserDTO]? }
@@ -230,7 +230,7 @@ struct PostDTO: Decodable {
     var id: Int; var postNumber: Int; var topicId: Int?; var replyToPostNumber: Int?; var username: String?; var name: String?; var createdAt: String?; var cooked: String?; var raw: String?; var actionsSummary: [Action]?; var bookmarkId: Int?; var deletedPostPlaceholder: Bool?; var ignoredPostPlaceholder: Bool?; var directReplyCount: Int?; var children: [PostDTO]?
     func domain(canReply: Bool, topicID: TopicID? = nil) -> Post {
         let like = actionsSummary?.first { $0.id == 2 }
-        return Post(id: .init(id), number: .init(postNumber), topicID: topicId.map { TopicID($0) } ?? topicID ?? .init(0), parent: replyToPostNumber.map { PostNumber($0) }, author: username ?? "", body: raw ?? HTMLContent.plainText(cooked ?? ""), cooked: cooked, likeCount: like?.count ?? 0, liked: like?.acted == true, bookmarkID: bookmarkId, canLike: like?.canAct == true, canReply: canReply, deleted: deletedPostPlaceholder == true, ignored: ignoredPostPlaceholder == true, childCount: directReplyCount ?? 0, age: RelativeAge.string(iso: createdAt), authorName: name.flatMap { $0.isEmpty ? nil : $0 })
+        return Post(id: .init(id), number: .init(postNumber), topicID: topicId.map { TopicID($0) } ?? topicID ?? .init(0), parent: replyToPostNumber.map { PostNumber($0) }, author: username ?? "", body: raw ?? HTMLContent.plainText(cooked ?? ""), cooked: cooked, likeCount: like?.count ?? 0, liked: like?.acted == true, bookmarkID: bookmarkId, canLike: like?.canAct == true, canReply: canReply, deleted: deletedPostPlaceholder == true, ignored: ignoredPostPlaceholder == true, childCount: directReplyCount ?? 0, age: AgeValue(iso: createdAt), authorName: name.flatMap { $0.isEmpty ? nil : $0 })
     }
     func node(canReply: Bool, topicID: TopicID? = nil) -> ThreadNode { ThreadNode(post: domain(canReply: canReply, topicID: topicID), children: (children ?? []).map { $0.node(canReply: canReply, topicID: topicID) }) }
 }

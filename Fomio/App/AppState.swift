@@ -2,33 +2,33 @@ import SwiftUI
 import Observation
 
 enum AppTab: String, CaseIterable, Identifiable { case home, communities, notifications, me; var id: String { rawValue }
-    var title: String { rawValue.capitalized }
+    var title: String { L("tab.\(rawValue)") }
     var symbol: String { switch self { case .home: "house"; case .communities: "square.grid.2x2"; case .notifications: "bell"; case .me: "person.crop.circle" } }
 }
-enum Route: Hashable { case community(CategoryID), discussion(TopicID, PostNumber?), thread(TopicID, PostNumber), search, profile(String), saved, drafts, credits, diagnostics, denied(CategoryID), unavailable }
+enum Route: Hashable { case community(CategoryID), discussion(TopicID, PostNumber?), thread(TopicID, PostNumber), search, profile(String), saved, drafts, credits, diagnostics, language, denied(CategoryID), unavailable }
 /// Why a discussion opened at a specific post. Shown as a text label on that post.
 enum FocusReason: Hashable {
     case notification, search, saved, published
-    var label: String { switch self { case .notification: "From your notification"; case .search: "Search match"; case .saved: "Saved reply"; case .published: "Your reply" } }
+    var label: String { switch self { case .notification: L("focus.notification"); case .search: L("focus.search"); case .saved: L("focus.saved"); case .published: L("focus.published") } }
 }
 /// The member action that asked for sign-in; it names the action and is restored afterwards, never auto-applied.
 enum AuthGate: Equatable {
     case signIn, reply, quote, like, save, create(String?)
     var title: String {
-        switch self { case .signIn: "Sign in"; case .reply: "Sign in to reply"; case .quote: "Sign in to quote"; case .like: "Sign in to like posts"; case .save: "Sign in to save discussions"; case .create: "Sign in to start a discussion" }
+        switch self { case .signIn: L("auth.sign_in"); case .reply: L("auth.gate.reply.title"); case .quote: L("auth.gate.quote.title"); case .like: L("auth.gate.like.title"); case .save: L("auth.gate.save.title"); case .create: L("auth.gate.create.title") }
     }
     var message: String {
         switch self {
-        case .reply, .quote: "You’ll come back to this discussion with your reply open. Nothing is posted until you tap Post."
-        case let .create(name): name.map { "You’ll come back with a new discussion in \($0) open. Nothing is posted until you tap Post." } ?? "You’ll come back and choose a community. Nothing is posted until you tap Post."
-        case .like, .save: "You’ll come back to this post. Nothing is applied until you tap it again."
-        case .signIn: "Reply to discussions, save them for later and get notified when someone replies to you."
+        case .reply, .quote: L("auth.gate.reply.message")
+        case let .create(name): name.map { L("auth.gate.create.message_in", ["community": $0]) } ?? L("auth.gate.create.message")
+        case .like, .save: L("auth.gate.post_action.message")
+        case .signIn: L("auth.gate.sign_in.message")
         }
     }
 }
 /// A post queued for review. It is never shown as published.
 struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: Bool; var categoryName: String?
-    var message: String { isReply ? "Your reply isn’t published yet. It has no post number and doesn’t count as a reply until a moderator approves it." : "Your discussion\(categoryName.map { " in \($0)" } ?? "") isn’t published yet. A moderator needs to approve it first." }
+    var message: String { isReply ? L("pending.reply_message") : categoryName.map { L("pending.discussion_message_in", ["community": $0]) } ?? L("pending.discussion_message") }
 }
 @MainActor @Observable final class TabState {
     var path: [Route] = []
@@ -73,10 +73,12 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     let auth: AuthenticationService?
     let configuration: LiveConfiguration?
     let connectivity = Connectivity()
+    let localization: LocalizationController
     let isConfigured: Bool
     @ObservationIgnored private var toastTask: Task<Void, Never>?
-    init(service: any CommunityService, fixture: FixtureService?, configuration: LiveConfiguration?, store: DraftStore = DraftStore()) {
+    init(service: any CommunityService, fixture: FixtureService?, configuration: LiveConfiguration?, store: DraftStore = DraftStore(), localization: LocalizationController? = nil) {
         self.service = service; self.fixture = fixture; self.configuration = configuration; self.draftStore = store
+        self.localization = localization ?? LocalizationController(store: LocalizationStore(root: LocalizationStore.defaultRoot(), site: configuration.map { LocalizationStore.siteKey($0.baseURL) } ?? "fixture"), transport: UnavailableLocalizationTransport())
         self.isConfigured = fixture != nil || configuration != nil
         self.auth = configuration.map { AuthenticationService(configuration: $0) }
         if fixture != nil, !ProcessInfo.processInfo.arguments.contains("--guest") { account = .fixture; username = Self.fixtureMember; displayName = "Jonah Wells" }
@@ -104,8 +106,8 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     func publicAssetURL(_ value: String?) -> URL? { PublicMedia.url(value, base: configuration?.baseURL) }
     func category(_ id: CategoryID) -> Community? { communities.first { $0.id == id } }
     func categoryName(_ id: CategoryID) -> String {
-        guard let value = category(id) else { return "Community" }
-        if let parent = value.parentID.flatMap(category) { return "\(value.name) · \(parent.name)" }
+        guard let value = category(id) else { return L("community.fallback_name") }
+        if let parent = value.parentID.flatMap(category) { return L("community.name_with_parent", ["name": value.name, "parent": parent.name]) }
         return value.name
     }
     func toast(_ message: String) {
@@ -127,7 +129,7 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     func create(category: CategoryID? = nil) {
         requireMember(.create(category.flatMap { self.category($0)?.name })) { [weak self] in
             guard let self else { return }
-            guard self.communities.contains(where: { $0.canCreate && (category == nil || $0.id == category) }) else { self.banner = "No permitted destination is available."; return }
+            guard self.communities.contains(where: { $0.canCreate && (category == nil || $0.id == category) }) else { self.banner = L("composer.no_destination"); return }
             // Contextual Create inherits its community; global Create picks one in the composer's Post in field.
             self.openComposer(category: category)
         }
@@ -142,7 +144,7 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
             let page: DiscussionPage
             do {
                 let context = try await self.service.context(topic: post.topicID, number: post.number, focused: true)
-                guard context.page.canReply, !context.target.post.deleted, !context.target.post.ignored else { self.banner = "Replies are not permitted here."; return }
+                guard context.page.canReply, !context.target.post.deleted, !context.target.post.ignored else { self.banner = L("composer.replies_not_permitted"); return }
                 current = context.target.post; page = context.page
             } catch { self.banner = error.localizedDescription; return }
             var draft = Draft(account: self.account, intent: .reply(topic: current.topicID, parent: current.number))
@@ -158,17 +160,17 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
             if fixture != nil { username = Self.fixtureMember; displayName = "Jonah Wells"; account = .fixture }
             else if let auth { let member = try await auth.signIn(); username = member; account = .init(rawValue: "\(configuration!.baseURL.absoluteString):\(member)") }
             else { throw RepositoryError.configuration }
-            if let composer, composer.draft.account != account { self.composer = nil; banner = "The previous account’s draft remains private to that account." }
+            if let composer, composer.draft.account != account { self.composer = nil; banner = L("auth.previous_account_draft") }
             try draftStore.migrateGuest(to: account)
             if composer == nil { try draftStore.reconcileFiles(account: account) }
             let action = pendingAction, gate = self.gate; pendingAction = nil
             authRequested = false; await loadTheme(); await loadCommunities(); await action?()
-            let name = username ?? "member"
+            let name = username ?? ""
             switch gate {
-            case .reply, .quote: toast("Signed in as \(name). Your reply is ready.")
-            case .like: toast("Signed in as \(name). Tap again to like the post.")
-            case .save: toast("Signed in as \(name). Tap again to save.")
-            default: toast("Signed in as \(name).")
+            case .reply, .quote: toast(L("auth.signed_in.reply", ["name": name]))
+            case .like: toast(L("auth.signed_in.like", ["name": name]))
+            case .save: toast(L("auth.signed_in.save", ["name": name]))
+            default: toast(L("auth.signed_in", ["name": name]))
             }
             self.gate = .signIn
             await refreshUnread()
@@ -186,11 +188,11 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     func signOut() {
         composer?.stopUploads()
         do { try draftStore.clear(account: account); try auth?.signOut() }
-        catch { banner = "Sign-out could not finish: \(error.localizedDescription)"; return }
+        catch { banner = L("auth.sign_out_failed", ["reason": error.localizedDescription]); return }
         account = .guest; username = nil; displayName = nil; pendingAction = nil; composer = nil; pendingNotice = nil; unreadCount = 0; guestNoteDismissed = false
         tabs = Dictionary(uniqueKeysWithValues: AppTab.allCases.map { ($0, TabState()) }); draftsRevision += 1
         fixture?.bookmarks = [:]; fixture?.readNotices = []
-        toast("Signed out")
+        toast(L("auth.signed_out"))
         Task { await loadCommunities() }
     }
     func published(topic: TopicID, number: PostNumber, origin: AppTab, isReply: Bool, categoryID: CategoryID?) {
@@ -200,7 +202,7 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         // Replace the discussion the reply was written from, so Back does not return to a stale copy.
         if isReply, case let .discussion(current, _)? = tabs[origin]?.path.last, current == topic { tabs[origin]?.path.removeLast() }
         navigate(route, in: origin, focus: isReply ? .published : nil); draftsRevision += 1
-        toast(isReply ? "Reply posted" : "Discussion posted in \(categoryID.flatMap { category($0)?.name } ?? "the community")")
+        toast(isReply ? L("composer.posted.reply") : categoryID.flatMap { category($0)?.name }.map { L("composer.posted.discussion_in", ["community": $0]) } ?? L("composer.posted.discussion"))
     }
     func discussionState(_ route: Route) -> DiscussionState {
         let tab = tabs[selectedTab]!
@@ -211,7 +213,7 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     }
     func handleLink(_ url: URL) {
         if auth?.receiveCallback(url) == true { return }
-        guard let configuration, let route = LinkRouter.route(url, baseURL: configuration.baseURL) else { banner = "This link is not a supported community destination."; return }
+        guard let configuration, let route = LinkRouter.route(url, baseURL: configuration.baseURL) else { banner = L("link.unsupported"); return }
         navigate(route)
     }
 }

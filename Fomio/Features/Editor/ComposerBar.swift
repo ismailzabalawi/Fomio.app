@@ -63,7 +63,7 @@ struct ComposerBar<More: View>: View {
         .animation(reduceMotion ? nil : .snappy(duration: 0.18), value: mode)
         .tint(Color.fomioAccent)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Formatting")
+        .accessibilityLabel(L("composer.formatting"))
     }
     // MARK: Rows
     private func row(compact: Bool, link: Bool, minimal: Bool = false) -> some View {
@@ -73,8 +73,8 @@ struct ComposerBar<More: View>: View {
             if !minimal { centre(compact: compact, link: link) }
             Spacer(minLength: 4)
             if sizeClass == .regular, !compact, mode != .title {
-                icon("Undo", "arrow.uturn.backward", action: actions.undo).disabled(!canUndo).opacity(canUndo ? 1 : 0.35)
-                icon("Redo", "arrow.uturn.forward", action: actions.redo).disabled(!canRedo).opacity(canRedo ? 1 : 0.35)
+                icon(L("composer.undo"), "arrow.uturn.backward", action: actions.undo).disabled(!canUndo).opacity(canUndo ? 1 : 0.35)
+                icon(L("composer.redo"), "arrow.uturn.forward", action: actions.redo).disabled(!canRedo).opacity(canRedo ? 1 : 0.35)
             }
             if mode != .title { more(compact && !minimal).fixedSize().frame(minWidth: target, minHeight: target) }
             separator
@@ -85,23 +85,23 @@ struct ComposerBar<More: View>: View {
         switch mode {
         case .entry, .turnInto: EmptyView()
         case .title:
-            Text("Title").font(.subheadline).foregroundStyle(Color.fomioSecondaryText).lineLimit(1).padding(.horizontal, 8)
+            Text(L("composer.title_field")).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).lineLimit(1).padding(.horizontal, 8)
         case let .write(style):
             if let style {
                 if !compact { typeChip(style) }
                 if canFormatInline {
-                    toggle("Bold", "bold", on: bold, action: actions.bold)
-                    toggle("Italic", "italic", on: italic, action: actions.italic)
-                    if link || (sizeClass == .regular && !compact) { icon("Link", "link", action: actions.link) }
+                    toggle(L("composer.format.bold"), "bold", on: bold, action: actions.bold)
+                    toggle(L("composer.format.italic"), "italic", on: italic, action: actions.italic)
+                    if link || (sizeClass == .regular && !compact) { icon(L("composer.link"), "link", action: actions.link) }
                 }
             }
         case let .selection(style):
             if canFormatInline {
-                toggle("Bold", "bold", on: bold, action: actions.bold)
-                toggle("Italic", "italic", on: italic, action: actions.italic)
-                icon("Link", "link", action: actions.link)
+                toggle(L("composer.format.bold"), "bold", on: bold, action: actions.bold)
+                toggle(L("composer.format.italic"), "italic", on: italic, action: actions.italic)
+                icon(L("composer.link"), "link", action: actions.link)
             }
-            if !compact, style != nil { toggle("Quote", "text.quote", on: style == .quote, action: actions.quote) }
+            if !compact, style != nil { toggle(L("post.quote"), "text.quote", on: style == .quote, action: actions.quote) }
         }
     }
     private var separator: some View {
@@ -109,10 +109,10 @@ struct ComposerBar<More: View>: View {
     }
     @ViewBuilder private var trailing: some View {
         if case .selection = mode {
-            Button(action: actions.done) { Text("Done").font(.body.weight(.semibold)).foregroundStyle(Color.fomioAccent).padding(.horizontal, 10).frame(minWidth: target, minHeight: target).contentShape(.rect) }
-                .buttonStyle(.plain).accessibilityHint("Keeps the selected text and places the cursor after it").accessibilityIdentifier("composer-selection-done")
+            Button(action: actions.done) { Text(L("common.done")).font(.body.weight(.semibold)).foregroundStyle(Color.fomioAccent).padding(.horizontal, 10).frame(minWidth: target, minHeight: target).contentShape(.rect) }
+                .buttonStyle(.plain).accessibilityHint(L("composer.selection_done_hint")).accessibilityIdentifier("composer-selection-done")
         } else {
-            iconButton(editing ? "Hide keyboard" : "Show keyboard", editing ? "keyboard.chevron.compact.down" : "keyboard", tint: Color.fomioAccent, action: actions.keyboard)
+            iconButton(editing ? L("composer.keyboard.hide") : L("composer.keyboard.show"), editing ? "keyboard.chevron.compact.down" : "keyboard", tint: Color.fomioAccent, action: actions.keyboard)
                 .accessibilityIdentifier("composer-keyboard")
         }
     }
@@ -124,13 +124,13 @@ struct ComposerBar<More: View>: View {
                 .frame(width: target, height: target).contentShape(.rect)
         }
         .buttonStyle(.plain).disabled(mode == .title).opacity(mode == .title ? 0.35 : 1)
-        .accessibilityLabel("Add block").accessibilityIdentifier("composer-insert")
+        .accessibilityLabel(L("composer.add_block")).accessibilityIdentifier("composer-insert")
     }
     /// Names the current block; tapping changes it. The outline separates it from the filled +, which adds.
     private func typeChip(_ style: ComposerTextStyle) -> some View {
         Button(action: actions.openTurnInto) {
             HStack(spacing: 4) {
-                Text(style == .paragraph ? String(localized: "Text") : style.title).lineLimit(1)
+                Text(style == .paragraph ? L("composer.style.text") : style.title).lineLimit(1)
                 Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold)).accessibilityHidden(true)
             }
             .font(.subheadline.weight(.medium)).foregroundStyle(Color.primary)
@@ -139,9 +139,9 @@ struct ComposerBar<More: View>: View {
             .frame(minHeight: target).contentShape(.rect)
         }
         .buttonStyle(.plain).padding(.horizontal, 4)
-        .accessibilityLabel(Text("Turn into: \(style.title)")).accessibilityIdentifier("composer-block-type")
+        .accessibilityLabel(L("composer.turn_into_current", ["style": style.title])).accessibilityIdentifier("composer-block-type")
     }
-    private func toggle(_ title: LocalizedStringKey, _ symbol: String, on: Bool, action: @escaping () -> Void) -> some View {
+    private func toggle(_ title: String, _ symbol: String, on: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol).font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(on ? Color.fomioAccent : Color.primary)
@@ -151,11 +151,11 @@ struct ComposerBar<More: View>: View {
         }
         .buttonStyle(.plain).accessibilityLabel(title).accessibilityAddTraits(on ? .isSelected : [])
     }
-    private func icon(_ title: LocalizedStringKey, _ symbol: String, action: @escaping () -> Void) -> some View {
+    private func icon(_ title: String, _ symbol: String, action: @escaping () -> Void) -> some View {
         iconButton(title, symbol, tint: .primary, action: action)
     }
     /// The 44 pt frame sits inside the label so the whole target is tappable, not only the glyph.
-    private func iconButton(_ title: LocalizedStringKey, _ symbol: String, tint: Color, action: @escaping () -> Void) -> some View {
+    private func iconButton(_ title: String, _ symbol: String, tint: Color, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol).font(.system(size: 20, weight: .semibold)).foregroundStyle(tint)
                 .frame(minWidth: target, minHeight: target).contentShape(.rect)
@@ -165,12 +165,12 @@ struct ComposerBar<More: View>: View {
     // MARK: Turn into
     private func turnIntoStrip(_ current: ComposerTextStyle) -> some View {
         HStack(spacing: 0) {
-            iconButton("Close Turn into", "xmark", tint: .primary, action: actions.closeTurnInto)
+            iconButton(L("composer.turn_into_close"), "xmark", tint: .primary, action: actions.closeTurnInto)
                 .accessibilityIdentifier("composer-turn-into-close")
             ScrollViewReader { proxy in
                 ScrollView(.horizontal) {
                     HStack(spacing: 6) {
-                        Text("Turn into").font(.footnote).foregroundStyle(Color.fomioSecondaryText).padding(.horizontal, 4).accessibilityAddTraits(.isHeader)
+                        Text(L("composer.turn_into")).font(.footnote).foregroundStyle(Color.fomioSecondaryText).padding(.horizontal, 4).accessibilityAddTraits(.isHeader)
                         ForEach(ComposerTextStyle.offered + (ComposerTextStyle.offered.contains(current) ? [] : [current]), id: \.self) { style in
                             let selected = style == current
                             Button { actions.turnInto(style) } label: {
@@ -181,7 +181,7 @@ struct ComposerBar<More: View>: View {
                                     .frame(minHeight: target).contentShape(.rect)
                             }
                             .buttonStyle(.plain).id(style)
-                            .accessibilityAddTraits(selected ? .isSelected : []).accessibilityIdentifier("composer-turn-into-\(style.title)")
+                            .accessibilityAddTraits(selected ? .isSelected : []).accessibilityIdentifier("composer-turn-into-\(style.identifier)")
                         }
                     }.padding(.trailing, 8)
                 }
@@ -216,29 +216,28 @@ struct ComposerInserter: View {
         var symbol: String
         var id: Choice { choice }
     }
-    private func localized(_ key: String) -> String { String(localized: String.LocalizationValue(key)) }
     private var quickItems: [Item] {
-        [Item(choice: .photo, title: localized("Photo"), detail: localized("From your library"), symbol: "photo"),
-         Item(choice: .text(.quote), title: localized("Quote"), detail: localized("Give a passage its own space"), symbol: "text.quote")]
+        [Item(choice: .photo, title: L("composer.photo"), detail: L("composer.inserter.photo_detail"), symbol: "photo"),
+         Item(choice: .text(.quote), title: L("post.quote"), detail: L("composer.inserter.quote_detail"), symbol: "text.quote")]
     }
     private func textItem(_ style: ComposerTextStyle) -> Item {
         let detail: String
         switch style {
-        case .paragraph: detail = "Continue with plain text"
-        case .heading(2): detail = "Start a new section"
-        case .heading: detail = "Add a smaller section heading"
-        case .quote: detail = "Give a passage its own space"
-        case .list: detail = "Make your points easy to scan"
+        case .paragraph: detail = L("composer.inserter.paragraph_detail")
+        case .heading(2): detail = L("composer.inserter.heading_detail")
+        case .heading: detail = L("composer.inserter.subheading_detail")
+        case .quote: detail = L("composer.inserter.quote_detail")
+        case .list: detail = L("composer.inserter.list_detail")
         }
-        return Item(choice: .text(style), title: style == .paragraph ? localized("Text") : style.title, detail: localized(detail), symbol: style.symbol)
+        return Item(choice: .text(style), title: style == .paragraph ? L("composer.style.text") : style.title, detail: detail, symbol: style.symbol)
     }
     private var sections: [(String, [Item])] {
         let text = ComposerTextStyle.offered.map(textItem)
         var media = [quickItems[0]]
-        if samplePhoto { media.append(Item(choice: .samplePhoto, title: localized("Sample photo"), detail: localized("Fixture preview"), symbol: "photo.badge.checkmark")) }
-        let advanced = blocks.map { Item(choice: .block($0), title: localized($0.title), detail: localized(Self.detail($0)), symbol: Self.symbol($0)) }
+        if samplePhoto { media.append(Item(choice: .samplePhoto, title: DevText("Sample photo"), detail: DevText("Fixture preview"), symbol: "photo.badge.checkmark")) }
+        let advanced = blocks.map { Item(choice: .block($0), title: $0.title, detail: Self.detail($0), symbol: Self.symbol($0)) }
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        return [(localized("Text"), text), (localized("Media"), media), (localized("Advanced"), advanced)].map { title, items in
+        return [(L("composer.style.text"), text), (L("composer.inserter.media"), media), (L("composer.inserter.advanced"), advanced)].map { title, items in
             let visible = trimmed.isEmpty ? items.filter { item in !quickItems.contains { $0.choice == item.choice } } : items.filter {
                 $0.title.localizedStandardContains(trimmed) || $0.detail.localizedStandardContains(trimmed)
             }
@@ -270,15 +269,15 @@ struct ComposerInserter: View {
                         }
                     }
                     if sections.isEmpty, !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        ContentUnavailableView.search(text: query)
+                        ContentUnavailableView(L("composer.inserter.no_match", ["query": query]), systemImage: "magnifyingglass", description: Text(L("search.no_results.message")))
                     }
                 }.padding(20)
             }
             .background(Color.fomioBackground)
             .scrollDismissesKeyboard(.interactively)
-            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("Search blocks"))
-            .navigationTitle("Add block").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel", systemImage: "xmark") { dismiss() }.accessibilityIdentifier("composer-insert-cancel") } }
+            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: Text(L("composer.inserter.search")))
+            .navigationTitle(L("composer.add_block")).navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(L("common.cancel"), systemImage: "xmark") { dismiss() }.accessibilityIdentifier("composer-insert-cancel") } }
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
@@ -311,15 +310,15 @@ struct ComposerInserter: View {
     }
     private static func detail(_ kind: ComposerBlockKind) -> String {
         switch kind {
-        case .poll: "Ask the community to vote"
-        case .table: "Organize information in rows"
-        case .details: "Let readers reveal more"
-        case .spoiler: "Hide a detail until tapped"
-        case .date: "Share a date and time"
-        case .code: "Keep code readable"
-        case .quote: "Give a passage its own space"
-        case .photo: "From your library"
-        case .opaque: "Edit in Markdown"
+        case .poll: L("composer.inserter.poll_detail")
+        case .table: L("composer.inserter.table_detail")
+        case .details: L("composer.inserter.details_detail")
+        case .spoiler: L("composer.inserter.spoiler_detail")
+        case .date: L("composer.inserter.date_detail")
+        case .code: L("composer.inserter.code_detail")
+        case .quote: L("composer.inserter.quote_detail")
+        case .photo: L("composer.inserter.photo_detail")
+        case .opaque: L("composer.edit_markdown")
         }
     }
     private static func symbol(_ kind: ComposerBlockKind) -> String {
