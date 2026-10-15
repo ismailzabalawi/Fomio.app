@@ -51,7 +51,7 @@ See [validation record](validation/2026-10-15-localization/README.md) for screen
 | C2 | iPad Pro 11-inch: the same journeys | Pass (screenshots inspected) |
 | C3 | Accessibility text sizes in Arabic keep composer controls reachable | Pass (iPhone and iPad) |
 | C4 | Accessibility labels localized and argument-isolated (topic summary, composer fields, Post) | Pass (asserted; hierarchy dumps) |
-| C5 | Existing regression suites on the final tree | Pass: iPhone 17 108 unit/contract + 40 UI, 0 failures; iPad localization + feed appearance 13 UI, 0 failures. Other existing UI tests not rerun on iPad |
+| C5 | Existing regression suites on the final tree | Pass on `2dda70b`: iPhone 17 full scheme 120 unit/contract (4 live skipped) + 52 UI (1 live skipped), 0 failures; iPad Pro 11 120 unit/contract + localization, feed appearance, review-fix and navigation-direction UI (25), 0 failures. [Record](validation/2026-10-15-manual-language/README.md) |
 | C6 | Release build bundles English only | Pass |
 
 ## D. Preserved behavior
