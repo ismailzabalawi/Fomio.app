@@ -1,0 +1,19 @@
+2026-10-15T22:50:08Z
+<meta name="generator" content="Discourse 2026.8.0-latest - https://github.com/discourse/discourse version 7b4f0970506fb0ce7d4b6a851d252ace418330c8">
+srv/status: ok
+== GET /fomio/app-locales/1/index.json
+HTTP/2 404 
+content-type: text/html; charset=utf-8
+cache-control: no-cache, no-store
+== GET /fomio/app-locales/1/en.json
+HTTP/2 404 
+content-type: text/html; charset=utf-8
+cache-control: no-cache, no-store
+== GET /fomio/app-locales/1/ar.json
+HTTP/2 404 
+content-type: text/html; charset=utf-8
+cache-control: no-cache, no-store
+== GET /fomio/app-locales/2/index.json
+HTTP/2 404 
+content-type: text/html; charset=utf-8
+cache-control: no-cache, no-store

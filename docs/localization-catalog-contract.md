@@ -1,6 +1,6 @@
 # Interface catalog contract and backend handoff
 
-Status, 2026-10-15: **implemented in the `discourse-fomio-app-locales` plugin with request specs; not deployed.** Backend worktree `/Volumes/Develop/Projects/Dicourse-worktrees/fomio-app-locales`, branch `fomio/app-locale-catalog` (based on local HEAD `d4296c5`), commits `245a6b63e10` and `6eca1a33a4a`, not pushed. Plugin README: `plugins/discourse-fomio-app-locales/README.md`. The deployed site (7b4f0970) still returns 404 for these paths (read-only probe 2026-10-15T17:46Z). Deployment needs separate authorization.
+Status, 2026-10-15: **implemented in the `discourse-fomio-app-locales` plugin with request specs; not deployed.** Backend worktree `/Volumes/Develop/Projects/Dicourse-worktrees/fomio-app-locales`, branch `fomio/app-locale-catalog` (based on local HEAD `d4296c5`), commits `245a6b63e10` and `6eca1a33a4a`, not pushed. Plugin README: `plugins/discourse-fomio-app-locales/README.md`. The deployed site (7b4f0970) still returns 404 for these paths (read-only probe 2026-10-15T17:46Z). Deployment needs separate authorization. Update 2026-10-16: the specs also pass on the deployed revision `7b4f0970`; release commit `52cbcad` (`v0.1.0`) is prepared; publication and host installation are pending ([deployment record](validation/2026-10-16-live-deployment/README.md)).
 
 ## Deployed-site check (2026-10-15, read-only, anonymous)
 
@@ -63,6 +63,6 @@ List only locales enabled for the app: the plugin's own `fomio_app_locales` allo
 | `X-Discourse-Username` stripped from 200/304 (7b4f0970's `set_current_user_for_logs` sets it on every signed-in response; d4296c5 only on private ones, commit 6735ce7e2b7; nginx sample hides it only for asset paths) | Request specs simulate the deployed callback; verified failing without the fix |
 | Catalog sync from the app (manifest, en, ar) | Manual copy; procedure in plugin README |
 | Specs: `LOAD_PLUGINS=1 bin/rspec plugins/discourse-fomio-app-locales/spec` → 46 examples, 0 failures; RuboCop and syntax_tree clean | 2026-10-15 |
-| Deployment (own repo or `app.yml` clone, rebuild), then anonymous and member verification on the live site | **Not done; requires authorization** |
+| Deployment (standalone repo `ismailzabalawi/discourse-fomio-app-locales` `v0.1.0`, `app.yml` clone, rebuild), then anonymous and member verification on the live site | **Authorized; not done**: publication blocked by the agent permission gate; no host access ([record](validation/2026-10-16-live-deployment/README.md)) |
 
 Separate operational decision, unchanged: whether to enable `allow_user_locale` so server-generated text (validation errors, emails) follows the member's language. Interface catalogs do not require it, and content translation stays off.

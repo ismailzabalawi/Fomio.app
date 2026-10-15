@@ -64,8 +64,8 @@ Merge gates (required before merging this branch):
 
 | # | Gate | Status |
 | --- | --- | --- |
-| E1 | Backend catalog endpoint per [contract](localization-catalog-contract.md) implemented with request specs, client-equivalent validation, English-only default allowlist, member-header compatibility with the deployed revision | **Pass (local)**: plugin on backend branch `fomio/app-locale-catalog` (`245a6b63e10`, `6eca1a33a4a`), 46 examples, 0 failures; awaiting independent review |
-| E2 | Plugin deployed; anonymous and signed-in verification on the live site (200, ETag/304, no `X-Discourse-Username`, only allowlisted locales) | **Blocked**: deployment not authorized; live paths 404 at 7b4f0970 (2026-10-15T17:46Z) |
+| E1 | Backend catalog endpoint per [contract](localization-catalog-contract.md) implemented with request specs, client-equivalent validation, English-only default allowlist, member-header compatibility with the deployed revision | **Pass (local)**: backend `fomio/app-locale-catalog` (`245a6b63e10`, `6eca1a33a4a`, `9b238e291e9`); 46 examples, 0 failures on `d4296c5` **and on the deployed revision `7b4f0970`** (own gems, pnpm and test database); the header strip proven necessary against 7b4f0970's real callback ([record](validation/2026-10-16-live-deployment/README.md)) |
+| E2 | Plugin deployed; anonymous and signed-in verification on the live site (200, ETag/304, no `X-Discourse-Username`, only allowlisted locales) | **Blocked** (2026-10-16): standalone release `52cbcad` / `v0.1.0` prepared but not yet published (agent permission gate on creating the public repository), and no host access to `134.122.67.114` on this Mac. Live paths still 404 at 7b4f0970. Verification script ready: `validation/2026-10-16-live-deployment/verify-live-catalogs.sh` |
 | E3 | Live non-English interface on a device, selected in Me › Language from the deployed endpoint (requires a language enabled on the live site, which in turn requires E4 for Arabic) | **Blocked** on E2 (and the enabling decision) |
 | E5 | Release build contains no `catalogs` folder | Pass |
 
@@ -77,7 +77,7 @@ Release-only gates (required before offering a language other than English to me
 | E6 | VoiceOver walk-through in Arabic on a physical device; Increase Contrast/Reduce Motion | Manual pending |
 | E7 | Product agreement on the terminology policy (native discussion/community vs the forum's Byte/Hub/Teret overrides) | **Open**: documented implementation choice, explicit in the manifest, not yet agreed |
 
-The branch is **not merged**: E2 and E3 are open.
+The branch is **not merged**: E2 and E3 are open. Live app behavior verified so far (2026-10-16, no fixture): a fresh install on an Arabic device starts in English, and Me › Language offers only English while the endpoint returns 404.
 
 ## F. Independent review of 6162c57 (2026-10-15)
 
