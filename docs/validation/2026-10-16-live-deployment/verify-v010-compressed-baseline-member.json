@@ -1,0 +1,7 @@
+{"captured_utc": "2026-10-16T22:03Z", "plugin": "v0.1.0 (52cbcad)", "discourse": "28529a6d63f99d8dea00017e69981ab42d4700fc",
+ "session": {"signed_in": true, "admin": false, "moderator": true, "trust_level": 1, "note": "username not recorded"},
+ "index": {"first": {"status": 200, "etag": "\"b2201006ba066631\"", "cache": "max-age=300, public", "username_header": false},
+           "conditional_with_returned_etag": {"status": 304, "username_header": false}, "body_equals_anonymous": true, "username_in_body": false},
+ "en": {"first": {"status": 200, "etag": "W/\"fbb8458fccf9d8f0\"", "cache": "max-age=300, public", "username_header": false},
+        "conditional_with_returned_etag": {"status": 200, "expected": 304, "username_header": false}, "body_equals_anonymous": true, "username_in_body": false},
+ "negatives": {"/1/ar.json": 404, "/1/xx.json": 404, "/2/index.json": 404, "/1/AR.json": 404}}

@@ -2,7 +2,18 @@
 
 Date 2026-10-16 (Amman; UTC 2026-10-15 22:30–23:00). App branch `claude/fomio-localization-impl-48ecab` (app source unchanged since `2dda70b`). Backend branch `fomio/app-locale-catalog`. `main` (`b62aef5`, build 0.8.0 (5)) untouched; nothing merged.
 
-**Result (2026-10-16 ~11:30 UTC): v0.1.0 is deployed on meta.fomio.app (Discourse `28529a6d63f99d8dea00017e69981ab42d4700fc`) and verified live, anonymously and signed in. E2 passes, with one finding: conditional 304 doesn't work for compressed responses (weak ETag); the fix is v0.1.1, not yet released. E3 (live non-English) stays open: no non-English language is approved.** See [Deployment and live verification](#deployment-and-live-verification-2026-10-16). Sections after it record the preparation, in order.
+**Status (2026-10-17): v0.1.0 is live on Discourse `28529a6d`. v0.1.1 (weak-ETag fix, `07bb7d38065ede03d0ac9f49f4f89d9ae8d4eed3`) is published and awaiting host installation ([operator steps](operator-v0.1.1.md)). E2 is PARTIAL until compressed conditional requests return 304; E3 is open (no approved non-English language).** See [v0.1.1 rollout](#v011-rollout-2026-10-17) and [Deployment and live verification](#deployment-and-live-verification-2026-10-16). Earlier sections record the preparation, in order.
+
+## v0.1.1 rollout (2026-10-17)
+
+| Step | Status / evidence |
+| --- | --- |
+| Review | Split `07bb7d38065ede03d0ac9f49f4f89d9ae8d4eed3` = backend `e3fd4b3647f` plugin tree; fast-forward of published `52cbcad` (`5be3ca9` fix + `07bb7d3` README; 4 files); version 0.1.1; no secret matches in the diff |
+| Specs | v0.1.1 at deployed `28529a6d` with `fomio_plgin`: 47 / 0; at `d4296c5`: 47 / 0. The weak-ETag spec fails on the v0.1.0 controller (reproduction) |
+| Publish (user-authorized) | `git push --atomic … 07bb7d3:refs/heads/main 07bb7d3:refs/tags/v0.1.1`. Remote: `main` and `v0.1.1` → `07bb7d3`, `v0.1.0` → `52cbcad` unchanged; no force. Anonymous `git clone --branch v0.1.1 --depth 1` → `07bb7d3`, identical to the backend plugin directory |
+| Baseline before install (v0.1.0) | Anonymous: compressed `en.json` returned `W/"fbb8458fccf9d8f0"`; sending it back → **200** (expected 304) ([log](verify-v010-compressed-baseline-anonymous.txt)). Signed in (moderator session, not admin, [snippet](verify-member-session.js)): same 200; index 304; bodies equal anonymous; no username in headers or bodies; 404s correct ([result](verify-v010-compressed-baseline-member.json)). The index is too small to be compressed, so its tag stays strong and gets 304 |
+| Host installation | **Pending, operator**: the agent may not drive the droplet console (refused twice by the agent's safety classifier on 2026-10-16). Steps: [operator-v0.1.1.md](operator-v0.1.1.md) (non-overwriting backup, guarded one-line change, both output streams suppressed, root-only rebuild log, rollback) |
+| After installation | `verify-live-catalogs.sh` (now also compressed: index and en, returned ETag → 304) and `verify-member-session.js` in a signed-in tab; expect every check to pass; then E2 → Pass |
 
 ## Deployment and live verification (2026-10-16)
 

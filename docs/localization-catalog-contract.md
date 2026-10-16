@@ -1,6 +1,6 @@
 # Interface catalog contract and backend handoff
 
-Status, 2026-10-15: **implemented in the `discourse-fomio-app-locales` plugin with request specs; not deployed.** Backend worktree `/Volumes/Develop/Projects/Dicourse-worktrees/fomio-app-locales`, branch `fomio/app-locale-catalog` (based on local HEAD `d4296c5`), commits `245a6b63e10` and `6eca1a33a4a`, not pushed. Plugin README: `plugins/discourse-fomio-app-locales/README.md`. The deployed site (7b4f0970) still returns 404 for these paths (read-only probe 2026-10-15T17:46Z). Deployment needs separate authorization. Update 2026-10-16: the specs also pass on the deployed revision `7b4f0970`; release `v0.1.0` (`52cbcad`) is published at https://github.com/ismailzabalawi/discourse-fomio-app-locales; host installation is pending (no host access) ([deployment record](validation/2026-10-16-live-deployment/README.md)). Update 2026-10-16 (later): **deployed** (v0.1.0) and verified live; see the deployment record.
+Status, 2026-10-17: **deployed on meta.fomio.app as plugin `discourse-fomio-app-locales` v0.1.0** (Discourse `28529a6d63f99d8dea00017e69981ab42d4700fc`), verified anonymously and signed in, except that conditional requests from clients receiving compressed responses get 200 instead of 304 (weak ETag). **v0.1.1** (`07bb7d38065ede03d0ac9f49f4f89d9ae8d4eed3`, the weak-comparison fix) is **published** at https://github.com/ismailzabalawi/discourse-fomio-app-locales and **awaiting host installation**. Source: backend branch `fomio/app-locale-catalog` (`f13036a1cc0`, `e3fd4b3647f`, not pushed). History, evidence and the operator steps: [deployment record](validation/2026-10-16-live-deployment/README.md).
 
 ## Deployed-site check (2026-10-15, read-only, anonymous)
 
@@ -11,7 +11,7 @@ Status, 2026-10-15: **implemented in the `discourse-fomio-app-locales` plugin wi
 | Native catalog route | None. Public plugin assets list checklist, details, lazy-videos, local-dates, presence, reactions, solved, templates, topic-voting, poll, spoiler-alert: no localization plugin. Probes of plausible paths returned 404 (they were checks, not assumptions). |
 | Overrides | `/extra-locales/<digest>/en/overrides.js` (fetched once to inspect, never executed or used by the app): English-only overrides mapping topic → Byte/Bytes, category → Hub, subcategory → Teret/terets, with inconsistent casing (`js.topic.new` = "new byte", `js.topic.create` = "New Byte") and one malformed value (`js.category.all` = literal "js.hubs.all"). |
 
-Conclusion: live builds use `DiscourseLocalizationTransport` with the configured paths below; while the site returns 404 the app shows bundled English and offers no other language. Live verification of non-English catalogs is blocked on deploying the plugin.
+Conclusion: live builds use `DiscourseLocalizationTransport` with the configured paths below. The live site offers English only (`fomio_app_locales` = `en`), so the app lists English and shows the live English catalog (identical to bundled English). Live verification of a non-English catalog needs an approved language (E3/E4).
 
 ## Endpoints
 
@@ -51,7 +51,7 @@ List only locales enabled for the app: the plugin's own `fomio_app_locales` allo
 
 `Fomio/Localization/LocalizationCatalog.swift` (`CatalogValidator`) accepts a catalog only if: schema is 1; `complete` is true; the resolved locale has the requested language; direction is `ltr`/`rtl`; the app has CLDR plural rules for it and `plural_categories` match them; every key in the bundled English catalog is present with the same kind (text vs plural); text placeholders match exactly; plural messages carry every category, use only allowed placeholders, keep non-count placeholders in every form and show `{count}` in `other`; no value is blank, too long (1,200 characters), markup, `%{…}`/`%@` formatting, unbalanced braces or a raw key. Unknown extra keys are ignored. Languages currently supported by app plural rules: English, Arabic, and one-form languages (ja/ko/zh). Add others in the app with tests before enabling them.
 
-## Backend implementation (2026-10-15, not deployed)
+## Backend implementation (2026-10-15; v0.1.0 deployed 2026-10-16, v0.1.1 published 2026-10-17)
 
 | Item | Status |
 | --- | --- |

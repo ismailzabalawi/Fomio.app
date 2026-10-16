@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Read-only verification of the deployed discourse-fomio-app-locales endpoints.
+# Read-only verification of the deployed discourse-fomio-app-locales endpoints (uncompressed and compressed).
 #
 #   docs/validation/2026-10-16-live-deployment/verify-live-catalogs.sh [base-url]
 #
@@ -48,7 +48,21 @@ check_catalogs() {
   [ "$s" = 304 ] && pass "$who en conditional 304" || fail "$who en conditional status $s"
   [ -z "$(header "$who-en304" X-Discourse-Username)" ] && pass "$who 304 has no X-Discourse-Username" || fail "$who 304 names a member"
 
-  for path in /fomio/app-locales/1/xx.json /fomio/app-locales/2/index.json /fomio/app-locales/1/AR.json; do
+  # Compressed, as browsers and iOS URLSession request it: the ETag reaches the client weak (W/"…"), and sending that
+  # back must still revalidate (304). Added 2026-10-17 after v0.1.0 answered 200 here.
+  local doc
+  for doc in index en; do
+    s=$(get "$who-$doc-z" "/fomio/app-locales/1/$doc.json" --compressed "$@")
+    local zetag; zetag="$(header "$who-$doc-z" ETag)"
+    [ "$s" = 200 ] && pass "$who $doc compressed 200 ($(header "$who-$doc-z" Content-Encoding), ETag $zetag)" || fail "$who $doc compressed status $s"
+    case "$zetag" in W/*) ;; *) echo "NOTE  $who $doc compressed ETag is not weak ($zetag): this response was not compressed in transit";; esac
+    case "$(header "$who-$doc-z" Cache-Control)" in *public*) pass "$who $doc compressed Cache-Control public";; *) fail "$who $doc compressed Cache-Control: $(header "$who-$doc-z" Cache-Control)";; esac
+    s=$(get "$who-$doc-z304" "/fomio/app-locales/1/$doc.json" --compressed -H "If-None-Match: $zetag" "$@")
+    [ "$s" = 304 ] && pass "$who $doc compressed conditional with returned ETag $zetag → 304" || fail "$who $doc compressed conditional with returned ETag $zetag → $s (expected 304)"
+    [ -z "$(header "$who-$doc-z" X-Discourse-Username)$(header "$who-$doc-z304" X-Discourse-Username)" ] && pass "$who $doc compressed responses have no X-Discourse-Username" || fail "$who $doc compressed response names a member"
+  done
+
+  for path in /fomio/app-locales/1/xx.json /fomio/app-locales/2/index.json /fomio/app-locales/1/AR.json /fomio/app-locales/1/ar.json; do
     s=$(get "$who-neg" "$path" "$@"); [ "$s" = 404 ] && pass "$who $path 404" || fail "$who $path status $s"
   done
 }
