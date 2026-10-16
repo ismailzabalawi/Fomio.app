@@ -55,6 +55,20 @@ Debug build from `2dda70b`'s source, launched without `--fixture`, so it uses `F
 
 These are fixture/simulator results; they do not prove the live connection. After publication no app or plugin source changed: app code is unchanged since `2dda70b`, and the published tree is byte-identical to the tested plugin directory. The reruns above therefore remain the current evidence and were not repeated. Anything affected by an actual installation (live HTTP, live app selection) must be rerun after deployment.
 
+## Additional readiness checks (2026-10-16, read-only)
+
+- Access recheck 09:00 UTC: no SSH configuration, host key or agent identity on this Mac (unchanged). Remote `main` and `v0.1.0` still at `52cbcad`.
+- Live recheck 08:57 UTC: generator 7b4f0970, `/srv/status` ok, catalog paths 404 ([verify-recheck.txt](verify-recheck.txt)).
+- Installed plugins visible publicly (JS assets): checklist, details, lazy-videos, local-dates, presence, reactions, solved, templates, topic-voting, poll, spoiler-alert. All are core plugins at 7b4f0970.
+- Route coexistence: the unversioned local plugin `discourse-fomio-api` mounts an engine at `/fomio`. It is evidently not deployed (anonymous JSON `/fomio/me/activity.json` returns Discourse's generic not-found; a login-required route would answer 403). Installed together at 7b4f0970, its `/fomio` engine is routed before `/fomio/app-locales`, and all 46 of this plugin's examples still pass. Its own 3 failing examples are unrelated ([log](coexist-fomio-api-7b4f0970-rspec.log.gz)). The temporary copy was removed.
+- Rebuild version risk: a rebuild installs `app.yml`'s `version` (default `tests-passed` = `f3758bd5a69` on 2026-10-16, 1,745 commits after 7b4f0970). The plugin's dependencies (skipped callbacks, `JsLocaleHelper.translations_for`, `LocaleSiteSetting`, `Rtl::LOCALES`) exist at all three revisions. In a detached checkout at `f3758bd5a69` (own gems, pnpm, database `discourse_test_fomio_f3758bd`, plugin from `9b238e291e9`): **46 examples, 0 failures** ([log](rebuild-candidate-f3758bd-rspec.log.gz)). The console procedure still recommends pinning 7b4f0970, so no unrelated upgrade is bundled.
+- The discourse_docker `launcher` source (fetched read-only) confirms `start-cmd` is a read-only parse, and that `rebuild` keeps the old container until bootstrap succeeds, so `./launcher start app` restores service after a failed bootstrap.
+- [console-install.md](console-install.md): step-by-step console procedure with backup, version pin, single-line hook change, health checks and rollback.
+
+## Console session (2026-10-16 09:01 UTC)
+
+The user opened the DigitalOcean droplet web console (root shell, hostname `meta`, 134.122.67.114, as shown in its banner) in the in-app browser and asked the agent to deploy through it. The agent could not operate it: the agent permission classifier refused input to the production root shell, and the browser tooling refuses to drive the console because it is a page-opened popup. **No command was typed or run on the host** (the console still showed only the login banner and prompt). Neither control was worked around.
+
 ## Post-deployment verification script
 
 [`verify-live-catalogs.sh`](verify-live-catalogs.sh) is read-only. It checks:
@@ -69,7 +83,7 @@ Pre-deployment run: [verify-predeploy.txt](verify-predeploy.txt). The 404 negati
 ## Blockers
 
 1. ~~Publish the standalone repository~~: done 2026-10-16 (see above).
-2. **Install on the meta.fomio.app host.** Rechecked 2026-10-16: this Mac's `~/.ssh` has no `config`, `known_hosts`/`known_hosts.old` contain only `github.com`, the SSH agent has no identities, and no project file names a host user. Needed, from the person who administers the droplet, either:
+2. **Install on the meta.fomio.app host.** Update 09:01 UTC: console access exists (user-opened DigitalOcean web console), but the agent may not operate it. A person runs [console-install.md](console-install.md) there, or explicitly permits the agent to drive the console as a regular (non-popup) tab. Earlier note: Rechecked 2026-10-16: this Mac's `~/.ssh` has no `config`, `known_hosts`/`known_hosts.old` contain only `github.com`, the SSH agent has no identities, and no project file names a host user. Needed, from the person who administers the droplet, either:
    - an SSH user for `134.122.67.114` whose authorized keys include this Mac's key (or a key added to the agent), **plus the host's SSH key fingerprint, obtained out of band** (for example from the DigitalOcean droplet console: `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub`), so the first connection can be verified rather than trusted blindly; or
    - that person running the steps below in the droplet's web console.
 
