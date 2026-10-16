@@ -1,0 +1,18 @@
+Base: https://meta.fomio.app   2026-10-16T00:07:49Z
+Generator: version 7b4f0970506fb0ce7d4b6a851d252ace418330c8
+PASS  /srv/status ok
+FAIL  anonymous index status 404
+FAIL  anonymous index is not JSON
+PASS  anonymous index has no X-Discourse-Username
+FAIL  anonymous index Cache-Control: no-cache, no-store
+FAIL  anonymous en status 404
+FAIL  anonymous en has no ETag
+PASS  anonymous en has no X-Discourse-Username
+FAIL  anonymous en Cache-Control: no-cache, no-store
+FAIL  anonymous en body is not a complete schema-1 catalog
+FAIL  anonymous en conditional status 404
+PASS  anonymous 304 has no X-Discourse-Username
+PASS  anonymous /fomio/app-locales/1/xx.json 404
+PASS  anonymous /fomio/app-locales/2/index.json 404
+PASS  anonymous /fomio/app-locales/1/AR.json 404
+SKIP  member checks (set FOMIO_MEMBER_API_KEY and FOMIO_MEMBER_USERNAME to run them)

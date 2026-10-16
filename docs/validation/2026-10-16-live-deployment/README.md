@@ -2,7 +2,7 @@
 
 Date 2026-10-16 (Amman; UTC 2026-10-15 22:30–23:00). App branch `claude/fomio-localization-impl-48ecab` (app source unchanged since `2dda70b`). Backend branch `fomio/app-locale-catalog`. `main` (`b62aef5`, build 0.8.0 (5)) untouched; nothing merged.
 
-**Result: the plugin is not deployed yet. E2 and E3 remain open.** Everything up to publication is done and verified against the deployed Discourse revision. Two concrete actions remain; see [Blockers](#blockers).
+**Result: the plugin is published, but not installed on the host. E2 and E3 remain open.** Everything up to host installation is done and verified. One host action remains, plus language approval for E3; see [Blockers](#blockers).
 
 ## Destination identified from project configuration
 
@@ -18,13 +18,21 @@ Date 2026-10-16 (Amman; UTC 2026-10-15 22:30–23:00). App branch `claude/fomio-
 - Real deployed-code header check: at 7b4f0970, `set_current_user_for_logs` really adds `X-Discourse-Username` for signed-in requests. With the plugin's `prepend_after_action :remove_member_headers` disabled, the signed-in catalog response carried `"X-Discourse-Username" => "catalog_member"` and the example failed. Restored, it passes.
 - Disclosure: a first attempt with `TEST_ENV_NUMBER` resolved to the pre-existing local test database `discourse_test_0`. It was migrated with 7b4f0970's migrations, which only adds missing ones; it is a disposable test database. The dedicated database was then used for every result above.
 
-## Publication prepared (not pushed)
+## Publication
 
 - Backend commit `9b238e291e9` adds the release/deployment procedure to the plugin README, on top of `245a6b63e10` and `6eca1a33a4a`.
 - Standalone split, built with `git commit-tree` from each plugin commit's subtree, preserving author, committer, dates and message (equivalent to `git subtree split --prefix=plugins/discourse-fomio-app-locales`, which was too slow over Discourse's full history):
   - `245a6b63e10` → `3501589cdcea41c234a80ed31401afc751ebbd1b`
   - `6eca1a33a4a` → `5a5b546828e538d1d982729acd53600dbf887cdf`
   - `9b238e291e9` → **`52cbcad6aef4020aef3138e3bda35d83acaa95e9`** (root: `README.md app catalogs config lib plugin.rb spec`; tree identical to `plugins/discourse-fomio-app-locales` at `9b238e291e9`)
+
+### Published 2026-10-16 (user-approved public repository)
+
+- Before publishing: the split tree equals `plugins/discourse-fomio-app-locales` at `9b238e291e9`. It holds only the plugin's 13 files: README, controller, catalogs en/ar/manifest, server locale, routes, settings, builder, engine, `plugin.rb` and two specs. A secret pattern scan (keys, tokens, passwords, private keys, emails, host IP) found nothing. Commit author metadata is the same as on the already-public `Fomio.app` repository.
+- `gh repo create ismailzabalawi/discourse-fomio-app-locales --public` → https://github.com/ismailzabalawi/discourse-fomio-app-locales (it did not exist before).
+- `git push --atomic … 52cbcad…:refs/heads/main 52cbcad…:refs/tags/v0.1.0`. `git ls-remote` shows `HEAD`, `refs/heads/main` and `refs/tags/v0.1.0` all at `52cbcad6aef4020aef3138e3bda35d83acaa95e9`.
+- The server's exact install command, run anonymously (`git clone --branch v0.1.0 --depth 1 https://github.com/ismailzabalawi/discourse-fomio-app-locales.git`, no credential helper), checked out `52cbcad`. `diff -r` against the backend plugin directory found no differences; `plugin.rb` is version 0.1.0.
+- Live after publication: unchanged, 404 at 7b4f0970 ([verify-after-publication.txt](verify-after-publication.txt)).
 
 ## Live app verification (against the real endpoint; no fixture)
 
@@ -45,7 +53,7 @@ Debug build from `2dda70b`'s source, launched without `--fixture`, so it uses `F
 | Backend plugin on `d4296c5` | backend `9b238e291e9` | 46 examples, 0 failures ([log](backend-rspec-9b238e2.log.gz)) |
 | Backend plugin on deployed `7b4f0970` | plugin from `6eca1a33a4a` (`9b238e291e9` changes only the README) | 46 examples, 0 failures |
 
-These are fixture/simulator results; they do not prove the live connection.
+These are fixture/simulator results; they do not prove the live connection. After publication no app or plugin source changed: app code is unchanged since `2dda70b`, and the published tree is byte-identical to the tested plugin directory. The reruns above therefore remain the current evidence and were not repeated. Anything affected by an actual installation (live HTTP, live app selection) must be rerun after deployment.
 
 ## Post-deployment verification script
 
@@ -60,13 +68,12 @@ Pre-deployment run: [verify-predeploy.txt](verify-predeploy.txt). The 404 negati
 
 ## Blockers
 
-1. **Publish the standalone repository** (authorized by the user; blocked in this session by the agent permission classifier as "create public surface", so not attempted further). From the backend worktree:
-   ```
-   gh repo create ismailzabalawi/discourse-fomio-app-locales --public --description "Public read-only interface catalogs for the Fomio native app"
-   git push --atomic https://github.com/ismailzabalawi/discourse-fomio-app-locales.git 52cbcad6aef4020aef3138e3bda35d83acaa95e9:refs/heads/main 52cbcad6aef4020aef3138e3bda35d83acaa95e9:refs/tags/v0.1.0
-   ```
-   A lightweight tag matches the split SHA. An annotated tag (`git tag -a v0.1.0 52cbcad…`) is equally fine; the tag must never be moved later.
-2. **Install on the meta.fomio.app host** (needs someone with shell access to `134.122.67.114`, or the console of its hosting provider):
+1. ~~Publish the standalone repository~~: done 2026-10-16 (see above).
+2. **Install on the meta.fomio.app host.** Rechecked 2026-10-16: this Mac's `~/.ssh` has no `config`, `known_hosts`/`known_hosts.old` contain only `github.com`, the SSH agent has no identities, and no project file names a host user. Needed, from the person who administers the droplet, either:
+   - an SSH user for `134.122.67.114` whose authorized keys include this Mac's key (or a key added to the agent), **plus the host's SSH key fingerprint, obtained out of band** (for example from the DigitalOcean droplet console: `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub`), so the first connection can be verified rather than trusted blindly; or
+   - that person running the steps below in the droplet's web console.
+
+   Steps:
    ```
    cd /var/discourse
    cp containers/app.yml containers/app.yml.before-fomio-app-locales
