@@ -18,6 +18,14 @@ protocol LocalizationTransport: Sendable {
     func catalog(locale: String, etag: String?) async throws -> TransportResponse
 }
 
+#if DEBUG
+/// Live-mode UI tests: every catalog request fails as if the device were offline.
+struct OfflineLocalizationTransport: LocalizationTransport {
+    func index(etag: String?) async throws -> TransportResponse { throw TransportError.offline }
+    func catalog(locale: String, etag: String?) async throws -> TransportResponse { throw TransportError.offline }
+}
+#endif
+
 /// Used when the site has not published a native catalog contract. Only bundled English is shown.
 struct UnavailableLocalizationTransport: LocalizationTransport {
     func index(etag: String?) async throws -> TransportResponse { throw TransportError.unavailable }

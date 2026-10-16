@@ -65,8 +65,8 @@ Merge gates (required before merging this branch):
 | # | Gate | Status |
 | --- | --- | --- |
 | E1 | Backend catalog endpoint per [contract](localization-catalog-contract.md) implemented with request specs, client-equivalent validation, English-only default allowlist, member-header compatibility with the deployed revision | **Pass (local)**: backend `fomio/app-locale-catalog` (`245a6b63e10`, `6eca1a33a4a`, `9b238e291e9`); 46 examples, 0 failures on `d4296c5` **and on the deployed revision `7b4f0970`** (own gems, pnpm and test database); the header strip proven necessary against 7b4f0970's real callback ([record](validation/2026-10-16-live-deployment/README.md)) |
-| E2 | Plugin deployed; anonymous and signed-in verification on the live site (200, ETag/304, no `X-Discourse-Username`, only allowlisted locales) | **Blocked on host access** (2026-10-16): published at https://github.com/ismailzabalawi/discourse-fomio-app-locales, `main` and `v0.1.0` = `52cbcad`, verified by anonymous clone. Not installed: no trusted SSH access to `134.122.67.114` (no user, host key or identity on this Mac). Live paths still 404 at 7b4f0970. Verification script ready ([record](validation/2026-10-16-live-deployment/README.md)) |
-| E3 | Live non-English interface on a device, selected in Me › Language from the deployed endpoint (requires a language enabled on the live site, which in turn requires E4 for Arabic) | **Blocked** on E2 (and the enabling decision) |
+| E2 | Plugin deployed; anonymous and signed-in verification on the live site (200, ETag/304, no `X-Discourse-Username`, only allowlisted locales) | **Pass, with one finding** (2026-10-16): v0.1.0 live on Discourse `28529a6d`. Anonymous and signed-in (moderator session, not admin): 200, public caching, same bodies, no username header or body leak, `en` only, 404 for `ar`/`xx`/schema 2/`AR`. Uncompressed conditional request 304. **Finding**: compressed responses carry a weak ETag that v0.1.0 doesn't match, so real clients (including the app) get 200, not 304. Fixed in v0.1.1 (backend `f13036a1cc0`, split `5be3ca9`), not yet released ([record](validation/2026-10-16-live-deployment/README.md#deployment-and-live-verification-2026-10-16)) |
+| E3 | Live non-English interface on a device, selected in Me › Language from the deployed endpoint (requires a language enabled on the live site, which in turn requires E4 for Arabic) | **Open**: the live allowlist is `en` only, and no non-English language is approved. Verified live meanwhile on iPhone and iPad: English first launch on English and Arabic iOS, English listed and chosen, persistence, cached live catalog with catalog requests offline, bundled English fallback (`LiveLocalizationUITests`) |
 | E5 | Release build contains no `catalogs` folder | Pass |
 
 Release-only gates (required before offering a language other than English to members; not waived):
@@ -77,7 +77,7 @@ Release-only gates (required before offering a language other than English to me
 | E6 | VoiceOver walk-through in Arabic on a physical device; Increase Contrast/Reduce Motion | Manual pending |
 | E7 | Product agreement on the terminology policy (native discussion/community vs the forum's Byte/Hub/Teret overrides) | **Open**: documented implementation choice, explicit in the manifest, not yet agreed |
 
-The branch is **not merged**: E2 and E3 are open. Live app behavior verified so far (2026-10-16, no fixture): a fresh install on an Arabic device starts in English, and Me › Language offers only English while the endpoint returns 404.
+The branch is **not merged**: E3 is open, and v0.1.1 (the weak-ETag fix) should be released and re-verified before merge. Live app behavior verified so far (2026-10-16, no fixture): a fresh install on an Arabic device starts in English, and Me › Language offers only English while the endpoint returns 404.
 
 ## F. Independent review of 6162c57 (2026-10-15)
 

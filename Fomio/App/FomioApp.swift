@@ -67,9 +67,14 @@ import SwiftUI
             let localization = LocalizationController(store: LocalizationStore(root: localizationRoot, site: "fixture"), transport: transport)
             _state = State(initialValue: AppState(service: fixture, fixture: fixture, configuration: nil, store: store, localization: localization))
         } else {
-            // The site's public catalog endpoint (discourse-fomio-app-locales). While the deployed site does not
-            // serve it, requests 404 and the app stays in bundled English.
-            let transport: any LocalizationTransport = configuration.flatMap { DiscourseLocalizationTransport.fromBundle($0) } ?? UnavailableLocalizationTransport()
+            // The site's public catalog endpoint (discourse-fomio-app-locales). If the site does not serve it,
+            // requests 404 and the app stays in bundled English.
+            var transport: any LocalizationTransport = configuration.flatMap { DiscourseLocalizationTransport.fromBundle($0) } ?? UnavailableLocalizationTransport()
+            #if DEBUG
+            // `--l10n-offline` (live UI tests): catalog requests fail as offline, so only the validated cache or bundled
+            // English can be shown. Community content still loads from the live site.
+            if arguments.contains("--l10n-offline") { transport = OfflineLocalizationTransport() }
+            #endif
             let site = configuration.map { LocalizationStore.siteKey($0.baseURL) } ?? "unconfigured"
             let localization = LocalizationController(store: LocalizationStore(root: localizationRoot, site: site), transport: transport)
             _state = State(initialValue: AppState(service: DiscourseService(configuration: configuration), fixture: nil, configuration: configuration, localization: localization))

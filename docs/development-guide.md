@@ -40,7 +40,8 @@ Set arguments in the Xcode scheme’s Run action. Fixture account defaults to `j
 | `--ui-testing` | Enables isolated fixture draft directory when a valid namespace is supplied |
 | `--language <code>` | Debug only. Stores an interface language choice (for example `ar`) as if chosen earlier in Me › Language; `en` clears it. There is no device-language mode |
 | `--l10n-reset` | Debug only. Deletes cached interface catalogs for this launch's storage root |
-| `--l10n-offline` | Debug, fixture mode. The fixture catalog transport fails as offline |
+| `--l10n-offline` | Debug. Catalog requests fail as offline: the fixture transport in fixture mode, `OfflineLocalizationTransport` with `--live` (community content still loads) |
+| `TEST_RUNNER_FOMIO_LIVE_UI_TESTS=1` | Opt-in for live UI tests (`FomioUITests` live case, `LiveLocalizationUITests`), anonymous reads against the configured site |
 | `--l10n-incomplete-ar` | Debug, fixture mode. The fixture Arabic response omits a required key (must be rejected) |
 | `--l10n-changed-override` | Debug, fixture mode. The fixture English response has a new revision renaming Home (site-text override change) |
 | `--l10n-site-default-ar` | Debug, fixture mode. The fixture index reports `default_locale` `ar` (the app must ignore it) |

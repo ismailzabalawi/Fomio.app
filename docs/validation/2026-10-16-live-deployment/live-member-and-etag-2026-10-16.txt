@@ -1,0 +1,13 @@
+Signed-in browser session at https://meta.fomio.app (in-app browser), 2026-10-16T11:06:32Z. Requests made with fetch(credentials: same-origin, cache: no-store).
+Identity check: /session/current.json 200; account is a moderator, not an admin, trust level 1 (username deliberately not recorded).
+index.json   200  Cache-Control: max-age=300, public  ETag "b2201006ba066631"  X-Discourse-Username: absent  body = anonymous body (en only, default_locale en)
+en.json      200  Cache-Control: max-age=300, public  ETag W/"fbb8458fccf9d8f0" (compressed)  X-Discourse-Username: absent  481 messages, revision fbb8458fccf9d8f0
+en.json + If-None-Match: W/"fbb8458fccf9d8f0"  -> 200 (expected 304; see weak-ETag finding)  X-Discourse-Username: absent
+username string present in index or catalog body: no
+ar.json 404 · xx.json 404 · /2/index.json 404 · AR.json 404
+
+Weak-ETag finding (curl, anonymous, 2026-10-16T11:06:32Z):
+Accept-Encoding: identity           -> HTTP/2 200  etag: "fbb8458fccf9d8f0" 
+Accept-Encoding: gzip, deflate, br  -> HTTP/2 200  etag: W/"fbb8458fccf9d8f0" content-encoding: br 
+gzip + If-None-Match: W/"fbb8458fccf9d8f0" -> 200
+gzip + If-None-Match: "fbb8458fccf9d8f0"   -> 304

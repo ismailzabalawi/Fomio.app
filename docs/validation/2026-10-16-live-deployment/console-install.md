@@ -31,6 +31,8 @@ cp containers/app.yml containers/app.yml.before-fomio-app-locales
 
 A site backup (Admin › Backups, or `./launcher enter app` then `discourse backup`) is recommended. The plugin has no migrations, but a rebuild can also change the Discourse version (step 3), and core migrations can't be undone without a backup.
 
+> Outcome 2026-10-16: no pin was in effect. The rebuild upgraded Discourse (and PostgreSQL from 15), and the user then chose to keep Discourse **unpinned** for normal upgrades. To change the clone tag, replace `--branch v0.1.0` with the new tag and rebuild. See the deployment record.
+
 ## 3. Decide the Discourse version for this rebuild
 
 A rebuild installs whatever `params: version:` names (default `tests-passed`). On 2026-10-16 `tests-passed` is `f3758bd5a69`, **1,745 commits newer** than the running 7b4f0970.
