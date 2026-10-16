@@ -27,7 +27,7 @@ The Discourse upgrade (7b4f0970 → 28529a6d) and the PostgreSQL major upgrade w
   - `ar`, `xx`, schema 2, `AR` → 404.
 - **Finding, weak ETag**: compressed responses (`content-encoding: br`) carry `ETag: W/"fbb8458fccf9d8f0"`. v0.1.0 compares `If-None-Match` exactly against the strong tag, so `W/"…"` gets **200 instead of 304**; a strong tag still gets 304. The member's conditional request (browser, compressed) returned 200. **The live app is affected**: its cached record holds `etag: W/"fbb8458fccf9d8f0"`, so each revalidation re-downloads about 27 KB instead of a 304. Correctness is unaffected (every 200 is validated).
   - **Fix**: backend `f13036a1cc0` (v0.1.1) uses weak comparison per RFC 9110 13.1.2 (lists and `*` included). A new spec fails on the v0.1.0 controller at 28529a6d with exactly `W/"fbb8458fccf9d8f0"` and passes with the fix.
-  - Standalone split `5be3ca955c7fc8363d552bc6aa0bf71bc2074714` (child of the published `52cbcad`).
+  - Standalone split `07bb7d38065ede03d0ac9f49f4f89d9ae8d4eed3` (`5be3ca9` for the fix, then `07bb7d3` for the README; descends from the published `52cbcad`).
   - **Not published or deployed**: that needs a v0.1.1 tag push and a rebuild with the clone line changed to `--branch v0.1.1`.
 
 ### Backend specs at the deployed revision
@@ -71,7 +71,7 @@ Verified **live**: English first launch on English and Arabic iOS, live English 
 ### Remaining gates
 
 - **E3 (merge gate)**: a live non-English language selected in Me › Language. Needs a language approved for `fomio_app_locales`; for Arabic that means **native-speaker review (E4) first**. The allowlist stays `en`.
-- **v0.1.1 (recommended before release)**: publish tag `v0.1.1` = `5be3ca955c7` and rebuild with the clone at `--branch v0.1.1`. Then rerun `verify-live-catalogs.sh` and a compressed conditional request; expect 304.
+- **v0.1.1 (recommended before release)**: publish tag `v0.1.1` = `07bb7d38065` and rebuild with the clone at `--branch v0.1.1`. Then rerun `verify-live-catalogs.sh` and a compressed conditional request; expect 304.
 - Release-only: E4 native Arabic review, E6 physical-device VoiceOver, E7 terminology agreement.
 - Operations (outside this change): rotate the SMTP credential; keep `/shared/postgres_data_old` until the upgraded database is trusted; the droplet reports a pending OS restart.
 
