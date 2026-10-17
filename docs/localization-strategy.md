@@ -83,7 +83,7 @@ Until that contract exists and is live-verified, ship bundled localization and s
 - **Refresh** never changes which language is selected; it can update the selected language's wording (new revision).
 - **Cache**: `LocalizationStore` keeps one atomic record per locale under Application Support/Localization/site-<digest of origin+relative root>/schema-1/, excluded from backup, revalidated on every load, current plus one recent language.
 - **Refresh**: launch and foreground; 24-hour staleness; `If-None-Match`/304; concurrent callers share one request; failures and invalid responses keep the last good catalog.
-- **Live builds** use `DiscourseLocalizationTransport` with `FomioLocaleIndexPath`/`FomioLocaleCatalogPath` = `fomio/app-locales/{schema}/index.json` / `{locale}.json`, served by the `discourse-fomio-app-locales` plugin ([contract](localization-catalog-contract.md)). Deployed on meta.fomio.app (v0.1.0; v0.1.1 pending installation). The live allowlist is English only, so live builds offer English only.
+- **Live builds** use `DiscourseLocalizationTransport` with `FomioLocaleIndexPath`/`FomioLocaleCatalogPath` = `fomio/app-locales/{schema}/index.json` / `{locale}.json`, served by the `discourse-fomio-app-locales` plugin ([contract](localization-catalog-contract.md)). Deployed on meta.fomio.app (v0.1.1). The live allowlist is English only, so live builds offer English only.
 - **Direction**: SF Symbols use forward/backward variants; the editor follows interface direction for its caret and placeholder while each paragraph keeps its own direction; community text uses `contentDirection(_:)`; arguments of the opposite direction are wrapped in first-strong isolates and RTL messages starting with an argument get a right-to-left mark.
 
 ### Known limits

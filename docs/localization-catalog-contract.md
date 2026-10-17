@@ -1,6 +1,6 @@
 # Interface catalog contract and backend handoff
 
-Status, 2026-10-17: **deployed on meta.fomio.app as plugin `discourse-fomio-app-locales` v0.1.0** (Discourse `28529a6d63f99d8dea00017e69981ab42d4700fc`), verified anonymously and signed in, except that conditional requests from clients receiving compressed responses get 200 instead of 304 (weak ETag). **v0.1.1** (`07bb7d38065ede03d0ac9f49f4f89d9ae8d4eed3`, the weak-comparison fix) is **published** at https://github.com/ismailzabalawi/discourse-fomio-app-locales and **awaiting host installation**. Source: backend branch `fomio/app-locale-catalog` (`f13036a1cc0`, `e3fd4b3647f`, not pushed). History, evidence and the operator steps: [deployment record](validation/2026-10-16-live-deployment/README.md).
+Status, 2026-10-17: **deployed on meta.fomio.app as plugin `discourse-fomio-app-locales` v0.1.1** (`07bb7d38065ede03d0ac9f49f4f89d9ae8d4eed3`, https://github.com/ismailzabalawi/discourse-fomio-app-locales) on Discourse `821e9e2f9f94483a3be8d1e077cde0fd94970479`, verified anonymously and signed in, including compressed 304s. Source: backend branch `fomio/app-locale-catalog` (`e3fd4b3647f`, not pushed). History and evidence: [deployment record](validation/2026-10-16-live-deployment/README.md).
 
 ## Deployed-site check (2026-10-15, read-only, anonymous)
 
@@ -51,7 +51,7 @@ List only locales enabled for the app: the plugin's own `fomio_app_locales` allo
 
 `Fomio/Localization/LocalizationCatalog.swift` (`CatalogValidator`) accepts a catalog only if: schema is 1; `complete` is true; the resolved locale has the requested language; direction is `ltr`/`rtl`; the app has CLDR plural rules for it and `plural_categories` match them; every key in the bundled English catalog is present with the same kind (text vs plural); text placeholders match exactly; plural messages carry every category, use only allowed placeholders, keep non-count placeholders in every form and show `{count}` in `other`; no value is blank, too long (1,200 characters), markup, `%{…}`/`%@` formatting, unbalanced braces or a raw key. Unknown extra keys are ignored. Languages currently supported by app plural rules: English, Arabic, and one-form languages (ja/ko/zh). Add others in the app with tests before enabling them.
 
-## Backend implementation (2026-10-15; v0.1.0 deployed 2026-10-16, v0.1.1 published 2026-10-17)
+## Backend implementation (2026-10-15; v0.1.0 deployed 2026-10-16, v0.1.1 deployed 2026-10-17)
 
 | Item | Status |
 | --- | --- |
@@ -63,6 +63,6 @@ List only locales enabled for the app: the plugin's own `fomio_app_locales` allo
 | `X-Discourse-Username` stripped from 200/304 (7b4f0970's `set_current_user_for_logs` sets it on every signed-in response; d4296c5 only on private ones, commit 6735ce7e2b7; nginx sample hides it only for asset paths) | Request specs simulate the deployed callback; verified failing without the fix |
 | Catalog sync from the app (manifest, en, ar) | Manual copy; procedure in plugin README |
 | Specs: `LOAD_PLUGINS=1 bin/rspec plugins/discourse-fomio-app-locales/spec` → 46 examples, 0 failures; RuboCop and syntax_tree clean | 2026-10-15 |
-| Deployment (standalone repo `ismailzabalawi/discourse-fomio-app-locales` `v0.1.0`, `app.yml` clone, rebuild), then anonymous and member verification on the live site | **Deployed 2026-10-16** on Discourse `28529a6d`; verified anonymous and signed in. v0.1.1 weak-ETag fix pending release ([record](validation/2026-10-16-live-deployment/README.md)) |
+| Deployment (standalone repo `ismailzabalawi/discourse-fomio-app-locales`, `app.yml` clone, rebuild), then anonymous and member verification on the live site | **v0.1.1 deployed 2026-10-17** on Discourse `821e9e2f9f94`; verified anonymously and signed in, including compressed 304s ([record](validation/2026-10-16-live-deployment/README.md)) |
 
 Separate operational decision, unchanged: whether to enable `allow_user_locale` so server-generated text (validation errors, emails) follows the member's language. Interface catalogs do not require it, and content translation stays off.

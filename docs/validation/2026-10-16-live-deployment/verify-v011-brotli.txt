@@ -1,0 +1,6 @@
+Brotli path, anonymous, 2026-10-17T10:48:57Z
+W/"fbb8458fccf9d8f0"
+encoding=br
+br + If-None-Match: W/"fbb8458fccf9d8f0" -> 304
+list "x", W/"fbb8458fccf9d8f0" -> 304
+W/"other" -> 200

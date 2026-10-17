@@ -51,7 +51,7 @@ See [validation record](validation/2026-10-15-localization/README.md) for screen
 | C2 | iPad Pro 11-inch: the same journeys | Pass (screenshots inspected) |
 | C3 | Accessibility text sizes in Arabic keep composer controls reachable | Pass (iPhone and iPad) |
 | C4 | Accessibility labels localized and argument-isolated (topic summary, composer fields, Post) | Pass (asserted; hierarchy dumps) |
-| C5 | Existing regression suites on the final tree | Pass on `2dda70b`: iPhone 17 full scheme 120 unit/contract (4 live skipped) + 52 UI (1 live skipped), 0 failures; iPad Pro 11 120 unit/contract + localization, feed appearance, review-fix and navigation-direction UI (25), 0 failures. [Record](validation/2026-10-15-manual-language/README.md) |
+| C5 | Existing regression suites on the final tree | Pass on app source `a621012` with Xcode 27.1 (2026-10-17, freshly booted simulators): iPhone 17 full scheme 120 unit/contract (4 live skipped) + 55 UI (4 live skipped), 0 failures; iPad Pro 11 120 + 25 selected UI, 0 failures. A first 27.1 run without a simulator reboot had 21 environment failures, all passing on rerun. `LiveLocalizationUITests` 3/3 on both devices against the live site ([record](validation/2026-10-16-live-deployment/README.md#v011-rollout-2026-10-17)) |
 | C6 | Release build bundles English only | Pass |
 
 ## D. Preserved behavior
@@ -65,7 +65,7 @@ Merge gates (required before merging this branch):
 | # | Gate | Status |
 | --- | --- | --- |
 | E1 | Backend catalog endpoint per [contract](localization-catalog-contract.md) implemented with request specs, client-equivalent validation, English-only default allowlist, member-header compatibility with the deployed revision | **Pass (local)**: backend `fomio/app-locale-catalog` (`245a6b63e10`, `6eca1a33a4a`, `9b238e291e9`); 46 examples, 0 failures on `d4296c5` **and on the deployed revision `7b4f0970`** (own gems, pnpm and test database); the header strip proven necessary against 7b4f0970's real callback ([record](validation/2026-10-16-live-deployment/README.md)) |
-| E2 | Plugin deployed; anonymous and signed-in verification on the live site (200, ETag/304 including compressed responses with the returned weak ETag, public caching, no `X-Discourse-Username` or member data, only allowlisted locales, disallowed/schema 404) | **PARTIAL / OPEN** (2026-10-17). v0.1.0 live on Discourse `28529a6d`: anonymous and signed-in (moderator session, not admin) pass for 200, public caching, identical bodies, no username in headers or bodies, `en` only, 404s, uncompressed 304. **Fails**: compressed `en.json` with its returned `W/"fbb8458fccf9d8f0"` answers 200, not 304, anonymously and signed in ([baseline](validation/2026-10-16-live-deployment/verify-v010-compressed-baseline-anonymous.txt)). Fix v0.1.1 `07bb7d3` published 2026-10-17; installation and re-verification pending ([record](validation/2026-10-16-live-deployment/README.md)) |
+| E2 | Plugin deployed; anonymous and signed-in verification on the live site (200, ETag/304 including compressed responses with the returned weak ETag, public caching, no `X-Discourse-Username` or member data, only allowlisted locales, disallowed/schema 404) | **Pass** (2026-10-17 10:47–10:49 UTC): v0.1.1 `07bb7d3` on Discourse `821e9e2f9f94`. Anonymous and signed in (moderator session, not admin): 200, `Cache-Control: max-age=300, public`, identical bodies, no username in headers or bodies, `en` only, `ar`/`xx`/schema 2/`AR` 404. Conditional requests with the returned ETag → 304, both uncompressed and compressed (gzip/Brotli `W/"fbb8458fccf9d8f0"`). v0.1.0 had failed the compressed case (baselines kept) ([record](validation/2026-10-16-live-deployment/README.md#v011-rollout-2026-10-17)) |
 | E3 | Live non-English interface on a device, selected in Me › Language from the deployed endpoint (requires a language enabled on the live site, which in turn requires E4 for Arabic) | **Open**: the live allowlist is `en` only, and no non-English language is approved. Verified live meanwhile on iPhone and iPad: English first launch on English and Arabic iOS, English listed and chosen, persistence, cached live catalog with catalog requests offline, bundled English fallback (`LiveLocalizationUITests`) |
 | E5 | Release build contains no `catalogs` folder | Pass |
 
@@ -77,7 +77,7 @@ Release-only gates (required before offering a language other than English to me
 | E6 | VoiceOver walk-through in Arabic on a physical device; Increase Contrast/Reduce Motion | Manual pending |
 | E7 | Product agreement on the terminology policy (native discussion/community vs the forum's Byte/Hub/Teret overrides) | **Open**: documented implementation choice, explicit in the manifest, not yet agreed |
 
-The branch is **not merged**: E2 is partial until v0.1.1 is installed and the compressed 304 checks pass, and E3 is open. Live app behavior verified so far (2026-10-16, no fixture): a fresh install on an Arabic device starts in English, and Me › Language offers only English while the endpoint returns 404.
+The branch is **not merged**: E3 is open (no approved non-English language). Live app behavior verified so far (2026-10-16, no fixture): a fresh install on an Arabic device starts in English, and Me › Language offers only English while the endpoint returns 404.
 
 ## F. Independent review of 6162c57 (2026-10-15)
 

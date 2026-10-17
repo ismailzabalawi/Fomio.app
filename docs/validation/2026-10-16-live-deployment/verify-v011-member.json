@@ -1,0 +1,8 @@
+{"captured_utc": "2026-10-17T10:49Z", "plugin": "v0.1.1 (07bb7d3)", "discourse": "821e9e2f9f94483a3be8d1e077cde0fd94970479",
+ "method": "verify-member-session.js in a signed-in meta.fomio.app tab (session cookie; no API key)",
+ "session": {"signed_in": true, "admin": false, "moderator": true, "trust_level": 1, "note": "username not recorded"},
+ "index": {"first": {"status": 200, "etag": "\"b2201006ba066631\"", "cache": "max-age=300, public", "username_header": false},
+           "conditional_with_returned_etag": {"status": 304, "cache": "max-age=300, public", "username_header": false}, "body_equals_anonymous": true, "username_in_body": false},
+ "en": {"first": {"status": 200, "etag": "W/\"fbb8458fccf9d8f0\"", "cache": "max-age=300, public", "username_header": false},
+        "conditional_with_returned_etag": {"status": 304, "cache": "max-age=300, public", "username_header": false}, "body_equals_anonymous": true, "username_in_body": false},
+ "negatives": {"/1/ar.json": 404, "/1/xx.json": 404, "/2/index.json": 404, "/1/AR.json": 404}}
