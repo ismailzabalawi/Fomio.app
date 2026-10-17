@@ -1,5 +1,17 @@
 # Native implementation status — 2026-10-03
 
+## Reporting & Safety — 2026-10-17 (working tree)
+
+Implemented against the recorded contracts at deployed Discourse `28529a6d` and the deployed settings read on 2026-10-17. The user approved the designs and authorized native work after waiving the deployed account round trips.
+- Visible ••• on every post and reply, with server-permitted Report post/reply/discussion and a report sheet covering R03–R11.
+- Ignore user from profiles, with Forever default, reconcile-before-success and self/staff/new-member truthful states.
+- Hidden OP/reply/quote/profile-activity projections with Show once.
+- Me → Safety & Help for guests and members, Ignored users with Stop ignoring, and profile-concern escalation to the published contact.
+
+Follow-up 2026-10-18: ignored-author previews in feeds, search and notifications; Arabic safety strings (draft, needs native review). [Details](validation/2026-10-17-safety-native/README.md#follow-up--2026-10-18-ignored-previews-outside-discussions-arabic-safety-copy).
+
+Final run (2026-10-18, final tree): iPhone 169 tests, 164 passed, 0 failed, 5 live-only skipped; iPad safety UI 12/12. The follow-up added ignored-author preview hiding in feeds, search and notifications, plus draft Arabic safety strings (need native-speaker review). Current status and release items: [stage gates](design/reporting-safety/stage-gates.md#current-status--2026-10-18). Details, captures and gaps: [validation](validation/2026-10-17-safety-native/README.md). Flow contract: [flows](flows-and-recovery.md#reporting-and-ignore--2026-10-17). Not live-verified, not uploaded.
+
 ## Visual composer and Markdown preview — 2026-10-15
 
 The default native editor hides heading, quote, bullet, numbered-list and task prefixes; renders nested emphasis, links, inline code and strikethrough; and retains raw Discourse markup for drafts/submission. Heading formatting is now enabled. Numbered lists have native insertion/transformation; checklists have tappable draft checkboxes and continuation, gated by an explicit capability (enabled for fixtures, unverified/disabled in live). Formatting edits serialize only touched text runs, preserving block prefixes and unrelated source. Return continues lists/quotes or exits empty items; Backspace removes a hidden block prefix before joining text. Structured blocks retain native forms/cards. Unknown blocks remain preserved with an explicit source-edit action.

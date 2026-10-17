@@ -113,6 +113,8 @@ struct Post: Identifiable, Codable, Hashable, Sendable {
     var age = ""
     var quote: QuoteExcerpt? = nil
     var authorName: String? = nil
+    /// Non-like post actions for this viewer (flags and message actions). Filtered against the server catalog.
+    var flags: [FlagAction] = []
 }
 struct ThreadNode: Identifiable, Hashable, Sendable {
     var post: Post
@@ -128,6 +130,8 @@ struct DiscussionPage: Sendable {
     var canReply = false
     var effectiveSort: String? = nil
     var archived = false
+    /// Discourse `details.can_flag_topic`: emitted only when this viewer may flag the discussion.
+    var canFlagTopic = false
 }
 struct ChildPage: Sendable { var nodes: [ThreadNode]; var nextPage: Int? }
 struct ThreadContext: Sendable { var page: DiscussionPage; var ancestors: [Post]; var target: ThreadNode; var truncated: Bool }

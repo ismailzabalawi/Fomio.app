@@ -24,6 +24,14 @@ import SwiftUI
             fixture.uploadFails = arguments.contains("--upload-fails")
             fixture.failNextPage = arguments.contains("--feed-more-fails")
             if arguments.contains("--card-cases") { fixture.addCardCases() }
+            // Reporting & Safety simulations. Fictional outcomes only; nothing reaches a community.
+            func value(_ flag: String) -> String? { arguments.firstIndex(of: flag).flatMap { arguments.indices.contains($0 + 1) ? arguments[$0 + 1] : nil } }
+            if let raw = value("--report-outcome"), let scenario = FixtureService.ReportScenario(rawValue: raw) { fixture.reportScenario = scenario }
+            if let raw = value("--ignore-outcome"), let scenario = FixtureService.IgnoreScenario(rawValue: raw) { fixture.ignoreScenario = scenario }
+            if let raw = value("--ignored") { fixture.ignoredUsers = Set(raw.split(separator: ",").map(String.init)) }
+            fixture.newMember = arguments.contains("--new-member")
+            fixture.timeoutReceived = !arguments.contains("--timeout-not-received")
+            fixture.ignoredListFails = arguments.contains("--ignored-list-fails")
             if DevelopmentPresets.requested == "loading" { fixture.feedDelay = .seconds(120) }
             #endif
             var store = DraftStore()
@@ -61,8 +69,15 @@ struct AppShell: View {
                     }.environment(app).modifier(DevelopmentDisplaySettings()).presentationDetents([.large]).presentationCompactAdaptation(.sheet).statusBarHidden(false)
                 }
                 .sheet(isPresented: $app.authRequested, onDismiss: { app.pendingAction = nil; app.gate = .signIn }) { SignInView(app: app) }
+                .sheet(item: $app.report, onDismiss: {
+                    // Ignore offered after a received report is its own explicit task, never bundled with the report.
+                    if let name = app.queuedIgnore { app.queuedIgnore = nil; app.startIgnore(name, name: nil) }
+                }) { report in
+                    ReportSheet(state: report).environment(app).modifier(DevelopmentDisplaySettings()).presentationSizing(.form)
+                }
+                .sheet(item: $app.ignoreSheet) { ignore in IgnoreSheet(state: ignore).environment(app).modifier(DevelopmentDisplaySettings()).presentationSizing(.form) }
                 .task {
-                    await app.restoreAccount(); await app.loadTheme(); do { try app.draftStore.reconcileFiles(account: app.account) } catch { app.banner = error.localizedDescription }; await app.loadCommunities(); await app.refreshUnread()
+                    await app.restoreAccount(); await app.loadSafety(); await app.loadTheme(); do { try app.draftStore.reconcileFiles(account: app.account) } catch { app.banner = error.localizedDescription }; await app.loadCommunities(); await app.refreshUnread()
                     #if DEBUG
                     if let preset = DevelopmentPresets.requested { await DevelopmentPresets.apply(preset, to: app) }
                     #endif
@@ -114,6 +129,10 @@ struct TabRoot: View {
         case .diagnostics: DiagnosticsView()
         case let .denied(id): AccessDeniedView(name: app.category(id)?.name ?? "This community")
         case .unavailable: UnavailableTargetView()
+        case .safety: SafetyHelpView()
+        case .ignoredUsers: IgnoredUsersView()
+        case .reportingHelp: ReportingHelpView()
+        case let .profileConcern(name): ProfileConcernView(username: name)
         }
     }
 }

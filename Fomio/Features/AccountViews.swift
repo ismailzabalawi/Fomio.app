@@ -36,6 +36,7 @@ struct MeView: View {
                     row("Saved", symbol: "bookmark", count: savedCount) { app.navigate(.saved) }.accessibilityIdentifier("me-saved")
                     row("Drafts", symbol: "doc.text", count: draftCount) { app.navigate(.drafts) }.accessibilityIdentifier("me-drafts")
                 }
+                Section { row(String(localized: "Safety & Help"), symbol: "shield.lefthalf.filled", count: nil) { app.navigate(.safety) }.accessibilityIdentifier("me-safety") }
                 Section { Button("Sign out", role: .destructive) { signOutWarning = true }.frame(minHeight: 44) }
             } else {
                 Section {
@@ -45,6 +46,8 @@ struct MeView: View {
                         Button("Sign in") { app.requestSignIn() }.buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).frame(minHeight: 44)
                     }.padding(.vertical, 8)
                 }
+                // Safety resources stay reachable without signing in.
+                Section { row(String(localized: "Safety & Help"), symbol: "shield.lefthalf.filled", count: nil) { app.navigate(.safety) }.accessibilityIdentifier("me-safety") }
             }
             if app.fixture != nil {
                 Section("Development preview") {
@@ -77,6 +80,7 @@ struct ProfileView: View {
     let username: String
     @State private var member: Member?
     @State private var error: String?
+    @State private var showActivityOnce = false
     var body: some View {
         ScrollView {
             ReadingColumn {
@@ -90,9 +94,13 @@ struct ProfileView: View {
                             }
                         }
                         if !member.bio.isEmpty { Text(member.bio).textSelection(.enabled) }
+                        ProfileSafetySection(username: member.username, name: member.name)
                         SectionLabel("Recent discussions").padding(.top, 8)
                         if member.recent.isEmpty { Text("No discussions started yet.").foregroundStyle(Color.fomioSecondaryText) }
-                        VStack(spacing: 0) {
+                        else if app.isIgnored(member.username) && !showActivityOnce {
+                            IgnoredPlaceholder(text: String(localized: "Discussions hidden because you ignore \(member.username)")) { showActivityOnce = true }
+                        }
+                        if !app.isIgnored(member.username) || showActivityOnce { VStack(spacing: 0) {
                             ForEach(member.recent) { topic in
                                 Button { app.navigate(.discussion(topic.id, nil)) } label: {
                                     VStack(alignment: .leading, spacing: 4) {
@@ -103,12 +111,21 @@ struct ProfileView: View {
                                 }.buttonStyle(.plain).accessibilityLabel("\(topic.title), in \(app.categoryName(topic.categoryID))")
                                 Divider().overlay(Color.fomioSeparator)
                             }
-                        }
+                        } }
                     } else if let error { ScreenMessage(title: "Profile unavailable", message: error, action: { Task { await load() } }) }
                     else { ProgressView().frame(maxWidth: .infinity).padding(40) }
                 }.padding(20)
             }
         }.background(Color.fomioBackground).navigationTitle(username == app.username ? "Profile" : username).navigationBarTitleDisplayMode(.inline).task { await load() }
+        .toolbar {
+            if username != app.username {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button { app.navigate(.profileConcern(username)) } label: { Label("Report a profile concern", systemImage: "exclamationmark.bubble") }
+                    } label: { Image(systemName: "ellipsis") }.accessibilityLabel("More actions for this profile").accessibilityIdentifier("profile-more")
+                }
+            }
+        }
     }
     private func load() async { do { member = try await app.service.profile(username); error = nil } catch { self.error = error.localizedDescription } }
 }
@@ -218,8 +235,14 @@ struct NotificationsView: View {
             } else {
                 List {
                     ForEach(items) { notice in
+                        if app.hidesPreview(by: notice.actor, .notice(notice.id)) {
+                            // Discourse doesn't erase older notifications from someone you now ignore; collapse their text.
+                            IgnoredPlaceholder(text: String(localized: "Notification from someone you ignore")) { app.revealedPreviews.insert(.notice(notice.id)) }
+                                .accessibilityIdentifier("notice-hidden-\(notice.id)")
+                        } else {
                         Button { open(notice) } label: { row(notice) }.buttonStyle(.plain)
                             .accessibilityLabel("\(notice.read ? "" : "Unread. ")\(notice.text) in \(notice.title), post \(notice.number?.rawValue ?? 0)\(notice.age.isEmpty ? "" : ", \(notice.age)")")
+                        }
                     }
                     if loading { ProgressView() }
                     if let error { Text(error); Button("Try again") { Task { await load() } } }
@@ -302,17 +325,24 @@ struct SearchResultRow: View {
     let result: DiscussionSummary
     let query: String
     private var inReply: Bool { (result.targetPostNumber?.rawValue ?? 1) > 1 }
+    /// The snippet comes from the matched post, so its author decides; absent authors are never inferred.
+    private var snippetAuthor: String? { result.matchAuthor ?? (result.author.isEmpty ? nil : result.author) }
+    private var hidden: Bool { app.hidesPreview(by: snippetAuthor, .search(result.id, result.targetPostNumber)) }
     var body: some View {
         Button { app.navigate(.discussion(result.id, inReply ? result.targetPostNumber : nil), focus: inReply ? .search : nil) } label: {
             VStack(alignment: .leading, spacing: 4) {
                 Text(app.categoryName(result.categoryID)).font(.footnote.weight(.semibold)).foregroundStyle(Color.fomioAccent)
                 Text(result.title).font(.body.weight(.semibold)).foregroundStyle(.primary).multilineTextAlignment(.leading)
-                if !result.excerpt.isEmpty { Text(snippet).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).lineLimit(3).multilineTextAlignment(.leading) }
+                if !result.excerpt.isEmpty && !hidden { Text(snippet).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).lineLimit(3).multilineTextAlignment(.leading) }
                 Text(inReply ? "Reply #\(result.targetPostNumber!.rawValue)\((result.matchAuthor ?? result.author).isEmpty ? "" : " by \(result.matchAuthor ?? result.author)")" : "Opening post\(result.author.isEmpty ? "" : " by \(result.author)")")
                     .font(.footnote).foregroundStyle(Color.fomioSecondaryText)
             }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 20).padding(.vertical, 12).contentShape(.rect)
         }.buttonStyle(.plain).accessibilityIdentifier("topic-\(result.id.rawValue)")
         .accessibilityLabel("\(result.title), \(inReply ? "match in reply \(result.targetPostNumber!.rawValue)" : "match in discussion")")
+        if hidden, let author = snippetAuthor {
+            IgnoredPlaceholder(text: String(localized: "Match hidden because you ignore \(author)")) { app.revealedPreviews.insert(.search(result.id, result.targetPostNumber)) }
+                .padding(.horizontal, 20).padding(.bottom, 10).accessibilityIdentifier("search-hidden-\(result.id.rawValue)")
+        }
         Divider().overlay(Color.fomioSeparator).padding(.leading, 20)
     }
     private var snippet: AttributedString {

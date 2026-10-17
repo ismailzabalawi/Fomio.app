@@ -18,6 +18,16 @@ import Observation
     var submitted: [UUID: (TopicID, PostNumber)] = [:]
     var posts: [TopicID: [Post]] = [:]
     var summaries: [DiscussionSummary] = []
+    // Reporting & Safety simulation state (see the extension at the end of this file).
+    var reportScenario: ReportScenario = .received
+    var timeoutReceived = true
+    var reportDelay: Duration = .milliseconds(500)
+    var reportedPosts: Set<PostID> = []
+    var reportedTypes: [PostID: Int] = [:]
+    var newMember = false
+    var ignoreScenario: IgnoreScenario = .confirmed
+    var ignoredUsers: Set<String> = []
+    var ignoredListFails = false
     static let member = "jonah.w"
     static let sampleCommunities: [Community] = {
         let categories: [Community] = [
@@ -174,6 +184,9 @@ import Observation
     private func node(_ post: Post) -> ThreadNode {
         var post = post
         post.bookmarkID = bookmarks[post.id]
+        post.flags = flagState(post)
+        // Mirrors the nested serializer: ignored non-opening replies arrive blank, without actions.
+        if post.number.rawValue > 1, ignoredUsers.contains(post.author) { post.ignored = true; post.body = ""; post.cooked = nil; post.image = nil; post.flags = [] }
         post.childCount = posts[post.topicID, default: []].filter { $0.parent == post.number }.count
         return ThreadNode(post: post)
     }
@@ -182,7 +195,8 @@ import Observation
         guard let summary = summaries.first(where: { $0.id == id }), let opening = posts[id]?.first else { throw RepositoryError.unavailable }
         let roots = posts[id, default: []].filter { $0.number.rawValue > 1 && ($0.parent == nil || $0.parent == .init(1)) }.map(node)
         let result = paginate(roots, page: page, size: 3)
-        return DiscussionPage(summary: summary, opening: node(opening).post, roots: result.items, nextPage: result.nextPage, canReply: true)
+        let op = node(opening).post
+        return DiscussionPage(summary: summary, opening: op, roots: result.items, nextPage: result.nextPage, canReply: true, canFlagTopic: op.flags.contains(where: \.canAct))
     }
     func children(topic: TopicID, parent: PostNumber, page: Int, depth: Int) async throws -> ChildPage {
         try check(); let result = paginate(posts[topic, default: []].filter { $0.parent == parent }.map(node), page: page, size: 2)
@@ -284,5 +298,96 @@ import Observation
         try check()
         for i in 1...10 { try await Task.sleep(for: uploadStep); progress(Double(i)/10); if uploadFails && i == 6 { throw RepositoryError.invalid("Photo upload failed. Retry or remove it.") } }
         return UploadedPhoto(url: "fixture-photo", shortURL: "upload://fixture-\(UUID().uuidString).jpg")
+    }
+}
+
+// MARK: - Reporting & Safety (fictional, development only)
+
+/// Simulated Reporting & Safety outcomes. The catalog mirrors the shape of Discourse's default flag types; nothing is sent anywhere.
+extension FixtureService {
+    enum ReportScenario: String, CaseIterable, Sendable { case received, alreadyHandled, denied, removed, rateLimited, expired, validation, timeout }
+    enum IgnoreScenario: String, CaseIterable, Sendable { case confirmed, denied, expired, uncertain }
+    static let staff: Set<String> = ["alex.h"]
+    static let sampleCatalog: [ReportReason] = [
+        ReportReason(id: 3, name: "Off-Topic", description: "This post is not relevant to the current discussion.", requiresMessage: false),
+        ReportReason(id: 4, name: "Inappropriate", description: "Offensive, abusive or against the community guidelines.", requiresMessage: false),
+        ReportReason(id: 8, name: "Spam", description: "An advertisement or vandalism.", requiresMessage: false),
+        ReportReason(id: 10, name: "Illegal", description: "Requires staff attention because it may be illegal.", requiresMessage: true),
+        ReportReason(id: 7, name: "Something Else", description: "Requires staff attention for another reason.", requiresMessage: true)
+    ]
+    fileprivate func flagState(_ post: Post) -> [FlagAction] {
+        let reported = reportedPosts.contains(post.id)
+        let own = post.author == Self.member
+        // Under the deployed defaults TL0 may report only Illegal (allow_all_users_to_flag_illegal_content).
+        return Self.sampleCatalog.map { reason in
+            FlagAction(id: reason.id, canAct: !reported && !own && (!newMember || reason.id == 10), acted: reported && reportedTypes[post.id] == reason.id)
+        }
+    }
+    private func findPost(_ id: PostID) -> Post? { posts.values.flatMap { $0 }.first { $0.id == id } }
+    func reportContext(_ target: ReportTarget) async throws -> ReportContext {
+        try check(); try await Task.sleep(for: .milliseconds(150))
+        guard var post = findPost(target.actionPostID) else { throw RepositoryError.unavailable }
+        post.flags = flagState(post)
+        if reportScenario == .denied { post.flags = post.flags.map { FlagAction(id: $0.id, canAct: false, acted: $0.acted) } }
+        let topicReasons: Set<Int> = [4, 8, 10, 7]
+        let allowed = Set(post.flags.filter(\.canAct).map(\.id))
+        let reasons = Self.sampleCatalog.filter { allowed.contains($0.id) && (!isDiscussion(target) || topicReasons.contains($0.id)) }
+        return ReportContext(target: target, excerpt: String(post.body.prefix(170)), reasons: reasons, alreadyReported: reportedPosts.contains(post.id))
+    }
+    private func isDiscussion(_ target: ReportTarget) -> Bool { if case .discussion = target { true } else { false } }
+    func submitReport(_ target: ReportTarget, reason: ReportReason, message: String?) async throws -> ReportSubmission {
+        try check(); try await Task.sleep(for: reportDelay)
+        guard findPost(target.actionPostID) != nil else { throw RepositoryError.unavailable }
+        switch reportScenario {
+        case .received, .denied: break
+        case .alreadyHandled: throw RepositoryError.invalid("This post has already been reviewed by moderators.")
+        case .removed: throw RepositoryError.unavailable
+        case .rateLimited: throw RepositoryError.rateLimited
+        case .expired: throw RepositoryError.unauthorized
+        case .validation: throw RepositoryError.invalid("Please describe what moderators should look at.")
+        case .timeout:
+            if timeoutReceived { reportedPosts.insert(target.actionPostID); reportedTypes[target.actionPostID] = reason.id }
+            return .unconfirmed
+        }
+        reportedPosts.insert(target.actionPostID); reportedTypes[target.actionPostID] = reason.id
+        return .received
+    }
+    func reportStatus(_ target: ReportTarget) async throws -> ReportStatusCheck {
+        try check(); return reportedPosts.contains(target.actionPostID) ? .received : .notReceived
+    }
+    func accountSafety() async throws -> AccountSafety {
+        try check()
+        if ignoredListFails { throw RepositoryError.server(503) }
+        return AccountSafety(canIgnoreUsers: !newMember, ignored: ignoredUsers)
+    }
+    func memberSafety(_ username: String) async throws -> MemberSafety {
+        try check()
+        return MemberSafety(username: username, ignored: ignoredUsers.contains(username), canIgnore: !newMember && username != Self.member && !Self.staff.contains(username), staff: Self.staff.contains(username))
+    }
+    func ignore(_ username: String, until: Date) async throws -> PreferenceWrite {
+        try check(); try await Task.sleep(for: .milliseconds(250))
+        switch ignoreScenario {
+        case .confirmed: break
+        case .denied: throw RepositoryError.invalid("Sorry, you can't ignore that user.")
+        case .expired: throw RepositoryError.unauthorized
+        case .uncertain: return .unconfirmed
+        }
+        guard !newMember, username != Self.member, !Self.staff.contains(username) else { throw RepositoryError.invalid("Sorry, you can't ignore that user.") }
+        ignoredUsers.insert(username); return .confirmed
+    }
+    func stopIgnoring(_ username: String) async throws -> PreferenceWrite {
+        try check(); try await Task.sleep(for: .milliseconds(150))
+        if ignoreScenario == .uncertain { return .unconfirmed }
+        if ignoreScenario == .expired { throw RepositoryError.unauthorized }
+        ignoredUsers.remove(username); return .confirmed
+    }
+    func revealPost(_ id: PostID) async throws -> Post {
+        try check(); guard var post = findPost(id) else { throw RepositoryError.unavailable }
+        post.flags = flagState(post); return post
+    }
+    func safetyResources() async throws -> SafetyResources {
+        try check()
+        // No support destination or policy text has been supplied for the fixture; screens show their pending states.
+        return SafetyResources()
     }
 }

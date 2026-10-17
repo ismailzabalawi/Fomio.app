@@ -25,7 +25,7 @@ import Foundation
 @MainActor protocol UploadRepository {
     func upload(_ data: Data, progress: @escaping @MainActor @Sendable (Double) -> Void) async throws -> UploadedPhoto
 }
-@MainActor protocol CommunityService: FeedRepository, CommunityRepository, DiscussionRepository, SearchRepository, NotificationRepository, ProfileRepository, BookmarkRepository, PostingRepository, UploadRepository, ComposerRepository {}
+@MainActor protocol CommunityService: FeedRepository, CommunityRepository, DiscussionRepository, SearchRepository, NotificationRepository, ProfileRepository, BookmarkRepository, PostingRepository, UploadRepository, ComposerRepository, SafetyRepository {}
 
 struct ComposerCapabilities: Equatable, Sendable {
     var blocks: Set<ComposerBlockKind> = [.table, .code]
