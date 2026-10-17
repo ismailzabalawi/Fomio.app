@@ -171,7 +171,7 @@ Deployed-revision difference: comparing the mapped keys' values in all 49 locale
 | ja | other | other | other | other | other | other |
 | English fallback (any locale) | other | one | other | other | other | other |
 
-## Tests (final source; app diff on top of `78cb843`, backend diff on top of `7f287f9e`)
+## Tests (final source: app commit `5dc98ae`, backend commit `01e457a9275`; tests ran on that exact working tree before committing)
 
 | Run | Result |
 | --- | --- |
