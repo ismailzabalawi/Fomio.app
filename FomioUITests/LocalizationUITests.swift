@@ -128,8 +128,11 @@ import XCTest
         openLanguage(app, me: "Me")
         XCTAssertTrue(app.buttons["language-ar"].waitForExistence(timeout: 5), "Arabic was discovered")
         XCTAssertTrue(app.buttons["language-en"].isSelected)
-        XCTAssertFalse(app.buttons["language-fr"].exists, "French: complete but no plural rules in this app")
+        XCTAssertFalse(app.buttons["language-tlh"].exists, "Klingon: no plural rules in this app")
         XCTAssertFalse(app.buttons["language-de"].exists, "German: incomplete")
+        XCTAssertTrue(app.buttons["language-he"].exists, "Hebrew: Discourse translations with English fallback")
+        XCTAssertTrue(app.buttons["language-he"].label.contains("Partly translated"), "partly translated languages say so")
+        XCTAssertFalse(app.buttons["language-ar"].label.contains("Partly translated"), "Arabic is fully translated (overlay)")
         XCTAssertFalse(app.buttons["language-system"].exists)
         XCTAssertFalse(tab(app, "أنا").waitForExistence(timeout: 2), "discovery never switches the language")
         capture(app, "Arabic iOS fresh install: English after catalog discovery")
@@ -192,6 +195,67 @@ import XCTest
         XCTAssertFalse(text(app, containing: "last downloaded version").exists)
         XCTAssertFalse(text(app, containing: "hasn’t downloaded yet").exists)
         capture(app, "Removed Arabic without cache: English, notice shown")
+    }
+
+    /// A tab whose label contains `text`: English fallback labels in a right-to-left catalog are wrapped in invisible isolates.
+    private func tabContaining(_ app: XCUIApplication, _ text: String) -> XCUIElement {
+        app.tabBars.buttons.containing(NSPredicate(format: "label CONTAINS %@", text)).firstMatch.exists
+            ? app.tabBars.buttons.containing(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
+            : app.buttons.matching(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
+    }
+
+    func testHebrewMixesDiscourseHebrewWithEnglishFallbackRightToLeftAndSurvivesOfflineRelaunch() {
+        let namespace = UUID().uuidString
+        let app = launch(["--card-cases"], namespace: namespace)
+        XCTAssertTrue(tab(app, "Home").waitForExistence(timeout: 10))
+        openLanguage(app, me: "Me")
+        let hebrew = app.buttons["language-he"]
+        XCTAssertTrue(hebrew.label.contains("Partly translated"))
+        capture(app, "Language list with partly translated languages")
+        hebrew.tap()
+        // Discourse's Hebrew for mapped keys, English fallback for Fomio-only keys, right-to-left order.
+        let home = tab(app, "בית")
+        XCTAssertTrue(home.waitForExistence(timeout: 10), "Hebrew Home (Discourse js.home)")
+        let me = tabContaining(app, "Me")
+        XCTAssertTrue(me.exists, "English fallback tab")
+        XCTAssertTrue(tabContaining(app, "Communities").exists)
+        XCTAssertGreaterThan(home.frame.midX, me.frame.midX, "right to left: Home on the right")
+        XCTAssertTrue(app.buttons["language-he"].isSelected)
+        capture(app, "Hebrew Language screen, mixed Hebrew and English")
+        home.tap()
+        let topic = app.buttons["topic-5002"]
+        XCTAssertTrue(topic.waitForExistence(timeout: 10))
+        capture(app, "Hebrew Home feed with English fallback")
+        topic.tap()
+        let back = app.navigationBars.buttons["BackButton"].firstMatch
+        XCTAssertTrue(back.waitForExistence(timeout: 5))
+        XCTAssertGreaterThan(back.frame.midX, app.windows.firstMatch.frame.width / 2, "Back on the right")
+        capture(app, "Hebrew discussion, mixed text")
+        app.terminate()
+        let offline = launch(["--l10n-offline", "--card-cases"], namespace: namespace, keepPreferences: true)
+        XCTAssertTrue(tab(offline, "בית").waitForExistence(timeout: 5), "cached Hebrew catalog used offline")
+        XCTAssertTrue(tabContaining(offline, "Me").exists)
+    }
+
+    func testRussianWithoutOverlayUsesDiscourseTextRussianPluralsAndEnglishFallback() {
+        let app = launch(["--card-cases"])
+        XCTAssertTrue(tab(app, "Home").waitForExistence(timeout: 10))
+        openLanguage(app, me: "Me")
+        XCTAssertTrue(app.buttons["language-ru"].label.contains("Partly translated"))
+        app.buttons["language-ru"].tap()
+        let home = tab(app, "Главная")
+        XCTAssertTrue(home.waitForExistence(timeout: 10), "Russian Home (Discourse js.home)")
+        XCTAssertTrue(tab(app, "Communities").exists, "English fallback, no isolates in a left-to-right catalog")
+        XCTAssertLessThan(home.frame.midX, tab(app, "Me").frame.midX, "left to right")
+        home.tap()
+        // Discourse's Russian plural forms (js.review.replies): 3 → "ответа" (few), 1 → "ответ" (one).
+        let three = app.buttons["topic-5002"], one = app.buttons["topic-5004"]
+        XCTAssertTrue(three.waitForExistence(timeout: 10))
+        XCTAssertTrue(three.label.contains("3 ответа"), three.label)
+        XCTAssertTrue(reveal(app, "topic-5004").label.contains("1 ответ"), one.label)
+        // A Fomio-only phrase without a Russian overlay is English.
+        XCTAssertTrue(app.buttons["topic-5001"].label.contains("No replies yet"))
+        capture(app, "Russian Home feed: Discourse Russian plurals and English fallback")
     }
 
     func testChangedSiteOverrideAppearsAfterRefresh() {

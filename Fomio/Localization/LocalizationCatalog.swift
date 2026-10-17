@@ -9,11 +9,13 @@ enum PluralCategory: String, CaseIterable, Codable, Sendable, Comparable {
 /// Interface writing direction carried by a catalog. Community content keeps its own direction.
 enum CatalogDirection: String, Codable, Sendable { case ltr, rtl }
 
-/// One complete interface catalog. Only catalogs that passed `CatalogValidator` (or the bundled English
-/// reference) are ever activated, so lookups never fall through to blank labels.
+/// One complete interface catalog, assembled by the server from Discourse translations, Fomio's sparse
+/// overlay and English for everything else. Only catalogs that passed `CatalogValidator` (or the bundled
+/// English reference) are ever activated, so lookups never fall through to blank labels.
 struct LocalizationCatalog: Equatable, Sendable {
     /// Wire schema understood by this app version. A different schema is rejected, never partially read.
-    static let schema = 1
+    /// Schema 2 adds `fallback` (keys served in English) and `coverage`.
+    static let schema = 2
     enum Message: Equatable, Sendable {
         case text(String)
         /// Selected by the `count` argument using `PluralRules`.
@@ -24,6 +26,9 @@ struct LocalizationCatalog: Equatable, Sendable {
     var revision: String
     var direction: CatalogDirection
     var messages: [String: Message]
+    /// Keys whose message is the English fallback. They are read left to right and their plural forms
+    /// follow English rules, whatever the catalog's language.
+    var fallbackKeys: Set<String> = []
 
     /// Formatting locale for numbers and dates. Discourse codes use `_`; Foundation accepts either.
     var formattingLocale: Locale { Locale(identifier: locale.replacingOccurrences(of: "_", with: "-")) }
@@ -39,8 +44,19 @@ struct CatalogPayload: Codable, Sendable {
     var direction: String
     var complete: Bool
     var pluralCategories: [String]
+    /// Keys served in English because no valid translation exists for this locale (schema 2).
+    var fallback: [String]
+    var coverage: Coverage?
     var messages: [String: Wire]
-    enum CodingKeys: String, CodingKey { case schema, locale, revision, direction, complete, pluralCategories = "plural_categories", messages }
+    enum CodingKeys: String, CodingKey { case schema, locale, revision, direction, complete, pluralCategories = "plural_categories", fallback, coverage, messages }
+    /// How the server filled the catalog: translated from Discourse, from Fomio's overlay, or English fallback.
+    struct Coverage: Codable, Sendable, Equatable {
+        var total: Int
+        var discourse: Int
+        var overlay: Int
+        var englishFallback: Int
+        enum CodingKeys: String, CodingKey { case total, discourse, overlay, englishFallback = "english_fallback" }
+    }
     enum Wire: Codable, Sendable, Equatable {
         case text(String)
         case plural([String: String])
@@ -64,8 +80,12 @@ struct CatalogIndex: Codable, Equatable, Sendable {
         var nativeName: String
         var direction: String
         var complete: Bool
+        var pluralCategories: [String]?
+        var coverage: CatalogPayload.Coverage?
         var revision: String?
-        enum CodingKeys: String, CodingKey { case locale, name, nativeName = "native_name", direction, complete, revision }
+        enum CodingKeys: String, CodingKey { case locale, name, nativeName = "native_name", direction, complete, pluralCategories = "plural_categories", coverage, revision }
+        /// Some interface text of this language is shown in English.
+        var isPartial: Bool { (coverage?.englishFallback ?? 0) > 0 }
     }
     var schema: Int
     var defaultLocale: String
@@ -87,7 +107,8 @@ enum CatalogError: Error, Equatable, Sendable {
 }
 
 /// Accepts a catalog only when it is complete and every message is compatible with the bundled English
-/// reference: same message kind, allowed placeholders, required plural forms and no markup or raw keys.
+/// reference: same message kind, allowed placeholders, plural forms within the language's categories with
+/// `other` present, and no markup or raw keys. Fallback (English) messages are checked against English rules.
 enum CatalogValidator {
     static let maximumPayloadBytes = 1_000_000
     static let maximumMessageLength = 1_200
@@ -114,16 +135,18 @@ enum CatalogValidator {
         guard let direction = CatalogDirection(rawValue: payload.direction) else { throw CatalogError.invalidDirection(payload.direction) }
         guard let categories = PluralRules.categories(for: payload.locale) else { throw CatalogError.unsupportedPluralRules(payload.locale) }
         guard Set(payload.pluralCategories) == Set(categories.map(\.rawValue)) else { throw CatalogError.pluralCategoriesMismatch }
-        guard payload.messages.count <= maximumMessages else { throw CatalogError.payloadTooLarge }
+        guard payload.messages.count <= maximumMessages, payload.fallback.count <= maximumMessages else { throw CatalogError.payloadTooLarge }
         let missing = reference.messages.keys.filter { payload.messages[$0] == nil }.sorted()
         guard missing.isEmpty else { throw CatalogError.missingKeys(missing) }
 
-        var messages: [String: LocalizationCatalog.Message] = [:]
         // Keys unknown to this app version are ignored, so a newer server catalog stays usable.
+        let fallback = Set(payload.fallback).intersection(reference.messages.keys)
+        let english = PluralRules.categories(for: "en")!
+        var messages: [String: LocalizationCatalog.Message] = [:]
         for (key, expected) in reference.messages {
-            messages[key] = try message(key: key, wire: payload.messages[key]!, expected: expected, categories: categories)
+            messages[key] = try message(key: key, wire: payload.messages[key]!, expected: expected, categories: fallback.contains(key) ? english : categories)
         }
-        return LocalizationCatalog(locale: payload.locale, revision: payload.revision, direction: direction, messages: messages)
+        return LocalizationCatalog(locale: payload.locale, revision: payload.revision, direction: direction, messages: messages, fallbackKeys: fallback)
     }
 
     /// The bundled English file uses the same contract; it is the placeholder and plural reference.
@@ -166,8 +189,9 @@ enum CatalogValidator {
                 guard used.isSubset(of: allowed), required.isSubset(of: used) else { throw CatalogError.invalidMessage(key: key, reason: "placeholders") }
                 parsed[category] = value
             }
-            // Every category the language uses must be present; `other` must show the number.
-            guard Set(parsed.keys) == Set(categories) else { throw CatalogError.invalidMessage(key: key, reason: "plural forms") }
+            // `other` is required. Discourse translations may omit a category the language has (for example
+            // Hebrew `many`); as in Discourse, a missing selected form shows `other`.
+            guard parsed[.other] != nil else { throw CatalogError.invalidMessage(key: key, reason: "plural forms") }
             if allowed.contains("count"), parsed[.other].map({ placeholders($0).contains("count") }) != true { throw CatalogError.invalidMessage(key: key, reason: "plural other") }
             return .plural(parsed)
         default:
@@ -200,29 +224,95 @@ enum CatalogValidator {
     static func placeholders(_ value: String) -> Set<String> { Set(value.matches(of: /\{([a-z][A-Za-z0-9_]*)\}/).map { String($0.1) }) }
 }
 
-/// CLDR cardinal rules for integer counts. A locale without rules here cannot be activated, because its
-/// plural forms could not be selected correctly. Add a language only together with its verification.
+/// Integer cardinal plural rules, matching Discourse's CLDR rules (config/locales/plurals.rb) for every
+/// Discourse client locale; `LocalizationTests` checks them against a table computed from those rules.
+/// A locale whose rules are unknown here cannot be activated, because its forms could not be selected.
 enum PluralRules {
+    enum Family: Sendable {
+        case arabic, eastSlavic, english, bosnian, czech, romanceMillions, zeroOne, zeroOneMillions, hebrew, otherOnly, lithuanian, latvian, polish, romanian, slovenian
+    }
+    /// Discourse locale codes; an exact code wins over its language (`pt` and `pt_BR` differ).
+    static let families: [String: Family] = {
+        var table: [String: Family] = [:]
+        func add(_ family: Family, _ codes: String) { for code in codes.split(separator: " ") { table[String(code)] = family } }
+        add(.arabic, "ar")
+        add(.eastSlavic, "be ru uk")
+        add(.english, "bg ca da de el en en_GB et fi gl hu nb_NO nl sq sv sw te tr_TR ug ur")
+        add(.bosnian, "bs_BA hr sr")
+        add(.czech, "cs sk")
+        add(.romanceMillions, "es it pt")
+        add(.zeroOne, "fa_IR hy")
+        add(.zeroOneMillions, "fr pt_BR")
+        add(.hebrew, "he")
+        add(.otherOnly, "id ja ko th vi zh_CN zh_TW")
+        add(.lithuanian, "lt")
+        add(.latvian, "lv")
+        add(.polish, "pl_PL")
+        add(.romanian, "ro")
+        add(.slovenian, "sl")
+        return table
+    }()
+    static func family(for locale: String) -> Family? { families[locale] ?? families[LocaleMatcher.language(locale)] }
+
+    /// The categories Discourse uses for the locale, in CLDR order.
     static func categories(for locale: String) -> [PluralCategory]? {
-        switch LocaleMatcher.language(locale) {
-        case "en": [.one, .other]
-        case "ar": [.zero, .one, .two, .few, .many, .other]
-        case "ja", "ko", "zh": [.other]
-        default: nil
+        guard let family = family(for: locale) else { return nil }
+        return switch family {
+        case .arabic: [.zero, .one, .two, .few, .many, .other]
+        case .eastSlavic, .czech, .lithuanian, .polish: [.one, .few, .many, .other]
+        case .english, .zeroOne: [.one, .other]
+        case .bosnian, .romanian: [.one, .few, .other]
+        case .romanceMillions, .zeroOneMillions: [.one, .many, .other]
+        case .hebrew: [.one, .two, .many, .other]
+        case .otherOnly: [.other]
+        case .latvian: [.zero, .one, .other]
+        case .slovenian: [.one, .two, .few, .other]
         }
     }
+
     static func category(_ count: Int, locale: String) -> PluralCategory {
-        let n = abs(count)
-        switch LocaleMatcher.language(locale) {
-        case "ar":
+        category(count, family: family(for: locale) ?? .english)
+    }
+    static func category(_ count: Int, family: Family) -> PluralCategory {
+        let n = count.magnitude, mod10 = n % 10, mod100 = n % 100
+        switch family {
+        case .arabic:
             if n == 0 { return .zero }
             if n == 1 { return .one }
             if n == 2 { return .two }
-            if (3...10).contains(n % 100) { return .few }
-            if (11...99).contains(n % 100) { return .many }
+            if (3...10).contains(mod100) { return .few }
+            if (11...99).contains(mod100) { return .many }
             return .other
-        case "ja", "ko", "zh": return .other
-        default: return n == 1 ? .one : .other
+        case .eastSlavic, .polish:
+            if family == .eastSlavic ? (mod10 == 1 && mod100 != 11) : n == 1 { return .one }
+            if (2...4).contains(mod10) && !(12...14).contains(mod100) { return .few }
+            return .many
+        case .english: return n == 1 ? .one : .other
+        case .bosnian:
+            if mod10 == 1 && mod100 != 11 { return .one }
+            if (2...4).contains(mod10) && !(12...14).contains(mod100) { return .few }
+            return .other
+        case .czech: return n == 1 ? .one : (2...4).contains(n) ? .few : .other
+        case .romanceMillions: return n == 1 ? .one : (n != 0 && n % 1_000_000 == 0) ? .many : .other
+        case .zeroOne: return n <= 1 ? .one : .other
+        case .zeroOneMillions: return n <= 1 ? .one : n % 1_000_000 == 0 ? .many : .other
+        case .hebrew:
+            if n == 1 { return .one }
+            if n == 2 { return .two }
+            return n > 10 && mod10 == 0 ? .many : .other
+        case .otherOnly: return .other
+        case .lithuanian:
+            if (11...19).contains(mod100) { return .other }
+            if mod10 == 1 { return .one }
+            return mod10 >= 2 ? .few : .other
+        case .latvian:
+            if mod10 == 0 || (11...19).contains(mod100) { return .zero }
+            return mod10 == 1 && mod100 != 11 ? .one : .other
+        case .romanian:
+            if n == 1 { return .one }
+            return n == 0 || (2...19).contains(mod100) ? .few : .other
+        case .slovenian:
+            switch n % 100 { case 1: return .one; case 2: return .two; case 3, 4: return .few; default: return .other }
         }
     }
 }

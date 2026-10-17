@@ -167,7 +167,7 @@ struct DraftsView: View {
             let kind = draft.quote != nil ? L("drafts.kind.quote_reply") : L("drafts.kind.reply")
             return category.map { L("drafts.kind_in", ["kind": kind, "community": $0]) } ?? kind
         }
-        return L("drafts.kind_in", ["kind": L("composer.new_discussion"), "community": draft.categoryID.map(app.categoryName) ?? L("drafts.no_community")])
+        return L("drafts.kind_in", ["kind": L("composer.new_discussion", within: "drafts.kind_in"), "community": draft.categoryID.map(app.categoryName) ?? L("drafts.no_community", within: "drafts.kind_in")])
     }
     private func title(_ draft: Draft) -> String {
         if case let .reply(topic, _) = draft.intent { return draft.contextTitle ?? titles[topic] ?? L("composer.discussion_number", ["number": String(topic.rawValue)]) }
@@ -257,7 +257,7 @@ struct NotificationsView: View {
     }
     private func accessibilityText(_ notice: Notice) -> String {
         let base = L("notifications.row_a11y", ["text": notice.text, "title": notice.title, "number": String(notice.number?.rawValue ?? 0)])
-        let aged = notice.age.isEmpty ? base : L("notifications.row_a11y_age", ["row": base, "age": notice.age.compact])
+        let aged = notice.age.isEmpty ? base : L("notifications.row_a11y_age", ["row": base, "age": notice.age.compact(within: "notifications.row_a11y_age")])
         return notice.read ? aged : L("notifications.row_a11y_unread", ["row": aged])
     }
     private func open(_ notice: Notice) {

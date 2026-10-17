@@ -24,6 +24,7 @@
 		42643AC0B066D900B26B8922 /* DiscourseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95DC655A4FB879A2C76C0C0E /* DiscourseService.swift */; };
 		44A5FF8518A1F6512C3C8F10 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29E2F1008D7B8F31C7114C5F /* Models.swift */; };
 		45AA61A638961A875F1A8D39 /* FomioUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 216CD5DBF1E4AD300C6D71E6 /* FomioUITests.swift */; };
+		4B54E27F4733304093758EAB /* fixtures in Resources */ = {isa = PBXBuildFile; fileRef = 67F86A6763BF1C343258913A /* fixtures */; };
 		51436E3C08B16838E4579AE3 /* ContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 540EC63262ABFDA7AD8DFC8B /* ContractTests.swift */; };
 		688FAF2BDB660452D2F69260 /* CookedContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B91D592354060A725BB2B9E /* CookedContent.swift */; };
 		6B2B013858769EBDFB16EAF8 /* fixture-photo.jpg in Resources */ = {isa = PBXBuildFile; fileRef = DB21FF85AD61800519D8FC79 /* fixture-photo.jpg */; };
@@ -41,7 +42,6 @@
 		A099F536078107C36FF4A8BA /* TopicCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 541821A86E6D60FC833C8CB7 /* TopicCardTests.swift */; };
 		A13663D8617648B36F6E09D7 /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3E04A3335B529423DF96F5 /* Authentication.swift */; };
 		A418500A006886BE87896FF7 /* LiveLocalizationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E65238A150A7F38197272193 /* LiveLocalizationUITests.swift */; };
-		AC6296F0D8B7321DC89BE25D /* catalogs in Resources */ = {isa = PBXBuildFile; fileRef = A73743A46581123C31E6D2FB /* catalogs */; };
 		AFB05ACA5BA887E660C49728 /* LocalizationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1901F4E9302FBA4741A1401 /* LocalizationStore.swift */; };
 		BA9B834D08C3A95CF90B5E70 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 36A8C29BF94A4A0719F5CF1A /* AppIcon.icon */; };
 		BD3FAE7FE34829467928AFDD /* FeedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8D72B14D60A13FEA7EB3A6E /* FeedView.swift */; };
@@ -101,6 +101,7 @@
 		541821A86E6D60FC833C8CB7 /* TopicCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopicCardTests.swift; sourceTree = "<group>"; };
 		54D983A4990762D7B6E858EE /* FomioUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = FomioUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6424EAF7E6AB625A68646D45 /* Localizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localizer.swift; sourceTree = "<group>"; };
+		67F86A6763BF1C343258913A /* fixtures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = fixtures; path = Localization/fixtures; sourceTree = SOURCE_ROOT; };
 		6B2B9325BCE2FB2B6954C33D /* FixtureMediaURLProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureMediaURLProtocol.swift; sourceTree = "<group>"; };
 		7193F8AA933B637A5A60DD7A /* ComposerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerBar.swift; sourceTree = "<group>"; };
 		74321B4CF303EA4DBF3996FC /* DiscussionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscussionView.swift; sourceTree = "<group>"; };
@@ -112,7 +113,6 @@
 		923257084384D042709E206F /* FixtureLocalizationTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixtureLocalizationTransport.swift; sourceTree = "<group>"; };
 		95DC655A4FB879A2C76C0C0E /* DiscourseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscourseService.swift; sourceTree = "<group>"; };
 		A3C75FC2625C010CC0457309 /* Repositories.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Repositories.swift; sourceTree = "<group>"; };
-		A73743A46581123C31E6D2FB /* catalogs */ = {isa = PBXFileReference; lastKnownFileType = folder; name = catalogs; path = Localization/catalogs; sourceTree = SOURCE_ROOT; };
 		AAC55DC30A8ADFB07896ED28 /* Network.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Network.swift; sourceTree = "<group>"; };
 		AD88FE6146A8E950E2222F61 /* DraftStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftStore.swift; sourceTree = "<group>"; };
 		AF9D3CD324603F2AF7FC12A5 /* FomioTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FomioTests.swift; sourceTree = "<group>"; };
@@ -296,7 +296,7 @@
 		EC59D6DF2B499BE8352EEB4F = {
 			isa = PBXGroup;
 			children = (
-				A73743A46581123C31E6D2FB /* catalogs */,
+				67F86A6763BF1C343258913A /* fixtures */,
 				237C91C8F0D490841D7DD95A /* Fomio */,
 				88CD9CB02525AFEDB25813BF /* FomioTests */,
 				65851EEBA6FF5B33148D6C70 /* FomioUITests */,
@@ -414,8 +414,8 @@
 				BA9B834D08C3A95CF90B5E70 /* AppIcon.icon in Resources */,
 				39BF0A203BC71D5CE78CF483 /* Assets.xcassets in Resources */,
 				CF50ABC1AB50E4DC2A8B596F /* PrivacyInfo.xcprivacy in Resources */,
-				AC6296F0D8B7321DC89BE25D /* catalogs in Resources */,
 				6B2B013858769EBDFB16EAF8 /* fixture-photo.jpg in Resources */,
+				4B54E27F4733304093758EAB /* fixtures in Resources */,
 				773E25D24BC3D2D118104101 /* fomio-catalog-en.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -737,7 +737,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				EXCLUDED_SOURCE_FILE_NAMES = catalogs;
+				EXCLUDED_SOURCE_FILE_NAMES = fixtures;
 				INFOPLIST_FILE = Fomio/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Fomio;
 				LD_RUNPATH_SEARCH_PATHS = (

@@ -139,7 +139,7 @@ struct ComposerBar<More: View>: View {
             .frame(minHeight: target).contentShape(.rect)
         }
         .buttonStyle(.plain).padding(.horizontal, 4)
-        .accessibilityLabel(L("composer.turn_into_current", ["style": style.title])).accessibilityIdentifier("composer-block-type")
+        .accessibilityLabel(L("composer.turn_into_current", ["style": style.title(within: "composer.turn_into_current")])).accessibilityIdentifier("composer-block-type")
     }
     private func toggle(_ title: String, _ symbol: String, on: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {

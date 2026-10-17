@@ -41,7 +41,8 @@ final class TestClock: @unchecked Sendable { var now = Date(timeIntervalSince197
     // MARK: Fixtures
 
     static func data(_ name: String) throws -> Data {
-        let url = name == "en" ? Bundle.main.url(forResource: "fomio-catalog-en", withExtension: "json") : Bundle.main.url(forResource: name, withExtension: "json", subdirectory: "catalogs")
+        // Catalogs assembled by the backend plugin (Localization/fixtures); English is the bundled reference.
+        let url = name == "en" ? Bundle.main.url(forResource: "fomio-catalog-en", withExtension: "json") : Bundle.main.url(forResource: name, withExtension: "json", subdirectory: "fixtures")
         return try Data(contentsOf: XCTUnwrap(url, "missing catalog \(name)"))
     }
     static func payload(_ name: String) throws -> CatalogPayload { try CatalogValidator.decode(data(name)) }
@@ -73,7 +74,11 @@ final class TestClock: @unchecked Sendable { var now = Date(timeIntervalSince197
         try LocalizationStore(root: root, site: site).save(.init(locale: locale, revision: catalog.revision, etag: etag, fetchedAt: fetchedAt, lastUsedAt: fetchedAt, payload: data))
     }
     static func index(_ locales: [(String, Bool)], defaultLocale: String = "en") throws -> Data {
-        try JSONSerialization.data(withJSONObject: ["schema": 1, "default_locale": defaultLocale, "locales": locales.map { ["locale": $0.0, "name": $0.0, "native_name": $0.0, "direction": $0.0 == "ar" ? "rtl" : "ltr", "complete": $0.1] }])
+        // Like the server, each entry carries Discourse's plural categories for its locale.
+        try JSONSerialization.data(withJSONObject: ["schema": LocalizationCatalog.schema, "default_locale": defaultLocale, "locales": locales.map {
+            ["locale": $0.0, "name": $0.0, "native_name": $0.0, "direction": ["ar", "he"].contains($0.0) ? "rtl" : "ltr", "complete": $0.1,
+             "plural_categories": (PluralRules.categories(for: $0.0) ?? [.one, .other]).map(\.rawValue)]
+        }])
     }
 
     // MARK: Catalog validation
@@ -95,7 +100,7 @@ final class TestClock: @unchecked Sendable { var now = Date(timeIntervalSince197
         }
         rejects { $0.messages["tab.home"] = nil }                                   // incomplete
         rejects { $0.complete = false }
-        rejects { $0.schema = 2 }
+        rejects { $0.schema = 1 }
         rejects { $0.direction = "up" }
         rejects { $0.pluralCategories = ["one", "other"] }
         rejects({ _ in }, requested: "fr")                                          // resolved to another language
@@ -107,7 +112,7 @@ final class TestClock: @unchecked Sendable { var now = Date(timeIntervalSince197
         rejects { $0.messages["tab.home"] = .text("   ") }                         // blank label
         rejects { $0.messages["auth.signed_in"] = .text("{name") }                 // unbalanced brace
         rejects { $0.messages["tab.home"] = .plural(["other": "x"]) }              // wrong kind
-        rejects { $0.messages["discussion.replies"] = .plural(["one": "رد", "other": "{count} رد"]) } // missing Arabic forms
+        rejects { $0.messages["discussion.replies"] = .plural(["one": "رد", "two": "ردان"]) }    // no `other`
         rejects {                                                                   // `other` must show the count
             $0.messages["discussion.replies"] = .plural(["zero": "a", "one": "b", "two": "c", "few": "{count} d", "many": "{count} e", "other": "ردود"])
         }
@@ -129,14 +134,166 @@ final class TestClock: @unchecked Sendable { var now = Date(timeIntervalSince197
         let expected: [(Int, PluralCategory)] = [(0, .zero), (1, .one), (2, .two), (3, .few), (10, .few), (11, .many), (99, .many), (100, .other), (101, .other), (102, .other), (103, .few), (111, .many)]
         for (n, category) in expected { XCTAssertEqual(PluralRules.category(n, locale: "ar"), category, "\(n)") }
         XCTAssertEqual(PluralRules.category(1, locale: "en_GB"), .one)
-        XCTAssertNil(PluralRules.categories(for: "fr"), "a language is only enabled together with verified plural rules")
+        XCTAssertNil(PluralRules.categories(for: "tlh"), "a locale without rules is never activated")
         let localizer = Localizer(english: english)
-        localizer.activate(try CatalogValidator.validate(Self.data("ar"), requested: "ar", reference: english))
-        XCTAssertEqual(localizer.string("discussion.replies", count: 1), "رد واحد")
-        XCTAssertEqual(localizer.string("discussion.replies", count: 2), "ردّان")
-        XCTAssertTrue(localizer.string("discussion.replies", count: 4).hasSuffix("ردود"))
-        XCTAssertTrue(localizer.string("discussion.replies", count: 14).hasSuffix("ردًا"))
+        let arabic = try CatalogValidator.validate(Self.data("ar"), requested: "ar", reference: english)
+        localizer.activate(arabic)
+        // Discourse's own Arabic for the mapped reply count (js.review.replies).
+        guard case let .plural(forms) = arabic.messages["discussion.replies"] else { return XCTFail("plural") }
+        for (n, category) in [(0, PluralCategory.zero), (1, .one), (2, .two), (4, .few), (14, .many), (100, .other)] {
+            let number = n.formatted(.number.locale(arabic.formattingLocale))
+            let template = forms[category]!
+            XCTAssertEqual(localizer.string("discussion.replies", count: n), Localizer.anchor(template, in: .rtl) + template.replacingOccurrences(of: "{count}", with: number), "\(n)")
+        }
         XCTAssertEqual(Localizer(english: english).string("discussion.replies", count: 1200), "1,200 replies")
+    }
+
+    /// Discourse's CLDR rules (config/locales/plurals.rb), evaluated by Discourse itself for every client locale,
+    /// are the reference: categories and the selected category for each count must match exactly.
+    func testPluralRulesMatchDiscourseForEveryLocale() throws {
+        let url = LocalizationCoverageTests.repository.appendingPathComponent("Localization/discourse-plural-truth.json")
+        let table = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+        let locales = try XCTUnwrap(table["locales"] as? [String: [String: Any]])
+        XCTAssertEqual(locales.count, 49)
+        var checked = 0
+        for (locale, entry) in locales {
+            let keys = try XCTUnwrap(entry["keys"] as? [String], locale)
+            XCTAssertEqual(PluralRules.categories(for: locale)?.map(\.rawValue), keys, locale)
+            for (count, category) in try XCTUnwrap(entry["categories"] as? [String: String]) {
+                XCTAssertEqual(PluralRules.category(Int(count)!, locale: locale).rawValue, category, "\(locale) \(count)"); checked += 1
+            }
+        }
+        XCTAssertGreaterThan(checked, 10_000)
+    }
+
+    /// Counts 0, 1, 2, 3, 11 and 100 in five languages: translated plurals follow the language's rules (a form
+    /// the translation omits shows `other`, as in Discourse); English fallback plurals follow English rules.
+    func testCountMatrixForTranslatedAndFallbackPlurals() throws {
+        let counts = [0, 1, 2, 3, 11, 100]
+        let expected: [String: [PluralCategory]] = [
+            "ar": [.zero, .one, .two, .few, .many, .other], "he": [.other, .one, .two, .other, .other, .many],
+            "ru": [.many, .one, .few, .few, .many, .many], "pt_BR": [.one, .one, .other, .other, .other, .other],
+            "ja": [.other, .other, .other, .other, .other, .other],
+        ]
+        for (locale, categories) in expected {
+            let catalog = try CatalogValidator.validate(Self.data(locale), requested: locale, reference: english)
+            let localizer = Localizer(english: english); localizer.activate(catalog)
+            XCTAssertEqual(counts.map { PluralRules.category($0, locale: locale) }, categories, locale)
+            guard case let .plural(forms) = catalog.messages["discussion.replies"] else { return XCTFail(locale) }
+            for (n, category) in zip(counts, categories) {
+                let template = forms[category] ?? forms[.other]!
+                let expected = Localizer.anchor(template, in: catalog.direction) + template.replacingOccurrences(of: "{count}", with: n.formatted(.number.locale(catalog.formattingLocale)))
+                XCTAssertEqual(localizer.string("discussion.replies", count: n), expected, "\(locale) \(n)")
+            }
+            // post.like_count has no translation in these catalogs except Arabic's overlay: English, English rules.
+            if catalog.fallbackKeys.contains("post.like_count") {
+                for n in counts {
+                    let plain = localizer.string("post.like_count", count: n).replacingOccurrences(of: "\u{2066}", with: "").replacingOccurrences(of: "\u{2069}", with: "")
+                    XCTAssertEqual(plain, "Like \(n.formatted(.number.locale(Locale(identifier: "en"))))", "\(locale) \(n)")
+                }
+                XCTAssertEqual(localizer.string("topic.active.spoken.days", count: 21).contains("days ago"), true, "\(locale): English 'other' for 21, not a Slavic 'one'")
+            }
+        }
+    }
+
+    func testFallbackMessagesKeepEnglishDirectionInsideRightToLeftCatalogs() throws {
+        let hebrew = try CatalogValidator.validate(Self.data("he"), requested: "he", reference: english)
+        XCTAssertEqual(hebrew.direction, .rtl)
+        XCTAssertTrue(hebrew.fallbackKeys.contains("tab.communities"))
+        XCTAssertFalse(hebrew.fallbackKeys.contains("tab.home"), "mapped: Discourse's Hebrew")
+        let localizer = Localizer(english: english); localizer.activate(hebrew)
+        XCTAssertEqual(localizer.string("tab.communities"), "\u{2066}Communities\u{2069}", "an English run isolated left to right")
+        XCTAssertEqual(localizer.string("tab.home"), "בית")
+        // A Hebrew argument inside an English fallback is isolated in turn; no right-to-left mark is added.
+        let message = localizer.string("access.denied.community_message", [("community", "קהילה")])
+        XCTAssertTrue(message.hasPrefix("\u{2066}\u{2068}קהילה\u{2069}"), message)
+        let segments = localizer.segments("tab.communities")
+        XCTAssertEqual(segments.first?.text, "\u{2066}"); XCTAssertEqual(segments.last?.text, "\u{2069}")
+        // Left-to-right catalogs never wrap fallback text.
+        let russian = Localizer(english: english); russian.activate(try CatalogValidator.validate(Self.data("ru"), requested: "ru", reference: english))
+        XCTAssertEqual(russian.string("tab.communities"), "Communities")
+    }
+
+    /// A fragment inserted into a sentence takes the sentence's language: Hebrew has Discourse's compact ages but
+    /// no overlay for "active {age} ago", so the composed sentence is entirely English; shown alone, the age is Hebrew.
+    func testComposedFragmentsFollowTheirSentenceLanguage() throws {
+        let hebrew = Localizer(english: english)
+        hebrew.activate(try CatalogValidator.validate(Self.data("he"), requested: "he", reference: english))
+        XCTAssertTrue(hebrew.isFallback("topic.active.ago")); XCTAssertFalse(hebrew.isFallback("time.compact.minutes"))
+        let standalone = hebrew.string("time.compact.minutes", count: 2)
+        XCTAssertTrue(standalone.contains("דקות"), standalone)
+        let fragment = hebrew.string("time.compact.minutes", count: 2, within: "topic.active.ago")
+        XCTAssertEqual(fragment, "2m", "English fragment, not isolated on its own")
+        let sentence = hebrew.string("topic.active.ago", [("age", fragment)])
+        XCTAssertEqual(sentence, "\u{2066}Active 2m ago\u{2069}")
+        // Arabic translates both: the composed sentence stays Arabic.
+        let arabic = Localizer(english: english)
+        arabic.activate(try CatalogValidator.validate(Self.data("ar"), requested: "ar", reference: english))
+        let arabicAge = arabic.string("time.compact.minutes", count: 2, within: "topic.active.ago")
+        XCTAssertEqual(arabicAge, arabic.string("time.compact.minutes", count: 2))
+        XCTAssertFalse(arabic.string("topic.active.ago", [("age", arabicAge)]).contains("Active"))
+    }
+
+    func testValidatorChecksAssembledCatalogsAndFallbackAgainstEnglishRules() throws {
+        for locale in ["ar", "he", "ru", "pt_BR", "ja"] {
+            let payload = try Self.payload(locale)
+            let catalog = try CatalogValidator.validate(payload, requested: locale, reference: english)
+            XCTAssertEqual(catalog.fallbackKeys, Set(payload.fallback), locale)
+            XCTAssertEqual(payload.coverage?.englishFallback, payload.fallback.count, locale)
+        }
+        func rejects(_ locale: String, _ change: (inout CatalogPayload) -> Void, file: StaticString = #filePath, line: UInt = #line) {
+            var payload = try! Self.payload(locale); change(&payload)
+            XCTAssertThrowsError(try CatalogValidator.validate(payload, requested: locale, reference: english), file: file, line: line)
+        }
+        // A fallback plural uses English categories: Hebrew's `two` is not allowed in an English message.
+        rejects("he") { $0.messages["post.like_count"] = .plural(["one": "Like {count}", "two": "Like {count}", "other": "Like {count}"]) }
+        // A translated plural may only use the language's categories and must have `other` with the count.
+        rejects("ru") { $0.messages["discussion.replies"] = .plural(["one": "{count} ответ", "two": "{count}", "other": "{count} ответа"]) }
+        rejects("ru") { $0.messages["discussion.replies"] = .plural(["one": "{count} ответ"]) }
+        rejects("ru") { $0.messages["discussion.replies"] = .plural(["other": "ответы"]) }
+        rejects("he") { $0.schema = 1 }
+        rejects("he") { $0.pluralCategories = ["one", "other"] }
+        // A key marked as fallback whose value is not valid English-shaped text (Arabic forms) is rejected.
+        rejects("ar") { $0.fallback = ["discussion.replies"] }
+        // Unknown fallback keys are ignored; a translated plural without every category is accepted.
+        var tolerant = try Self.payload("he"); tolerant.fallback.append("future.key")
+        XCTAssertNoThrow(try CatalogValidator.validate(tolerant, requested: "he", reference: english))
+        // Regional locales keep their own rules: Brazilian Portuguese uses `one` for 0, European Portuguese `other`.
+        XCTAssertEqual(PluralRules.category(0, locale: "pt_BR"), .one); XCTAssertEqual(PluralRules.category(0, locale: "pt"), .other)
+        XCTAssertNoThrow(try CatalogValidator.validate(Self.data("pt_BR"), requested: "pt_BR", reference: english))
+    }
+
+    func testIndexOffersOnlyLanguagesTheAppCanRenderAndMarksPartialOnes() throws {
+        let index = try JSONDecoder().decode(CatalogIndex.self, from: Self.data("index"))
+        XCTAssertEqual(index.locales.map(\.locale), ["en", "ar", "he", "ru", "pt_BR", "ja"])
+        XCTAssertTrue(index.locales.allSatisfy(LocalizationController.isSupported))
+        let entry = { (code: String) in index.locales.first { $0.locale == code }! }
+        XCTAssertFalse(entry("en").isPartial); XCTAssertFalse(entry("ar").isPartial)
+        XCTAssertTrue(entry("he").isPartial); XCTAssertTrue(entry("ru").isPartial)
+        var mismatch = entry("ru"); mismatch.pluralCategories = ["one", "other"]
+        XCTAssertFalse(LocalizationController.isSupported(mismatch), "server categories differ from the app's rules")
+        var unknown = entry("ru"); unknown.locale = "tlh"
+        XCTAssertFalse(LocalizationController.isSupported(unknown), "no app plural rules")
+        var missing = entry("ru"); missing.pluralCategories = nil
+        XCTAssertFalse(LocalizationController.isSupported(missing))
+        var incomplete = entry("ru"); incomplete.complete = false
+        XCTAssertFalse(LocalizationController.isSupported(incomplete))
+    }
+
+    func testOverlayCoversOnlyFomioKeysAndFallbackOnlyKeysWithoutValidTranslations() throws {
+        let manifest = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: LocalizationCoverageTests.repository.appendingPathComponent("Localization/manifest.json"))) as? [String: Any])
+        let keys = try XCTUnwrap(manifest["keys"] as? [String: [String: Any]])
+        let fomio = Set(keys.filter { $0.value["source"] as? String == "fomio" }.keys)
+        let overlay = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: LocalizationCoverageTests.repository.appendingPathComponent("Localization/catalogs/ar.json"))) as? [String: Any])
+        let overlayKeys = Set(try XCTUnwrap(overlay["messages"] as? [String: Any]).keys)
+        XCTAssertEqual(overlayKeys, fomio, "the Arabic overlay holds exactly the Fomio-specific keys")
+        for locale in ["he", "ru", "pt_BR", "ja"] {
+            let payload = try Self.payload(locale)
+            XCTAssertTrue(fomio.isSubset(of: Set(payload.fallback)), "\(locale): no overlay, so every Fomio key is English")
+            XCTAssertEqual(payload.coverage?.overlay, 0, locale)
+            for key in payload.fallback { XCTAssertEqual(payload.messages[key], try Self.payload("en").messages[key], "\(locale) \(key) is English") }
+        }
+        XCTAssertEqual(try Self.payload("ar").fallback, [])
     }
 
     func testArgumentsKeepTheirOwnDirection() throws {
@@ -213,7 +370,7 @@ final class TestClock: @unchecked Sendable { var now = Date(timeIntervalSince197
         transport.enqueue("ar", .success(.notModified))
         await controller.refresh()
         XCTAssertEqual(transport.etags("ar"), ["\"e1\""])
-        XCTAssertEqual(localizer.catalog.revision, "maintained-ar-1")
+        XCTAssertEqual(localizer.catalog.revision, try Self.payload("ar").revision)
         XCTAssertEqual(controller.store.record("ar")?.fetchedAt, clock.now, "304 renews freshness")
         await controller.refresh()
         XCTAssertEqual(transport.calls("ar"), 1)
@@ -248,7 +405,7 @@ final class TestClock: @unchecked Sendable { var now = Date(timeIntervalSince197
         let (controller, localizer) = controller(transport, clock: clock)
         for _ in 0..<3 {
             await controller.refresh(force: true)
-            XCTAssertEqual(localizer.catalog.revision, "maintained-ar-1")
+            XCTAssertEqual(localizer.catalog.revision, try Self.payload("ar").revision)
             XCTAssertEqual(localizer.string("tab.me"), "أنا")
             XCTAssertEqual(controller.store.record("ar")?.payload, good)
         }
@@ -292,9 +449,9 @@ final class TestClock: @unchecked Sendable { var now = Date(timeIntervalSince197
     func testFailedIncompleteAndUnsupportedSelectionsChangeNothing() async throws {
         let transport = ScriptedTransport()
         let (controller, localizer) = controller(transport)
-        try await offer(controller, transport, [("en", true), ("ar", true), ("fr", true), ("de", false)])
-        XCTAssertEqual(controller.languages.map(\.locale), ["en", "ar"], "French lacks app plural rules; German is incomplete")
-        for code in ["fr", "de", "xx"] {
+        try await offer(controller, transport, [("en", true), ("ar", true), ("tlh", true), ("de", false)])
+        XCTAssertEqual(controller.languages.map(\.locale), ["en", "ar"], "Klingon lacks app plural rules; German is incomplete")
+        for code in ["tlh", "de", "xx"] {
             let ok = await controller.select(code)
             XCTAssertFalse(ok, code); XCTAssertEqual(transport.calls(code), 0, "not offered, never requested: \(code)")
         }
@@ -439,7 +596,7 @@ final class TestClock: @unchecked Sendable { var now = Date(timeIntervalSince197
         let transport = DiscourseLocalizationTransport(configuration: configuration, indexPath: "app-locales/{schema}/index.json", catalogPath: "app-locales/{schema}/{locale}.json", session: session)
         CatalogStubProtocol.respond = { request in
             XCTAssertNil(request.value(forHTTPHeaderField: "User-Api-Key"), "catalogs are public; no member key")
-            XCTAssertEqual(request.url?.path, "/community/app-locales/1/ar.json")
+            XCTAssertEqual(request.url?.path, "/community/app-locales/2/ar.json")
             return request.value(forHTTPHeaderField: "If-None-Match") == "\"v1\"" ? (304, [:], Data()) : (200, ["ETag": "\"v1\""], Data("{}".utf8))
         }
         let fresh = try await transport.catalog(locale: "ar", etag: nil)
@@ -503,6 +660,17 @@ final class LocalizationCoverageTests: XCTestCase {
         // Topic/category nouns are Fomio-owned until a reviewed terminology variant exists.
         let mapped = keys.filter { $0.value["source"] as? String == "discourse" }.compactMap { $0.value["discourse_key"] as? String }
         XCTAssertFalse(mapped.contains { $0.hasPrefix("js.topic.create") || $0.hasPrefix("js.category") || $0 == "js.topic.title" })
+    }
+    /// Localized fragments inserted into another message must name it (`within:`), so the sentence stays in one language.
+    func testComposedFragmentsNameTheirContainer() throws {
+        let pattern = /\[[^\]]*"[a-z]+": [^\]]*(\.compact\b(?!\(within)|style\.title\b(?!\(within)|L\("[a-z._]+"\)(?!, within))/
+        var findings: [String] = []
+        for (name, text) in try Self.sources() {
+            for (number, line) in text.split(separator: "\n", omittingEmptySubsequences: false).enumerated() where line.contains("L(\"") && line.contains(pattern) {
+                findings.append("\(name):\(number + 1)")
+            }
+        }
+        XCTAssertEqual(findings, [])
     }
     func testInterfaceCallsHaveNoHardCodedCopy() throws {
         // Fixture content and development presets are fictional server content, not interface copy.

@@ -1,0 +1,718 @@
+{
+  "discourse": "7f287f9ee9723c591e08d529f6b3801e8e38afef",
+  "mapped_keys": 49,
+  "total_keys": 482,
+  "locales": {
+    "ar": {
+      "direction": "rtl",
+      "plural_categories": [
+        "zero",
+        "one",
+        "two",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 433,
+        "english_fallback": 0
+      },
+      "overlay": true
+    },
+    "be": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 29,
+        "overlay": 0,
+        "english_fallback": 453
+      },
+      "overlay": false
+    },
+    "bg": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 35,
+        "overlay": 0,
+        "english_fallback": 447
+      },
+      "overlay": false
+    },
+    "bs_BA": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 36,
+        "overlay": 0,
+        "english_fallback": 446
+      },
+      "overlay": false
+    },
+    "ca": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 36,
+        "overlay": 0,
+        "english_fallback": 446
+      },
+      "overlay": false
+    },
+    "cs": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438
+      },
+      "overlay": false
+    },
+    "da": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438
+      },
+      "overlay": false
+    },
+    "de": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 0,
+        "english_fallback": 433
+      },
+      "overlay": false
+    },
+    "el": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 0,
+        "english_fallback": 433
+      },
+      "overlay": false
+    },
+    "en": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 0,
+        "overlay": 0,
+        "english_fallback": 0
+      },
+      "overlay": true
+    },
+    "en_GB": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 0,
+        "overlay": 0,
+        "english_fallback": 482
+      },
+      "overlay": false
+    },
+    "es": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438
+      },
+      "overlay": false
+    },
+    "et": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 33,
+        "overlay": 0,
+        "english_fallback": 449
+      },
+      "overlay": false
+    },
+    "fa_IR": {
+      "direction": "rtl",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 39,
+        "overlay": 0,
+        "english_fallback": 443
+      },
+      "overlay": false
+    },
+    "fi": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438
+      },
+      "overlay": false
+    },
+    "fr": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 0,
+        "english_fallback": 433
+      },
+      "overlay": false
+    },
+    "gl": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 38,
+        "overlay": 0,
+        "english_fallback": 444
+      },
+      "overlay": false
+    },
+    "he": {
+      "direction": "rtl",
+      "plural_categories": [
+        "one",
+        "two",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 0,
+        "english_fallback": 433
+      },
+      "overlay": false
+    },
+    "hr": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438
+      },
+      "overlay": false
+    },
+    "hu": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438
+      },
+      "overlay": false
+    },
+    "hy": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 36,
+        "overlay": 0,
+        "english_fallback": 446
+      },
+      "overlay": false
+    },
+    "id": {
+      "direction": "ltr",
+      "plural_categories": [
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 29,
+        "overlay": 0,
+        "english_fallback": 453
+      },
+      "overlay": false
+    },
+    "it": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438
+      },
+      "overlay": false
+    },
+    "ja": {
+      "direction": "ltr",
+      "plural_categories": [
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438
+      },
+      "overlay": false
+    },
+    "ko": {
+      "direction": "ltr",
+      "plural_categories": [
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 39,
+        "overlay": 0,
+        "english_fallback": 443
+      },
+      "overlay": false
+    },
+    "lt": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 39,
+        "overlay": 0,
+        "english_fallback": 443
+      },
+      "overlay": false
+    },
+    "lv": {
+      "direction": "ltr",
+      "plural_categories": [
+        "zero",
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 34,
+        "overlay": 0,
+        "english_fallback": 448
+      },
+      "overlay": false
+    },
+    "nb_NO": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 36,
+        "overlay": 0,
+        "english_fallback": 446
+      },
+      "overlay": false
+    },
+    "nl": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 46,
+        "overlay": 0,
+        "english_fallback": 436
+      },
+      "overlay": false
+    },
+    "pl_PL": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 0,
+        "english_fallback": 433
+      },
+      "overlay": false
+    },
+    "pt": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 43,
+        "overlay": 0,
+        "english_fallback": 439
+      },
+      "overlay": false
+    },
+    "pt_BR": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438
+      },
+      "overlay": false
+    },
+    "ro": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 42,
+        "overlay": 0,
+        "english_fallback": 440
+      },
+      "overlay": false
+    },
+    "ru": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 46,
+        "overlay": 0,
+        "english_fallback": 436
+      },
+      "overlay": false
+    },
+    "sk": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 43,
+        "overlay": 0,
+        "english_fallback": 439
+      },
+      "overlay": false
+    },
+    "sl": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "two",
+        "few",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 38,
+        "overlay": 0,
+        "english_fallback": 444
+      },
+      "overlay": false
+    },
+    "sq": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 34,
+        "overlay": 0,
+        "english_fallback": 448
+      },
+      "overlay": false
+    },
+    "sr": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 33,
+        "overlay": 0,
+        "english_fallback": 449
+      },
+      "overlay": false
+    },
+    "sv": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 39,
+        "overlay": 0,
+        "english_fallback": 443
+      },
+      "overlay": false
+    },
+    "sw": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 31,
+        "overlay": 0,
+        "english_fallback": 451
+      },
+      "overlay": false
+    },
+    "te": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 38,
+        "overlay": 0,
+        "english_fallback": 444
+      },
+      "overlay": false
+    },
+    "th": {
+      "direction": "ltr",
+      "plural_categories": [
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 34,
+        "overlay": 0,
+        "english_fallback": 448
+      },
+      "overlay": false
+    },
+    "tr_TR": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 46,
+        "overlay": 0,
+        "english_fallback": 436
+      },
+      "overlay": false
+    },
+    "ug": {
+      "direction": "rtl",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438
+      },
+      "overlay": false
+    },
+    "uk": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 0,
+        "english_fallback": 433
+      },
+      "overlay": false
+    },
+    "ur": {
+      "direction": "rtl",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 47,
+        "overlay": 0,
+        "english_fallback": 435
+      },
+      "overlay": false
+    },
+    "vi": {
+      "direction": "ltr",
+      "plural_categories": [
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438
+      },
+      "overlay": false
+    },
+    "zh_CN": {
+      "direction": "ltr",
+      "plural_categories": [
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 0,
+        "english_fallback": 433
+      },
+      "overlay": false
+    },
+    "zh_TW": {
+      "direction": "ltr",
+      "plural_categories": [
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 0,
+        "english_fallback": 433
+      },
+      "overlay": false
+    }
+  }
+}

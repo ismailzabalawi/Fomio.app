@@ -65,17 +65,42 @@ final class Localizer: Observable, Sendable {
         bar.backIndicatorImage = image; bar.backIndicatorTransitionMaskImage = image
     }
 
+    /// How one message is rendered. A fallback message is English inside another language's catalog:
+    /// English plural rules, English number formatting and left-to-right argument isolation; in a
+    /// right-to-left interface the whole message is isolated as a left-to-right run.
+    struct Context {
+        var template: String
+        var direction: CatalogDirection
+        var formattingLocale: Locale
+        var isolateWhole: Bool
+    }
+    func context(_ key: String, count: Int?, in active: LocalizationCatalog, forceEnglish: Bool = false) -> Context? {
+        let fallback = forceEnglish || active.messages[key] == nil || active.fallbackKeys.contains(key)
+        guard let message = (fallback ? english.messages[key] : nil) ?? active.messages[key] ?? english.messages[key] else { return nil }
+        let rulesLocale = fallback ? "en" : active.locale
+        return Context(template: Self.template(message, count: count, locale: rulesLocale),
+                       direction: fallback ? .ltr : active.direction,
+                       formattingLocale: fallback ? english.formattingLocale : active.formattingLocale,
+                       isolateWhole: fallback && active.direction == .rtl)
+    }
+
+    /// Whether `key` is shown in English in the active catalog (its English fallback).
+    func isFallback(_ key: String) -> Bool { let active = catalog; return active.messages[key] == nil || active.fallbackKeys.contains(key) }
+
     /// Resolves a key. Arguments are inserted as text; `count` selects the plural form and is formatted
-    /// with the catalog's locale.
-    func string(_ key: String, count: Int? = nil, _ arguments: [(String, String)] = []) -> String {
+    /// with the message's locale. `within` names the message this text will be inserted into: when that
+    /// message falls back to English, this fragment is English too, so one sentence never mixes languages
+    /// (a fragment shown on its own keeps its translation).
+    func string(_ key: String, count: Int? = nil, _ arguments: [(String, String)] = [], within container: String? = nil) -> String {
         let active = catalog
-        let message = active.messages[key] ?? english.messages[key]
-        guard let message else {
+        let forceEnglish = container.map { isFallback($0) && active.locale != "en" } ?? false
+        guard let context = context(key, count: count, in: active, forceEnglish: forceEnglish) else {
             assertionFailure("Missing localization key \(key)")
             return key
         }
-        let template = Self.template(message, count: count, locale: active.locale)
-        return Self.anchor(template, in: active.direction) + Self.format(template, count: count, arguments: arguments, catalog: active)
+        let text = Self.anchor(context.template, in: context.direction) + Self.format(context, count: count, arguments: arguments)
+        // A fragment goes into its container unwrapped; the container isolates the whole sentence.
+        return context.isolateWhole && container == nil ? "\u{2066}\(text)\u{2069}" : text
     }
     /// An RTL message that begins with an argument (for example "{parent} › {community}") has no strong
     /// right-to-left letter before its isolated arguments, so its paragraph would fall back to left-to-right.
@@ -86,36 +111,37 @@ final class Localizer: Observable, Sendable {
 
     /// Splits a resolved message into literal and argument segments, for styled SwiftUI `Text`.
     func segments(_ key: String, count: Int? = nil, _ arguments: [(String, String)] = []) -> [(text: String, argument: String?)] {
-        let active = catalog
-        guard let message = active.messages[key] ?? english.messages[key] else { assertionFailure("Missing localization key \(key)"); return [(key, nil)] }
-        let template = Self.template(message, count: count, locale: active.locale)
+        guard let context = context(key, count: count, in: catalog) else { assertionFailure("Missing localization key \(key)"); return [(key, nil)] }
         var result: [(String, String?)] = []
-        let mark = Self.anchor(template, in: active.direction)
+        if context.isolateWhole { result.append(("\u{2066}", nil)) }
+        let mark = Self.anchor(context.template, in: context.direction)
         if !mark.isEmpty { result.append((mark, nil)) }
-        var rest = Substring(template)
+        var rest = Substring(context.template)
         while let match = rest.firstMatch(of: /\{([a-z][A-Za-z0-9_]*)\}/) {
             if match.range.lowerBound > rest.startIndex { result.append((String(rest[rest.startIndex..<match.range.lowerBound]), nil)) }
             let name = String(match.1)
-            result.append((Self.value(name, count: count, arguments: arguments, catalog: active), name))
+            result.append((Self.value(name, count: count, arguments: arguments, context: context), name))
             rest = rest[match.range.upperBound...]
         }
         if !rest.isEmpty { result.append((String(rest), nil)) }
+        if context.isolateWhole { result.append(("\u{2069}", nil)) }
         return result
     }
 
-    private static func template(_ message: LocalizationCatalog.Message, count: Int?, locale: String) -> String {
+    /// The plural form for `count` under `locale`'s rules; a form the translation omits shows `other`, as in Discourse.
+    static func template(_ message: LocalizationCatalog.Message, count: Int?, locale: String) -> String {
         switch message {
         case let .text(value): return value
         case let .plural(forms): return forms[PluralRules.category(count ?? 0, locale: locale)] ?? forms[.other] ?? ""
         }
     }
-    private static func value(_ name: String, count: Int?, arguments: [(String, String)], catalog: LocalizationCatalog) -> String {
-        if name == "count", let count { return count.formatted(.number.locale(catalog.formattingLocale)) }
+    private static func value(_ name: String, count: Int?, arguments: [(String, String)], context: Context) -> String {
+        if name == "count", let count { return count.formatted(.number.locale(context.formattingLocale)) }
         guard let value = arguments.first(where: { $0.0 == name })?.1 else { return "" }
-        return isolate(value, in: catalog.direction)
+        return isolate(value, in: context.direction)
     }
-    static func format(_ template: String, count: Int?, arguments: [(String, String)], catalog: LocalizationCatalog) -> String {
-        template.replacing(/\{([a-z][A-Za-z0-9_]*)\}/) { value(String($0.1), count: count, arguments: arguments, catalog: catalog) }
+    static func format(_ context: Context, count: Int?, arguments: [(String, String)]) -> String {
+        context.template.replacing(/\{([a-z][A-Za-z0-9_]*)\}/) { value(String($0.1), count: count, arguments: arguments, context: context) }
     }
     /// Wraps an argument in Unicode first-strong isolates when it contains letters of the opposite direction,
     /// so a Latin username inside Arabic interface text (or an Arabic title inside English text) keeps its order.
@@ -148,6 +174,9 @@ func L(_ key: String) -> String { Localizer.shared.string(key) }
 func L(_ key: String, _ arguments: KeyValuePairs<String, String>) -> String { Localizer.shared.string(key, arguments.map { ($0.key, $0.value) }) }
 /// Plural interface text; `count` selects the form and is formatted for the active locale.
 func L(_ key: String, count: Int, _ arguments: KeyValuePairs<String, String> = [:]) -> String { Localizer.shared.string(key, count: count, arguments.map { ($0.key, $0.value) }) }
+/// A fragment for insertion into `container` (for example a compact age inside "active {age} ago"): English
+/// whenever the container is shown in English, so a composed sentence stays in one language.
+func L(_ key: String, count: Int? = nil, within container: String) -> String { Localizer.shared.string(key, count: count, within: container) }
 
 /// Styled interface text: arguments named in `emphasis` are passed through `style`, the rest stays plain.
 func LText(_ key: String, count: Int? = nil, _ arguments: KeyValuePairs<String, String> = [:], style: (String, Text) -> Text) -> Text {

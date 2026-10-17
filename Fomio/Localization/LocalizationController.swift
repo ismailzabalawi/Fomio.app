@@ -54,9 +54,13 @@ import Observation
         let english = index?.locales.first { $0.locale == "en" } ?? Self.englishEntry
         return [english] + (index?.locales ?? []).filter { $0.locale != "en" && Self.isSupported($0) }
     }
-    static let englishEntry = CatalogIndex.Entry(locale: "en", name: "English", nativeName: "English", direction: "ltr", complete: true)
+    static let englishEntry = CatalogIndex.Entry(locale: "en", name: "English", nativeName: "English", direction: "ltr", complete: true, pluralCategories: ["one", "other"])
+    /// A language is offered only when the server's assembled catalog is complete, its direction is known and
+    /// the server's plural categories (Discourse's CLDR keys) are exactly the ones this app can select.
     static func isSupported(_ entry: CatalogIndex.Entry) -> Bool {
-        entry.complete && PluralRules.categories(for: entry.locale) != nil && CatalogDirection(rawValue: entry.direction) != nil
+        guard entry.complete, LocaleMatcher.isValidCode(entry.locale), CatalogDirection(rawValue: entry.direction) != nil,
+              let categories = PluralRules.categories(for: entry.locale) else { return false }
+        return entry.pluralCategories.map { Set($0) == Set(categories.map(\.rawValue)) } ?? false
     }
     private func offered(_ code: String) -> Bool { code == "en" || languages.contains { $0.locale == code } }
     private func offersRemote(_ code: String) -> Bool { index?.locales.contains { $0.locale == code && Self.isSupported($0) } == true }

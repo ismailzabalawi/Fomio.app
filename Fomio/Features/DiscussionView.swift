@@ -165,7 +165,7 @@ struct PostCard: View {
                         Avatar(name: post.authorName ?? post.author, size: post.number.rawValue == 1 ? 40 : 34)
                         VStack(alignment: .leading, spacing: 1) {
                             Text(post.authorName ?? (post.author.isEmpty ? L("post.member_fallback") : post.author)).font(.subheadline.weight(.bold)).foregroundStyle(Color.fomioText)
-                            if !post.age.isEmpty { Text(post.number.rawValue == 1 ? L("post.started_discussion", ["age": post.age.compact]) : post.age.compact).font(.caption).foregroundStyle(Color.fomioSecondaryText) }
+                            if !post.age.isEmpty { Text(post.number.rawValue == 1 ? L("post.started_discussion", ["age": post.age.compact(within: "post.started_discussion")]) : post.age.compact).font(.caption).foregroundStyle(Color.fomioSecondaryText) }
                         }
                     }.frame(minHeight: 44).contentShape(.rect)
                 }.buttonStyle(.plain).accessibilityLabel(L("post.view_profile", ["name": post.author]))

@@ -27,9 +27,10 @@ targets:
     platform: iOS
     sources:
       - Fomio
-      # Maintained non-English catalogs. Debug builds serve them through FixtureLocalizationTransport;
-      # Release excludes them, so English is the only bundled interface language.
-      - path: Localization/catalogs
+      # Catalogs assembled by the backend plugin (script/export_catalogs.rb). Debug builds serve them through
+      # FixtureLocalizationTransport; Release excludes them, so English is the only bundled interface language.
+      # The sparse overlays in Localization/catalogs are backend inputs and are not bundled.
+      - path: Localization/fixtures
         type: folder
         buildPhase: resources
     info:
@@ -55,7 +56,7 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Fomio
       configs:
         Release:
-          EXCLUDED_SOURCE_FILE_NAMES: catalogs
+          EXCLUDED_SOURCE_FILE_NAMES: fixtures
   FomioTests:
     type: bundle.unit-test
     platform: iOS

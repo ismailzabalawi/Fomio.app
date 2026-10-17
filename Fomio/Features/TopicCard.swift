@@ -18,7 +18,7 @@ enum ActiveAge {
         switch activity {
         case .none: nil
         case .now: L("topic.active.now")
-        default: L("topic.active.ago", ["age": activity.compact])
+        default: L("topic.active.ago", ["age": activity.compact(within: "topic.active.ago")])
         }
     }
     /// Full words for VoiceOver ("active 3 hours ago"); compact units are not reliably spoken.

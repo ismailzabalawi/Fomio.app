@@ -43,6 +43,12 @@ Set arguments in the Xcode scheme’s Run action. Fixture account defaults to `j
 | `--l10n-offline` | Debug. Catalog requests fail as offline: the fixture transport in fixture mode, `OfflineLocalizationTransport` with `--live` (community content still loads) |
 | `TEST_RUNNER_FOMIO_LIVE_UI_TESTS=1` | Opt-in for live UI tests (`FomioUITests` live case, `LiveLocalizationUITests`), anonymous reads against the configured site |
 | `--l10n-incomplete-ar` | Debug, fixture mode. The fixture Arabic response omits a required key (must be rejected) |
+
+Fixture catalogs (`Localization/fixtures`: en, ar, he, ru, pt_BR, ja and `index.json`) are produced by the backend plugin, not edited by hand. After changing `Localization/manifest.json`, the bundled English or an overlay in `Localization/catalogs`, copy the three to the plugin's `catalogs/` and regenerate in the Discourse checkout:
+
+```
+LOAD_PLUGINS=1 RAILS_ENV=test bin/rails runner plugins/discourse-fomio-app-locales/script/export_catalogs.rb fixtures <app>/Localization/fixtures en ar he ru pt_BR ja
+```
 | `--l10n-changed-override` | Debug, fixture mode. The fixture English response has a new revision renaming Home (site-text override change) |
 | `--l10n-site-default-ar` | Debug, fixture mode. The fixture index reports `default_locale` `ar` (the app must ignore it) |
 | `--l10n-removed-ar` | Debug, fixture mode. The fixture index no longer lists Arabic and its catalog is unavailable (removed language) |

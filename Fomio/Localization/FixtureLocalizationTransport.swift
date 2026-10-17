@@ -2,9 +2,11 @@ import Foundation
 import CryptoKit
 import Synchronization
 
-/// Development stand-in for the proposed catalog endpoints. It serves the maintained translation files
-/// under `Localization/catalogs` (Debug builds only; Release excludes them) with ETag/304 behavior.
-/// Fixture responses are not evidence that a deployed endpoint exists.
+/// Development stand-in for the catalog endpoints (Debug builds only; Release excludes the fixtures). It serves
+/// catalogs assembled by the real backend plugin (`script/export_catalogs.rb`) under `Localization/fixtures`:
+/// English, Arabic (Discourse + Fomio overlay), and Hebrew, Russian, Brazilian Portuguese and Japanese (Discourse
+/// translations with English fallback, no overlay), with ETag/304 behavior. Fixture responses are not evidence
+/// that a deployed endpoint behaves the same way.
 final class FixtureLocalizationTransport: LocalizationTransport {
     struct Options: Sendable {
         var offline = false
@@ -22,10 +24,8 @@ final class FixtureLocalizationTransport: LocalizationTransport {
     let options: Mutex<Options>
     init(bundle: Bundle = .main, options: Options = Options()) { self.bundle = bundle; self.options = Mutex(options) }
 
-    private func source(_ locale: String) -> Data? {
-        // The server's English is the bundled English plus site overrides; the fixture serves it unchanged.
-        let url = locale == "en" ? bundle.url(forResource: "fomio-catalog-en", withExtension: "json") : bundle.url(forResource: locale, withExtension: "json", subdirectory: "catalogs")
-        guard let url else { return nil }
+    private func source(_ name: String) -> Data? {
+        guard let url = bundle.url(forResource: name, withExtension: "json", subdirectory: "fixtures") else { return nil }
         return try? Data(contentsOf: url)
     }
     private func respond(_ data: Data, etag: String?) async throws -> TransportResponse {
@@ -37,19 +37,19 @@ final class FixtureLocalizationTransport: LocalizationTransport {
     }
     func index(etag: String?) async throws -> TransportResponse {
         let current = options.withLock { $0 }
-        var locales: [[String: Any]] = (current.removedArabic ? ["en"] : ["en", "ar"]).compactMap { code in
-            guard let data = source(code), let payload = try? CatalogValidator.decode(data) else { return nil }
-            return ["locale": code, "name": code == "ar" ? "Arabic" : "English", "native_name": code == "ar" ? "العربية" : "English", "direction": payload.direction, "complete": payload.complete, "revision": payload.revision]
-        }
-        // Entries the app must not offer: French has no plural rules in this app; German is incomplete.
-        locales.append(["locale": "fr", "name": "French", "native_name": "Français", "direction": "ltr", "complete": true, "revision": "fixture-fr"])
-        locales.append(["locale": "de", "name": "German", "native_name": "Deutsch", "direction": "ltr", "complete": false])
-        let data = try JSONSerialization.data(withJSONObject: ["schema": LocalizationCatalog.schema, "default_locale": current.siteDefaultLocale, "locales": locales], options: [.sortedKeys])
-        return try await respond(data, etag: etag)
+        guard let data = source("index"), var index = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              var locales = index["locales"] as? [[String: Any]] else { throw TransportError.status(500) }
+        if current.removedArabic { locales.removeAll { $0["locale"] as? String == "ar" } }
+        // Entries the app must not offer: Klingon has no plural rules in this app; German is incomplete.
+        locales.append(["locale": "tlh", "name": "Klingon", "native_name": "tlhIngan Hol", "direction": "ltr", "complete": true, "plural_categories": ["one", "other"], "revision": "fixture-tlh"])
+        locales.append(["locale": "de", "name": "German", "native_name": "Deutsch", "direction": "ltr", "complete": false, "plural_categories": ["one", "other"]])
+        index["locales"] = locales
+        index["default_locale"] = current.siteDefaultLocale
+        return try await respond(try JSONSerialization.data(withJSONObject: index, options: [.sortedKeys]), etag: etag)
     }
     func catalog(locale: String, etag: String?) async throws -> TransportResponse {
         if options.withLock({ $0.removedArabic }) && locale == "ar" { try await Task.sleep(for: options.withLock { $0.delay }); throw TransportError.unavailable }
-        guard var data = source(locale) else { try await Task.sleep(for: options.withLock { $0.delay }); throw TransportError.status(404) }
+        guard LocaleMatcher.isValidCode(locale), var data = source(locale) else { try await Task.sleep(for: options.withLock { $0.delay }); throw TransportError.status(404) }
         let current = options.withLock { $0 }
         if (current.changedOverride && locale == "en") || (current.incompleteArabic && locale == "ar"), var payload = try? CatalogValidator.decode(data) {
             if locale == "en" { payload.messages["tab.home"] = .text("Home feed"); payload.revision += "-override-2" }

@@ -1,0 +1,122 @@
+{
+  "schema": 2,
+  "default_locale": "en",
+  "locales": [
+    {
+      "locale": "en",
+      "name": "English",
+      "native_name": "English",
+      "direction": "ltr",
+      "complete": true,
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 0,
+        "overlay": 0,
+        "english_fallback": 0
+      },
+      "revision": "f672ddfb46b11677"
+    },
+    {
+      "locale": "ar",
+      "name": "Arabic",
+      "native_name": "اللغة العربية",
+      "direction": "rtl",
+      "complete": true,
+      "plural_categories": [
+        "zero",
+        "one",
+        "two",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 433,
+        "english_fallback": 0
+      },
+      "revision": "1bf3dccc6b3344c7"
+    },
+    {
+      "locale": "he",
+      "name": "Hebrew",
+      "native_name": "עברית",
+      "direction": "rtl",
+      "complete": true,
+      "plural_categories": [
+        "one",
+        "two",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 0,
+        "english_fallback": 433
+      },
+      "revision": "ab262fae153db294"
+    },
+    {
+      "locale": "ru",
+      "name": "Russian",
+      "native_name": "Русский",
+      "direction": "ltr",
+      "complete": true,
+      "plural_categories": [
+        "one",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 46,
+        "overlay": 0,
+        "english_fallback": 436
+      },
+      "revision": "cc69e54d8f90e0bd"
+    },
+    {
+      "locale": "pt_BR",
+      "name": "Portuguese",
+      "native_name": "Português (BR)",
+      "direction": "ltr",
+      "complete": true,
+      "plural_categories": [
+        "one",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438
+      },
+      "revision": "f754d7ad0882ce96"
+    },
+    {
+      "locale": "ja",
+      "name": "Japanese",
+      "native_name": "日本語",
+      "direction": "ltr",
+      "complete": true,
+      "plural_categories": [
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438
+      },
+      "revision": "65ca4609e9d26ec7"
+    }
+  ]
+}

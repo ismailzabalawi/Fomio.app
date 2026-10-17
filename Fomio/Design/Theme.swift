@@ -220,20 +220,24 @@ enum AgeValue: Hashable, Codable, Sendable, ExpressibleByStringLiteral {
     init(from decoder: any Decoder) throws { self.init(token: try decoder.singleValueContainer().decode(String.self)) }
     func encode(to encoder: any Encoder) throws { var container = encoder.singleValueContainer(); try container.encode(token) }
     /// Compact age for metadata rows ("3h", "now"); empty when unknown.
-    var compact: String {
+    var compact: String { compact(within: nil) }
+    /// The compact age inserted into `container` (for example "active {age} ago"): in the container's language.
+    func compact(within container: String?) -> String {
+        let key: String, count: Int?
         switch self {
-        case .none: ""
-        case .now: L("time.compact.now")
-        case let .minutes(n): L("time.compact.minutes", count: n)
-        case let .hours(n): L("time.compact.hours", count: n)
-        case let .days(n): L("time.compact.days", count: n)
+        case .none: return ""
+        case .now: key = "time.compact.now"; count = nil
+        case let .minutes(n): key = "time.compact.minutes"; count = n
+        case let .hours(n): key = "time.compact.hours"; count = n
+        case let .days(n): key = "time.compact.days"; count = n
         }
+        return container.map { L(key, count: count, within: $0) } ?? (count.map { L(key, count: $0) } ?? L(key))
     }
 }
 enum RelativeAge {
     static func edited(_ date: Date, now: Date = .now) -> String {
         let age = AgeValue(date, now: now)
-        return age == .now ? L("drafts.edited_now") : L("drafts.edited_ago", ["age": age.compact])
+        return age == .now ? L("drafts.edited_now") : L("drafts.edited_ago", ["age": age.compact(within: "drafts.edited_ago")])
     }
 }
 

@@ -1,0 +1,8 @@
+checked 2401 locale×key values across 49 locales; differing: 7
+lt js.embed_mode.signin_flow.sign_in_to_reply: nil -> "Prisijunkite, kad galėtumėte atsakyti"
+lt js.ok_value: "OK" -> "Gerai"
+lt js.composition_mode.rich: nil -> "Raiškusis tekstas"
+lt js.composer.heading_level_n: nil -> "Antraštė %{levelNumber}"
+lt js.composer.ulist_title: nil -> "Punktų sąrašas"
+lt js.composer.heading_level_paragraph: nil -> "Pastraipa"
+lt js.composer.link_dialog_title: nil -> "Įterpti nuorodą"

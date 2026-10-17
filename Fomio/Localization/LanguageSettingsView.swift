@@ -42,7 +42,8 @@ struct LanguageSettingsView: View {
             }
             Section {
                 ForEach(localization.languages, id: \.locale) { entry in
-                    row(title: entry.nativeName, subtitle: entry.name == entry.nativeName ? nil : entry.name, direction: entry.direction == "rtl" ? .rightToLeft : .leftToRight,
+                    row(title: entry.nativeName, subtitle: entry.name == entry.nativeName ? nil : entry.name, note: entry.isPartial ? L("language.partial") : nil,
+                        direction: entry.direction == "rtl" ? .rightToLeft : .leftToRight,
                         selected: localization.selected == entry.locale, identifier: "language-\(entry.locale)") { await localization.select(entry.locale) }
                 }
                 if case let .downloading(code) = localization.status {
@@ -61,20 +62,22 @@ struct LanguageSettingsView: View {
         .task { await localization.revalidateLanguages() }
         .onDisappear { localization.clearFailure() }
     }
-    private func row(title: String, subtitle: String?, direction: LayoutDirection, selected: Bool, identifier: String, action: @escaping @MainActor () async -> Void) -> some View {
+    /// `note` says when a language is only partly translated (the server fills the rest with English).
+    private func row(title: String, subtitle: String?, note: String?, direction: LayoutDirection, selected: Bool, identifier: String, action: @escaping @MainActor () async -> Void) -> some View {
         Button { Task { await action() } } label: {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
                     // A language's own name keeps that language's direction.
                     Text(title).foregroundStyle(.primary).environment(\.layoutDirection, direction)
                     if let subtitle { Text(subtitle).font(.subheadline).foregroundStyle(Color.fomioSecondaryText) }
+                    if let note { Text(note).font(.footnote).foregroundStyle(Color.fomioSecondaryText).accessibilityIdentifier("\(identifier)-partial") }
                 }
                 Spacer(minLength: 0)
                 if selected { Image(systemName: "checkmark").fontWeight(.semibold).foregroundStyle(Color.fomioAccent).accessibilityHidden(true) }
             }.frame(minHeight: 44).contentShape(.rect)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(subtitle.map { L("language.row_label", ["name": title, "detail": $0]) } ?? title)
+        .accessibilityLabel([subtitle, note].compactMap { $0 }.reduce(title) { L("language.row_label", ["name": $0, "detail": $1]) })
         .accessibilityAddTraits(selected ? .isSelected : [])
         .accessibilityIdentifier(identifier)
     }

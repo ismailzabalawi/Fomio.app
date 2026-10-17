@@ -79,7 +79,7 @@ import XCTest
         XCTAssertFalse(app.staticTexts["You’re offline. Your writing is kept on this device."].exists)
         XCTAssertFalse(app.buttons["topic-4190"].exists, "returning Home did not refetch")
         capture(app, "1b Same retained error after switching to Arabic, no refetch")
-        app.buttons["حاول مجددًا"].tap()
+        app.buttons["إعادة المحاولة"].tap()  // common.try_again: Discourse's Arabic (js.errors.buttons.again)
         XCTAssertTrue(app.buttons["topic-4190"].waitForExistence(timeout: 8), "explicit retry loads")
         capture(app, "1c Explicit retry loads the feed")
     }

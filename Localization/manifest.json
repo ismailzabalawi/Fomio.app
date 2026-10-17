@@ -1,16 +1,18 @@
 {
- "schema": 1,
- "reviewed": "2026-10-15",
+ "schema": 2,
+ "reviewed": "2026-10-18",
  "discourse_reference": {
   "local_head": "d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2",
-  "deployed": "7b4f0970506fb0ce7d4b6a851d252ace418330c8",
-  "note": "Every mapped key exists with the same English value at both revisions."
+  "deployed": "821e9e2f9f94483a3be8d1e077cde0fd94970479",
+  "note": "Every mapped key exists in client.en.yml at both revisions with an equivalent English value; semantic equivalence reviewed per key (field 'verified')."
  },
  "rules": [
-  "discourse: resolve I18n.t(discourse_key, locale:) including that locale's site-text override. If the locale has no translation of its own (Discourse would fall back to English) or the resolved value fails app validation, use the maintained Fomio translation for this key instead.",
-  "fomio: serve the maintained translation from Localization/catalogs/<locale>.json (English from Fomio/Resources/Localization/fomio-catalog-en.json).",
-  "Convert Discourse %{name} interpolation to {name}; reject markup and values that are translation keys.",
-  "Never apply an override from one locale to another locale."
+  "English (en): the app's bundled English; for a mapped key, a valid same-locale (en) site-text override replaces it.",
+  "Other locales, per key: (1) source 'discourse': that locale's own Discourse client translation (I18n no_fallback), with that locale's site-text override taking precedence when valid; (2) source 'fomio': the sparse overlay Localization/catalogs/<locale>.json; (3) otherwise the English value, listed in the catalog's 'fallback' array.",
+  "Reuse only semantically equivalent Discourse keys, verified per key with context (field 'verified'); never map on equal wording alone and never substitute words.",
+  "Overlays contain only source 'fomio' keys. A missing or invalid translation (markup, raw key, wrong placeholders, plural form outside the locale's categories, missing 'other' or 'other' without {count}) is replaced by English.",
+  "Plural categories per locale come from Discourse's CLDR rules (I18n 'i18n.plural.keys'); a plural message needs 'other' and may use only those categories; a missing selected form shows 'other', as in Discourse. Fallback (English) plural messages use English rules.",
+  "Convert Discourse %{name} to {name}, renaming per the entry's 'placeholders' map. Never apply an override from one locale to another."
  ],
  "terminology": {
   "decision": "Native interface nouns stay 'discussion' (topic) and 'community' (category/subcategory) in every locale. Site-text branding overrides for topic/category keys are not mapped.",
@@ -115,8 +117,10 @@
    "plural": false
   },
   "auth.gate.reply.title": {
-   "source": "fomio",
-   "plural": false
+   "source": "discourse",
+   "discourse_key": "js.embed_mode.signin_flow.sign_in_to_reply",
+   "plural": false,
+   "verified": "Prompt to sign in before replying (embed sign-in flow). English equal (case/placeholder names aside) at Discourse d4296c5 and deployed 821e9e2f; ar, ru, fr, de, he, ja values reviewed 2026-10-18"
   },
   "auth.gate.save.title": {
    "source": "fomio",
@@ -177,7 +181,8 @@
   "common.back": {
    "source": "discourse",
    "discourse_key": "js.back_button",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "common.back_to": {
    "source": "fomio",
@@ -186,30 +191,36 @@
   "common.cancel": {
    "source": "discourse",
    "discourse_key": "js.cancel",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "common.clear_search": {
    "source": "discourse",
    "discourse_key": "js.search.clear_search",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "common.collapsed": {
    "source": "fomio",
    "plural": false
   },
   "common.dismiss": {
-   "source": "fomio",
-   "plural": false
+   "source": "discourse",
+   "discourse_key": "js.software_update_prompt.dismiss",
+   "plural": false,
+   "verified": "Button closing a transient notice; js.notifications.dismiss_confirmation.dismiss rejected (ru: 'mark as read'). English equal (case/placeholder names aside) at Discourse d4296c5 and deployed 821e9e2f; ar, ru, fr, de, he, ja values reviewed 2026-10-18"
   },
   "common.done": {
    "source": "discourse",
    "discourse_key": "js.done",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "common.edit": {
    "source": "discourse",
    "discourse_key": "js.edit",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "common.ellipsis": {
    "source": "fomio",
@@ -234,7 +245,8 @@
   "common.more": {
    "source": "discourse",
    "discourse_key": "js.more",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "common.not_now": {
    "source": "fomio",
@@ -243,7 +255,8 @@
   "common.ok": {
    "source": "discourse",
    "discourse_key": "js.ok_value",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "common.remove": {
    "source": "fomio",
@@ -258,8 +271,10 @@
    "plural": false
   },
   "common.try_again": {
-   "source": "fomio",
-   "plural": false
+   "source": "discourse",
+   "discourse_key": "js.errors.buttons.again",
+   "plural": false,
+   "verified": "Retry button after a failed load; Discourse English is title case, English itself keeps the app's wording. English equal (case/placeholder names aside) at Discourse d4296c5 and deployed 821e9e2f; ar, ru, fr, de, he, ja values reviewed 2026-10-18"
   },
   "communities.child_row": {
    "source": "fomio",
@@ -336,7 +351,8 @@
   "community.about": {
    "source": "discourse",
    "discourse_key": "js.about.simple_title",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "community.about.introduction": {
    "source": "fomio",
@@ -411,8 +427,10 @@
    "plural": false
   },
   "composer.block.date.timezone": {
-   "source": "fomio",
-   "plural": false
+   "source": "discourse",
+   "discourse_key": "js.user.timezone",
+   "plural": false,
+   "verified": "Time zone field label. English equal (case/placeholder names aside) at Discourse d4296c5 and deployed 821e9e2f; ar, ru, fr, de, he, ja values reviewed 2026-10-18"
   },
   "composer.block.details": {
    "source": "fomio",
@@ -623,8 +641,10 @@
    "plural": false
   },
   "composer.destination.required": {
-   "source": "fomio",
-   "plural": false
+   "source": "discourse",
+   "discourse_key": "js.form_kit.errors.required",
+   "plural": false,
+   "verified": "Required-field marker. English equal (case/placeholder names aside) at Discourse d4296c5 and deployed 821e9e2f; ar, ru, fr, de, he, ja values reviewed 2026-10-18"
   },
   "composer.destination.search": {
    "source": "fomio",
@@ -633,7 +653,8 @@
   "composer.discard": {
    "source": "discourse",
    "discourse_key": "js.composer.discard",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "composer.discard_draft": {
    "source": "fomio",
@@ -682,12 +703,14 @@
   "composer.format.bold": {
    "source": "discourse",
    "discourse_key": "js.keyboard_shortcuts_help.composing.bold",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "composer.format.italic": {
    "source": "discourse",
    "discourse_key": "js.keyboard_shortcuts_help.composing.italic",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "composer.formatting": {
    "source": "fomio",
@@ -704,7 +727,8 @@
   "composer.insert": {
    "source": "discourse",
    "discourse_key": "js.composer.link_dialog_action",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "composer.insert.after": {
    "source": "fomio",
@@ -845,12 +869,14 @@
   "composer.link": {
    "source": "discourse",
    "discourse_key": "js.composer.link_title",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "composer.link.text": {
    "source": "discourse",
    "discourse_key": "js.composer.link_optional_text",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "composer.link.url": {
    "source": "fomio",
@@ -1039,7 +1065,8 @@
   "composer.rich_text": {
    "source": "discourse",
    "discourse_key": "js.composition_mode.rich",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "composer.save.failed": {
    "source": "fomio",
@@ -1062,18 +1089,25 @@
    "plural": false
   },
   "composer.style.heading": {
-   "source": "fomio",
-   "plural": false
+   "source": "discourse",
+   "discourse_key": "js.composer.heading_level_n",
+   "plural": false,
+   "placeholders": {
+    "levelNumber": "level"
+   },
+   "verified": "Composer heading menu item for level N. English equal (case/placeholder names aside) at Discourse d4296c5 and deployed 821e9e2f; ar, ru, fr, de, he, ja values reviewed 2026-10-18"
   },
   "composer.style.list": {
    "source": "discourse",
    "discourse_key": "js.composer.ulist_title",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "composer.style.paragraph": {
    "source": "discourse",
    "discourse_key": "js.composer.heading_level_paragraph",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "composer.style.text": {
    "source": "fomio",
@@ -1138,7 +1172,8 @@
   "composer.undo_action.insert_link": {
    "source": "discourse",
    "discourse_key": "js.composer.link_dialog_title",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "composer.undo_action.insert_photo": {
    "source": "fomio",
@@ -1207,7 +1242,8 @@
   "discussion.continue_thread": {
    "source": "discourse",
    "discourse_key": "js.nested_replies.continue_thread",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "discussion.hide_replies": {
    "source": "fomio",
@@ -1228,7 +1264,8 @@
   "discussion.more_replies": {
    "source": "discourse",
    "discourse_key": "js.nested_replies.load_more_children_generic",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "discussion.nav_title": {
    "source": "fomio",
@@ -1237,20 +1274,24 @@
   "discussion.no_replies": {
    "source": "discourse",
    "discourse_key": "js.nested_replies.no_replies",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "discussion.no_replies_yet": {
    "source": "fomio",
    "plural": false
   },
   "discussion.replies": {
-   "source": "fomio",
-   "plural": true
+   "source": "discourse",
+   "discourse_key": "js.review.replies",
+   "plural": true,
+   "verified": "Reply count of a discussion; js.nested_replies.collapsed_replies rejected (he 'other' lacks the count, ar uses 'of replies'). English equal (case/placeholder names aside) at Discourse d4296c5 and deployed 821e9e2f; ar, ru, fr, de, he, ja values reviewed 2026-10-18"
   },
   "discussion.replies_heading": {
    "source": "discourse",
    "discourse_key": "js.replies",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "discussion.reply_to_discussion": {
    "source": "fomio",
@@ -1323,7 +1364,8 @@
   "drafts.kind.reply": {
    "source": "discourse",
    "discourse_key": "js.topic.reply.title",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "drafts.kind_in": {
    "source": "fomio",
@@ -1348,7 +1390,8 @@
   "drafts.resume": {
    "source": "discourse",
    "discourse_key": "js.drafts.resume",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "drafts.resume_a11y": {
    "source": "fomio",
@@ -1441,7 +1484,8 @@
   "feed.latest": {
    "source": "discourse",
    "discourse_key": "js.filters.latest.title",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "feed.loading": {
    "source": "fomio",
@@ -1499,6 +1543,10 @@
    "source": "fomio",
    "plural": false
   },
+  "language.partial": {
+   "source": "fomio",
+   "plural": false
+  },
   "language.pending": {
    "source": "fomio",
    "plural": false
@@ -1520,8 +1568,10 @@
    "plural": false
   },
   "language.title": {
-   "source": "fomio",
-   "plural": false
+   "source": "discourse",
+   "discourse_key": "js.sidebar.sections.custom.localizations.locale",
+   "plural": false,
+   "verified": "Field/screen label for a language. English equal (case/placeholder names aside) at Discourse d4296c5 and deployed 821e9e2f; ar, ru, fr, de, he, ja values reviewed 2026-10-18"
   },
   "link.unsupported": {
    "source": "fomio",
@@ -1530,7 +1580,8 @@
   "me.drafts": {
    "source": "discourse",
    "discourse_key": "js.drafts.label",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "me.guest.message": {
    "source": "fomio",
@@ -1605,8 +1656,10 @@
    "plural": false
   },
   "notifications.unread": {
-   "source": "fomio",
-   "plural": false
+   "source": "discourse",
+   "discourse_key": "js.user.user_notifications.filters.unread",
+   "plural": false,
+   "verified": "Unread notifications state. English equal (case/placeholder names aside) at Discourse d4296c5 and deployed 821e9e2f; ar, ru, fr, de, he, ja values reviewed 2026-10-18"
   },
   "offline.composer": {
    "source": "fomio",
@@ -1679,15 +1732,18 @@
   "post.like": {
    "source": "discourse",
    "discourse_key": "js.post.controls.like_action",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "post.like_count": {
    "source": "fomio",
    "plural": true
   },
   "post.likes": {
-   "source": "fomio",
-   "plural": true
+   "source": "discourse",
+   "discourse_key": "js.post.likes_popup.title",
+   "plural": true,
+   "verified": "Like count of a post. English equal (case/placeholder names aside) at Discourse d4296c5 and deployed 821e9e2f; ar, ru, fr, de, he, ja values reviewed 2026-10-18"
   },
   "post.member_fallback": {
    "source": "fomio",
@@ -1700,7 +1756,8 @@
   "post.quote": {
    "source": "discourse",
    "discourse_key": "js.post.quote_reply",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "post.remove_saved": {
    "source": "fomio",
@@ -1713,11 +1770,14 @@
   "post.reply": {
    "source": "discourse",
    "discourse_key": "js.topic.reply.title",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "post.save": {
-   "source": "fomio",
-   "plural": false
+   "source": "discourse",
+   "discourse_key": "js.bookmarks.save",
+   "plural": false,
+   "verified": "Save (bookmark) a post. English equal (case/placeholder names aside) at Discourse d4296c5 and deployed 821e9e2f; ar, ru, fr, de, he, ja values reviewed 2026-10-18"
   },
   "post.save_post": {
    "source": "fomio",
@@ -1734,7 +1794,8 @@
   "post.share": {
    "source": "discourse",
    "discourse_key": "js.post.controls.share_action",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "post.share_unconfigured": {
    "source": "fomio",
@@ -1779,7 +1840,8 @@
   "profile.title": {
    "source": "discourse",
    "discourse_key": "js.user.profile",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "profile.topic_a11y": {
    "source": "fomio",
@@ -1876,7 +1938,8 @@
   "search.title": {
    "source": "discourse",
    "discourse_key": "js.search.title",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "search.unavailable": {
    "source": "fomio",
@@ -1889,7 +1952,8 @@
   "tab.home": {
    "source": "discourse",
    "discourse_key": "js.home",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "tab.me": {
    "source": "fomio",
@@ -1898,19 +1962,26 @@
   "tab.notifications": {
    "source": "discourse",
    "discourse_key": "js.user.notifications",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "time.compact.days": {
-   "source": "fomio",
-   "plural": true
+   "source": "discourse",
+   "discourse_key": "js.dates.tiny.x_days",
+   "plural": true,
+   "verified": "Compact relative age, days. English equal (case/placeholder names aside) at Discourse d4296c5 and deployed 821e9e2f; ar, ru, fr, de, he, ja values reviewed 2026-10-18"
   },
   "time.compact.hours": {
-   "source": "fomio",
-   "plural": true
+   "source": "discourse",
+   "discourse_key": "js.dates.tiny.about_x_hours",
+   "plural": true,
+   "verified": "Compact relative age, hours. English equal (case/placeholder names aside) at Discourse d4296c5 and deployed 821e9e2f; ar, ru, fr, de, he, ja values reviewed 2026-10-18"
   },
   "time.compact.minutes": {
-   "source": "fomio",
-   "plural": true
+   "source": "discourse",
+   "discourse_key": "js.dates.tiny.x_minutes",
+   "plural": true,
+   "verified": "Compact relative age, minutes. English equal (case/placeholder names aside) at Discourse d4296c5 and deployed 821e9e2f; ar, ru, fr, de, he, ja values reviewed 2026-10-18"
   },
   "time.compact.now": {
    "source": "fomio",
@@ -1971,11 +2042,39 @@
   "topic.pinned": {
    "source": "discourse",
    "discourse_key": "js.topic_statuses.pinned.title",
-   "plural": false
+   "plural": false,
+   "verified": "Mapped 2026-10-15: English equal at Discourse 7b4f0970 and d4296c5; rechecked at 821e9e2f 2026-10-18"
   },
   "topic.started_by": {
    "source": "fomio",
    "plural": false
   }
+ },
+ "rejected_candidates": {
+  "common.dismiss (alt)": "js.notifications.dismiss_confirmation.dismiss: ru 'Пометить прочитанными' (mark as read) — context-specific",
+  "common.list_separator": "js.word_connector.comma: Discourse's Arabic value is the Latin ', ' where Arabic needs '، '",
+  "common.remove": "js.drafts.remove / js.user.invited.remove / access permission remove: context-specific, no generic key",
+  "common.save": "js.save is 'Save Changes'; js.bookmarks.save is bookmark-specific (used for post.save instead)",
+  "community.fallback_name": "js.badges.badge_grouping.community.name: badge group, and category terminology is Fomio-owned",
+  "composer.block.code": "js.user_api_key.device.code / js.user.second_factor.label: authentication codes",
+  "composer.block.details.summary": "js.user.summary.title: a user's summary page",
+  "composer.block.poll.option(s)": "js.shortcut_modifier_key.option (⌥ key) / js.composer.options (composer menu)",
+  "composer.block.table.add_column": "js.composer.table.add_column: translated in Discourse English only at d4296c5 and 821e9e2f; mapping would replace maintained translations with English",
+  "composer.block.table.add_row": "js.composer.table.add_row: translated in Discourse English only at d4296c5 and 821e9e2f; mapping would replace maintained translations with English",
+  "composer.destination.change": "js.upload_selector.change: upload context",
+  "composer.inserter.advanced": "js.category.advanced: category settings tab",
+  "composer.post": "js.review.types.reviewable_post.title: noun in review queue, Fomio key is the Post action",
+  "composer.posting": "js.groups.manage.interaction.posting: permission noun, Fomio key is progress",
+  "composer.style.text": "js.composer.link_optional_text / raw email text part: different meanings",
+  "composer.title_field": "js.composer.title_placeholder_redesign: absent at deployed 821e9e2f; js.user.title.title is a user title",
+  "composer.undo / undo_action.*": "js.review...undo, js.edit, js.composer.link_dialog_action: verbs or other contexts; Fomio keys name undo actions",
+  "content.details": "group log / auth token details: other contexts",
+  "discussion.no_replies_yet": "js.nested_replies.no_replies: Discourse English ends with a period, which would change composed card text",
+  "discussion.replies (alt)": "js.nested_replies.collapsed_replies: he 'other' lacks {count} ('two replies'), ar uses 'من الردود'; js.review.replies used",
+  "language.row_label / me.row_count / notifications.row_a11y_age": "js.notifications.liked_by_2_users: same punctuation pattern only",
+  "me.saved / post.saved": "js.review.settings.saved: 'settings saved' confirmation, different meaning",
+  "post.member_fallback": "js.user.invited.invite_roles.summary.role_member: invite role",
+  "post.unavailable.nav_title": "js.category.choose_type.unavailable: category type picker",
+  "time.compact.now": "js.time_shortcut.now: scheduling shortcut, not a relative age"
  }
 }

@@ -19,12 +19,15 @@ enum ComposerTextStyle: Hashable, Sendable {
     case paragraph, heading(Int), quote, list
     /// Types offered by Turn into and the inserter. Other heading levels are still recognised.
     static let offered: [ComposerTextStyle] = [.paragraph, .heading(2), .heading(3), .quote, .list]
-    var title: String {
+    var title: String { title(within: nil) }
+    /// The style name inserted into `container` (for example "Turn into {style}"): in the container's language.
+    func title(within container: String?) -> String {
+        func text(_ key: String, _ arguments: [(String, String)] = []) -> String { Localizer.shared.string(key, arguments, within: container) }
         switch self {
-        case .paragraph: L("composer.style.paragraph")
-        case let .heading(level): L("composer.style.heading", ["level": level.formatted(.number.locale(Localizer.shared.formattingLocale))])
-        case .quote: L("post.quote")
-        case .list: L("composer.style.list")
+        case .paragraph: return text("composer.style.paragraph")
+        case let .heading(level): return text("composer.style.heading", [("level", level.formatted(.number.locale(Localizer.shared.formattingLocale)))])
+        case .quote: return text("post.quote")
+        case .list: return text("composer.style.list")
         }
     }
     /// Stable automation identifier; never shown and independent of the interface language.

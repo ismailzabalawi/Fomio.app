@@ -1,6 +1,6 @@
 # Interface catalog contract and backend handoff
 
-Status, 2026-10-17: **deployed on meta.fomio.app as plugin `discourse-fomio-app-locales` v0.1.1** (`07bb7d38065ede03d0ac9f49f4f89d9ae8d4eed3`, https://github.com/ismailzabalawi/discourse-fomio-app-locales) on Discourse `821e9e2f9f94483a3be8d1e077cde0fd94970479`, verified anonymously and signed in, including compressed 304s. Source: backend branch `fomio/app-locale-catalog` (`e3fd4b3647f`, not pushed). History and evidence: [deployment record](validation/2026-10-16-live-deployment/README.md).
+Status, 2026-10-18: **schema 2 (Discourse translation reuse, sparse Fomio overlays, English fallback) is implemented locally in plugin v0.2.0 and the app; it is not published or deployed.** The live site still runs v0.1.1 (schema 1, `07bb7d3`, deployed 2026-10-17 on Discourse `821e9e2f`). An app build with this change requests schema 2, so against the current site it gets 404 and offers English only, until v0.2.0 is deployed (separate authorization). History of the schema-1 deployment: [deployment record](validation/2026-10-16-live-deployment/README.md). Schema-2 evidence: [validation record](validation/2026-10-18-sparse-catalogs/README.md).
 
 ## Deployed-site check (2026-10-15, read-only, anonymous)
 
@@ -13,45 +13,51 @@ Status, 2026-10-17: **deployed on meta.fomio.app as plugin `discourse-fomio-app-
 
 Conclusion: live builds use `DiscourseLocalizationTransport` with the configured paths below. The live site offers English only (`fomio_app_locales` = `en`), so the app lists English and shows the live English catalog (identical to bundled English). Live verification of a non-English catalog needs an approved language (E3/E4).
 
-## Endpoints
+## Endpoints (schema 2)
 
-The app's Info values `FomioLocaleIndexPath` = `fomio/app-locales/{schema}/index.json` and `FomioLocaleCatalogPath` = `fomio/app-locales/{schema}/{locale}.json` (relative to the configured base URL and relative root) match the plugin's routes.
-
-Both are `GET`, public, read-only and anonymous, also under `login_required` (decided: the catalog contains no member data; the controller skips the login/profile redirects like `ExtraLocalesController`). Signed-in requests get the same body, and `X-Discourse-Username` is removed (see below). No cookies, CSRF or user keys. Respond `200` with `ETag` and `Cache-Control: public, max-age=…`; honor `If-None-Match` with `304`. Unknown or disabled locale → `404`. Payload ≤ 1 MB. `Content-Type: application/json`.
+The app's Info values `FomioLocaleIndexPath` = `fomio/app-locales/{schema}/index.json` and `FomioLocaleCatalogPath` = `fomio/app-locales/{schema}/{locale}.json` (relative to the configured base URL and relative root); `{schema}` is 2. Both are `GET`, public, read-only and anonymous (also under `login_required`); signed-in requests get the same body and no `X-Discourse-Username`. `ETag` = revision; `If-None-Match` uses weak comparison (304 for `W/"…"`, lists and `*`); `Cache-Control: public, max-age=300`. 404 for another schema, a locale outside the allowlist, a locale without Discourse plural rules, a malformed code or a disabled plugin. Payload ≤ 1 MB.
 
 ### Index
 
 ```json
-{"schema": 1, "default_locale": "en",
- "locales": [{"locale": "en", "name": "English", "native_name": "English", "direction": "ltr", "complete": true, "revision": "…"},
-             {"locale": "ar", "name": "Arabic", "native_name": "العربية", "direction": "rtl", "complete": true, "revision": "…"}]}
+{"schema": 2, "default_locale": "en",
+ "locales": [{"locale": "he", "name": "Hebrew", "native_name": "עברית", "direction": "rtl", "complete": true,
+              "plural_categories": ["one", "two", "many", "other"],
+              "coverage": {"total": 482, "discourse": 49, "overlay": 0, "english_fallback": 433}, "revision": "…"}]}
 ```
 
-List only locales enabled for the app: the plugin's own `fomio_app_locales` allowlist (default `en`; separate from Discourse's web `available_locales`/`allow_user_locale` and from content translation) ∩ Discourse-supported locales ∩ languages with app plural rules ∩ catalogs that pass validation. `complete` is always true for listed entries. `default_locale` is always `en`, and the app ignores it.
+Only locales in the plugin's own allowlist `fomio_app_locales` (default `en`; separate from Discourse's web interface languages, `allow_user_locale` and content translation) that Discourse supports and has plural rules for. No language is ever enabled automatically, and `default_locale` is always `en` (the app ignores it). The app lists an entry only if it is complete, its direction is `ltr`/`rtl` and `plural_categories` equal the app's own rules for that locale; otherwise the language is explicitly unsupported and not shown. `coverage.english_fallback > 0` makes Me › Language say “Partly translated: some text appears in English”.
 
 ### Catalog
 
 ```json
-{"schema": 1, "locale": "ar", "revision": "content-digest", "direction": "rtl", "complete": true,
- "plural_categories": ["zero", "one", "two", "few", "many", "other"],
- "messages": {"tab.home": "الصفحة الرئيسية",
-              "discussion.replies": {"zero": "…", "one": "…", "two": "…", "few": "{count} ردود", "many": "{count} ردًا", "other": "{count} رد"}}}
+{"schema": 2, "locale": "he", "revision": "content-digest", "direction": "rtl", "complete": true,
+ "plural_categories": ["one", "two", "many", "other"],
+ "fallback": ["tab.communities", "…"],
+ "coverage": {"total": 482, "discourse": 49, "overlay": 0, "english_fallback": 433},
+ "messages": {"tab.home": "בית", "tab.communities": "Communities",
+              "discussion.replies": {"one": "תגובה", "two": "שתי תגובות", "other": "{count} תגובות"},
+              "post.like_count": {"one": "Like {count}", "other": "Like {count}"}}}
 ```
 
-`revision` changes whenever any resolved value changes (including a site-text override edit); the `ETag` may equal it. The examples are fixtures, not live responses.
+Every manifest key is present (assembled, complete). `fallback` lists the keys whose value is English.
 
-## Resolution rules (from `Localization/manifest.json`)
+## Resolution rules (`Localization/manifest.json`, schema 2)
 
-- 481 keys. 35 reuse an exact Discourse key (`source: discourse`): resolve `I18n.t(discourse_key, locale:)` including that locale's site-text override. If the locale has no translation of its own (Discourse would fall back to English) or the resolved value fails validation, use the maintained Fomio value for that locale. Every mapped key was checked to exist with the same English value at the deployed and local revisions.
-- 446 keys are Fomio-only (`source: fomio`): serve `Localization/catalogs/<locale>.json` (English: `Fomio/Resources/Localization/fomio-catalog-en.json`).
-- Convert Discourse `%{name}` to `{name}`. Never emit markup, Discourse keys as values, or user-specific text. Never apply one locale's override to another locale.
-- Topic/category nouns are not mapped (see the terminology decision in the manifest and [strategy](localization-strategy.md#terminology-and-override-policy)).
+- 482 keys: **49** map to a semantically equivalent Discourse client key (`source: discourse`), each with a recorded review (`verified`); 433 are Fomio-specific (`source: fomio`). Reviewed-and-rejected candidates are listed with reasons in `rejected_candidates` (equal wording alone is never enough).
+- English: the app's bundled English; a valid `en` site-text override replaces a mapped key.
+- Other locales, per key: (1) mapped key → that locale's own Discourse translation (`JsLocaleHelper.translations_for(locale, no_fallback: true)`; a regional locale such as `pt_BR` never borrows `pt`), with that locale's override first when valid; (2) Fomio key → the sparse overlay `Localization/catalogs/<locale>.json` (Fomio keys only; Arabic is the only overlay today); (3) otherwise English as served, listed in `fallback`. A missing or invalid translation never makes a catalog incomplete.
+- Convert `%{name}` to `{name}`, renaming per the entry's `placeholders` map (for example `levelNumber` → `level`). Never emit markup or keys as values; never apply one locale's override to another.
+- Plural categories are Discourse's CLDR keys for the locale (`I18n.t("i18n.plural.keys")`, config/locales/plurals.rb). A translated plural must contain `other` (with `{count}` when English uses it) and only those categories; a form it omits (for example Hebrew `many`) is shown as `other`, as Discourse does. A fallback plural keeps English forms and is selected with English rules.
+- Topic/category nouns are not mapped (terminology decision in the manifest and [strategy](localization-strategy.md#terminology-and-override-policy)).
 
-## Client validation (what the backend must satisfy)
+## Client validation and rendering (`Fomio/Localization`)
 
-`Fomio/Localization/LocalizationCatalog.swift` (`CatalogValidator`) accepts a catalog only if: schema is 1; `complete` is true; the resolved locale has the requested language; direction is `ltr`/`rtl`; the app has CLDR plural rules for it and `plural_categories` match them; every key in the bundled English catalog is present with the same kind (text vs plural); text placeholders match exactly; plural messages carry every category, use only allowed placeholders, keep non-count placeholders in every form and show `{count}` in `other`; no value is blank, too long (1,200 characters), markup, `%{…}`/`%@` formatting, unbalanced braces or a raw key. Unknown extra keys are ignored. Languages currently supported by app plural rules: English, Arabic, and one-form languages (ja/ko/zh). Add others in the app with tests before enabling them.
+`CatalogValidator` accepts a catalog only if: schema is 2; `complete` is true; the locale is the requested one (same language); direction is `ltr`/`rtl`; `plural_categories` equal the app's rules for the locale (`PluralRules`: all 15 integer families of Discourse's 49 client locales, checked against a table computed from Discourse's own rules, `Localization/discourse-plural-truth.json`); every bundled English key is present with the same kind; text placeholders match English; plural forms are within the locale's categories (English categories for `fallback` keys), include `other` with `{count}` when English uses it, keep non-count placeholders and use no others; no value is blank, too long (1,200), markup, `%{…}`/printf, unbalanced braces or a raw key. Unknown extra keys are ignored.
 
-## Backend implementation (2026-10-15; v0.1.0 deployed 2026-10-16, v0.1.1 deployed 2026-10-17)
+Rendering (`Localizer`): a fallback message uses English plural rules and English digits, isolates its arguments left to right and, inside a right-to-left catalog, is wrapped as one left-to-right isolate (U+2066…U+2069). A localized fragment inserted into another message (a compact age in “Active {age} ago”, a style name in “Turn into {style}”) names its container (`within:`) and is English whenever the container is, so one sentence never mixes languages; shown on its own, the fragment keeps its translation.
+
+## Backend implementation history (v0.1.0 deployed 2026-10-16, v0.1.1 deployed 2026-10-17; v0.2.0 local only, 2026-10-18)
 
 | Item | Status |
 | --- | --- |
@@ -66,3 +72,15 @@ List only locales enabled for the app: the plugin's own `fomio_app_locales` allo
 | Deployment (standalone repo `ismailzabalawi/discourse-fomio-app-locales`, `app.yml` clone, rebuild), then anonymous and member verification on the live site | **v0.1.1 deployed 2026-10-17** on Discourse `821e9e2f9f94`; verified anonymously and signed in, including compressed 304s ([record](validation/2026-10-16-live-deployment/README.md)) |
 
 Separate operational decision, unchanged: whether to enable `allow_user_locale` so server-generated text (validation errors, emails) follows the member's language. Interface catalogs do not require it, and content translation stays off.
+
+### Plugin v0.2.0 (schema 2), local only
+
+| Item | Status |
+| --- | --- |
+| `CatalogBuilder` assembles Discourse translation → overlay → English per key; `fallback`, `coverage`; Discourse plural keys; placeholder renames; same-locale overrides; regional locales stay separate | Implemented, backend branch `fomio/app-locale-catalog` (not pushed) |
+| Index adds `plural_categories` and `coverage`; any allowlisted Discourse locale with plural rules is offered (allowlist default still `en`) | Implemented |
+| Specs (`LOAD_PLUGINS=1 bin/rspec plugins/discourse-fomio-app-locales/spec`) at Discourse `d4296c5`: 44 examples, 0 failures; RuboCop and syntax_tree clean | 2026-10-18 |
+| `script/export_catalogs.rb`: coverage report for all 49 locales and the app's Debug fixtures, using the real builder without writing settings | Implemented |
+| Specs at deployed `821e9e2f` | Not run (pnpm 12 tooling, as for v0.1.1); mapped Discourse values compared directly between `d4296c5` and `821e9e2f` for all 49 locales: only Lithuanian differs (7 values) |
+| Publication (v0.2.0 tag) and deployment | **Not done**; not authorized in this task |
+
