@@ -107,6 +107,71 @@ import XCTest
         XCTAssertTrue(service.reportedPosts.isEmpty, "Nothing is sent automatically after sign-in")
     }
 
+    func testExpiredContextLoadRequestsSignInBeforeAnySubmission() async {
+        let service = ReportRecoveryService()
+        service.expireContext = true
+        let state = ReportState(target: reply, title: "Walnut", account: .fixture, service: service)
+        await state.load(isOffline: false)
+        XCTAssertEqual(state.notice, .signInRequired)
+        XCTAssertFalse(state.canSend)
+        XCTAssertEqual(service.submitCount, 0)
+
+        service.expireContext = false
+        await state.load(isOffline: false, keepInput: true)
+        XCTAssertEqual(state.phase, .form)
+        XCTAssertNil(state.notice)
+        XCTAssertNil(state.reasonID)
+        XCTAssertEqual(service.submitCount, 0, "Sign-in recovery never sends automatically")
+    }
+
+    func testExpiredContextRetryKeepsReportInputAndRequiresExplicitSend() async {
+        let service = ReportRecoveryService()
+        let state = ReportState(target: reply, title: "Walnut", account: .fixture, service: service)
+        await state.load(isOffline: false)
+        state.select(7); state.details = "Keep these details"
+        service.expireContext = true
+        await state.load(isOffline: false, keepInput: true)
+        XCTAssertEqual(state.notice, .signInRequired)
+        XCTAssertFalse(state.canSend)
+        _ = await state.send(isOffline: false)
+        XCTAssertEqual(service.submitCount, 0, "No send while authorization is required")
+
+        service.expireContext = false
+        await state.load(isOffline: false, keepInput: true)
+        XCTAssertEqual(state.reasonID, 7)
+        XCTAssertEqual(state.details, "Keep these details")
+        XCTAssertNil(state.notice)
+        XCTAssertTrue(state.canSend)
+        XCTAssertEqual(service.submitCount, 0)
+        _ = await state.send(isOffline: false)
+        XCTAssertEqual(service.submitCount, 1)
+        XCTAssertEqual(state.phase, .received)
+    }
+
+    func testDeniedReconciliationLocksSendAndSelectionUntilStatusCompletes() async {
+        for outcome in [ReportStatusCheck.received, .notReceived] {
+            let service = ReportRecoveryService()
+            service.denySubmission = true
+            let started = expectation(description: "Status read started")
+            service.statusStarted = { started.fulfill() }
+            let state = ReportState(target: reply, title: "Walnut", account: .fixture, service: service)
+            await state.load(isOffline: false); state.select(7); state.details = "Kept details"
+            let sending = Task { await state.send(isOffline: false) }
+            await fulfillment(of: [started], timeout: 3)
+            XCTAssertFalse(state.canSend)
+            XCTAssertTrue(state.isSending)
+            state.select(8)
+            XCTAssertEqual(state.reasonID, 7)
+            _ = await state.send(isOffline: false)
+            XCTAssertEqual(service.submitCount, 1, "A pending reconciliation cannot start another write")
+            service.finishStatus(outcome)
+            _ = await sending.value
+            XCTAssertEqual(state.phase, outcome == .received ? .already : .unavailable)
+            XCTAssertFalse(state.isSending)
+            XCTAssertEqual(state.details, "Kept details")
+        }
+    }
+
     func testIgnoreSuccessOnlyAfterConfirmationAndUncertainNeedsRefresh() async {
         let service = fixture(); service.ignoreScenario = .uncertain
         let state = IgnoreState(username: "devon", name: nil, account: .fixture)
@@ -177,4 +242,39 @@ import XCTest
         await app.loadSafety()
         XCTAssertNil(app.safetyError); XCTAssertTrue(app.isIgnored("rowan.b"))
     }
+}
+
+/// Holds the read after a denied write so tests can exercise user input at that exact suspension point.
+@MainActor private final class ReportRecoveryService: SafetyRepository {
+    private let fixture = FixtureService()
+    var expireContext = false
+    var denySubmission = false
+    var submitCount = 0
+    var statusStarted: (() -> Void)?
+    private var statusContinuation: CheckedContinuation<ReportStatusCheck, Never>?
+    func reportContext(_ target: ReportTarget) async throws -> ReportContext {
+        if expireContext { throw RepositoryError.unauthorized }
+        return try await fixture.reportContext(target)
+    }
+    func submitReport(_ target: ReportTarget, reason: ReportReason, message: String?) async throws -> ReportSubmission {
+        submitCount += 1
+        if denySubmission { throw RepositoryError.denied }
+        return try await fixture.submitReport(target, reason: reason, message: message)
+    }
+    func reportStatus(_ target: ReportTarget) async throws -> ReportStatusCheck {
+        await withCheckedContinuation { continuation in
+            statusContinuation = continuation
+            statusStarted?()
+        }
+    }
+    func finishStatus(_ value: ReportStatusCheck) {
+        let continuation = statusContinuation; statusContinuation = nil
+        continuation?.resume(returning: value)
+    }
+    func accountSafety() async throws -> AccountSafety { try await fixture.accountSafety() }
+    func memberSafety(_ username: String) async throws -> MemberSafety { try await fixture.memberSafety(username) }
+    func ignore(_ username: String, until: Date) async throws -> PreferenceWrite { try await fixture.ignore(username, until: until) }
+    func stopIgnoring(_ username: String) async throws -> PreferenceWrite { try await fixture.stopIgnoring(username) }
+    func revealPost(_ id: PostID) async throws -> Post { try await fixture.revealPost(id) }
+    func safetyResources() async throws -> SafetyResources { try await fixture.safetyResources() }
 }

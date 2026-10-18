@@ -1,5 +1,16 @@
 # Reporting & Safety native validation — 2026-10-17
 
+## Report recovery fixes — 2026-10-18
+
+Follow-up to the final diff review of `6837b25` (changes in the reporting worktree):
+
+- A 401 while loading/rechecking report context now requests the existing sign-in recovery, with Send disabled until authorization and context reload finish. The sheet observes an already-set sign-in notice on presentation too. A new load clears the old notice before suspending, so reopening after sign-in does not trigger another sign-in from a stale notice. Retained reason/details are restored only for the same account; no automatic submission.
+- A denied submission keeps Send and selection locked throughout the fresh report-status read. The lock clears after the read finishes, showing Already reported or Unavailable as before.
+- Three new state regression tests failed on the prior code, then passed with the fixes. They cover initial context expiry, expiry during an input-preserving retry, and a held post-denial status read (both received and not-received outcomes), including a second explicit send attempt while locked.
+- Added a native UI regression using fictional `--report-context-expired` (one context failure, then normal fixture behavior): opening Report → sign-in → unselected report form → explicit selection and Send → received.
+
+Fresh validation: Xcode 27.1, iPhone 17 Pro Max / iOS 26.1. **29 passed, 0 failed, 0 skipped**: SafetyContractTests (11), SafetyStateTests (13), SafetyPreviewTests (4), and the new expired-context SafetyUITests case (1). The result bundle is `test_sim_2026-10-17T22-14-22-309Z_pid88222_93000c61.xcresult` in the local XcodeBuildMCP workspace. No live requests, backend/settings edits or translation edits. Existing release items below remain open.
+
 ## Final run of record — 2026-10-18
 
 This run is on the final committed tree, including the review fixes: Ignore entry checks the member card before opening the sheet, and failures that aren't denials show as "Couldn't ignore" rather than "can't ignore". Simulators were dedicated to this run (other sessions used other devices).

@@ -30,6 +30,7 @@ import SwiftUI
             if let raw = value("--ignore-outcome"), let scenario = FixtureService.IgnoreScenario(rawValue: raw) { fixture.ignoreScenario = scenario }
             if let raw = value("--ignored") { fixture.ignoredUsers = Set(raw.split(separator: ",").map(String.init)) }
             fixture.newMember = arguments.contains("--new-member")
+            fixture.expireNextReportContext = arguments.contains("--report-context-expired")
             fixture.timeoutReceived = !arguments.contains("--timeout-not-received")
             fixture.ignoredListFails = arguments.contains("--ignored-list-fails")
             if DevelopmentPresets.requested == "loading" { fixture.feedDelay = .seconds(120) }

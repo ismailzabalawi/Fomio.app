@@ -29,10 +29,11 @@ import Observation
     var hasEdits: Bool { reasonID != nil || !trimmedDetails.isEmpty }
     var isSending: Bool { phase == .sending || checking }
     /// After an unknown outcome Send stays unavailable until Check status establishes the state.
-    var canSend: Bool { phase == .form && reason != nil && notice != .unconfirmed && !checking }
+    var canSend: Bool { phase == .form && reason != nil && notice != .unconfirmed && notice != .signInRequired && !checking }
     /// Rechecks the exact target. `keepInput` retains the reason and details across sign-in when the reason is still offered.
     func load(isOffline: Bool, keepInput: Bool = false) async {
         phase = .loading
+        notice = nil
         if !keepInput { reasonID = nil; details = "" }
         do {
             let value = try await service.reportContext(target)
@@ -42,7 +43,8 @@ import Observation
             if let reasonID, !value.reasons.contains(where: { $0.id == reasonID }) { self.reasonID = nil }
             phase = .form
             if keepInput { notice = nil }
-        } catch RepositoryError.unavailable { phase = .removed }
+        } catch RepositoryError.unauthorized { phase = .form; notice = .signInRequired }
+        catch RepositoryError.unavailable { phase = .removed }
         catch RepositoryError.denied { phase = .unavailable }
         catch { phase = .loadFailed(isOffline ? RepositoryError.offline.localizedDescription : error.localizedDescription) }
     }
@@ -80,6 +82,7 @@ import Observation
         return false
     }
     private func reconcileDenied() async {
+        checking = true; defer { checking = false }
         if (try? await service.reportStatus(target)) == .received { phase = .already } else { phase = .unavailable }
     }
     /// Establishes whether an unconfirmed report was recorded. Never resubmits.

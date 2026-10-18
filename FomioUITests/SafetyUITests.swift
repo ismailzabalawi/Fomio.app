@@ -74,6 +74,20 @@ import XCTest
         capture(app, "R09b back after sign-in")
     }
 
+    func testExpiredReportContextSignsInThenReturnsWithoutSending() {
+        let app = launch(["--preset", "report", "--report-context-expired"])
+        XCTAssertTrue(app.staticTexts["Sign in to report"].waitForExistence(timeout: 10))
+        app.buttons["signin-continue"].tap()
+        let send = app.buttons["report-send"]
+        XCTAssertTrue(send.waitForExistence(timeout: 10))
+        XCTAssertFalse(send.isEnabled, "Sign-in rechecks context without choosing or sending a report")
+        app.buttons["report-reason-8"].tap()
+        XCTAssertTrue(send.isEnabled)
+        send.tap()
+        XCTAssertTrue(app.buttons["report-done"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Report received"].exists)
+    }
+
     func testIgnoreFromProfileThenCollapsedReplyAndShowOnce() {
         let app = launch(["--preset", "ignore-profile"])
         let ignore = app.buttons["profile-ignore"]; XCTAssertTrue(ignore.waitForExistence(timeout: 10))

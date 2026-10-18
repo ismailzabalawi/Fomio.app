@@ -20,6 +20,7 @@ import Observation
     var summaries: [DiscussionSummary] = []
     // Reporting & Safety simulation state (see the extension at the end of this file).
     var reportScenario: ReportScenario = .received
+    var expireNextReportContext = false
     var timeoutReceived = true
     var reportDelay: Duration = .milliseconds(500)
     var reportedPosts: Set<PostID> = []
@@ -326,6 +327,7 @@ extension FixtureService {
     private func findPost(_ id: PostID) -> Post? { posts.values.flatMap { $0 }.first { $0.id == id } }
     func reportContext(_ target: ReportTarget) async throws -> ReportContext {
         try check(); try await Task.sleep(for: .milliseconds(150))
+        if expireNextReportContext { expireNextReportContext = false; throw RepositoryError.unauthorized }
         guard var post = findPost(target.actionPostID) else { throw RepositoryError.unavailable }
         post.flags = flagState(post)
         if reportScenario == .denied { post.flags = post.flags.map { FlagAction(id: $0.id, canAct: false, acted: $0.acted) } }

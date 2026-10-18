@@ -50,7 +50,7 @@ struct ReportSheet: View {
         }
         // Swipe-down can't drop typed input or interrupt a request in flight.
         .interactiveDismissDisabled(state.isSending || (state.hasEdits && state.phase == .form))
-        .onChange(of: state.notice) { _, notice in
+        .onChange(of: state.notice, initial: true) { _, notice in
             if notice == .signInRequired { app.resumeReportAfterSignIn(state) }
         }
     }
