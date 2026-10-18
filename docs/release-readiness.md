@@ -91,3 +91,18 @@ Archived commit `067d8f0` (visual composer, optional Markdown mode, native Previ
 Uploaded with `xcodebuild -exportArchive`, method `app-store-connect`, destination `upload`. Apple reported “Uploaded package is processing” and “Upload succeeded”; export exited successfully on 2026-10-15 at 21:22 Asia/Amman. This is an App Store Connect upload, not an App Review submission or public release. Archive/export logs are retained locally in `.build/release-0.8.0-5/` (ignored build artifacts).
 
 Immediately preceding release, all four requested iPad Simulator composer journeys passed, including exact Markdown recovery after app termination/relaunch; see [editor validation](editor-validation.md#release-verification--2026-10-15). A separate “Composer release handoff” Claude Code thread was opened with the results and told to await further instructions without modifying or running anything. No pending localization worktree was merged and the unrelated topic-card review file was excluded from the release commit.
+
+## Reporting & Safety build 0.8.0 (6) — 2026-10-18
+
+Archived commit `31b4d53`. It contains feature commit `6837b25`, recovery fixes `5d60931` and the build bump. Built with Xcode 27.1 (27A9275), Release, generic iOS, existing automatic signing (team LK9253R3XB), bundle `com.fomio.mobile`. The archive's Info.plist confirms version 0.8.0, build 6 and live site `https://meta.fomio.app`.
+
+Uploaded with `xcodebuild -exportArchive`, method `app-store-connect`, destination `upload`, using the same ExportOptions as build 5 and Xcode's existing account (no credentials stored or printed). At 08:14 Asia/Amman Apple reported “Uploaded package is processing” and “Upload succeeded”, and the export exited 0. Logs are in `.build/release-0.8.0-6/` (ignored). **Processing completion:** see the note below. This is an App Store Connect upload only, not an App Review submission, approval or public release.
+
+Pre-release checks on dedicated simulators, iOS 26.1:
+- **Unit:** 124 executed, 4 live-only skipped, 0 failures.
+- **UI:** 49 executed, 47 passed, 1 live-only skipped, 1 failure. The failure was existing composer test `testNativeBlockFormAndMarkdownRoundTrip` ("no keyboard focus").
+- **Flake check:** a first full run had a runner killed by `signal kill`, which failed `testUnconfirmedUIRequiresDuplicateWarning` and left later UI tests unrun. Both affected composer tests then passed 2/2 iterations, so they are recorded as simulator flakes, not passes on the first attempt.
+- **iPad Pro 11:** `SafetyUITests` and `SafetyPreviewUITests` 13/13.
+- **Backend:** deployed Discourse rechecked at `821e9e2f`, where the local backend checks passed. Deployed member round trips remain **waived, not passed**. Live plugin effects, moderator delivery and issued-key grants remain release items. Live settings unchanged.
+
+**Separate submission work:** the primary checkout's uncommitted App Store submission work uploaded build 0.8.0 (7) earlier the same day and selected it in a Draft Submission. Build 6 is a separate upload and was not selected for review. Build 7 and the draft submission were not changed. Build 6 does not include that uncommitted work, such as account deletion and privacy-manifest corrections. The localization branch was not merged.
