@@ -126,3 +126,7 @@ Owner-authorized push and upload only; no App Review submission, automatic revie
 - **Upload:** `xcodebuild -exportArchive` with destination `upload` on 2026-10-20 at 00:00:34 +03. Apple reported “Uploading Fomio.ipa is complete … Uploaded package is processing … Upload succeeded.” Exit 0.
 - **Processing:** not yet confirmed in App Store Connect by this session; the in-app browser was not signed in. Check TestFlight / Activity for 0.9.0 (8) before selecting it for a version.
 - **Not established:** live APNs/relay delivery (unavailable by design; live Settings show alerts as not available), live Discourse notification acceptance, iPad and physical-device acceptance. App Review submission remains pending for the owner.
+
+## Superseded build 0.8.0 (6) — upload record (history)
+
+Build 0.8.0 (6) was archived from `31b4d53` (Reporting & Safety feature `6837b25`, recovery fixes `5d60931`) and uploaded on 2026-10-18 at 08:14 Asia/Amman with `xcodebuild -exportArchive` (app-store-connect, upload). Apple reported “Uploaded package is processing” and “Upload succeeded”. **Processing completion was not verified.** App Store Connect wasn't signed in for the uploading session, and on 2026-10-20 the owner chose to skip verification. Build 6 was never selected for review. `e3a6e04` later replaced it with the build 0.8.0 (7) baseline, and its safety sources are no longer on `main`.

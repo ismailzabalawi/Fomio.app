@@ -1,5 +1,7 @@
 # Reporting & Safety native validation — 2026-10-17
 
+> **History note (2026-10-20):** this implementation shipped only as upload 0.8.0 (6) on 2026-10-18. Apple's processing completion for it was **not verified**; the owner skipped that check. `e3a6e04` superseded it on `main` with the build 0.8.0 (7) baseline. See [release readiness](../../release-readiness.md#superseded-build-080-6--upload-record-history).
+
 ## Report recovery fixes — 2026-10-18
 
 Follow-up to the final diff review of `6837b25` (changes in the reporting worktree):
