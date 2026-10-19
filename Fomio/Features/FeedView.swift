@@ -50,7 +50,7 @@ struct FeedView: View {
                         TopicCard(topic: topic, appearance: appearance, showCategory: category == nil || topic.categoryID != category?.id,
                                   onOpen: { app.navigate(.discussion(topic.id, topic.targetPostNumber)) },
                                   onCategory: { app.navigate(.community($0)) })
-                            .onGeometryChange(for: CGRect.self) { $0.frame(in: .scrollView) } action: { geometry.frames[topic.id] = $0 }
+                            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { geometry.frames[topic.id] = $0 }
                             .id(topic.id)
                     }
                     if state.loading && state.loaded { ProgressView().frame(maxWidth: .infinity).padding(24) }
@@ -67,8 +67,12 @@ struct FeedView: View {
         }
         .scrollPosition(id: $state.anchor)
         .accessibilityIdentifier("feed-\(appearance.rawValue)")
-        // Card frames are read in the scroll view's space, whose origin is the inset-adjusted visible top.
-        .onScrollGeometryChange(for: FeedGeometry.Viewport.self) { .init(top: 0, height: $0.containerSize.height) } action: { geometry.viewport = $1 }
+        // Card frames and the visible region are both read in global space. The visible region comes from markers
+        // laid out inside the scroll view's safe area: on iOS 27 the scroll view's global frame already starts below
+        // the navigation bar while its safe-area inset still reports the bar, so frame + inset double-counted it, and
+        // the `.scrollView` space origin moved under the bar (iOS 26 used the inset-adjusted visible top).
+        .overlay(alignment: .top) { Color.clear.frame(height: 1).allowsHitTesting(false).accessibilityHidden(true).onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { geometry.visibleTop = $0 } }
+        .overlay(alignment: .bottom) { Color.clear.frame(height: 1).allowsHitTesting(false).accessibilityHidden(true).onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).maxY } action: { geometry.visibleBottom = $0 } }
         .onChange(of: appearance) { restore(proxy) }
         }
         .background(Color.fomioBackground)
@@ -174,7 +178,9 @@ struct FeedView: View {
     struct Viewport: Equatable { var top: CGFloat = 0; var height: CGFloat = 0 }
     struct Anchor: Equatable { var id: TopicID; var offset: CGFloat; var height: CGFloat }
     var frames: [TopicID: CGRect] = [:]
-    var viewport = Viewport()
+    var visibleTop: CGFloat = 0
+    var visibleBottom: CGFloat = 0
+    var viewport: Viewport { Viewport(top: visibleTop, height: max(0, visibleBottom - visibleTop)) }
     /// The first topic whose bottom is below the visible top, with its offset from that top.
     func topAnchor(in items: [DiscussionSummary]) -> Anchor? {
         let current = Set(items.map(\.id))

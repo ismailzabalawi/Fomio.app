@@ -1,6 +1,7 @@
 import SwiftUI
 
 @main struct FomioApp: App {
+    @UIApplicationDelegateAdaptor(FomioAppDelegate.self) private var delegate
     @State private var state: AppState
     init() {
         #if DEBUG
@@ -26,6 +27,10 @@ import SwiftUI
             if arguments.contains("--card-cases") { fixture.addCardCases() }
             if arguments.contains("--store-preview") { fixture.prepareStorePreview() }
             if DevelopmentPresets.requested == "loading" { fixture.feedDelay = .seconds(120) }
+            if arguments.contains("--notif-ack-fails") { fixture.notices.nextAcknowledgment = .fail }
+            if arguments.contains("--notif-ack-unknown") { fixture.notices.nextAcknowledgment = .unknown }
+            if arguments.contains("--notif-more-fails") { fixture.notices.failNextPage = true }
+            if arguments.contains("--notif-empty") { fixture.notices.rows = [] }
             #endif
             var store = DraftStore()
             #if DEBUG
@@ -52,19 +57,28 @@ struct AppShell: View {
                 TabView(selection: $app.selectedTab) {
                     ForEach(AppTab.allCases) { tab in
                         Tab(tab.title, systemImage: tab.symbol, value: tab) { TabRoot(app: app, tab: tab, state: app.tabs[tab]!) }
-                            .badge(tab == .notifications ? app.unreadCount : 0)
+                            .badge(tab == .notifications ? app.notificationBadge.map { Text($0) } : nil)
                     }
                 }.tabViewStyle(.sidebarAdaptable)
                 .modifier(ToastHost(message: app.composer == nil ? app.toastMessage : nil))
-                .sheet(item: $app.composer) { composer in
+                .sheet(item: $app.composer, onDismiss: { app.composerClosed() }) { composer in
                     Group {
                         if UIDevice.current.userInterfaceIdiom == .pad { ComposerView(state: composer).presentationSizing(.form) }
                         else { ComposerView(state: composer).presentationSizing(.page) }
-                    }.environment(app).modifier(DevelopmentDisplaySettings()).presentationDetents([.large]).presentationCompactAdaptation(.sheet).statusBarHidden(false)
+                    }
+                    .safeAreaInset(edge: .top, spacing: 0) { PendingNotificationChip() }
+                    .alert("Open the notification?", isPresented: Binding(get: { app.intentNeedsComposerDecision && app.composer != nil }, set: { if !$0 { app.keepWritingWithPendingNotification() } })) {
+                        Button("Keep Writing", role: .cancel) { app.keepWritingWithPendingNotification() }
+                        if composer.draft.submission != .submitting { Button("Save Draft and Open") { app.saveDraftAndOpenPendingNotification() } }
+                    } message: { Text("Your writing has changes. If you open the notification, the draft is saved on this \(app.device.wording.device).") }
+                    .environment(app).modifier(DevelopmentDisplaySettings()).presentationDetents([.large]).presentationCompactAdaptation(.sheet).statusBarHidden(false)
                 }
-                .sheet(isPresented: $app.authRequested, onDismiss: { app.pendingAction = nil; app.gate = .signIn }) { SignInView(app: app) }
+                .sheet(isPresented: $app.authRequested, onDismiss: { app.pendingAction = nil; app.gate = .signIn; if app.username == nil { app.pendingIntent = nil } }) { SignInView(app: app) }
+                .sheet(item: Binding(get: { app.webDestination.map(IdentifiedURL.init) }, set: { app.webDestination = $0?.url })) { WebDestinationSheet(url: $0.url).environment(app) }
                 .task {
-                    await app.restoreAccount(); await app.refreshSafety(); await app.loadTheme(); do { try app.draftStore.reconcileFiles(account: app.account) } catch { app.banner = error.localizedDescription }; await app.loadCommunities(); await app.refreshUnread()
+                    await app.restoreAccount(); await app.refreshSafety(); await app.loadTheme(); do { try app.draftStore.reconcileFiles(account: app.account) } catch { app.banner = error.localizedDescription }; await app.loadCommunities(); await app.refreshNotificationTotals()
+                    IncomingNotifications.shared.foreground = { Task { await app.foregroundRefresh(force: true) } }
+                    IncomingNotifications.shared.handler = { intent in Task { await app.receive(intent) } }
                     #if DEBUG
                     if let preset = DevelopmentPresets.requested { await DevelopmentPresets.apply(preset, to: app) }
                     #endif
@@ -77,7 +91,8 @@ struct AppShell: View {
         .tint(Color.fomioAccent)
         .foregroundStyle(Color.fomioText)
         .background(Color.fomioBackground)
-        .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await app.refreshSafety() } } }
+        .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await app.refreshSafety(); await app.foregroundRefresh() } } }
+        .onChange(of: app.isOffline) { wasOffline, offline in if wasOffline && !offline { Task { await app.foregroundRefresh(force: true) } } }
         .alert("Fomio", isPresented: Binding(get: { app.banner != nil }, set: { if !$0 { app.banner = nil } })) { Button("OK") { app.banner = nil } } message: { Text(app.banner ?? "") }
     }
 }
@@ -125,6 +140,9 @@ struct TabRoot: View {
         case .diagnostics: DiagnosticsView()
         case let .denied(id): AccessDeniedView(name: app.category(id)?.name ?? "This community")
         case .unavailable: UnavailableTargetView()
+        case let .notificationInfo(id): NotificationInfoView(id: id)
+        case .notificationSettings: NotificationSettingsView()
+        case let .notificationMismatch(name): NotificationMismatchView(intended: name)
         }
     }
 }
@@ -200,3 +218,5 @@ struct DevelopmentDisplaySettings: ViewModifier {
         #endif
     }
 }
+
+struct IdentifiedURL: Identifiable { let url: URL; var id: String { url.absoluteString } }

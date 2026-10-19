@@ -5,17 +5,20 @@ enum AppTab: String, CaseIterable, Identifiable { case home, communities, notifi
     var title: String { rawValue.capitalized }
     var symbol: String { switch self { case .home: "house"; case .communities: "square.grid.2x2"; case .notifications: "bell"; case .me: "person.crop.circle" } }
 }
-enum Route: Hashable { case community(CategoryID), discussion(TopicID, PostNumber?), thread(TopicID, PostNumber), search, profile(String), saved, drafts, credits, diagnostics, denied(CategoryID), unavailable }
+enum Route: Hashable { case community(CategoryID), discussion(TopicID, PostNumber?), thread(TopicID, PostNumber), search, profile(String), saved, drafts, credits, diagnostics, denied(CategoryID), unavailable, notificationInfo(NotificationID), notificationSettings, notificationMismatch(String) }
 /// Why a discussion opened at a specific post. Shown as a text label on that post.
 enum FocusReason: Hashable {
     case notification, search, saved, published
-    var label: String { switch self { case .notification: "From your notification"; case .search: "Search match"; case .saved: "Saved reply"; case .published: "Your reply" } }
+    /// Consolidated replies: the parent post or topic plus its new replies, never one author's exact reply.
+    case groupedReplies(Int)
+    var label: String { switch self { case .notification: "From your notification"; case .search: "Search match"; case .saved: "Saved reply"; case .published: "Your reply"; case let .groupedReplies(count): "Your post · \(count) new replies" } }
+    var fromNotification: Bool { switch self { case .notification, .groupedReplies: true; default: false } }
 }
 /// The member action that asked for sign-in; it names the action and is restored afterwards, never auto-applied.
 enum AuthGate: Equatable {
-    case signIn, reply, quote, like, save, create(String?)
+    case signIn, reply, quote, like, save, create(String?), notification
     var title: String {
-        switch self { case .signIn: "Sign in"; case .reply: "Sign in to reply"; case .quote: "Sign in to quote"; case .like: "Sign in to like posts"; case .save: "Sign in to save discussions"; case .create: "Sign in to start a discussion" }
+        switch self { case .notification: "Sign in to open this notification"; case .signIn: "Sign in"; case .reply: "Sign in to reply"; case .quote: "Sign in to quote"; case .like: "Sign in to like posts"; case .save: "Sign in to save discussions"; case .create: "Sign in to start a discussion" }
     }
     var message: String {
         switch self {
@@ -23,6 +26,7 @@ enum AuthGate: Equatable {
         case let .create(name): name.map { "You’ll come back with a new discussion in \($0) open. Nothing is posted until you tap Post." } ?? "You’ll come back and choose a community. Nothing is posted until you tap Post."
         case .like, .save: "You’ll come back to this post. Nothing is applied until you tap it again."
         case .signIn: "Reply to discussions, save them for later and get notified when someone replies to you."
+        case .notification: "Your session on the community ended. After you sign in, Fomio takes you to the notification you tapped."
         }
     }
 }
@@ -43,6 +47,10 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     var feeds: [String: FeedState] = [:]
     var discussions: [Route: DiscussionState] = [:]
     var focus: [Route: FocusReason] = [:]
+    /// Notification to acknowledge once the pushed destination has been displayed.
+    var acknowledgments: [Route: NotificationID] = [:]
+    /// Which notification opened a route, kept for status and unavailable copy after acknowledgment starts.
+    var notificationRoutes: [Route: NotificationID] = [:]
     func feed(key: String) -> FeedState { if let value = feeds[key] { return value }; let value = FeedState(); feeds[key] = value; return value }
 }
 @MainActor @Observable final class AppState {
@@ -69,7 +77,15 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     var toastMessage: String?
     var pendingNotice: PendingNotice?
     var guestNoteDismissed = false
-    var unreadCount = 0
+    let notifications: NotificationStore
+    let device: NotificationDevice
+    /// A notification tap waiting for sign-in or for the composer to be finished. It never posts anything.
+    var pendingIntent: NotificationIntent?
+    var intentNeedsComposerDecision = false
+    var duplicateTaps = 0
+    var webDestination: URL?
+    @ObservationIgnored private var recentIntents: [String: Date] = [:]
+    @ObservationIgnored private var lastForegroundRefresh: Date?
     var draftsRevision = 0
     let service: any CommunityService
     let draftStore: DraftStore
@@ -83,7 +99,12 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         self.service = service; self.fixture = fixture; self.configuration = configuration; self.draftStore = store
         self.isConfigured = fixture != nil || configuration != nil
         self.auth = configuration.map { AuthenticationService(configuration: $0) }
+        self.notifications = NotificationStore(service: service, account: .guest)
+        let isPad = UIDevice.current.userInterfaceIdiom == .pad
+        self.device = fixture != nil ? NotificationDevice(permissions: SimulatedAlertPermission(), enrollments: SimulatedAlertEnrollment(), isPad: isPad) : NotificationDevice(permissions: SystemAlertPermission(), enrollments: UnavailableAlertEnrollment(), isPad: isPad)
+        if fixture != nil { notifications.pageSize = 6 }
         if fixture != nil, !ProcessInfo.processInfo.arguments.contains("--guest") { account = .fixture; username = Self.fixtureMember; displayName = "Jonah Wells" }
+        notifications.reset(account: account); device.bind(account: account)
         do { try draftStore.reconcileFiles(account: account) } catch { banner = error.localizedDescription }
     }
     var isOffline: Bool { fixture?.offline == true || (fixture == nil && connectivity.offline) }
@@ -100,9 +121,94 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         do { siteTheme = try await service.siteTheme(); FomioTheme.current = siteTheme; themeError = nil }
         catch { themeError = error.localizedDescription }
     }
-    func refreshUnread() async {
-        guard username != nil else { unreadCount = 0; return }
-        if let page = try? await service.notifications(page: 0) { unreadCount = page.items.filter { !$0.read && !isBlocked($0.actor) }.count }
+    /// Server-scoped badge (see `NotificationTotals`). Never derived from loaded rows.
+    var notificationBadge: String? { username == nil ? nil : notifications.totals?.badgeText }
+    func refreshNotificationTotals() async { guard username != nil else { return }; await notifications.refreshTotals() }
+    /// Foreground, reconnect and manual triggers re-read server state. None of them marks anything read.
+    func foregroundRefresh(force: Bool = false) async {
+        guard username != nil, notifications.account == account else { return }
+        if !force, let last = lastForegroundRefresh, Date().timeIntervalSince(last) < 30 { return }
+        lastForegroundRefresh = Date()
+        if notifications.feed.loaded { await notifications.refresh() } else { await notifications.refreshTotals() }
+    }
+    var notificationSite: URL? { configuration?.baseURL ?? (fixture != nil ? NotificationFixture.site : nil) }
+    /// Opens a notification's permitted destination. Acknowledgment waits until the destination is displayed.
+    func open(notification item: NotificationItem, in tab: AppTab = .notifications) {
+        let destination = NotificationResolver.destination(item, site: notificationSite, username: username)
+        let route: Route
+        let focus: FocusReason?
+        switch destination {
+        case let .post(topic, number): route = .discussion(topic, number); focus = .notification
+        case let .topic(topic): route = .discussion(topic, nil); focus = nil
+        case let .groupedReplies(topic, parent, count):
+            route = parent.map { .thread(topic, $0) } ?? .discussion(topic, nil); focus = .groupedReplies(count)
+        case .website, .unsupported: navigate(.notificationInfo(item.id), in: tab); return
+        }
+        // A previous visit's cached state must not count as displaying this notification's target.
+        tabs[tab]?.discussions[route] = nil
+        if item.id.rawValue > 0 { tabs[tab]?.acknowledgments[route] = item.id; tabs[tab]?.notificationRoutes[route] = item.id }
+        tabs[tab]?.focus[route] = focus
+        navigate(route, in: tab, focus: focus)
+    }
+    /// Called by the discussion screen after it rendered a successful load of `route`.
+    func displayed(_ route: Route, state: DiscussionState) {
+        guard let tab = tabs.first(where: { $0.value.acknowledgments[route] != nil })?.key, let id = tabs[tab]?.acknowledgments[route] else { return }
+        guard state.requiredContentReady else { return }
+        if case let .discussion(_, number?) = route, state.highlighted?.number != number { return }
+        tabs[tab]?.acknowledgments[route] = nil
+        let account = self.account
+        Task { guard self.account == account, self.notifications.account == account else { return }; await self.notifications.acknowledge(id) }
+    }
+    /// Validates and routes a notification tap. Unknown sites, other accounts and duplicates are refused.
+    func receive(_ intent: NotificationIntent) async {
+        let now = Date()
+        recentIntents = recentIntents.filter { now.timeIntervalSince($0.value) < 10 }
+        if recentIntents[intent.dedupeKey] != nil { duplicateTaps += 1; return }
+        recentIntents[intent.dedupeKey] = now
+        guard let site = notificationSite, Self.sameSite(intent.site, site) else { banner = "This notification is for a different community, so Fomio won’t open it."; return }
+        selectedTab = .notifications
+        guard let username else {
+            pendingIntent = intent; tabs[.notifications]?.path = []
+            pendingAction = nil; gate = .notification; authRequested = true; return
+        }
+        guard intent.username.caseInsensitiveCompare(username) == .orderedSame else {
+            pendingIntent = nil; tabs[.notifications]?.path = [.notificationMismatch(intent.username)]; return
+        }
+        // An expired or revoked key must not reach protected content: confirm it first, keep the tap otherwise.
+        let account = self.account
+        let valid: Bool
+        do { valid = try await service.credentialIsValid(username: username) } catch { valid = true }
+        guard self.account == account, self.username == username else { return }
+        guard valid else {
+            pendingIntent = intent; tabs[.notifications]?.path = []
+            pendingAction = nil; gate = .notification; authRequested = true; return
+        }
+        if let composer, composer.hasChanges || composer.locked {
+            pendingIntent = intent; intentNeedsComposerDecision = true; return
+        }
+        composer?.close()
+        route(intent)
+    }
+    private func route(_ intent: NotificationIntent) {
+        pendingIntent = nil; intentNeedsComposerDecision = false
+        selectedTab = .notifications; tabs[.notifications]?.path = []
+        Task { await self.notifications.refresh() }
+        open(notification: notifications.item(intent.notificationID ?? .init(0)) ?? intent.item)
+    }
+    /// Composer protection: Keep Writing holds the notification; Save Draft and Open keeps the draft locally first.
+    func keepWritingWithPendingNotification() { intentNeedsComposerDecision = false }
+    func saveDraftAndOpenPendingNotification() {
+        guard let intent = pendingIntent, let composer, !composer.locked || composer.draft.submission != .submitting else { return }
+        composer.keepDraft(message: "Draft saved on this \(device.wording.device)")
+        guard self.composer == nil else { intentNeedsComposerDecision = false; return }
+        route(intent)
+    }
+    func composerClosed() {
+        if let intent = pendingIntent, username != nil, !intentNeedsComposerDecision, composer == nil { route(intent) }
+    }
+    nonisolated static func sameSite(_ lhs: URL, _ rhs: URL) -> Bool {
+        func key(_ url: URL) -> String { "\(url.scheme ?? "")://\(url.host?.lowercased() ?? ""):\(url.port ?? 443)\(url.path.hasSuffix("/") ? String(url.path.dropLast()) : url.path)" }
+        return key(lhs) == key(rhs)
     }
     /// Public category assets may use the site's relative root or an HTTPS CDN. Never attach user keys.
     func publicAssetURL(_ value: String?) -> URL? { PublicMedia.url(value, base: configuration?.baseURL) }
@@ -159,23 +265,26 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     func resume(_ draft: Draft) { composer = ComposerState(draft: draft, app: self, origin: selectedTab, resumed: true) }
     func signIn() async {
         do {
-            if fixture != nil { username = Self.fixtureMember; displayName = "Jonah Wells"; account = .fixture }
+            if let fixture { username = Self.fixtureMember; displayName = "Jonah Wells"; account = .fixture; fixture.credentialExpired = false }
             else if let auth { let member = try await auth.signIn(); username = member; account = .init(rawValue: "\(configuration!.baseURL.absoluteString):\(member)") }
             else { throw RepositoryError.configuration }
             if let composer, composer.draft.account != account { self.composer = nil; banner = "The previous account’s draft remains private to that account." }
+            if notifications.account != account { notifications.reset(account: account); device.bind(account: account) }
             try draftStore.migrateGuest(to: account)
             if composer == nil { try draftStore.reconcileFiles(account: account) }
-            let action = pendingAction, gate = self.gate; pendingAction = nil
+            let action = pendingAction, gate = self.gate, intent = pendingIntent; pendingAction = nil; pendingIntent = nil
             authRequested = false; await refreshSafety(); await loadTheme(); await loadCommunities(); await action?()
             let name = username ?? "member"
             switch gate {
             case .reply, .quote: toast("Signed in as \(name). Your reply is ready.")
             case .like: toast("Signed in as \(name). Tap again to like the post.")
             case .save: toast("Signed in as \(name). Tap again to save.")
+            case .notification: toast("Signed in as \(name).")
             default: toast("Signed in as \(name).")
             }
             self.gate = .signIn
-            await refreshUnread()
+            await refreshNotificationTotals()
+            if let intent { forgetIntent(intent); await receive(intent) }
         } catch { banner = error.localizedDescription }
     }
     func restoreAccount() async {
@@ -184,6 +293,7 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
             if try KeychainCredentialStore.read(site: configuration.baseURL.absoluteString) != nil {
                 let name = try await auth.currentUsername(); username = name; account = .init(rawValue: "\(configuration.baseURL.absoluteString):\(name)")
             }
+            if notifications.account != account { notifications.reset(account: account); device.bind(account: account) }
             if composer == nil { try draftStore.reconcileFiles(account: account) }
         } catch { banner = error.localizedDescription }
     }
@@ -191,9 +301,12 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         composer?.stopUploads()
         do { try draftStore.clear(account: account); try auth?.signOut() }
         catch { banner = "Sign-out could not finish: \(error.localizedDescription)"; return }
-        account = .guest; username = nil; safety = nil; safetyError = nil; safetyChanging = []; displayName = nil; pendingAction = nil; composer = nil; pendingNotice = nil; unreadCount = 0; guestNoteDismissed = false
+        account = .guest; username = nil; safety = nil; safetyError = nil; safetyChanging = []; displayName = nil; pendingAction = nil; composer = nil; pendingNotice = nil; guestNoteDismissed = false
+        // Private notification rows, cursors, totals, pending taps and acknowledgments belong to the old account.
+        notifications.reset(account: .guest); pendingIntent = nil; intentNeedsComposerDecision = false; recentIntents = [:]; webDestination = nil
+        Task { await device.detach() }
         tabs = Dictionary(uniqueKeysWithValues: AppTab.allCases.map { ($0, TabState()) }); draftsRevision += 1
-        fixture?.bookmarks = [:]; fixture?.readNotices = []
+        fixture?.bookmarks = [:]
         toast("Signed out")
         Task { await loadCommunities() }
     }
@@ -240,6 +353,7 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         state.focus = tab.focus[route]
         tab.discussions[route] = state; return state
     }
+    func forgetIntent(_ intent: NotificationIntent) { recentIntents[intent.dedupeKey] = nil }
     func handleLink(_ url: URL) {
         if auth?.receiveCallback(url) == true { return }
         guard let configuration, let route = LinkRouter.route(url, baseURL: configuration.baseURL) else { banner = "This link is not a supported community destination."; return }

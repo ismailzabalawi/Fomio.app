@@ -35,7 +35,23 @@ import Foundation
         case "denied": app.selectedTab = .communities; app.navigate(.denied(.init(10)), in: .communities)
         case "discussion": app.navigate(.discussion(walnut, nil))
         case "offline": app.navigate(.discussion(walnut, nil)); try? await Task.sleep(for: .milliseconds(600)); fixture.offline = true
-        case "linked": app.selectedTab = .notifications; fixture.readNotices.insert(1); app.navigate(.discussion(.init(4190), .init(14)), in: .notifications, focus: .notification)
+        case "linked": app.selectedTab = .notifications; fixture.notices.markRead(.init(5011)); app.navigate(.discussion(.init(4190), .init(14)), in: .notifications, focus: .notification)
+        case "notif-settings": app.selectedTab = .notifications; app.navigate(.notificationSettings, in: .notifications)
+        case "notif-setup-fails": (app.device.enrollments as? SimulatedAlertEnrollment)?.failNext = true; app.selectedTab = .notifications; app.navigate(.notificationSettings, in: .notifications)
+        case "notif-other-device":
+            app.selectedTab = .notifications; await app.notifications.loadIfNeeded()
+            fixture.notices.markRead(.init(5009)); await app.notifications.refresh()
+        case "notif-consolidated":
+            app.selectedTab = .notifications; await app.notifications.loadIfNeeded()
+            fixture.notices.consolidate(replacing: .init(5010), with: .init(5020), count: 4); await app.notifications.refresh()
+        case "notif-push-tap", "notif-push-expired", "notif-push-other-account", "notif-push-other-site", "notif-push-composer", "notif-push-duplicate":
+            var intent = NotificationIntent(site: NotificationFixture.site, username: AppState.fixtureMember, notificationID: .init(5011), topicID: .init(4190), postNumber: .init(14), kind: .replied, title: "Bench PSU hums after a fuse swap")
+            if preset == "notif-push-other-account" { intent.username = "mara_k" }
+            if preset == "notif-push-other-site" { intent.site = URL(string: "https://elsewhere.example")! }
+            if preset == "notif-push-expired" { fixture.credentialExpired = true }
+            if preset == "notif-push-composer" { await reply(); app.composer?.draft.body += " More detail."; app.composer?.edited() }
+            IncomingNotifications.shared.deliver(intent)
+            if preset == "notif-push-duplicate" { IncomingNotifications.shared.deliver(intent) }
         case "unavailable": app.selectedTab = .notifications; app.navigate(.unavailable, in: .notifications)
         case "search": app.tabs[.home]?.searchQuery = "walnut"; app.navigate(.search)
         case "notifications": app.selectedTab = .notifications

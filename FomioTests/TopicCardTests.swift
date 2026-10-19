@@ -68,7 +68,7 @@ import XCTest
 
     func testFeedGeometryPlacesPartlyHiddenAnchorThroughNextTopic() {
         let geometry = FeedGeometry()
-        geometry.viewport = .init(top: 0, height: 600)
+        geometry.visibleTop = 0; geometry.visibleBottom = 600
         geometry.frames = [TopicID(1): CGRect(x: 0, y: -50, width: 400, height: 200), TopicID(2): CGRect(x: 0, y: 150, width: 400, height: 150)]
         let anchor = geometry.topAnchor(in: [1, 2].map { DiscussionSummary(id: .init($0), title: "", slug: "", categoryID: .init(1), excerpt: "", author: "", replyCount: 0, activity: "") })
         XCTAssertEqual(anchor?.id, TopicID(1)); XCTAssertEqual(anchor?.offset, -50)
@@ -78,5 +78,15 @@ import XCTest
         XCTAssertEqual(placement?.0, TopicID(2))
         // Same quarter hidden: topic 1 at -75, so topic 2 at 225 = y * (600 - 150).
         XCTAssertEqual(placement?.1.y ?? 0, 225.0 / 450.0, accuracy: 0.0001)
+    }
+
+    func testFeedGeometryIgnoresTopicHiddenBehindTheBar() {
+        // Global coordinates: the visible region starts below a 116-pt bar. Topic 1 is entirely behind the bar.
+        let geometry = FeedGeometry()
+        geometry.visibleTop = 116; geometry.visibleBottom = 791
+        geometry.frames = [TopicID(1): CGRect(x: 0, y: 2, width: 400, height: 74), TopicID(2): CGRect(x: 0, y: 76, width: 400, height: 122)]
+        let anchor = geometry.topAnchor(in: [1, 2].map { DiscussionSummary(id: .init($0), title: "", slug: "", categoryID: .init(1), excerpt: "", author: "", replyCount: 0, activity: "") })
+        XCTAssertEqual(anchor?.id, TopicID(2)); XCTAssertEqual(anchor?.offset, -40)
+        XCTAssertEqual(geometry.viewport.height, 675)
     }
 }

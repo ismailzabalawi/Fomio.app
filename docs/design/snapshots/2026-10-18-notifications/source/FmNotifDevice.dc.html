@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+@keyframes ntPush{from{transform:translateX(100%);}to{transform:none;}}
+@keyframes ntPushR{from{transform:translateX(-100%);}to{transform:none;}}
+@keyframes ntSheet{from{transform:translateY(100%);}to{transform:none;}}
+@keyframes ntSpin{to{transform:rotate(360deg);}}
+@keyframes ntDrop{from{opacity:0;transform:translateY(-18px);}to{opacity:1;transform:none;}}
+@keyframes ntFade{from{opacity:0;}to{opacity:1;}}
+@keyframes ntPop{from{opacity:0;transform:scale(1.08);}to{opacity:1;transform:none;}}
+</style>
+</helmet>
+<div style="zoom:{{zoom}}; flex:none;">
+<div ref="{{rootRef}}" dir="{{dir}}" data-device="{{deviceName}}" style="position:relative; width:{{W}}; height:{{H}}; border-radius:{{frameRad}}; overflow:hidden; background:var(--bg,#FFFFFF); color:var(--ink,#1B1A1F); box-shadow:0 0 0 9px #17161A, 0 0 0 10px #3A3940, 0 30px 60px rgba(20,16,40,0.22); font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',system-ui,sans-serif; -webkit-font-smoothing:antialiased; isolation:isolate;">
+
+  <div style="position:absolute; top:0; bottom:0; inset-inline-start:{{cStart}}; inset-inline-end:0;">
+
+    <div ref="{{notifRef}}" onScroll="{{onNotifScroll}}" data-screen="notifications" style="position:absolute; inset:0; overflow-y:auto; overscroll-behavior:contain; visibility:{{notifVis}}; scrollbar-width:none;">
+      <div style="max-width:{{colMax}}; margin:0 auto; padding:{{padTop}} {{padX}} {{padBot}}; box-sizing:border-box;">
+        <h1 style="margin:0; font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif; font-size:min(calc(26px * var(--ts,1)), 42px); line-height:1.1; font-weight:800; letter-spacing:-0.02em;">Notifications</h1>
+
+        <sc-if value="{{isGuestRoot}}">
+          <div style="display:flex; flex-direction:column; align-items:flex-start; gap:10px; padding:28px 0 12px;">
+            <h2 style="margin:0; font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif; font-size:min(calc(20px * var(--ts,1)), 34px); font-weight:800; line-height:1.2;">{{guestHead}}</h2>
+            <p style="margin:0; font-size:calc(16px * var(--ts,1)); line-height:1.45; color:var(--ink2,#57555F); text-wrap:pretty;">{{guestBody}}</p>
+            <button type="button" data-role="signin" onClick="{{openAuth}}" style="margin-top:6px; min-height:44px; padding:0 20px; border:0; border-radius:999px; background:var(--acc,#5B3FD6); color:var(--accInk,#FFFFFF); font:inherit; font-size:calc(16px * var(--ts,1)); font-weight:600; cursor:pointer;">Sign in</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isSignedRoot}}" hint-placeholder-val="{{ true }}">
+          <div role="group" aria-label="Show" style="display:flex; gap:2px; margin-top:14px; padding:3px; border-radius:12px; background:var(--fill,#F3F2F6); max-width:340px;">
+            <sc-for list="{{filters}}" as="f" hint-placeholder-count="2">
+              <button type="button" data-filter="{{f.key}}" aria-pressed="{{f.pressed}}" onClick="{{f.onTap}}" style="flex:1; min-height:44px; padding:4px 10px; border:0; border-radius:9px; background:{{f.bg}}; box-shadow:{{f.sh}}; color:var(--ink,#1B1A1F); font:inherit; font-size:calc(14px * var(--ts,1)); font-weight:{{f.fw}}; cursor:pointer;">{{f.label}}</button>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{hasNote}}">
+            <div role="status" style="display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin-top:14px; padding:10px 12px 10px 14px; border-radius:16px; background:var(--fill,#F3F2F6);">
+              <i class="{{note.icon}}" aria-hidden="true" style="color:{{note.color}};"></i>
+              <span style="flex:1 1 12em; font-size:calc(15px * var(--ts,1)); line-height:1.35;">{{note.text}}</span>
+              <sc-if value="{{note.hasAction}}"><button type="button" onClick="{{note.onTap}}" style="min-height:44px; padding:0 16px; border:0; border-radius:999px; background:var(--accSoft,#EFEBFD); color:var(--acc,#5B3FD6); font:inherit; font-size:calc(15px * var(--ts,1)); font-weight:600; cursor:pointer;">{{note.action}}</button></sc-if>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{showNewPill}}">
+            <div style="position:sticky; top:{{pillTop}}; z-index:2; display:flex; justify-content:center; margin-top:10px; height:0; overflow:visible;">
+              <button type="button" data-role="new-pill" onClick="{{showNew}}" style="display:flex; align-items:center; gap:8px; min-height:44px; padding:0 16px; border:0.5px solid var(--glassEdge,rgba(0,0,0,0.08)); border-radius:999px; background:var(--acc,#5B3FD6); color:var(--accInk,#FFFFFF); font:inherit; font-size:calc(15px * var(--ts,1)); font-weight:600; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,0.18);"><i class="{{upIcon}}" aria-hidden="true"></i>1 new notification</button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{isLoading}}">
+            <div aria-label="Loading notifications" style="display:flex; flex-direction:column; margin-top:10px;">
+              <sc-for list="{{skels}}" as="k" hint-placeholder-count="4">
+                <div style="display:flex; gap:12px; padding:16px 0; border-bottom:0.5px solid var(--sep,#E2E1E7);">
+                  <div style="flex:none; width:36px; height:36px; border-radius:50%; background:var(--skel,#EEEDF2); margin-inline-start:18px;"></div>
+                  <div style="flex:1; display:flex; flex-direction:column; gap:8px;"><div style="width:{{k.w}}; height:13px; border-radius:6px; background:var(--skel,#EEEDF2);"></div><div style="width:86%; height:15px; border-radius:6px; background:var(--skel,#EEEDF2);"></div><div style="width:40%; height:11px; border-radius:6px; background:var(--skel,#EEEDF2);"></div></div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{isEmptyAll}}">
+            <div style="display:flex; flex-direction:column; gap:8px; padding:40px 0 16px;">
+              <h2 style="margin:0; font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif; font-size:min(calc(20px * var(--ts,1)), 34px); font-weight:800;">No notifications yet</h2>
+              <p style="margin:0; font-size:calc(16px * var(--ts,1)); line-height:1.45; color:var(--ink2,#57555F); text-wrap:pretty;">When someone replies to you, quotes you or mentions you, it shows up here.</p>
+            </div>
+          </sc-if>
+          <sc-if value="{{isEmptyUnread}}">
+            <div style="display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:40px 0 16px;">
+              <h2 style="margin:0; font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif; font-size:min(calc(20px * var(--ts,1)), 34px); font-weight:800;">No unread notifications</h2>
+              <p style="margin:0; font-size:calc(16px * var(--ts,1)); line-height:1.45; color:var(--ink2,#57555F);">You've seen everything. Earlier notifications are still in All.</p>
+              <button type="button" onClick="{{showAll}}" style="margin-top:4px; min-height:44px; padding:0 18px; border:0; border-radius:999px; background:var(--accSoft,#EFEBFD); color:var(--acc,#5B3FD6); font:inherit; font-size:calc(15px * var(--ts,1)); font-weight:600; cursor:pointer;">Show all</button>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{hasRows}}" hint-placeholder-val="{{ true }}">
+            <div role="list" style="display:flex; flex-direction:column; margin-top:8px;">
+              <sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+                <div role="listitem" data-nid="{{r.id}}" data-unread="{{r.unreadAttr}}" style="border-bottom:0.5px solid var(--sep,#E2E1E7);">
+                  <button type="button" onClick="{{r.onTap}}" aria-label="{{r.aria}}" style="display:flex; align-items:flex-start; gap:10px; width:100%; min-height:44px; padding:14px 0; border:0; background:transparent; color:var(--ink,#1B1A1F); font:inherit; text-align:start; cursor:pointer; border-radius:12px;" style-active="background:var(--press,#EFEEF3);">
+                    <span aria-hidden="true" style="flex:none; width:8px; height:8px; margin-top:14px; border-radius:50%; background:var(--acc,#5B3FD6); visibility:{{r.dotVis}};"></span>
+                    <span aria-hidden="true" style="flex:none; position:relative; width:{{r.lead.s}}; height:{{r.lead.s}}; border-radius:50%; background:{{r.lead.bg}}; color:{{r.lead.fg}}; display:flex; align-items:center; justify-content:center; font-size:{{r.lead.fs}}; font-weight:700;"><sc-if value="{{r.lead.isAv}}">{{r.lead.ch}}</sc-if><sc-if value="{{r.lead.isIcon}}"><i class="{{r.lead.icon}}"></i></sc-if></span>
+                    <span style="flex:1; min-width:0; display:flex; flex-direction:column; gap:3px;">
+                      <span dir="auto" style="font-size:calc(15px * var(--ts,1)); line-height:1.3; overflow-wrap:anywhere;"><span style="font-weight:{{r.aw}};">{{r.a}}</span><span style="color:{{r.bColor}};">{{r.b}}</span></span>
+                      <sc-if value="{{r.hasTitle}}"><span dir="auto" style="font-size:calc(17px * var(--ts,1)); line-height:1.3; font-weight:{{r.tw}}; overflow-wrap:anywhere; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:{{r.clamp}}; overflow:hidden;">{{r.title}}</span></sc-if>
+                      <span style="display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; font-size:calc(13px * var(--ts,1)); color:var(--ink2,#57555F); line-height:1.3;">
+                        <sc-if value="{{r.hasCat}}"><span style="display:flex; align-items:center; gap:6px; min-width:0;"><span style="flex:none; display:flex; align-items:center; justify-content:center; width:{{r.mk.box}}; height:{{r.mk.box}}; border-radius:{{r.mk.rad}}; background:{{r.mk.bg}}; color:{{r.mk.fg}}; font-size:{{r.mk.gs}}; box-shadow:{{r.mk.ring}};"><sc-if value="{{r.mk.isIcon}}"><i class="{{r.mk.icon}}"></i></sc-if><sc-if value="{{r.mk.isSq}}"><span style="width:{{r.mk.sq}}; height:{{r.mk.sq}}; border-radius:3px; background:{{r.mk.color}};"></span></sc-if></span><span dir="auto" style="font-weight:600; overflow-wrap:anywhere;">{{r.catName}}</span></span></sc-if>
+                        <sc-if value="{{r.hasNoteMeta}}"><span style="display:flex; align-items:center; gap:5px;"><i class="{{r.noteIcon}}" aria-hidden="true"></i>{{r.noteMeta}}</span></sc-if>
+                        <span>{{r.ago}}</span>
+                        <sc-if value="{{r.unread}}"><span style="font-weight:700; color:var(--acc,#5B3FD6);">Unread</span></sc-if>
+                      </span>
+                    </span>
+                  </button>
+                  <sc-if value="{{r.hasAck}}">
+                    <div role="status" style="display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; padding:0 0 12px; padding-inline-start:{{r.ackIndent}}; font-size:calc(13px * var(--ts,1)); color:{{r.ackColor}};">
+                      <i class="{{r.ackIcon}}" aria-hidden="true" style="animation:{{r.ackAnim}};"></i><span style="flex:1 1 10em;">{{r.ackText}}</span>
+                      <sc-if value="{{r.hasAckBtn}}"><button type="button" data-role="row-ack-retry" onClick="{{r.ackTap}}" style="min-height:44px; padding:0 14px; border:0; border-radius:999px; background:var(--accSoft,#EFEBFD); color:var(--acc,#5B3FD6); font:inherit; font-size:calc(14px * var(--ts,1)); font-weight:600; cursor:pointer;">{{r.ackBtn}}</button></sc-if>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:8px; padding:18px 0 8px; text-align:center;">
+              <sc-if value="{{footLoading}}"><div role="status" style="display:flex; gap:10px; align-items:center; min-height:44px; color:var(--ink2,#57555F); font-size:calc(15px * var(--ts,1));"><i class="fa-solid fa-circle-notch" style="animation:{{spin}};"></i>Loading older notifications</div></sc-if>
+              <sc-if value="{{footFailed}}"><div role="alert" style="font-size:calc(15px * var(--ts,1));">Couldn't load older notifications.</div><button type="button" data-role="retry-more" onClick="{{loadMore}}" style="min-height:44px; padding:0 20px; border:0; border-radius:999px; background:var(--accSoft,#EFEBFD); color:var(--acc,#5B3FD6); font:inherit; font-size:calc(15px * var(--ts,1)); font-weight:600; cursor:pointer;">Try again</button></sc-if>
+              <sc-if value="{{footGap}}"><div data-role="filtered-gap" style="font-size:calc(15px * var(--ts,1)); line-height:1.4; color:var(--ink2,#57555F); max-width:30em;">Nothing unread in this batch. Older notifications may still be unread.</div><button type="button" data-role="continue" onClick="{{loadMore}}" style="min-height:44px; padding:0 20px; border:0; border-radius:999px; background:var(--accSoft,#EFEBFD); color:var(--acc,#5B3FD6); font:inherit; font-size:calc(15px * var(--ts,1)); font-weight:600; cursor:pointer;">Keep looking</button></sc-if>
+              <sc-if value="{{footMore}}"><button type="button" data-role="show-older" onClick="{{loadMore}}" style="min-height:44px; padding:0 18px; border:0; border-radius:999px; background:transparent; color:var(--acc,#5B3FD6); font:inherit; font-size:calc(15px * var(--ts,1)); font-weight:600; cursor:pointer;">Show older</button></sc-if>
+              <sc-if value="{{footEnd}}"><div style="font-size:calc(13px * var(--ts,1)); color:var(--ink3,#6B6973); padding:10px 0;">That's everything</div></sc-if>
+            </div>
+          </sc-if>
+        </sc-if>
+      </div>
+    </div>
+
+    <sc-if value="{{isHomeRoot}}">
+      <div style="position:absolute; inset:0; overflow-y:auto; scrollbar-width:none;"><div style="max-width:{{colMax}}; margin:0 auto; padding:{{padTop}} {{padX}} {{padBot}}; box-sizing:border-box;">
+        <h1 style="margin:0; font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif; font-size:min(calc(26px * var(--ts,1)), 42px); line-height:1.1; font-weight:800; letter-spacing:-0.02em;">Home</h1>
+        <div style="margin:4px 0 8px; font-size:calc(15px * var(--ts,1)); color:var(--ink2,#57555F);">Latest activity</div>
+        <sc-for list="{{homeRows}}" as="h" hint-placeholder-count="4"><div style="display:flex; flex-direction:column; gap:4px; padding:14px 0; border-bottom:0.5px solid var(--sep,#E2E1E7);"><span dir="auto" style="font-size:calc(13px * var(--ts,1)); font-weight:600; color:var(--ink2,#57555F);">{{h.cat}}</span><span dir="auto" style="font-size:calc(17px * var(--ts,1)); font-weight:700; line-height:1.3;">{{h.title}}</span></div></sc-for>
+      </div></div>
+    </sc-if>
+    <sc-if value="{{isCommRoot}}">
+      <div style="position:absolute; inset:0; overflow-y:auto; scrollbar-width:none;"><div style="max-width:{{colMax}}; margin:0 auto; padding:{{padTop}} {{padX}} {{padBot}}; box-sizing:border-box;">
+        <h1 style="margin:0 0 8px; font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif; font-size:min(calc(26px * var(--ts,1)), 42px); line-height:1.1; font-weight:800; letter-spacing:-0.02em;">Communities</h1>
+        <sc-for list="{{commRows}}" as="c" hint-placeholder-count="3"><div style="display:flex; align-items:center; gap:12px; min-height:52px; border-bottom:0.5px solid var(--sep,#E2E1E7);"><span style="flex:none; width:30px; height:30px; border-radius:9px; background:{{c.bg}}; color:{{c.fg}}; display:flex; align-items:center; justify-content:center; font-size:15px;"><i class="{{c.icon}}"></i></span><span style="font-size:calc(17px * var(--ts,1)); font-weight:600;">{{c.name}}</span></div></sc-for>
+      </div></div>
+    </sc-if>
+    <sc-if value="{{isMeRoot}}">
+      <div style="position:absolute; inset:0; overflow-y:auto; scrollbar-width:none;"><div style="max-width:{{colMax}}; margin:0 auto; padding:{{padTop}} {{padX}} {{padBot}}; box-sizing:border-box; display:flex; flex-direction:column; gap:16px;">
+        <h1 style="margin:0; font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif; font-size:min(calc(26px * var(--ts,1)), 42px); line-height:1.1; font-weight:800; letter-spacing:-0.02em;">Me</h1>
+        <sc-if value="{{meSigned}}">
+          <div style="display:flex; align-items:center; gap:12px;"><span style="width:52px; height:52px; border-radius:50%; background:{{meAv}}; color:#FFFFFF; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:20px;">{{meCh}}</span><div><div style="font-size:calc(17px * var(--ts,1)); font-weight:700;">{{meName}}</div><div style="font-size:calc(13px * var(--ts,1)); color:var(--ink2,#57555F);">{{meHandle}}</div></div></div>
+        </sc-if>
+        <div style="display:flex; flex-direction:column; border-radius:16px; background:var(--fill,#F3F2F6); overflow:hidden;">
+          <button type="button" data-role="me-settings" onClick="{{openSettings}}" style="display:flex; align-items:center; gap:12px; min-height:52px; padding:0 16px; border:0; background:transparent; color:var(--ink,#1B1A1F); font:inherit; font-size:calc(17px * var(--ts,1)); text-align:start; cursor:pointer;"><i class="fa-regular fa-bell" aria-hidden="true" style="width:20px;"></i><span style="flex:1;">Notification settings</span><i class="{{fwdIcon}}" aria-hidden="true" style="font-size:12px; color:var(--ink3,#6B6973);"></i></button>
+          <sc-if value="{{meSigned}}"><div style="height:0.5px; background:var(--sep,#E2E1E7); margin-inline-start:48px;"></div><button type="button" data-role="signout" onClick="{{logout}}" style="display:flex; align-items:center; gap:12px; min-height:52px; padding:0 16px; border:0; background:transparent; color:var(--err,#C62828); font:inherit; font-size:calc(17px * var(--ts,1)); text-align:start; cursor:pointer;"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true" style="width:20px;"></i><span>Sign out</span></button></sc-if>
+          <sc-if value="{{meGuest}}"><div style="height:0.5px; background:var(--sep,#E2E1E7); margin-inline-start:48px;"></div><button type="button" onClick="{{openAuth}}" style="display:flex; align-items:center; gap:12px; min-height:52px; padding:0 16px; border:0; background:transparent; color:var(--acc,#5B3FD6); font:inherit; font-size:calc(17px * var(--ts,1)); text-align:start; cursor:pointer;"><i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true" style="width:20px;"></i><span>Sign in</span></button></sc-if>
+        </div>
+      </div></div>
+    </sc-if>
+
+    <sc-for list="{{overlays}}" as="o" hint-placeholder-count="0">
+      <div data-screen="{{o.kind}}" style="position:absolute; inset:0; z-index:5; background:var(--bg,#FFFFFF); animation:{{o.anim}}; box-shadow:0 0 30px rgba(0,0,0,0.08);">
+        <div style="position:absolute; inset:0; overflow-y:auto; scrollbar-width:none;">
+          <div style="max-width:{{colMax}}; margin:0 auto; padding:{{padTopO}} {{padX}} {{o.padBot}}; box-sizing:border-box; display:flex; flex-direction:column; gap:12px;">
+
+            <sc-if value="{{o.isTopic}}">
+              <sc-if value="{{o.showHead}}"><button type="button" onClick="{{o.noop}}" aria-label="{{o.catAria}}" style="align-self:flex-start; display:flex; align-items:center; gap:8px; min-height:44px; margin:-6px -8px; padding:0 10px 0 8px; border:0; border-radius:12px; background:transparent; color:var(--ink,#1B1A1F); font:inherit; cursor:default; text-align:start; max-width:100%;">
+                <span aria-hidden="true" style="flex:none; display:flex; align-items:center; justify-content:center; width:{{o.mk.box}}; height:{{o.mk.box}}; border-radius:{{o.mk.rad}}; background:{{o.mk.bg}}; color:{{o.mk.fg}}; font-size:{{o.mk.gs}}; box-shadow:{{o.mk.ring}};"><sc-if value="{{o.mk.isIcon}}"><i class="{{o.mk.icon}}"></i></sc-if><sc-if value="{{o.mk.isSq}}"><span style="width:{{o.mk.sq}}; height:{{o.mk.sq}}; border-radius:3px; background:{{o.mk.color}};"></span></sc-if></span>
+                <span dir="auto" style="font-size:calc(14px * var(--ts,1)); font-weight:600; overflow-wrap:anywhere;">{{o.catName}}</span>
+              </button>
+              <h1 dir="auto" style="margin:0; font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif; font-size:min(calc(24px * var(--ts,1)), 40px); line-height:1.15; font-weight:800; letter-spacing:-0.015em; text-wrap:pretty; overflow-wrap:anywhere;">{{o.title}}</h1></sc-if>
+              <sc-if value="{{o.isLoadingT}}">
+                <div aria-label="Loading" style="display:flex; flex-direction:column; gap:10px; padding-top:8px;"><div style="width:40%; height:13px; border-radius:6px; background:var(--skel,#EEEDF2);"></div><div style="width:94%; height:15px; border-radius:6px; background:var(--skel,#EEEDF2);"></div><div style="width:80%; height:15px; border-radius:6px; background:var(--skel,#EEEDF2);"></div><div style="width:60%; height:15px; border-radius:6px; background:var(--skel,#EEEDF2);"></div></div>
+              </sc-if>
+              <sc-if value="{{o.isShown}}">
+                <sc-if value="{{o.hasBranchHead}}"><div style="display:flex; align-items:center; gap:8px; padding-top:4px; font-size:calc(15px * var(--ts,1)); font-weight:700;"><i class="fa-regular fa-comments" aria-hidden="true" style="color:var(--acc,#5B3FD6);"></i><span>{{o.branchHead}}</span></div></sc-if>
+                <sc-for list="{{o.posts}}" as="p" hint-placeholder-count="0">
+                  <article data-post="{{p.num}}" data-highlight="{{p.hlAttr}}" style="display:flex; flex-direction:column; gap:8px; padding:{{p.pad}}; border-radius:18px; background:{{p.bg}}; box-shadow:{{p.ring}};">
+                    <sc-if value="{{p.hasTag}}"><div style="display:flex; align-items:center; gap:6px; font-size:calc(13px * var(--ts,1)); font-weight:700; color:{{p.tagColor}};"><i class="{{p.tagIcon}}" aria-hidden="true"></i><span>{{p.tag}}</span></div></sc-if>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                      <span aria-hidden="true" style="flex:none; width:32px; height:32px; border-radius:50%; background:{{p.av}}; color:#FFFFFF; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;">{{p.ch}}</span>
+                      <div style="min-width:0;"><div dir="auto" style="font-size:calc(15px * var(--ts,1)); font-weight:600;">{{p.name}}</div><div style="font-size:calc(13px * var(--ts,1)); color:var(--ink2,#57555F);">{{p.meta}}</div></div>
+                    </div>
+                    <sc-if value="{{p.hasQuote}}"><blockquote dir="auto" style="margin:0; padding:8px 12px; border-inline-start:3px solid var(--line,#CFCED6); border-radius:6px; background:var(--fill,#F3F2F6); font-size:calc(15px * var(--ts,1)); line-height:1.45; color:var(--ink2,#57555F);">{{p.q}}</blockquote></sc-if>
+                    <p dir="auto" style="margin:0; font-size:{{p.fs}}; line-height:1.5; color:{{p.color}}; text-wrap:pretty; overflow-wrap:anywhere;">{{p.x}}</p>
+                  </article>
+                </sc-for>
+                <sc-if value="{{o.hasMoreBelow}}"><div style="font-size:calc(13px * var(--ts,1)); color:var(--ink3,#6B6973); padding:4px 0;">{{o.moreBelow}}</div></sc-if>
+              </sc-if>
+              <sc-if value="{{o.isUnavailT}}">
+                <div role="alert" style="display:flex; flex-direction:column; align-items:flex-start; gap:10px; padding-top:18px;">
+                  <h2 style="margin:0; font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif; font-size:min(calc(20px * var(--ts,1)), 34px); font-weight:800;">{{o.uHead}}</h2>
+                  <p style="margin:0; font-size:calc(16px * var(--ts,1)); line-height:1.45; color:var(--ink2,#57555F); text-wrap:pretty;">{{o.uBody}}</p>
+                  <div style="display:flex; flex-wrap:wrap; gap:10px; padding-top:4px;">
+                    <button type="button" data-role="unavail-back" onClick="{{o.back}}" style="min-height:44px; padding:0 18px; border:0; border-radius:999px; background:var(--acc,#5B3FD6); color:var(--accInk,#FFFFFF); font:inherit; font-size:calc(15px * var(--ts,1)); font-weight:600; cursor:pointer;">Back to Notifications</button>
+                    <button type="button" data-role="unavail-retry" onClick="{{o.retry}}" style="min-height:44px; padding:0 18px; border:0; border-radius:999px; background:var(--accSoft,#EFEBFD); color:var(--acc,#5B3FD6); font:inherit; font-size:calc(15px * var(--ts,1)); font-weight:600; cursor:pointer;">Try again</button>
+                  </div>
+                </div>
+              </sc-if>
+            </sc-if>
+
+            <sc-if value="{{o.isUnsup}}">
+              <div style="display:flex; flex-direction:column; align-items:flex-start; gap:10px; padding-top:20px;">
+                <h1 style="margin:0; font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif; font-size:min(calc(24px * var(--ts,1)), 40px); line-height:1.15; font-weight:800;">{{o.uHead}}</h1>
+                <p style="margin:0; font-size:calc(16px * var(--ts,1)); line-height:1.45; color:var(--ink2,#57555F); text-wrap:pretty;">{{o.uBody}}</p>
+                <sc-if value="{{o.hasWeb}}"><div style="display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:12px; background:var(--fill,#F3F2F6); font-size:calc(14px * var(--ts,1)); color:var(--ink2,#57555F); max-width:100%;"><i class="fa-solid fa-lock" aria-hidden="true"></i><span dir="ltr" style="overflow-wrap:anywhere;">{{o.webHost}}</span></div></sc-if>
+                <div style="display:flex; flex-wrap:wrap; gap:10px; padding-top:4px;">
+                  <sc-if value="{{o.hasWeb}}"><button type="button" data-role="open-web" onClick="{{o.openWeb}}" style="min-height:44px; padding:0 18px; border:0; border-radius:999px; background:var(--acc,#5B3FD6); color:var(--accInk,#FFFFFF); font:inherit; font-size:calc(15px * var(--ts,1)); font-weight:600; cursor:pointer;">Open website</button></sc-if>
+                  <button type="button" onClick="{{o.back}}" style="min-height:44px; padding:0 18px; border:0; border-radius:999px; background:var(--accSoft,#EFEBFD); color:var(--acc,#5B3FD6); font:inherit; font-size:calc(15px * var(--ts,1)); font-weight:600; cursor:pointer;">Back to Notifications</button>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{o.isSettings}}">
+              <h1 style="margin:0; font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif; font-size:min(calc(26px * var(--ts,1)), 42px); line-height:1.1; font-weight:800; letter-spacing:-0.02em;">Notification settings</h1>
+              <div style="font-size:calc(13px * var(--ts,1)); font-weight:600; color:var(--ink2,#57555F); padding:10px 4px 0;">{{deviceHeading}}</div>
+              <div data-role="device-status" style="display:flex; flex-direction:column; gap:10px; padding:16px; border-radius:18px; background:var(--fill,#F3F2F6);">
+                <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                  <span style="flex:1 1 6em; font-size:calc(17px * var(--ts,1)); font-weight:600;">Alerts</span>
+                  <span style="display:flex; align-items:center; gap:7px; font-size:calc(15px * var(--ts,1)); font-weight:600; color:{{st.color}};"><i class="{{st.icon}}" aria-hidden="true" style="animation:{{st.anim}};"></i>{{st.label}}</span>
+                </div>
+                <p style="margin:0; font-size:calc(15px * var(--ts,1)); line-height:1.45; color:var(--ink2,#57555F); text-wrap:pretty;">{{st.desc}}</p>
+                <sc-if value="{{st.hasActions}}"><div style="display:flex; flex-wrap:wrap; gap:10px;"><sc-for list="{{st.actions}}" as="a"><button type="button" data-role="{{a.role}}" onClick="{{a.onTap}}" style="min-height:44px; padding:0 18px; border:0; border-radius:999px; background:{{a.bg}}; color:{{a.fg}}; font:inherit; font-size:calc(15px * var(--ts,1)); font-weight:600; cursor:pointer;">{{a.label}}</button></sc-for></div></sc-if>
+              </div>
+              <div style="font-size:calc(13px * var(--ts,1)); font-weight:600; color:var(--ink2,#57555F); padding:14px 4px 0;">Fomio Community</div>
+              <div style="display:flex; flex-direction:column; gap:10px; padding:16px; border-radius:18px; background:var(--fill,#F3F2F6);">
+                <p style="margin:0; font-size:calc(15px * var(--ts,1)); line-height:1.45; color:var(--ink2,#57555F); text-wrap:pretty;">Which activity notifies you, email notifications and quiet hours are set on the community's website. They apply on every device.</p>
+                <button type="button" data-role="web-prefs" onClick="{{o.openPrefs}}" style="align-self:flex-start; display:flex; align-items:center; gap:8px; min-height:44px; padding:0 18px; border:0; border-radius:999px; background:var(--accSoft,#EFEBFD); color:var(--acc,#5B3FD6); font:inherit; font-size:calc(15px * var(--ts,1)); font-weight:600; cursor:pointer;">Open preferences on website<i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" style="font-size:0.8em;"></i></button>
+              </div>
+              <p style="margin:6px 4px 0; font-size:calc(13px * var(--ts,1)); line-height:1.45; color:var(--ink2,#57555F); text-wrap:pretty;">Alerts can be delayed, grouped or held by Focus, Do Not Disturb and your community settings. You can still check activity in your inbox when alerts are off.</p>
+            </sc-if>
+
+            <sc-if value="{{o.isSignin}}">
+              <div style="display:flex; flex-direction:column; align-items:flex-start; gap:10px; padding-top:20px;">
+                <h1 style="margin:0; font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif; font-size:min(calc(24px * var(--ts,1)), 40px); line-height:1.15; font-weight:800;">Sign in to open this notification</h1>
+                <p style="margin:0; font-size:calc(16px * var(--ts,1)); line-height:1.45; color:var(--ink2,#57555F); text-wrap:pretty;">Your session on Fomio Community ended. After you sign in, Fomio takes you to the notification you tapped.</p>
+                <div style="display:flex; flex-wrap:wrap; gap:10px; padding-top:4px;">
+                  <button type="button" data-role="signin-intent" onClick="{{openAuth}}" style="min-height:44px; padding:0 20px; border:0; border-radius:999px; background:var(--acc,#5B3FD6); color:var(--accInk,#FFFFFF); font:inherit; font-size:calc(15px * var(--ts,1)); font-weight:600; cursor:pointer;">Sign in</button>
+                  <button type="button" data-role="signin-cancel" onClick="{{o.back}}" style="min-height:44px; padding:0 18px; border:0; border-radius:999px; background:var(--accSoft,#EFEBFD); color:var(--acc,#5B3FD6); font:inherit; font-size:calc(15px * var(--ts,1)); font-weight:600; cursor:pointer;">Cancel</button>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{o.isMismatch}}">
+              <div role="alert" style="display:flex; flex-direction:column; align-items:flex-start; gap:10px; padding-top:20px;">
+                <h1 style="margin:0; font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif; font-size:min(calc(24px * var(--ts,1)), 40px); line-height:1.15; font-weight:800;">This notification is for another account</h1>
+                <p style="margin:0; font-size:calc(16px * var(--ts,1)); line-height:1.45; color:var(--ink2,#57555F); text-wrap:pretty;">It was sent to @sam. You're signed in as @ama, so Fomio won't open it here.</p>
+                <div style="display:flex; flex-wrap:wrap; gap:10px; padding-top:4px;">
+                  <button type="button" data-role="switch-account" onClick="{{openAuth}}" style="min-height:44px; padding:0 18px; border:0; border-radius:999px; background:var(--acc,#5B3FD6); color:var(--accInk,#FFFFFF); font:inherit; font-size:calc(15px * var(--ts,1)); font-weight:600; cursor:pointer;">Switch account</button>
+                  <button type="button" onClick="{{o.back}}" style="min-height:44px; padding:0 18px; border:0; border-radius:999px; background:var(--accSoft,#EFEBFD); color:var(--acc,#5B3FD6); font:inherit; font-size:calc(15px * var(--ts,1)); font-weight:600; cursor:pointer;">Go to Notifications</button>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{o.isSearch}}">
+              <h1 style="margin:0; font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif; font-size:min(calc(26px * var(--ts,1)), 42px); font-weight:800;">Search</h1>
+              <label style="display:flex; align-items:center; gap:10px; min-height:46px; padding:0 14px; border-radius:14px; background:var(--fill,#F3F2F6);"><i class="fa-solid fa-magnifying-glass" style="color:var(--ink3,#6B6973);"></i><input placeholder="Topics, communities, people" style="flex:1; min-width:0; border:0; background:transparent; font:inherit; font-size:calc(17px * var(--ts,1)); color:var(--ink,#1B1A1F); outline:none;"></label>
+            </sc-if>
+          </div>
+        </div>
+
+        <div style="position:absolute; left:0; right:0; top:0; height:{{navH}}; pointer-events:none; background:linear-gradient(var(--bg,#FFFFFF) 55%, transparent);"></div>
+        <div style="position:absolute; top:{{navTop}}; inset-inline-start:{{padXo}}; inset-inline-end:{{padXo}}; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          <button type="button" data-role="back" onClick="{{o.back}}" aria-label="{{o.backAria}}" style="display:flex; align-items:center; gap:6px; min-height:44px; min-width:44px; max-width:70%; padding:0 14px 0 12px; border:0.5px solid var(--glassEdge,rgba(0,0,0,0.08)); border-radius:999px; background:var(--glass,rgba(255,255,255,0.7)); backdrop-filter:blur(18px) saturate(1.6); -webkit-backdrop-filter:blur(18px) saturate(1.6); box-shadow:var(--glassShadow,none); color:var(--ink,#1B1A1F); font:inherit; font-size:15px; font-weight:600; cursor:pointer;"><i class="{{backIcon}}" style="font-size:14px;"></i><span style="white-space:nowrap;">{{o.backLabel}}</span></button>
+        </div>
+
+        <sc-if value="{{o.isTopic}}">
+          <div style="position:absolute; inset-inline-start:{{padXo}}; inset-inline-end:{{padXo}}; bottom:{{barBottom}}; display:flex; flex-direction:column; align-items:center; gap:10px;">
+            <sc-if value="{{o.hasAck}}">
+              <div role="status" data-role="ack-chip" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:6px 10px; max-width:100%; padding:6px 6px 6px 14px; box-sizing:border-box; border-radius:22px; border:0.5px solid var(--glassEdge,rgba(0,0,0,0.08)); background:var(--menu,rgba(250,250,252,0.96)); box-shadow:var(--menuShadow,0 12px 40px rgba(0,0,0,0.18)); font-size:calc(14px * var(--ts,1)); color:var(--ink,#1B1A1F);">
+                <i class="{{o.ackIcon}}" aria-hidden="true" style="color:{{o.ackColor}}; animation:{{o.ackAnim}};"></i><span style="padding:8px 0;">{{o.ackText}}</span>
+                <sc-if value="{{o.hasAckBtn}}"><button type="button" data-role="ack-retry" onClick="{{o.ackTap}}" style="min-height:40px; padding:0 14px; border:0; border-radius:999px; background:var(--accSoft,#EFEBFD); color:var(--acc,#5B3FD6); font:inherit; font-size:calc(14px * var(--ts,1)); font-weight:600; cursor:pointer;">{{o.ackBtn}}</button></sc-if>
+              </div>
+            </sc-if>
+            <div style="display:flex; align-items:center; gap:4px; width:100%; max-width:560px; padding:6px; box-sizing:border-box; border:0.5px solid var(--glassEdge,rgba(0,0,0,0.08)); border-radius:999px; background:var(--glass,rgba(255,255,255,0.7)); backdrop-filter:blur(18px) saturate(1.6); -webkit-backdrop-filter:blur(18px) saturate(1.6); box-shadow:var(--glassShadow,none);">
+              <button type="button" aria-label="Share" style="flex:none; width:44px; height:44px; border:0; border-radius:50%; background:transparent; color:var(--ink,#1B1A1F); font-size:17px; cursor:pointer;"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>
+              <button type="button" data-role="reply" onClick="{{o.onReply}}" disabled="{{o.replyOff}}" style="flex:1; min-height:44px; border:0; border-radius:999px; background:{{o.replyBg}}; color:{{o.replyFg}}; font:inherit; font-size:15px; font-weight:600; cursor:pointer;">{{o.replyLabel}}</button>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+
+    <sc-if value="{{showRootBar}}">
+      <div style="position:absolute; left:0; right:0; top:0; height:{{navH}}; z-index:3; pointer-events:none; background:linear-gradient(var(--bg,#FFFFFF) 50%, transparent);"></div>
+      <div style="position:absolute; z-index:4; top:{{navTop}}; inset-inline-end:{{padXo}}; display:flex; gap:8px;">
+        <sc-if value="{{showSearchBtn}}"><button type="button" onClick="{{openSearch}}" aria-label="Search" style="width:44px; height:44px; border:0.5px solid var(--glassEdge,rgba(0,0,0,0.08)); border-radius:50%; background:var(--glass,rgba(255,255,255,0.7)); backdrop-filter:blur(18px) saturate(1.6); -webkit-backdrop-filter:blur(18px) saturate(1.6); box-shadow:var(--glassShadow,none); color:var(--ink,#1B1A1F); font-size:16px; cursor:pointer;"><i class="fa-solid fa-magnifying-glass"></i></button></sc-if>
+        <sc-if value="{{showGear}}"><button type="button" data-role="settings" onClick="{{openSettings}}" aria-label="Notification settings" style="width:44px; height:44px; border:0.5px solid var(--glassEdge,rgba(0,0,0,0.08)); border-radius:50%; background:var(--glass,rgba(255,255,255,0.7)); backdrop-filter:blur(18px) saturate(1.6); -webkit-backdrop-filter:blur(18px) saturate(1.6); box-shadow:var(--glassShadow,none); color:var(--ink,#1B1A1F); font-size:17px; cursor:pointer;"><i class="fa-solid fa-gear"></i></button></sc-if>
+      </div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{isPad}}">
+    <nav aria-label="Sidebar" style="position:absolute; z-index:10; top:0; bottom:0; inset-inline-start:0; width:{{sideW}}; padding:{{sideTop}} 12px 16px; box-sizing:border-box; display:flex; flex-direction:column; gap:4px; background:var(--side,#F7F7F9); border-inline-end:0.5px solid var(--sep,#E2E1E7);">
+      <button type="button" onClick="{{openSearch}}" style="display:flex; align-items:center; gap:10px; min-height:44px; margin-bottom:8px; padding:0 12px; border:0; border-radius:12px; background:var(--fill,#F3F2F6); color:var(--ink2,#57555F); font:inherit; font-size:calc(15px * var(--ts,1)); text-align:start; cursor:pointer;"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>Search</button>
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+        <button type="button" onClick="{{t.onTap}}" aria-current="{{t.cur}}" aria-label="{{t.aria}}" style="display:flex; align-items:center; gap:12px; min-height:44px; padding:0 12px; border:0; border-radius:12px; background:{{t.bg}}; color:{{t.fg}}; font:inherit; font-size:calc(16px * var(--ts,1)); font-weight:600; text-align:start; cursor:pointer;"><i class="{{t.icon}}" aria-hidden="true" style="width:22px; font-size:17px;"></i><span style="flex:1; min-width:0; overflow-wrap:anywhere;">{{t.label}}</span><sc-if value="{{t.hasBadge}}"><span aria-hidden="true" style="min-width:22px; height:22px; padding:0 7px; box-sizing:border-box; border-radius:11px; background:var(--badge,#C62828); color:#FFFFFF; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center;">{{t.badge}}</span></sc-if></button>
+      </sc-for>
+    </nav>
+  </sc-if>
+  <sc-if value="{{showTabs}}">
+    <nav aria-label="Tabs" style="position:absolute; z-index:10; left:{{tabSide}}; right:{{tabSide}}; bottom:24px; min-height:{{tabH}}; display:flex; padding:5px; gap:2px; box-sizing:border-box; border:0.5px solid var(--glassEdge,rgba(0,0,0,0.08)); border-radius:999px; background:var(--glass,rgba(255,255,255,0.7)); backdrop-filter:blur(18px) saturate(1.6); -webkit-backdrop-filter:blur(18px) saturate(1.6); box-shadow:var(--glassShadow,none);">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+        <button type="button" data-tab="{{t.key}}" onClick="{{t.onTap}}" aria-current="{{t.cur}}" aria-label="{{t.aria}}" style="flex:1 1 auto; min-width:44px; min-height:44px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; text-align:center; border:0; border-radius:999px; background:{{t.bg}}; color:{{t.fg}}; font:inherit; font-size:{{tabFs}}; font-weight:600; cursor:pointer; padding:3px 6px;">
+          <span style="position:relative; display:flex;"><i class="{{t.icon}}" aria-hidden="true" style="font-size:{{tabIcon}};"></i><sc-if value="{{t.hasBadge}}"><span data-role="tab-badge" aria-hidden="true" style="position:absolute; top:-6px; inset-inline-start:11px; min-width:18px; height:18px; padding:0 5px; box-sizing:border-box; border-radius:9px; background:var(--badge,#C62828); color:#FFFFFF; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center;">{{t.badge}}</span></sc-if></span>
+          <span aria-hidden="true" data-role="tab-label" style="white-space:normal; overflow-wrap:normal; word-break:keep-all; line-height:1.1;">{{t.label}}</span>
+        </button>
+      </sc-for>
+    </nav>
+  </sc-if>
+
+  <div dir="ltr" style="position:absolute; left:0; right:0; top:0; height:{{sbH}}; z-index:60; display:flex; align-items:center; justify-content:space-between; padding:0 {{sbPad}}; box-sizing:border-box; font-size:15px; font-weight:600; color:{{sbColor}}; pointer-events:none;">
+    <span>9:41</span><span style="display:flex; gap:6px; font-size:13px;"><i class="{{netIcon}}"></i><i class="fa-solid fa-battery-full"></i></span>
+  </div>
+
+  <sc-if value="{{hasToast}}">
+    <div role="status" style="position:absolute; z-index:45; left:16px; right:16px; bottom:{{toastBottom}}; display:flex; justify-content:center; pointer-events:none;">
+      <div style="max-width:420px; padding:12px 18px; border-radius:18px; background:var(--toast,#1B1A1F); color:var(--toastInk,#FFFFFF); font-size:calc(14px * var(--ts,1)); line-height:1.35; text-align:center; animation:{{fadeAnim}};">{{toast}}</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasComposer}}">
+    <div style="position:absolute; inset:0; z-index:30; background:var(--dim,rgba(0,0,0,0.28));"></div>
+    <div role="dialog" aria-label="Reply" data-role="composer" style="position:absolute; z-index:31; left:0; right:0; bottom:0; top:{{sheetTop}}; max-width:640px; margin:0 auto; border-radius:28px 28px 0 0; background:var(--sheet,#FFFFFF); padding:10px 18px 24px; box-sizing:border-box; display:flex; flex-direction:column; gap:12px; animation:{{sheetAnim}};">
+      <div style="align-self:center; width:36px; height:5px; border-radius:3px; background:var(--line,#CFCED6);"></div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <button type="button" data-role="composer-cancel" onClick="{{closeComposer}}" style="min-height:44px; padding:0 14px; border:0; border-radius:999px; background:var(--fill,#F3F2F6); color:var(--ink,#1B1A1F); font:inherit; font-size:15px; cursor:pointer;">Cancel</button>
+        <div style="font-size:17px; font-weight:700;">Reply</div>
+        <button type="button" disabled="{{ true }}" aria-label="Post, unavailable in this prototype" style="min-height:44px; padding:0 16px; border:0; border-radius:999px; background:var(--fill,#F3F2F6); color:var(--ink3,#6B6973); font:inherit; font-size:15px; font-weight:600;">Post</button>
+      </div>
+      <sc-if value="{{composerPending}}">
+        <button type="button" data-role="pending-nav" onClick="{{askLeave}}" style="display:flex; align-items:center; gap:10px; min-height:48px; padding:6px 14px; border:0; border-radius:14px; background:var(--accSoft,#EFEBFD); color:var(--ink,#1B1A1F); font:inherit; font-size:calc(15px * var(--ts,1)); text-align:start; cursor:pointer;"><i class="fa-regular fa-bell" aria-hidden="true" style="color:var(--acc,#5B3FD6);"></i><span style="flex:1;">Notification waiting. Open it when you're ready.</span><span style="font-weight:600; color:var(--acc,#5B3FD6);">Open</span></button>
+      </sc-if>
+      <div style="display:flex; align-items:center; gap:10px; min-height:48px; padding:6px 14px; border-radius:14px; background:var(--fill,#F3F2F6); font-size:calc(15px * var(--ts,1));"><span style="color:var(--ink2,#57555F);">Replying to</span><span dir="auto" style="font-weight:600; overflow-wrap:anywhere;">{{composerTarget}}</span></div>
+      <textarea aria-label="Reply text" value="{{composerText}}" onChange="{{onComposerText}}" style="flex:1; min-height:120px; padding:6px 14px; border:0; background:transparent; resize:none; font:inherit; font-size:calc(17px * var(--ts,1)); line-height:1.45; color:var(--ink,#1B1A1F); outline:none;"></textarea>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasEnable}}">
+    <div onClick="{{notNow}}" style="position:absolute; inset:0; z-index:32; background:var(--dim,rgba(0,0,0,0.28));"></div>
+    <div role="dialog" aria-label="Get alerts for replies and mentions" data-role="enable-sheet" style="position:absolute; z-index:33; left:0; right:0; bottom:0; max-width:560px; margin:0 auto; border-radius:28px 28px 0 0; background:var(--sheet,#FFFFFF); padding:12px 22px 40px; box-sizing:border-box; display:flex; flex-direction:column; gap:14px; animation:{{sheetAnim}};">
+      <div style="align-self:center; width:36px; height:5px; border-radius:3px; background:var(--line,#CFCED6);"></div>
+      <h2 style="margin:8px 0 0; font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif; font-size:min(calc(22px * var(--ts,1)), 36px); line-height:1.2; font-weight:800;">Get alerts for replies and mentions</h2>
+      <p style="margin:0; font-size:calc(16px * var(--ts,1)); line-height:1.45; color:var(--ink2,#57555F); text-wrap:pretty;">{{enableBody}}</p>
+      <div style="display:flex; flex-direction:column; gap:8px; padding-top:6px;">
+        <button type="button" data-role="enable-continue" onClick="{{enableContinue}}" style="min-height:50px; border:0; border-radius:999px; background:var(--acc,#5B3FD6); color:var(--accInk,#FFFFFF); font:inherit; font-size:calc(17px * var(--ts,1)); font-weight:600; cursor:pointer;">Continue</button>
+        <button type="button" data-role="enable-notnow" onClick="{{notNow}}" style="min-height:50px; border:0; border-radius:999px; background:transparent; color:var(--acc,#5B3FD6); font:inherit; font-size:calc(17px * var(--ts,1)); font-weight:600; cursor:pointer;">Not now</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasAlert}}">
+    <div style="position:absolute; inset:0; z-index:50; background:rgba(0,0,0,0.32); display:flex; align-items:center; justify-content:center; padding:24px; animation:{{fadeAnim}};">
+      <div role="alertdialog" aria-label="{{alert.title}}" data-role="system-alert" style="width:{{alertW}}; max-width:100%; border-radius:16px; overflow:hidden; background:var(--sysAlert,rgba(242,242,247,0.96)); backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px); color:var(--sysInk,#000000); text-align:center; animation:{{popAnim}};">
+        <div style="padding:20px 16px 18px; display:flex; flex-direction:column; gap:4px;">
+          <div style="font-size:calc(17px * var(--ts,1)); font-weight:600; line-height:1.3;">{{alert.title}}</div>
+          <div style="font-size:calc(13px * var(--ts,1)); line-height:1.35;">{{alert.body}}</div>
+        </div>
+        <div style="display:flex; flex-direction:{{alert.dir}}; border-top:0.5px solid var(--sysSep,rgba(60,60,67,0.29));">
+          <sc-for list="{{alert.buttons}}" as="b" hint-placeholder-count="2"><button type="button" data-role="{{b.role}}" onClick="{{b.onTap}}" style="flex:1; min-height:44px; padding:10px 8px; border:0; border-inline-start:{{b.sepL}}; border-top:{{b.sepT}}; background:transparent; color:#0A84FF; font:inherit; font-size:calc(17px * var(--ts,1)); font-weight:{{b.fw}}; cursor:pointer;">{{b.label}}</button></sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasWebSheet}}">
+    <div style="position:absolute; inset:0; z-index:34; background:var(--dim,rgba(0,0,0,0.28));"></div>
+    <div role="dialog" aria-label="{{webTitle}}" data-role="web-sheet" style="position:absolute; z-index:35; left:0; right:0; bottom:0; top:{{sheetTop}}; max-width:680px; margin:0 auto; border-radius:20px 20px 0 0; overflow:hidden; background:var(--sheet,#FFFFFF); display:flex; flex-direction:column; animation:{{sheetAnim}};">
+      <div dir="ltr" style="display:flex; align-items:center; gap:10px; padding:8px 10px; border-bottom:0.5px solid var(--sep,#E2E1E7);">
+        <button type="button" data-role="web-done" onClick="{{closeWeb}}" style="min-height:44px; padding:0 12px; border:0; background:transparent; color:#0A84FF; font:inherit; font-size:17px; font-weight:600; cursor:pointer;">{{webDone}}</button>
+        <div style="flex:1; min-width:0; display:flex; align-items:center; justify-content:center; gap:6px; min-height:36px; border-radius:10px; background:var(--fill,#F3F2F6); font-size:14px; color:var(--ink2,#57555F);"><i class="fa-solid fa-lock" style="font-size:11px;"></i><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">community.example</span></div>
+        <span style="width:44px;"></span>
+      </div>
+      <sc-if value="{{webIsAuth}}">
+        <div style="flex:1; overflow:auto; padding:28px 22px; display:flex; flex-direction:column; gap:14px;">
+          <h2 style="margin:0; font-size:calc(22px * var(--ts,1)); font-weight:700;">Sign in to Fomio Community</h2>
+          <p style="margin:0; font-size:calc(15px * var(--ts,1)); line-height:1.45; color:var(--ink2,#57555F);">Choose the account to continue with.</p>
+          <sc-for list="{{authChoices}}" as="a" hint-placeholder-count="2"><button type="button" data-role="{{a.role}}" onClick="{{a.onTap}}" style="display:flex; align-items:center; gap:12px; min-height:56px; padding:8px 14px; border:0.5px solid var(--line,#CFCED6); border-radius:14px; background:transparent; color:var(--ink,#1B1A1F); font:inherit; font-size:calc(16px * var(--ts,1)); text-align:start; cursor:pointer;"><span style="flex:none; width:34px; height:34px; border-radius:50%; background:{{a.av}}; color:#FFFFFF; display:flex; align-items:center; justify-content:center; font-weight:700;">{{a.ch}}</span><span style="flex:1;"><span style="display:block; font-weight:600;">{{a.name}}</span><span style="display:block; font-size:0.85em; color:var(--ink2,#57555F);">{{a.handle}}</span></span></button></sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{webIsPage}}">
+        <div style="flex:1; overflow:auto; padding:24px 22px; display:flex; flex-direction:column; gap:12px;">
+          <div style="font-size:calc(13px * var(--ts,1)); font-weight:600; color:var(--ink2,#57555F);">Fomio Community</div>
+          <h2 style="margin:0; font-size:calc(22px * var(--ts,1)); font-weight:700;">{{webTitle}}</h2>
+          <div style="width:92%; height:14px; border-radius:6px; background:var(--skel,#EEEDF2);"></div><div style="width:78%; height:14px; border-radius:6px; background:var(--skel,#EEEDF2);"></div><div style="width:84%; height:14px; border-radius:6px; background:var(--skel,#EEEDF2);"></div><div style="width:50%; height:14px; border-radius:6px; background:var(--skel,#EEEDF2);"></div>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasBanner}}">
+    <div style="position:absolute; z-index:55; top:{{bannerTop}}; left:10px; right:10px; display:flex; justify-content:center; animation:{{dropAnim}};">
+      <button type="button" data-role="push-banner" onClick="{{tapBanner}}" aria-label="{{bannerAria}}" style="display:flex; gap:12px; align-items:flex-start; width:100%; max-width:420px; padding:12px 14px; border:0.5px solid var(--glassEdge,rgba(0,0,0,0.08)); border-radius:22px; background:var(--bannerBg,rgba(245,245,247,0.86)); backdrop-filter:blur(30px) saturate(1.6); -webkit-backdrop-filter:blur(30px) saturate(1.6); box-shadow:0 10px 30px rgba(0,0,0,0.18); color:var(--ink,#1B1A1F); font:inherit; text-align:start; cursor:pointer;">
+        <span aria-hidden="true" style="flex:none; width:38px; height:38px; border-radius:9px; background:var(--appTile,#D7D6DE);"></span>
+        <span style="flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;">
+          <span style="display:flex; justify-content:space-between; gap:8px; font-size:calc(13px * var(--ts,1)); color:var(--ink2,#57555F);"><span style="font-weight:600;">Fomio</span><span>now</span></span>
+          <span dir="auto" style="font-size:calc(15px * var(--ts,1)); font-weight:600; line-height:1.3;">{{push.head}}</span>
+          <span dir="auto" style="font-size:calc(15px * var(--ts,1)); line-height:1.3;">{{push.body}}</span>
+        </span>
+      </button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasIos}}">
+    <div data-screen="ios-settings" aria-label="{{osSettings}}" style="position:absolute; inset:0; z-index:58; background:var(--iosBg,#F2F2F7); color:var(--sysInk,#000000); overflow:auto; animation:{{iosAnim}};">
+      <div style="padding:{{padTopO}} 16px 40px; display:flex; flex-direction:column; gap:10px; max-width:680px; margin:0 auto;">
+        <button type="button" data-role="ios-back" onClick="{{iosBack}}" style="align-self:flex-start; display:flex; align-items:center; gap:6px; min-height:44px; padding:0 4px; border:0; background:transparent; color:#0A84FF; font:inherit; font-size:17px; cursor:pointer;"><i class="fa-solid fa-chevron-left"></i>Fomio</button>
+        <div style="font-size:calc(13px * var(--ts,1)); color:var(--iosSub,#6C6C70);">Settings › Apps › Fomio</div>
+        <h1 style="margin:0; font-size:min(calc(32px * var(--ts,1)), 48px); font-weight:700;">Notifications</h1>
+        <div style="margin-top:12px; border-radius:12px; background:var(--iosCell,#FFFFFF);">
+          <button type="button" role="switch" aria-checked="{{iosOn}}" data-role="ios-toggle" onClick="{{iosToggle}}" style="display:flex; align-items:center; gap:12px; width:100%; min-height:48px; padding:6px 16px; border:0; background:transparent; color:inherit; font:inherit; font-size:calc(17px * var(--ts,1)); text-align:start; cursor:pointer;"><span style="flex:1;">Allow Notifications</span><span aria-hidden="true" style="flex:none; width:51px; height:31px; border-radius:16px; background:{{iosTrack}}; position:relative; transition:background 0.2s;"><span style="position:absolute; top:2px; inset-inline-start:{{iosKnob}}; width:27px; height:27px; border-radius:50%; background:#FFFFFF; box-shadow:0 2px 4px rgba(0,0,0,0.2);"></span></span></button>
+        </div>
+        <div style="font-size:calc(13px * var(--ts,1)); line-height:1.4; color:var(--iosSub,#6C6C70); padding:0 16px;">{{iosFoot}}</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{hasLock}}">
+    <div data-screen="lock" dir="ltr" style="position:absolute; inset:0; z-index:70; background:#1E2230; color:#FFFFFF; display:flex; flex-direction:column; align-items:center; padding:{{lockTop}} 12px 30px; box-sizing:border-box; gap:6px;">
+      <div style="font-size:calc(17px * var(--ts,1)); font-weight:600; opacity:0.9;">Sunday 18 October</div>
+      <div style="font-size:{{lockTime}}; font-weight:700; line-height:1; letter-spacing:-0.02em; font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif;">9:41</div>
+      <div style="flex:1;"></div>
+      <button type="button" data-role="lock-notif" onClick="{{tapLock}}" aria-label="{{bannerAria}}" style="display:flex; gap:12px; align-items:flex-start; width:100%; max-width:420px; padding:12px 14px; border:0; border-radius:22px; background:rgba(245,245,247,0.78); backdrop-filter:blur(30px); -webkit-backdrop-filter:blur(30px); color:#1C1C1E; font:inherit; text-align:start; cursor:pointer;">
+        <span aria-hidden="true" style="flex:none; width:38px; height:38px; border-radius:9px; background:#C9C8D0;"></span>
+        <span style="flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;">
+          <span style="display:flex; justify-content:space-between; gap:8px; font-size:calc(13px * var(--ts,1)); color:#3C3C43;"><span style="font-weight:600;">Fomio</span><span>now</span></span>
+          <span dir="auto" style="font-size:calc(15px * var(--ts,1)); font-weight:600; line-height:1.3;">{{push.head}}</span>
+          <span dir="auto" style="font-size:calc(15px * var(--ts,1)); line-height:1.3;">{{push.body}}</span>
+        </span>
+      </button>
+      <div style="height:60px;"></div>
+    </div>
+  </sc-if>
+  <sc-if value="{{hasSplash}}">
+    <div data-screen="launch" style="position:absolute; inset:0; z-index:72; background:var(--bg,#FFFFFF); display:flex; align-items:center; justify-content:center;"><span aria-label="Opening Fomio" style="width:76px; height:76px; border-radius:18px; background:var(--appTile,#D7D6DE);"></span></div>
+  </sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:440,&quot;height&quot;:900},&quot;palette&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;purple&quot;,&quot;teal&quot;,&quot;none&quot;],&quot;default&quot;:&quot;purple&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;text&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;default&quot;,&quot;ax2&quot;],&quot;default&quot;:&quot;default&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;device&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;phone320&quot;,&quot;phone390&quot;,&quot;ipad&quot;],&quot;default&quot;:&quot;phone390&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;rtl&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;reduced&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;ackMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ok&quot;,&quot;fail&quot;,&quot;unknown&quot;],&quot;default&quot;:&quot;ok&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;moreFail&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;regFail&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;start&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;cmd&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{n:number,type:string}&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;function&quot;},&quot;zoom&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;number&quot;},&quot;height&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;number&quot;},&quot;resetKey&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;number&quot;}}">
+const SCHEMES={
+  purple:{light:{primary:'1B1A1F',secondary:'FFFFFF',tertiary:'5B3FD6',quaternary:'4A2FC4',danger:'C62828'},dark:{primary:'ECEBF0',secondary:'121116',tertiary:'A58FFF',quaternary:'8C74F5',danger:'FF6B6B'}},
+  teal:{light:{primary:'14211F',secondary:'FBFDFC',tertiary:'0F766E',quaternary:'0B5F58',danger:'B42318'},dark:{primary:'E6F0EE',secondary:'0D1514',tertiary:'4FD1C5',quaternary:'38B2A6',danger:'FF8A80'}}
+};
+const FALLBACK={light:{primary:'000000',secondary:'FFFFFF',tertiary:'007AFF',quaternary:'007AFF',danger:'FF3B30'},dark:{primary:'FFFFFF',secondary:'000000',tertiary:'0A84FF',quaternary:'0A84FF',danger:'FF453A'}};
+const h2r=x=>{x=x.replace('#','');return [0,2,4].map(i=>parseInt(x.slice(i,i+2),16));};
+const r2h=a=>'#'+a.map(x=>Math.round(Math.max(0,Math.min(255,x))).toString(16).padStart(2,'0')).join('').toUpperCase();
+const mixh=(a,b,t)=>{const A=h2r(a),B=h2r(b);return r2h(A.map((x,i)=>x*t+B[i]*(1-t)));};
+const lumh=x=>{const c=h2r(x).map(v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);});return 0.2126*c[0]+0.7152*c[1]+0.0722*c[2];};
+const crh=(a,b)=>{const x=lumh(a),y=lumh(b);return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05);};
+const rgba=(x,a)=>{const [r,g,b]=h2r(x);return 'rgba('+r+','+g+','+b+','+a+')';};
+const toward=(fg,bg,ink,min)=>{let c=fg,t=0;while(crh(c,bg)<min&&t<1){t+=0.08;c=mixh(ink,fg,Math.min(1,t));}return c;};
+function deriveTokens(pal,dark){
+  const src=SCHEMES[pal];const s={};Object.entries(src?src[dark?'dark':'light']:FALLBACK[dark?'dark':'light']).forEach(([k,v])=>s[k]='#'+v);
+  const ink=s.primary,bg=s.secondary;
+  const mixMin=(t0,min)=>{let t=t0,c=mixh(ink,bg,t);while(crh(c,bg)<min&&t<1){t+=0.03;c=mixh(ink,bg,t);}return c;};
+  const acc=toward(s.tertiary,bg,ink,4.5);const accInk=crh('#FFFFFF',acc)>=crh('#000000',acc)?'#FFFFFF':'#000000';
+  const accSoft=mixh(s.tertiary,bg,dark?0.2:0.11);
+  return {'--bg':bg,'--ink':ink,'--ink2':mixMin(0.72,4.5),'--ink3':mixMin(0.6,4.5),'--sep':mixh(ink,bg,dark?0.16:0.11),'--line':mixh(ink,bg,dark?0.26:0.19),'--fill':mixh(ink,bg,dark?0.08:0.045),'--skel':mixh(ink,bg,dark?0.1:0.07),
+    '--press':mixh(ink,bg,dark?0.12:0.07),'--acc':toward(acc,accSoft,ink,4.5),'--accInk':accInk,'--accSoft':accSoft,'--tabSel':rgba(s.quaternary,dark?0.26:0.14),'--err':toward(s.danger,bg,ink,4.5),'--side':mixh(ink,bg,dark?0.04:0.025),
+    '--menu':dark?rgba(mixh(ink,bg,0.14),0.97):rgba(mixh(ink,bg,0.02),0.97),'--menuShadow':dark?'0 12px 40px rgba(0,0,0,0.55)':'0 12px 40px rgba(20,16,40,0.18)','--glass':rgba(bg,dark?0.62:0.72),'--glassEdge':dark?'rgba(255,255,255,0.14)':'rgba(0,0,0,0.08)','--glassShadow':dark?'none':'0 6px 20px rgba(20,16,40,0.10)','--dim':dark?'rgba(0,0,0,0.6)':'rgba(0,0,0,0.28)','--sheet':dark?mixh(ink,bg,0.06):bg,
+    '--badge':'#C62828','--toast':dark?mixh(ink,bg,0.88):'#1B1A1F','--toastInk':dark?bg:'#FFFFFF','--bannerBg':dark?'rgba(44,44,48,0.88)':'rgba(245,245,247,0.9)','--appTile':dark?'#4A4950':'#D7D6DE',
+    '--sysAlert':dark?'rgba(44,44,46,0.96)':'rgba(242,242,247,0.97)','--sysInk':dark?'#FFFFFF':'#000000','--sysSep':dark?'rgba(84,84,88,0.65)':'rgba(60,60,67,0.29)','--iosBg':dark?'#000000':'#F2F2F7','--iosCell':dark?'#1C1C1E':'#FFFFFF','--iosSub':dark?'#AEAEB2':'#6C6C70'};
+}
+const CAT={10:{name:'Announcements',color:'#4A5060',icon:'fa-bullhorn'},20:{name:'Woodworking',color:'#9A5B2E',icon:'fa-hammer'},21:{name:'Hand tools',color:'#7A4A26'},22:{name:'Finishing',color:'#B07A3A'},
+  30:{name:'Electronics',color:'#2F6FB0',icon:'fa-microchip'},31:{name:'Vintage radio, valve amplifier and early transistor restoration',color:'#8A4FB8',icon:'fa-radio'},32:{name:'Microcontrollers',color:'#1F7A8C'},
+  40:{name:'Gardening',color:'#3C7D3A',icon:'fa-seedling'},41:{name:'الزراعة المنزلية · Home growing',color:'#5E8C2F'}};
+const U={lena:{n:'Lena Ortiz',av:'#6D5BD0'},sam:{n:'Sam Okafor',av:'#C0612B'},priya:{n:'Priya Nair',av:'#2E7D62'},tomas:{n:'Tomás Ribeiro',av:'#6B6973'},layla:{n:'ليلى حداد',av:'#3C7D3A'},jonas:{n:'Jonas Weber',av:'#2F6FB0'},ama:{n:'Ama Mensah',av:'#A04A7A'},ruth:{n:'Ruth Adeyemi',av:'#8A5A2B'}};
+const T={1:{cat:10,title:'Spring meetups: dates, venues and how to sign up'},2:{cat:21,title:'Flattening a chisel back without a full set of stones'},3:{cat:40,title:'Tomato seedlings going leggy on a windowsill'},
+  4:{cat:31,title:'Replacing the electrolytic capacitors in a 1960s valve radio chassis when the original wiring diagram does not match what is actually inside'},5:{cat:41,title:'أفضل خلطة تربة لزراعة النعناع في أصص الشرفة'},
+  6:{cat:32,title:'ESP32 deep sleep still drawing 2 mA. What am I missing?'},7:{cat:22,title:'Shellac blotching on cherry'},9:{cat:30,title:'Bench power supply recommendations under £100',unavailable:true},
+  10:{cat:20,title:'Dust collection for a one-car garage shop'},11:{cat:30,title:'Identifying a resistor with faded colour bands'},12:{cat:40,title:'Overwintering dahlias in an unheated garage'}};
+const P={
+  '1:3':{u:'lena',x:'@woodworkers the April meetup at the community workshop has space for six more. Bring a hand plane if you have one.',ago:'5 hr'},
+  '2:1':{u:'sam',x:'I have one 1000-grit stone and some wet-and-dry paper. Is a glass plate enough to get the first inch flat?',ago:'yesterday'},
+  '2:15':{u:'ruth',x:'Glass is plenty. Keep the paper wet, mark the back with a marker and check after every few strokes. Only the first inch needs to be flat.',ago:'12 min'},
+  '2:16':{u:'jonas',x:'Seconding the marker trick. It shows the high spots straight away.',ago:'8 min'},
+  '3:2':{u:'priya',q:'Sam Okafor: Turn the tray a half turn every morning.',x:'This worked. Two days of turning and they are already standing straighter.',ago:'2 hr'},
+  '3:3':{u:'sam',x:'A small LED panel about 10 cm above them will help more than the window.',ago:'1 hr'},
+  '3:4':{u:'priya',x:'Update: moved them under a cheap LED panel at 10 cm. Much sturdier already.',ago:'now'},
+  '4:4':{u:'sam',x:'Mine had the same later transformer. The two extra capacitors were a filter added during a repair.',ago:'5 days'},
+  '4:20':{u:'tomas',x:'@sam do you remember where you found the replacement can capacitor?',ago:'yesterday'},
+  '4:21':{u:'tomas',x:'That matches. One of mine is dated 1971, so it was definitely a later repair.',ago:'1 hr'},
+  '4:22':{u:'jonas',x:'Check the can capacitor too. Even if it measures fine, it can fail under load.',ago:'50 min'},
+  '4:23':{u:'ama',x:'If you post a photo of the underside I can mark which ones I would replace first.',ago:'40 min'},
+  '5:5':{u:'sam',x:'جرّبي إضافة قليل من البيرلايت أيضاً. Perlite helped mine drain.',ago:'2 days'},
+  '5:7':{u:'layla',x:'شكراً يا سام! جرّبت البيرلايت والنعناع أفضل بكثير الآن.',ago:'yesterday'},
+  '6:7':{u:'jonas',x:'@sam yes, the onboard regulator was part of it, but the power LED was drawing most of the current. Cutting its trace got me to 0.15 mA.',ago:'1 hr'},
+  '7:29':{u:'sam',x:'What did you use for the washcoat?',ago:'3 weeks'},
+  '7:30':{u:'ruth',x:'@sam a 1 lb cut of dewaxed shellac, applied thin and sanded back lightly.',ago:'2 weeks'},
+  '7:32':{u:'ruth',x:'@sam I added photos of each washcoat step to the first post.',ago:'now'},
+  '10:1':{u:'sam',x:'Cyclone separator on a shop vac, or save for a proper 1.5 hp collector?',ago:'6 days'},
+  '10:12':{u:'jonas',x:'A cyclone on a shop vac covers hand tools and a small table saw.',ago:'5 days'},
+  '10:13':{u:'ruth',x:'I ran a cyclone for three years before upgrading. Start there.',ago:'5 days'},
+  '11:2':{u:'jonas',q:'Sam Okafor: Use a multimeter rather than guessing from the bands.',x:'Agreed. Mine turned out to be 4.7 kΩ, not 47.',ago:'4 days'},
+  '12:3':{u:'sam',x:'Newspaper worked for me, as long as the garage stays above freezing.',ago:'4 days'},
+  '12:4':{u:'priya',x:'Good to know. Mine dips to −2 °C some nights, so I will try sawdust.',ago:'3 days'}
+};
+const NF={
+  5013:{type:1,actor:'ruth',topic:7,post:32,ago:'now'},
+  5012:{type:2,actor:'priya',topic:3,post:4,replyTo:3,ago:'now'},
+  5011:{type:2,actor:'ruth',topic:2,post:15,replyTo:1,ago:'12 min'},
+  5010:{type:2,count:3,topic:4,replyTo:4,posts:[21,22,23],ago:'40 min'},
+  5009:{type:1,actor:'jonas',topic:6,post:7,ago:'1 hr'},
+  5008:{type:3,actor:'priya',topic:3,post:2,ago:'2 hr'},
+  5007:{type:'other',unsup:true,web:'community.example/t/dust-collection/10',topicTitle:'Dust collection for a one-car garage shop',ago:'3 hr'},
+  5006:{type:2,actor:'ama',topic:9,post:6,replyTo:2,ago:'4 hr'},
+  5005:{type:15,actor:'lena',grp:'woodworkers',topic:1,post:3,ago:'5 hr'},
+  5004:{type:2,actor:'layla',topic:5,post:7,replyTo:5,ago:'Yesterday'},
+  5003:{type:1,actor:'tomas',topic:4,post:20,ago:'Yesterday'},
+  5002:{type:'other',unsup:true,web:null,ago:'2 days'},
+  5001:{type:2,actor:'priya',topic:12,post:4,replyTo:3,ago:'3 days'},
+  5000:{type:3,actor:'jonas',topic:11,post:2,ago:'4 days'},
+  4999:{type:2,count:2,topic:10,replyTo:1,posts:[12,13],ago:'5 days'},
+  4990:{type:1,actor:'ruth',topic:7,post:30,ago:'2 weeks'}
+};
+const P1=[5011,5010,5009,5008,5007,5006,5005,5004,5003,5002],P2=[5001,5000,4999],P3=[4990];
+const UNREAD0=[5011,5010,5009,5008,5007,5006,4990,5012,5013];
+const DRAFT='Thanks Ruth. I tried the marker trick on float glass and the first inch came flat after about ten minutes. Next question is whether';
+const DEV={phone320:{w:320,h:640,sb:40,phone:true,px:16},phone390:{w:390,h:844,sb:50,phone:true,px:20},ipad:{w:1024,h:768,sb:24,phone:false,px:32}};
+const VERB={1:' mentioned you',2:' replied to your post',3:' quoted your post'};
+const emptyStacks=()=>({home:[],communities:[],notifications:[],me:[]});
+
+class Component extends DCLogic {
+  rootRef=React.createRef(); notifRef=React.createRef(); _timers=[]; _ackTried={};
+  state=this.fresh();
+  later(fn,ms){const t=setTimeout(()=>{this._timers=this._timers.filter(x=>x!==t);fn();},ms);this._timers.push(t);return t;}
+  initRows(){const r={};Object.keys(NF).forEach(id=>r[id]={read:!UNREAD0.includes(+id),ack:'idle'});return r;}
+  fresh(){const st=(this.props&&this.props.start)||'inbox';this._ackTried={};this._regTried=false;this._lastTap=null;
+    const s={auth:'sam',tab:'notifications',stacks:emptyStacks(),rows:this.initRows(),extra:[],filter:'all',keep:null,pages:1,more:'idle',moreTried:false,inbox:'ok',newPill:null,note:null,
+      perm:'nd',reg:'none',enable:null,alert:null,web:null,composer:null,banner:null,lock:null,splash:false,ios:false,toast:null,lastEvent:'Ready',badge:7,scrollBottom:false};
+    const N=a=>{s.stacks.notifications=a.map(x=>({...x,k:Math.random(),still:true}));};
+    const rd=id=>{if(!s.rows[id].read){s.rows[id]={read:true,ack:'idle'};s.badge--;}};
+    const arrive=id=>{s.extra=[id];s.badge++;};
+    const topic=(id,phase)=>N([{t:'topic',n:id,phase:phase||'shown'}]);
+    const M={
+      guest:()=>{s.auth='guest';s.badge=0;},expired:()=>{s.auth='expired';s.badge=0;},
+      signinIntent:()=>{s.auth='expired';s.badge=0;N([{t:'signin',intent:5012}]);},
+      authSheet:()=>{s.auth='expired';s.badge=0;N([{t:'signin',intent:5012}]);s.web={kind:'auth'};},
+      mismatch:()=>{s.auth='ama';s.badge=0;N([{t:'mismatch',intent:5012}]);},
+      empty:()=>{s.auth='ama';s.badge=0;},
+      unreadEmpty:()=>{Object.keys(s.rows).forEach(k=>s.rows[k]={read:true,ack:'idle'});s.badge=0;s.filter='unread';},
+      filteredPage:()=>{s.filter='unread';s.pages=2;s.scrollBottom=true;},
+      loading:()=>{s.inbox='loading';},refreshFail:()=>{s.inbox='refreshFail';},offline:()=>{s.inbox='offline';},
+      moreFail:()=>{s.more='failed';s.moreTried=true;s.scrollBottom=true;},
+      exact:()=>{rd(5011);topic(5011);},exactPending:()=>{s.rows[5011].ack='pending';topic(5011);},
+      exactQuote:()=>{rd(5008);topic(5008);},exactRtl:()=>{topic(5004);},
+      group:()=>{rd(5010);topic(5010);},groupTopic:()=>{s.pages=2;topic(4999);},
+      unavail:()=>topic(5006,'unavail'),offlineTarget:()=>{s.inbox='offline';topic(5009,'offline');},
+      unsup:()=>N([{t:'unsup',n:5007}]),unsupNone:()=>N([{t:'unsup',n:5002}]),web:()=>{N([{t:'unsup',n:5007}]);s.web={kind:'page',title:'Activity on Dust collection for a one-car garage shop'};},
+      ackFail:()=>{s.rows[5011].ack='failed';topic(5011);},ackUnknown:()=>{s.rows[5011].ack='unknown';topic(5011);},
+      ackFailInbox:()=>{s.rows[5011].ack='failed';s.rows[5009].ack='unknown';},
+      settings:()=>N([{t:'settings'}]),settingsDenied:()=>{s.perm='denied';N([{t:'settings'}]);},
+      settingsPending:()=>{s.perm='allowed';s.reg='registering';N([{t:'settings'}]);},settingsFailed:()=>{s.perm='allowed';s.reg='failed';N([{t:'settings'}]);},
+      settingsReady:()=>{s.perm='allowed';s.reg='ready';N([{t:'settings'}]);},settingsRenew:()=>{s.perm='allowed';s.reg='renewing';N([{t:'settings'}]);},
+      ios:()=>{s.perm='denied';N([{t:'settings'}]);s.ios=true;},
+      explain:()=>{N([{t:'settings'}]);s.enable='explain';},system:()=>{N([{t:'settings'}]);s.alert={kind:'perm'};},
+      lock:()=>{s.lock={id:5012,mode:'lock'};},banner:()=>{arrive(5012);s.banner=5012;},cold:()=>{s.splash=true;},
+      lockExpired:()=>{s.auth='expired';s.badge=0;s.lock={id:5012,mode:'cold'};},
+      composerBanner:()=>{rd(5011);topic(5011);arrive(5012);s.composer={text:DRAFT,pending:null};s.banner=5012;},
+      composerLeave:()=>{rd(5011);topic(5011);arrive(5012);s.composer={text:DRAFT,pending:null};s.alert={kind:'leave',id:5012};},
+      composerPending:()=>{rd(5011);topic(5011);arrive(5012);s.composer={text:DRAFT,pending:5012};},
+      otherDevice:()=>{rd(5009);s.note='synced';},newPill:()=>{s.newPill=5013;s.badge++;},
+      loggedOut:()=>{s.auth='guest';s.badge=0;s.rows={};s.toast='Signed out. This account\u2019s notifications were removed from this '+((DEV[this.props&&this.props.device]||DEV.phone390).phone?'iPhone':'iPad')+'.';}
+    };
+    if(M[st])M[st]();
+    return s;}
+  componentDidMount(){this.applyTheme();this.initScroll();this.report();}
+  componentDidUpdate(pp){this.applyTheme();
+    if(pp.start!==this.props.start||pp.resetKey!==this.props.resetKey||pp.device!==this.props.device){this.clearTimers();this.setState(this.fresh(),()=>this.initScroll());}
+    const c=this.props.cmd;if(c&&(!pp.cmd||pp.cmd.n!==c.n))this.runCmd(c.type);
+    this.report();}
+  componentWillUnmount(){this.clearTimers();}
+  clearTimers(){this._timers.forEach(clearTimeout);this._timers=[];}
+  initScroll(){const el=this.notifRef.current;if(!el)return;requestAnimationFrame(()=>{el.scrollTop=this.state.scrollBottom?el.scrollHeight:0;this._ns=el.scrollTop;});}
+  applyTheme(){const el=this.rootRef.current;if(!el)return;Object.entries(deriveTokens(this.props.palette||'purple',this.props.theme==='dark')).forEach(([k,v])=>el.style.setProperty(k,v));el.style.setProperty('--ts',this.ax()?'1.9':'1');}
+  ax(){return this.props.text==='ax2';}
+  dev(){return DEV[this.props.device]||DEV.phone390;}
+  rtl(){return !!this.props.rtl;}
+  ev(m){this.setState({lastEvent:m});}
+  toast(m){this.setState({toast:m});clearTimeout(this._tt);this._tt=this.later(()=>this.setState({toast:null}),3200);}
+  report(){if(!this.props.onState)return;const s=this.state,stk=s.stacks[s.tab],top=stk[stk.length-1];
+    const acks=Object.entries(s.rows).filter(([,r])=>r.ack!=='idle').map(([id,r])=>id+': '+r.ack).join(', ');
+    const v={auth:s.auth,tab:s.tab,screen:top?(top.t+(top.n?' #'+top.n:'')+(top.phase?' ('+top.phase+')':'')):s.tab+' root',depth:stk.length,badge:s.badge,
+      loadedUnread:this.visIds().filter(id=>s.rows[id]&&!s.rows[id].read).length,filter:s.filter,pages:s.pages,more:s.more,inbox:s.inbox,inboxScroll:Math.round(this._ns||0),
+      dupIgnored:this._dups||0,perm:s.perm,reg:s.reg,acks:acks||'none',composer:s.composer?(s.composer.pending?'open, notification waiting':'open'):'closed',lastEvent:s.lastEvent,
+      rows:{5011:s.rows[5011]&&s.rows[5011].read?'read':'unread',5006:s.rows[5006]&&s.rows[5006].read?'read':'unread'}};
+    const j=JSON.stringify(v);if(j!==this._last){this._last=j;setTimeout(()=>this.props.onState&&this.props.onState(v),0);}}
+  setRow(id,patch){this.setState(s=>({rows:{...s.rows,[id]:{...s.rows[id],...patch}}}));}
+  markRead(id,msg){this.setState(s=>{const r=s.rows[id];if(!r)return null;return {rows:{...s.rows,[id]:{read:true,ack:'idle'}},badge:r.read?s.badge:Math.max(0,s.badge-1)};});this.ev(msg);}
+  ack(id){const r=this.state.rows[id];if(!r||r.read)return;const mode=this.props.ackMode||'ok';this.setRow(id,{ack:'pending'});this.ev('Destination shown; mark-read sent for #'+id);
+    this.later(()=>{const first=!this._ackTried[id];this._ackTried[id]=true;
+      if(mode==='fail'&&first){this.setRow(id,{ack:'failed'});this.ev('Mark-read #'+id+' failed; row kept unread');}
+      else if(mode==='unknown'&&first){this.setRow(id,{ack:'unknown'});this.ev('Mark-read #'+id+' outcome unknown');}
+      else this.markRead(id,'Mark-read #'+id+' confirmed; badge from server');},800);}
+  recheck(id){this.setRow(id,{ack:'checking'});this.ev('Rechecking #'+id+' with server');this.later(()=>this.markRead(id,'Recheck: server reports #'+id+' read'),800);}
+  tabPush(scr){this.setState(s=>({stacks:{...s.stacks,[s.tab]:[...s.stacks[s.tab],{...scr,k:Date.now()+Math.random()}]}}));}
+  pop(){this.setState(s=>({stacks:{...s.stacks,[s.tab]:s.stacks[s.tab].slice(0,-1)}}));}
+  setPhase(k,phase,cb){this.setState(s=>({stacks:{...s.stacks,notifications:s.stacks.notifications.map(x=>x.k===k?{...x,phase}:x)}}),cb);}
+  openNotif(id,replace){const nf=NF[id];if(!nf)return;
+    if(nf.unsup){this.tabPush({t:'unsup',n:id});this.ev('Unsupported type opened; not acknowledged');return;}
+    const k=Date.now()+Math.random();const entry={t:'topic',n:id,phase:'loading',k};
+    this.setState(s=>({tab:'notifications',stacks:{...s.stacks,notifications:replace?[entry]:[...s.stacks.notifications,entry]}}));
+    this.later(()=>{if(this.state.inbox==='offline'){this.setPhase(k,'offline');this.ev('Offline; #'+id+' left unread');return;}
+      if(T[nf.topic].unavailable){this.setPhase(k,'unavail');this.ev('Target unavailable (404/403); #'+id+' left unread');return;}
+      this.setPhase(k,'shown',()=>requestAnimationFrame(()=>this.ack(id)));},this.props.reduced?250:500);}
+  retryTarget(scr){this.setPhase(scr.k,'loading');const nf=NF[scr.n];
+    this.later(()=>{if(this.state.inbox==='offline'){this.setPhase(scr.k,'offline');return;}if(T[nf.topic].unavailable){this.setPhase(scr.k,'unavail');this.ev('Still unavailable; #'+scr.n+' left unread');return;}this.setPhase(scr.k,'shown',()=>this.ack(scr.n));},600);}
+  arrive(id){this.setState(s=>s.extra.includes(id)||s.auth!=='sam'?null:({extra:[id,...s.extra],rows:{...s.rows,[id]:{read:false,ack:'idle'}},badge:s.badge+1}));}
+  pushTap(id,mode){const now=Date.now();if(this._lastTap&&this._lastTap.id===id&&now-this._lastTap.t<1500){this._dups=(this._dups||0)+1;this.ev('Duplicate tap on #'+id+' ignored');this.forceUpdate();return;}this._lastTap={id,t:now};
+    const go=()=>{const s=this.state;
+      if(s.composer&&s.composer.text){this.setState({alert:{kind:'leave',id}});this.ev('Composer has changes; navigation held');return;}
+      if(s.auth==='guest'||s.auth==='expired'){this.setState(x=>({tab:'notifications',stacks:{...emptyStacks(),notifications:[{t:'signin',intent:id,k:Date.now()}]}}));this.ev('Session needed; intent #'+id+' kept, content not loaded');return;}
+      if(s.auth==='ama'){this.setState(x=>({tab:'notifications',stacks:{...emptyStacks(),notifications:[{t:'mismatch',intent:id,k:Date.now()}]}}));this.ev('Push for @sam while signed in as @ama; not opened');return;}
+      this.openNotif(id,true);};
+    this.setState({banner:null});
+    if(mode==='cold'){this.setState({lock:null,splash:true,stacks:emptyStacks(),tab:'notifications'});this.later(()=>{this.setState({splash:false});go();},800);}
+    else if(mode==='lock'){this.setState({lock:null});go();} else go();}
+  signIn(user){const s=this.state;const stk=s.stacks.notifications;const top=stk[stk.length-1];const intent=top&&(top.t==='signin'||top.t==='mismatch')?top.intent:null;
+    const base={web:null,auth:user,tab:'notifications',pages:1,more:'idle',filter:'all',keep:null,newPill:null};
+    if(user==='sam'){const rows=this.initRows();const extra=intent?[intent]:[];this.setState({...base,rows,extra,badge:7+extra.length,stacks:emptyStacks()},()=>{if(intent){this.openNotif(intent,true);this.ev('Signed in as @sam; opening intent #'+intent);}else this.ev('Signed in as @sam');});}
+    else this.setState({...base,rows:{},extra:[],badge:0,stacks:{...emptyStacks(),notifications:intent?[{t:'mismatch',intent,k:Date.now()}]:[]}},()=>this.ev(intent?'Signed in as @ama; intent belongs to @sam':'Signed in as @ama'));}
+  logout(){this.clearTimers();this.setState(s=>({auth:'guest',rows:{},extra:[],badge:0,stacks:emptyStacks(),composer:null,banner:null,alert:null,web:null,newPill:null,reg:s.reg==='none'?'none':'detached',tab:'notifications'}));this.toast('Signed out. This account\u2019s notifications were removed from this '+(this.dev().phone?'iPhone':'iPad')+'.');this.ev('Signed out: private rows, stacks and composer cleared; device detach simulated');}
+  register(){this.setState({reg:'registering'});this.ev('Permission allowed; alert setup started (simulated)');
+    this.later(()=>{if(this.props.regFail&&!this._regTried){this._regTried=true;this.setState({reg:'failed'});this.ev('Alert setup failed (simulated)');}else{this.setState({reg:'ready'});this.ev('Alert setup ready (simulated)');}},1400);}
+  openSettings(){this.tabPush({t:'settings'});}
+  runCmd(c){const id=5012;const s=this.state;
+    const M={
+      pushBanner:()=>{this.arrive(id);this.setState({banner:id});this.ev('Foreground push for #'+id+'; row added to inbox');},
+      lockBg:()=>{this.arrive(id);this.setState({lock:{id,mode:'lock'}});this.ev('Lock screen: app in background');},
+      lockCold:()=>{this.arrive(id);this.setState({lock:{id,mode:'cold'}});this.ev('Lock screen: app not running');},
+      lockExpired:()=>{this.clearTimers();this.setState({auth:'expired',rows:{},extra:[],badge:0,stacks:emptyStacks(),composer:null,lock:{id,mode:'cold'}});this.ev('Session expired; push received');},
+      lockMismatch:()=>{this.setState({auth:'ama',rows:{},extra:[],badge:0,stacks:emptyStacks(),lock:{id,mode:'lock'}});this.ev('Signed in as @ama; push for @sam received');},
+      composer:()=>{if(s.auth!=='sam')return;const k=Date.now();this.setState(x=>({tab:'notifications',rows:{...x.rows,5011:{read:true,ack:'idle'}},badge:x.rows[5011].read?x.badge:x.badge-1,stacks:{...x.stacks,notifications:[{t:'topic',n:5011,phase:'shown',k}]},composer:{text:DRAFT,pending:null}}));this.ev('Reply draft open with changes');},
+      dupTap:()=>{this.arrive(id);this._lastTap=null;this.setState({lock:{id,mode:'lock'}});setTimeout(()=>{this.pushTap(id,'lock');setTimeout(()=>this.pushTap(id,'lock'),120);},300);},
+      otherDevice:()=>{const tgt=[5009,5008,5010,5007].find(x=>this.state.rows[x]&&!this.state.rows[x].read);if(tgt){this.markRead(tgt,'Read on another device: #'+tgt+' (MessageBus state)');}else this.ev('Nothing unread to sync');},
+      newEvent:()=>{if(s.auth!=='sam'||s.newPill||s.extra.includes(5013))return;this.setState(x=>({newPill:5013,badge:x.badge+1,rows:{...x.rows,5013:{read:false,ack:'idle'}}}));this.ev('New notification arrived; list not shifted');},
+      reconnect:()=>{this.setState({inbox:'ok',note:'reconnected'});M.otherDevice();this.later(()=>this.setState(x=>x.note==='reconnected'?{note:null}:null),4000);},
+      renew:()=>{this.setState({perm:'allowed',reg:'renewing'});this.ev('Token renewal: setup pending');this.later(()=>{this.setState({reg:'ready'});this.ev('Renewal finished');},2200);},
+      logout:()=>this.logout(),
+      expire:()=>{this.clearTimers();this.setState({auth:'expired',rows:{},extra:[],badge:0,stacks:emptyStacks(),composer:null,tab:'notifications'});this.ev('Session expired: private content hidden');},
+      resetPerm:()=>{this.setState({perm:'nd',reg:'none'});this.ev('Permission reset to never asked');},
+      offline:()=>{this.setState({inbox:'offline'});this.ev('Offline: rows kept from 9:12');},
+      refreshFail:()=>{this.setState({inbox:'refreshFail'});this.ev('Refresh failed: rows kept');},
+      reload:()=>{this.setState({inbox:'loading'});this.later(()=>this.setState({inbox:'ok'}),1100);},
+      online:()=>{this.setState({inbox:'ok',note:null});this.ev('Online');},
+      settings:()=>this.setState(x=>({tab:'notifications',stacks:{...x.stacks,notifications:[{t:'settings',k:Date.now()}]}}))
+    };
+    if(M[c])M[c]();}
+  visIds(){const s=this.state;if(s.auth!=='sam')return [];const ids=[...s.extra,...P1,...(s.pages>=2?P2:[]),...(s.pages>=3?P3:[])];
+    return ids.filter(id=>s.rows[id]&&(s.filter==='all'||!s.rows[id].read||(s.keep&&s.keep.includes(id))));}
+  loadMore(){const s=this.state;if(s.pages>=3||s.more==='loading')return;this.setState({more:'loading'});
+    this.later(()=>{if(this.props.moreFail&&!this.state.moreTried){this.setState({more:'failed',moreTried:true});this.ev('Older page failed; loaded rows kept');}
+      else{const n=this.state.pages+1;this.setState({more:'idle',pages:n});this.ev('Loaded page '+n+(this.state.filter==='unread'&&n===2?' (0 unread rows after filtering)':''));}},800);}
+  setFilter(f){if(f===this.state.filter)return;const keep=Object.keys(this.state.rows).filter(k=>!this.state.rows[k].read).map(Number);
+    this.setState({filter:f,keep,pages:1,more:'idle',moreTried:this.state.moreTried,inbox:'loading'});const el=this.notifRef.current;if(el)el.scrollTop=0;
+    this.later(()=>this.setState(s=>s.inbox==='loading'?{inbox:'ok'}:null),this.props.reduced?200:450);this.ev(f==='unread'?'Server read filter: unread':'All notifications');}
+  onNotifScroll(e){const el=e.currentTarget;this._ns=el.scrollTop;const s=this.state;
+    if(s.auth==='sam'&&s.filter==='all'&&s.inbox==='ok'&&s.more==='idle'&&s.pages<3&&el.scrollTop+el.clientHeight>el.scrollHeight-120)this.loadMore();
+    clearTimeout(this._rt);this._rt=setTimeout(()=>this.report(),150);}
+  mark(c,base){const dk=this.props.theme==='dark';const box=Math.round(base*(this.ax()?1.4:1));const isIcon=!!c.icon;
+    return {box:box+'px',rad:Math.round(box*0.3)+'px',isIcon,isSq:!isIcon,icon:'fa-solid '+(c.icon||''),sq:Math.round(box*0.55)+'px',color:c.color,gs:Math.round(box*0.5)+'px',
+      bg:isIcon?`color-mix(in oklch, ${c.color} ${dk?30:15}%, var(--bg,#FFFFFF))`:'transparent',
+      fg:dk?`color-mix(in oklch, ${c.color} 60%, var(--ink,#ECEBF0))`:`color-mix(in oklch, ${c.color} 85%, var(--ink,#1B1A1F))`,
+      ring:isIcon?`inset 0 0 0 0.5px color-mix(in oklch, ${c.color} 35%, transparent)`:'none'};}
+  ackView(r,id,inRow){const a=r?r.ack:'idle';const red=this.props.reduced;
+    const M={pending:{text:inRow?'Marking as read…':'Marking as read…',icon:'fa-solid fa-circle-notch',anim:red?'none':'ntSpin 0.9s linear infinite',color:'var(--ink2,#57555F)'},
+      failed:{text:'Not marked as read. It stays unread.',icon:'fa-solid fa-circle-exclamation',color:'var(--err,#C62828)',btn:'Try again',tap:()=>this.ack(id)},
+      unknown:{text:'Couldn\u2019t confirm it was marked read.',icon:'fa-solid fa-circle-question',color:'var(--ink2,#57555F)',btn:'Check again',tap:()=>this.recheck(id)},
+      checking:{text:'Checking with Fomio Community…',icon:'fa-solid fa-circle-notch',anim:red?'none':'ntSpin 0.9s linear infinite',color:'var(--ink2,#57555F)'}};
+    const v=M[a];if(!v)return {has:false};return {has:true,text:v.text,icon:v.icon,anim:v.anim||'none',color:v.color,hasBtn:!!v.btn,btn:v.btn||'',tap:v.tap||(()=>{})};}
+  row(id){const n=NF[id],r=this.state.rows[id],ax=this.ax();const t=n.topic?T[n.topic]:null,c=t?CAT[t.cat]:null;const unread=!r.read;let a,b,lead;const ls=Math.round(36*(ax?1.3:1))+'px';
+    if(n.unsup){a='Activity Fomio can\u2019t show yet';b='';lead={s:ls,bg:'var(--fill,#F3F2F6)',fg:'var(--ink2,#57555F)',fs:'15px',isIcon:true,isAv:false,icon:'fa-solid fa-circle-info'};}
+    else if(n.count){a=n.count+' new replies';b=n.replyTo===1?' to your topic':' to your post';lead={s:ls,bg:'var(--accSoft,#EFEBFD)',fg:'var(--acc,#5B3FD6)',fs:'15px',isIcon:true,isAv:false,icon:'fa-regular fa-comments'};}
+    else{const u=U[n.actor];a=u.n;b=n.type===15?' mentioned @'+n.grp:VERB[n.type];lead={s:ls,bg:u.av,fg:'#FFFFFF',fs:'15px',isAv:true,isIcon:false,ch:u.n.charAt(0)};}
+    const title=t?t.title:(n.topicTitle||'');const noteMeta=n.unsup?(n.web?'Opens on the website':'Not available in the app'):'';
+    const ak=this.ackView(r,id,true);
+    return {key:'n'+id,id,unread,unreadAttr:unread?'true':'false',dotVis:unread?'visible':'hidden',a,b,aw:unread?'700':'600',bColor:unread?'var(--ink,#1B1A1F)':'var(--ink2,#57555F)',
+      hasTitle:!!title,title,tw:unread?'600':'400',clamp:ax?3:2,lead,hasCat:!!c,catName:c?c.name:'',mk:c?this.mark(c,16):{},hasNoteMeta:!!noteMeta,noteMeta,noteIcon:n.web?'fa-solid fa-arrow-up-right-from-square':'fa-solid fa-ban',ago:n.ago,
+      aria:[unread?'Unread':null,a+b,title||null,c?'In '+c.name:null,noteMeta||null,n.ago].filter(Boolean).join('. '),
+      hasAck:ak.has,ackText:ak.text,ackIcon:ak.icon,ackAnim:ak.anim,ackColor:ak.color,hasAckBtn:ak.hasBtn,ackBtn:ak.btn,ackTap:ak.tap,ackIndent:(18+parseInt(ls)+10)+'px',
+      onTap:()=>this.openNotif(id)};}
+  post(tk,num,opt){const p=P[tk+':'+num];if(!p)return null;const u=U[p.u];opt=opt||{};
+    const base={key:'p'+num,num:String(num),hlAttr:opt.hl?'true':'false',name:u.n,av:u.av,ch:u.n.charAt(0),meta:'#'+num+' · '+p.ago,x:p.x,hasQuote:!!p.q,q:p.q||'',fs:'calc(17px * var(--ts,1))',color:'var(--ink,#1B1A1F)',
+      pad:'14px 0',bg:'transparent',ring:'none',hasTag:false,tag:'',tagIcon:'',tagColor:''};
+    if(opt.ctx)Object.assign(base,{pad:'12px 14px',bg:'var(--fill,#F3F2F6)',fs:'calc(15px * var(--ts,1))',color:'var(--ink2,#57555F)',hasTag:true,tag:opt.ctx,tagIcon:'fa-solid fa-reply',tagColor:'var(--ink2,#57555F)'});
+    if(opt.hl)Object.assign(base,{pad:'14px',bg:'var(--accSoft,#EFEBFD)',ring:'inset 0 0 0 1.5px var(--acc,#5B3FD6)',hasTag:true,tag:opt.hl,tagIcon:'fa-solid fa-bell',tagColor:'var(--acc,#5B3FD6)'});
+    if(opt.isNew)Object.assign(base,{pad:'14px 0 14px',hasTag:true,tag:'New reply',tagIcon:'fa-solid fa-circle',tagColor:'var(--acc,#5B3FD6)'});
+    return base;}
+  overlay(scr,i,stk){const s=this.state,red=this.props.reduced,rtl=this.rtl();const roots={home:'Home',communities:'Communities',notifications:'Notifications',me:'Me'};
+    const prev=i===0?roots[s.tab]:(stk[i-1].t==='settings'?'Settings':'Back');
+    const o={key:'o'+scr.k,kind:scr.t,anim:scr.still||red?'none':(rtl?'ntPushR':'ntPush')+' 0.34s cubic-bezier(.2,.8,.2,1)',back:()=>this.pop(),backLabel:prev,backAria:'Back to '+prev,padBot:'150px',noop:()=>{},
+      isTopic:false,isUnsup:false,isSettings:false,isSignin:false,isMismatch:false,isSearch:false};
+    if(scr.t==='topic'){const n=NF[scr.n],t=T[n.topic],c=CAT[t.cat];const r=s.rows[scr.n];const ph=scr.phase||'shown';
+      let posts=[],branchHead='',moreBelow='';
+      if(n.count){if(n.replyTo===1){posts=[this.post(n.topic,1,{ctx:'Your topic'})];branchHead=n.count+' new replies to your topic';}
+        else{posts=[this.post(n.topic,n.replyTo,{ctx:'Your post'})];branchHead=n.count+' new replies to your post';}
+        posts=posts.concat(n.posts.map(x=>this.post(n.topic,x,{isNew:true})));moreBelow=n.replyTo===1?'Earlier replies are above the new ones in the full topic.':'Showing replies to your post. Other replies in this topic are not shown here.';}
+      else{if(n.replyTo)posts.push(this.post(n.topic,n.replyTo,{ctx:n.replyTo===1?'In reply to your topic':'In reply to your post'}));
+        const hl=n.type===1?'You were mentioned':n.type===3?'You were quoted':n.type===15?'@'+n.grp+' was mentioned':'Reply to you';
+        posts.push(this.post(n.topic,n.post,{hl}));const nx=this.post(n.topic,n.post+1);if(nx)posts.push(nx);}
+      posts=posts.filter(Boolean);const ak=this.ackView(r,scr.n,false);
+      const unav=ph==='unavail',off=ph==='offline';
+      Object.assign(o,{isTopic:true,showHead:!unav,title:t.title,catName:c.name,catAria:'Community: '+c.name,mk:this.mark(c,22),
+        isLoadingT:ph==='loading',isShown:ph==='shown',isUnavailT:unav||off,
+        uHead:off?'You\u2019re offline':'This post isn\u2019t available',uBody:off?'Connect to the internet and try again. The notification stays unread until the post opens.':'It may have been deleted, or you may no longer have access. The notification stays in your inbox, unread.',
+        retry:()=>this.retryTarget(scr),posts,hasBranchHead:!!branchHead,branchHead,hasMoreBelow:!!moreBelow&&ph==='shown',moreBelow,
+        hasAck:ak.has&&ph==='shown',ackText:ak.text,ackIcon:ak.icon,ackAnim:ak.anim,ackColor:ak.color,hasAckBtn:ak.hasBtn,ackBtn:ak.btn,ackTap:ak.tap,
+        replyOff:ph!=='shown'||t.cat===22,replyLabel:t.cat===22?'Closed':'Reply',replyBg:ph==='shown'&&t.cat!==22?'var(--acc,#5B3FD6)':'var(--fill,#F3F2F6)',replyFg:ph==='shown'&&t.cat!==22?'var(--accInk,#FFFFFF)':'var(--ink3,#6B6973)',
+        onReply:()=>this.setState({composer:{text:'',pending:null,target:t.title}})});}
+    if(scr.t==='unsup'){const n=NF[scr.n];Object.assign(o,{isUnsup:true,hasWeb:!!n.web,webHost:n.web||'',
+      uHead:n.web?'Open this on the website':'Fomio can\u2019t show this notification',
+      uBody:n.web?'This kind of notification isn\u2019t supported in the app yet. You can view it on Fomio Community\u2019s website. It stays unread here until it\u2019s read on the website.':'There\u2019s no link for this kind of activity yet. It stays in your inbox.',
+      openWeb:()=>{this.setState({web:{kind:'page',title:n.topicTitle?'Activity on '+n.topicTitle:'Activity'}});this.ev('Website fallback opened for #'+scr.n);}});}
+    if(scr.t==='settings')Object.assign(o,{isSettings:true,backLabel:prev,openPrefs:()=>this.setState({web:{kind:'page',title:'Notification preferences'}})});
+    if(scr.t==='signin')Object.assign(o,{isSignin:true,back:()=>{this.pop();this.ev('Sign-in cancelled; intent dropped');}});
+    if(scr.t==='mismatch')Object.assign(o,{isMismatch:true});
+    if(scr.t==='search')o.isSearch=true;
+    return o;}
+  status(){const s=this.state,red=this.props.reduced,spin=red?'none':'ntSpin 0.9s linear infinite';
+    const pri=(label,role,fn)=>({key:role,label,role,onTap:fn,bg:'var(--acc,#5B3FD6)',fg:'var(--accInk,#FFFFFF)'});const sec=(label,role,fn)=>({key:role,label,role,onTap:fn,bg:'var(--accSoft,#EFEBFD)',fg:'var(--acc,#5B3FD6)'});
+    const D=this.dev(),dn=D.phone?'iPhone':'iPad',os=D.phone?'iOS':'iPadOS';
+    const ios=()=>{this.setState({ios:true});this.ev('Opened '+os+' Settings (mock)');};
+    let v;
+    if(s.reg==='detached')v={label:'Off',icon:'fa-regular fa-bell-slash',color:'var(--ink2,#57555F)',desc:'Signed out, so this '+dn+' no longer receives alerts for that account.',actions:[]};
+    else if(s.perm==='denied')v={label:'Not allowed',icon:'fa-regular fa-bell-slash',color:'var(--ink2,#57555F)',desc:'Alerts are turned off for Fomio in '+os+' Settings. Your inbox still updates whenever you open the app.',actions:[pri('Open '+os+' Settings','open-ios',ios)]};
+    else if(s.perm==='allowed'&&s.reg==='registering')v={label:'Finishing setup',icon:'fa-solid fa-circle-notch',anim:spin,color:'var(--ink2,#57555F)',desc:os+' allows alerts. Fomio is still connecting this '+dn+' to Fomio Community, so alerts can\u2019t arrive yet.',actions:[]};
+    else if(s.perm==='allowed'&&s.reg==='failed')v={label:'Setup didn\u2019t finish',icon:'fa-solid fa-circle-exclamation',color:'var(--err,#C62828)',desc:os+' allows alerts, but this '+dn+' isn\u2019t connected for alerts yet. Your inbox still works.',actions:[pri('Try again','reg-retry',()=>this.register())]};
+    else if(s.perm==='allowed'&&s.reg==='renewing')v={label:'Updating',icon:'fa-solid fa-circle-notch',anim:spin,color:'var(--ink2,#57555F)',desc:'Refreshing this '+dn+'\u2019s alert setup. Alerts may pause until it finishes.',actions:[]};
+    else if(s.perm==='allowed'&&s.reg==='ready')v={label:'On',icon:'fa-solid fa-circle-check',color:'var(--acc,#5B3FD6)',desc:'Alerts can arrive for replies, quotes and mentions. Timing depends on Focus and your community settings.',actions:[sec('Manage in '+os+' Settings','open-ios',ios)]};
+    else if(s.perm==='allowed')v={label:'Allowed',icon:'fa-regular fa-bell',color:'var(--ink2,#57555F)',desc:os+' allows alerts. Setup hasn\u2019t started on this '+dn+'.',actions:[pri('Finish setup','reg-retry',()=>this.register())]};
+    else v={label:'Off',icon:'fa-regular fa-bell-slash',color:'var(--ink2,#57555F)',desc:'Get alerts on this '+dn+' when someone replies to you, quotes you or mentions you.',actions:[pri('Turn on alerts','turn-on',()=>{this.setState({enable:'explain'});this.ev('Explanation shown after explicit tap');})]};
+    return {...v,anim:v.anim||'none',hasActions:v.actions.length>0};}
+  renderVals(){const p=this.props,s=this.state,d=this.dev(),ax=this.ax(),red=!!p.reduced,rtl=this.rtl();const dn=d.phone?'iPhone':'iPad',os=d.phone?'iOS':'iPadOS';const tabH=ax?72:62;
+    const stk=s.stacks[s.tab];const top=stk[stk.length-1];const pad=!d.phone;const sideW=pad?280:0;
+    const navTop=d.sb+4;const signed=s.auth==='sam'||s.auth==='ama';
+    const ids=this.visIds();const rows=ids.map(id=>this.row(id));
+    const p2u=P2.filter(id=>s.rows[id]&&!s.rows[id].read).length;
+    const gap=s.filter==='unread'&&s.more==='idle'&&((s.pages===2&&p2u===0)||(rows.length===0&&s.badge>0&&s.pages<3));
+    const inboxOk=s.inbox!=='loading';
+    const emptyAll=signed&&inboxOk&&s.auth==='ama';const emptyUnread=signed&&inboxOk&&s.auth==='sam'&&s.filter==='unread'&&rows.length===0&&s.badge===0;
+    const hasRows=signed&&inboxOk&&s.auth==='sam'&&!emptyUnread;
+    const notes={refreshFail:{icon:'fa-solid fa-circle-exclamation',color:'var(--err,#C62828)',text:'Couldn\u2019t refresh. Showing notifications from 9:12.',hasAction:true,action:'Try again',onTap:()=>{this.setState({inbox:'loading'});this.later(()=>{this.setState({inbox:'ok'});this.ev('Refresh succeeded');},900);}},
+      offline:{icon:'fa-solid fa-wifi',color:'var(--ink2,#57555F)',text:'You\u2019re offline. Showing notifications from 9:12.',hasAction:false},
+      reconnected:{icon:'fa-solid fa-arrows-rotate',color:'var(--ink2,#57555F)',text:'Back online. Notifications are up to date.',hasAction:false},
+      synced:{icon:'fa-solid fa-arrows-rotate',color:'var(--ink2,#57555F)',text:'Updated. 1 notification was read on another device.',hasAction:false}};
+    const noteKey=s.inbox==='refreshFail'||s.inbox==='offline'?s.inbox:s.note;const note=notes[noteKey];
+    const tabsDef=[['home','Home','fa-solid fa-house'],['communities','Communities','fa-solid fa-layer-group'],['notifications','Notifications','fa-solid fa-bell'],['me','Me','fa-solid fa-circle-user']];
+    const showTabs=d.phone&&!(top&&top.t==='topic');
+    const al=s.alert;let alert={title:'',body:'',buttons:[],dir:'row'};
+    if(al&&al.kind==='perm')alert={title:'\u201cFomio\u201d Would Like to Send You Notifications',body:'Notifications may include alerts, sounds and icon badges. These can be configured in Settings.',dir:'row',
+      buttons:[{key:'d',label:'Don\u2019t Allow',role:'perm-deny',fw:'400',sepL:'none',sepT:'none',onTap:()=>{this.setState({alert:null,perm:'denied'});this.ev('Permission denied (simulated)');}},
+        {key:'a',label:'Allow',role:'perm-allow',fw:'600',sepL:'0.5px solid var(--sysSep,rgba(60,60,67,0.29))',sepT:'none',onTap:()=>{this.setState({alert:null,perm:'allowed'});this.register();}}]};
+    if(al&&al.kind==='leave')alert={title:'Open the notification?',body:'Your reply has changes. If you open the notification, the draft is saved on this '+dn+'.',dir:'column',
+      buttons:[{key:'k',label:'Keep Writing',role:'keep-writing',fw:'600',sepL:'none',sepT:'none',onTap:()=>{this.setState(x=>({alert:null,composer:x.composer?{...x.composer,pending:al.id}:null}));this.ev('Kept writing; notification #'+al.id+' waiting');}},
+        {key:'o',label:'Save Draft and Open',role:'leave-open',fw:'400',sepL:'none',sepT:'0.5px solid var(--sysSep,rgba(60,60,67,0.29))',onTap:()=>{this.setState({alert:null,composer:null,stacks:{...s.stacks,notifications:[]}});this.toast('Draft saved on this '+dn);this.openNotif(al.id,true);}}]};
+    const pushN=NF[5012];const pu=U[pushN.actor];const push={head:pu.n+' replied to your post',body:T[pushN.topic].title};
+    const st=this.status();
+    const me=s.auth==='ama'?U.ama:U.sam;
+    return {rootRef:this.rootRef,notifRef:this.notifRef,dir:rtl?'rtl':'ltr',deviceName:p.device||'phone390',zoom:p.zoom||1,
+      W:d.w+'px',H:(p.height||d.h)+'px',frameRad:d.phone?'48px':'22px',isPad:pad,sideW:sideW+'px',sideTop:(d.sb+56)+'px',cStart:sideW+'px',
+      colMax:pad?'640px':'none',padX:d.px+'px',padXo:(d.phone?d.px-6:d.px)+'px',padTop:(d.sb+(d.phone?56:60))+'px',padTopO:(d.sb+60)+'px',padBot:(d.phone?24+tabH+44:48)+'px',
+      navTop:navTop+'px',navH:(d.sb+56)+'px',sbH:d.sb+'px',sbPad:d.phone?'34px':'22px',sbColor:s.lock?'#FFFFFF':(s.ios?'var(--sysInk,#000)':'var(--ink,#1B1A1F)'),netIcon:s.inbox==='offline'?'fa-solid fa-plane':'fa-solid fa-wifi',
+      backIcon:rtl?'fa-solid fa-chevron-right':'fa-solid fa-chevron-left',fwdIcon:rtl?'fa-solid fa-chevron-left':'fa-solid fa-chevron-right',upIcon:'fa-solid fa-arrow-up',
+      notifVis:s.tab==='notifications'?'visible':'hidden',isHomeRoot:s.tab==='home',isCommRoot:s.tab==='communities',isMeRoot:s.tab==='me',
+      isGuestRoot:!signed,isSignedRoot:signed,
+      guestHead:s.auth==='expired'?'Your session ended':'Sign in to see notifications',
+      guestBody:s.auth==='expired'?'Sign in again to see replies, quotes and mentions. Notifications from your previous session are hidden until you do.':'Replies, quotes and mentions from Fomio Community show up here after you sign in.',
+      openAuth:()=>{this.setState({web:{kind:'auth'}});this.ev('Web sign-in opened (simulated)');},
+      filters:[['all','All'],['unread','Unread']].map(([k,l])=>({key:k,label:l,pressed:s.filter===k?'true':'false',onTap:()=>this.setFilter(k),bg:s.filter===k?'var(--bg,#FFFFFF)':'transparent',sh:s.filter===k?'0 1px 3px rgba(0,0,0,0.12)':'none',fw:s.filter===k?'600':'500'})),
+      hasNote:!!note&&signed,note:note||{},
+      showNewPill:!!s.newPill&&s.auth==='sam',pillTop:(d.sb+52)+'px',
+      showNew:()=>{this.setState(x=>({extra:[x.newPill,...x.extra],newPill:null}));const el=this.notifRef.current;if(el)el.scrollTo({top:0,behavior:red?'auto':'smooth'});this.ev('New notification shown at top');},
+      isLoading:signed&&s.inbox==='loading',skels:[{key:'a',w:'60%'},{key:'b',w:'45%'},{key:'c',w:'70%'},{key:'d',w:'52%'}],
+      isEmptyAll:emptyAll,isEmptyUnread:emptyUnread,showAll:()=>this.setFilter('all'),hasRows,rows,
+      footLoading:s.more==='loading',footFailed:s.more==='failed',footGap:gap,footMore:s.more==='idle'&&s.pages<3&&!gap&&s.inbox==='ok',footEnd:s.pages>=3&&s.more==='idle',
+      loadMore:()=>this.loadMore(),spin:red?'none':'ntSpin 0.9s linear infinite',onNotifScroll:e=>this.onNotifScroll(e),
+      homeRows:[2,3,6,10].map(id=>({key:'h'+id,title:T[id].title,cat:CAT[T[id].cat].name})),
+      commRows:[20,30,40].map(id=>({key:'c'+id,name:CAT[id].name,icon:'fa-solid '+CAT[id].icon,bg:`color-mix(in oklch, ${CAT[id].color} 15%, var(--bg,#FFFFFF))`,fg:CAT[id].color})),
+      meSigned:signed,meGuest:!signed,meAv:me.av,meCh:me.n.charAt(0),meName:me.n,meHandle:s.auth==='ama'?'@ama':'@sam',
+      openSettings:()=>this.openSettings(),logout:()=>this.logout(),
+      overlays:stk.map((x,i)=>this.overlay(x,i,stk)),st,
+      showRootBar:!stk.length&&(s.tab==='notifications'||s.tab==='home'),showSearchBtn:d.phone,showGear:s.tab==='notifications',openSearch:()=>this.tabPush({t:'search'}),
+      showTabs,tabFs:ax?(d.w<=320?'13px':'14px'):'11px',tabIcon:ax?'20px':'17px',tabH:tabH+'px',deviceHeading:'This '+dn,osSettings:os+' Settings (simulated)',
+      enableBody:'Fomio can alert you on this '+dn+' when someone replies to you, quotes you or mentions you. Alerts follow your community settings and Focus, and can arrive late. You can turn them off any time in '+os+' Settings.',tabSide:(d.px-4)+'px',barBottom:d.phone?'24px':'20px',
+      tabs:tabsDef.map(([k,l,ic])=>{const b=k==='notifications'&&s.badge>0;return {key:k,label:l,icon:ic,cur:s.tab===k?'page':'false',hasBadge:b,badge:s.badge>99?'99+':String(s.badge),
+        aria:l+(b?', '+s.badge+' unread':''),bg:s.tab===k?'var(--tabSel,rgba(91,63,214,0.14))':'transparent',fg:s.tab===k?'var(--acc,#5B3FD6)':'var(--ink,#1B1A1F)',
+        onTap:()=>this.setState(x=>x.tab===k?{stacks:{...x.stacks,[k]:[]}}:{tab:k})};}),
+      hasToast:!!s.toast,toast:s.toast||'',toastBottom:showTabs?(24+tabH+14)+'px':'110px',fadeAnim:red?'none':'ntFade 0.2s ease-out',popAnim:red?'none':'ntPop 0.22s ease-out',dropAnim:red?'none':'ntDrop 0.3s cubic-bezier(.2,.8,.2,1)',
+      hasComposer:!!s.composer,composerPending:!!(s.composer&&s.composer.pending),composerText:s.composer?s.composer.text:'',composerTarget:s.composer&&s.composer.target?s.composer.target:T[2].title,
+      onComposerText:e=>{const v=e.target.value;this.setState(x=>({composer:{...x.composer,text:v}}));},
+      closeComposer:()=>{const pend=s.composer&&s.composer.pending;this.setState({composer:null});if(s.composer&&s.composer.text)this.toast('Draft saved on this '+dn);if(pend)this.later(()=>this.openNotif(pend,true),300);},
+      askLeave:()=>this.setState({alert:{kind:'leave',id:s.composer.pending}}),
+      sheetTop:d.phone?(d.sb+30)+'px':'18%',sheetAnim:red?'none':'ntSheet 0.32s cubic-bezier(.2,.8,.2,1)',
+      hasEnable:s.enable==='explain',notNow:()=>{this.setState({enable:null});this.ev('Not now: no system prompt shown');},enableContinue:()=>{this.setState({enable:null,alert:{kind:'perm'}});this.ev('Simulated system prompt');},
+      hasAlert:!!al,alert,alertW:Math.min(d.w-48,Math.round(270*(ax?1.5:1)))+'px',
+      hasWebSheet:!!s.web,webIsAuth:!!s.web&&s.web.kind==='auth',webIsPage:!!s.web&&s.web.kind==='page',webTitle:s.web&&s.web.title?s.web.title:'Sign in',webDone:s.web&&s.web.kind==='auth'?'Cancel':'Done',
+      closeWeb:()=>{const wasAuth=s.web&&s.web.kind==='auth';this.setState({web:null});if(wasAuth)this.ev('Sign-in cancelled; intent kept');},
+      authChoices:[{key:'sam',role:'auth-sam',name:'Sam Okafor',handle:'@sam',av:U.sam.av,ch:'S',onTap:()=>this.signIn('sam')},{key:'ama',role:'auth-ama',name:'Ama Mensah',handle:'@ama',av:U.ama.av,ch:'A',onTap:()=>this.signIn('ama')}],
+      hasBanner:!!s.banner&&!s.lock,bannerTop:(d.sb+2)+'px',push,bannerAria:'Fomio notification. '+push.head+'. '+push.body,
+      tapBanner:()=>this.pushTap(s.banner,'fg'),
+      hasLock:!!s.lock,lockTop:(d.sb+30)+'px',lockTime:d.phone?'84px':'96px',tapLock:()=>this.pushTap(s.lock.id,s.lock.mode),hasSplash:s.splash,
+      hasIos:s.ios,iosAnim:red?'none':'ntFade 0.25s ease-out',iosOn:s.perm==='allowed'?'true':'false',iosTrack:s.perm==='allowed'?'#34C759':'var(--iosSub,#6C6C70)',iosKnob:s.perm==='allowed'?'22px':'2px',
+      iosFoot:s.perm==='allowed'?'Return to Fomio to finish setting up alerts.':'Allow Notifications is off. Fomio can\u2019t show alerts on this '+dn+'.',
+      iosToggle:()=>{const on=s.perm!=='allowed';this.setState({perm:on?'allowed':'denied',reg:on?s.reg:'none'});this.ev(os+' Settings: Allow Notifications '+(on?'on':'off'));},
+      iosBack:()=>{this.setState({ios:false});if(this.state.perm==='allowed'&&this.state.reg!=='ready')this.register();}
+    };
+  }
+}
+</script>
+</body>
+</html>

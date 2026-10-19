@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Device-local feed presentation. Both appearances render the same topics, order, pins and destinations.
 enum FeedAppearance: String, CaseIterable, Identifiable {
@@ -196,15 +197,29 @@ struct TopicMedia: View {
     let source: Source
     let style: Style
     @Binding var failed: Bool
+    @State private var loaded: UIImage?
     var body: some View {
         switch source {
         case let .asset(name): framed(Image(name).resizable().scaledToFill())
         case let .remote(url):
-            AsyncImage(url: url, transaction: Transaction(animation: nil)) { phase in
-                switch phase {
-                case let .success(image): framed(image.resizable().scaledToFill())
-                case .failure: Color.clear.frame(width: 0, height: 0).onAppear { failed = true }
-                default: framed(Color.fomioFill).accessibilityLabel("Loading image")
+            // An explicit request instead of AsyncImage: on iOS 27 AsyncImage stayed in its loading phase for failed
+            // URLs (missing file, refused connection), so the card never fell back to text. Public media only; the
+            // shared session never carries user keys.
+            Group {
+                if let loaded { framed(Image(uiImage: loaded).resizable().scaledToFill()) }
+                else { framed(Color.fomioFill).accessibilityLabel("Loading image") }
+            }
+            .task(id: url) {
+                guard loaded == nil else { return }
+                do {
+                    let (data, response) = try await URLSession.shared.data(for: URLRequest(url: url, timeoutInterval: 20))
+                    if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) { failed = true; return }
+                    guard let image = UIImage(data: data) else { failed = true; return }
+                    loaded = image
+                } catch {
+                    // Scrolling a lazy card away cancels the request; only a real failure removes the slot.
+                    if Task.isCancelled || (error as? URLError)?.code == .cancelled || error is CancellationError { return }
+                    failed = true
                 }
             }
         }

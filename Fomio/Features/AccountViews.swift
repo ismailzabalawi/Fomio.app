@@ -312,63 +312,6 @@ struct SavedView: View {
         do { let result = try await app.service.saved(username: username, page: page); items += result.items.filter { item in !items.contains { $0.id == item.id } }; nextPage = result.nextPage; error = nil; loaded = true } catch { self.error = error.localizedDescription }
     }
 }
-struct NotificationsView: View {
-    @Environment(AppState.self) private var app
-    @State private var items: [Notice] = []
-    @State private var nextPage: Int? = 0
-    @State private var error: String?
-    @State private var loading = false
-    var body: some View {
-        Group {
-            if app.username == nil {
-                ScrollView {
-                    InfoCard(title: "Sign in to see notifications", message: "Find out when someone replies to you or mentions you.") {
-                        Button("Sign in") { app.requestSignIn() }.buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).frame(minHeight: 44)
-                    }.padding(20)
-                }
-            } else {
-                List {
-                    ForEach(items.filter { !app.isBlocked($0.actor) }) { notice in
-                        Button { open(notice) } label: { row(notice) }.buttonStyle(.plain)
-                            .accessibilityLabel("\(notice.read ? "" : "Unread. ")\(notice.text) in \(notice.title), post \(notice.number?.rawValue ?? 0)\(notice.age.isEmpty ? "" : ", \(notice.age)")")
-                    }
-                    if loading { ProgressView() }
-                    if let error { Text(error); Button("Try again") { Task { await load() } } }
-                    else if nextPage != nil && !items.isEmpty { Button("More notifications") { Task { await load() } } }
-                    else if items.isEmpty && !loading { Text("No replies or mentions yet.").foregroundStyle(Color.fomioSecondaryText) }
-                }.listStyle(.plain)
-            }
-        }.background(Color.fomioBackground).navigationTitle("Notifications")
-        .toolbar { RootToolbar(app: app) }
-        .task(id: app.username) { items = []; nextPage = 0; await load() }
-    }
-    private func row(_ notice: Notice) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            Circle().fill(notice.read ? Color.clear : Color.fomioAccent).frame(width: 8, height: 8).padding(.top, 15)
-            Image(systemName: notice.kind == .reply ? "arrowshape.turn.up.left.fill" : "at").font(.footnote.weight(.bold)).accessibilityHidden(true).foregroundStyle(Color.fomioAccent).frame(width: 34, height: 34).background(Color.fomioHighlight, in: .circle)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(notice.text).font(.body.weight(notice.read ? .regular : .semibold)).foregroundStyle(.primary)
-                Text(notice.title).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).lineLimit(2)
-                Text(([notice.read ? nil : "Unread", notice.number.map { "#\($0.rawValue)" }, notice.age.isEmpty ? nil : notice.age] as [String?]).compactMap { $0 }.joined(separator: " · "))
-                    .font(.footnote.weight(notice.read ? .regular : .semibold)).foregroundStyle(notice.read ? Color.fomioSecondaryText : Color.fomioAccent)
-            }
-            Spacer(minLength: 0)
-        }.padding(.vertical, 8).frame(minHeight: 44).contentShape(.rect)
-    }
-    private func open(_ notice: Notice) {
-        if let index = items.firstIndex(where: { $0.id == notice.id }), !items[index].read { items[index].read = true; app.unreadCount = max(0, app.unreadCount - 1) }
-        Task { do { try await app.service.markRead(notice) } catch { app.banner = error.localizedDescription } }
-        guard let topic = notice.topicID else { app.navigate(.unavailable); return }
-        app.navigate(.discussion(topic, notice.number), focus: notice.number.map { $0.rawValue > 1 } == true ? .notification : nil)
-    }
-    private func load() async {
-        guard !loading, app.username != nil, let page = nextPage else { return }; loading = true; defer { loading = false }
-        do {
-            let result = try await app.service.notifications(page: page); items += result.items.filter { notice in !items.contains { $0.id == notice.id } }; nextPage = result.nextPage; error = nil
-            app.unreadCount = items.filter { !$0.read && !app.isBlocked($0.actor) }.count
-        } catch { self.error = error.localizedDescription }
-    }
-}
 struct SearchView: View {
     @Environment(AppState.self) private var app
     @Bindable var state: TabState

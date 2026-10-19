@@ -59,6 +59,16 @@ Out of the original MVP: offline sending queue, server drafts, push transport, H
 
 2026-10-18: the user identified properly wired notifications as a pre-public requirement. The [notifications IA and integration map](notifications-ia.md) scopes inbox/read/count corrections, grouped destinations, foreground freshness and push/relay/device acceptance. Push remains unimplemented; this planning requirement does not establish relay configuration or device delivery.
 
+**Notifications implementation (2026-10-18, branch `claude/fomio-notifications`, not merged or uploaded):** inbox, destinations, exact acknowledgment, totals, reconciliation, account isolation, device-setup states and incoming-tap boundary are implemented and fixture/stub tested ([validation](validation/2026-10-18-notifications/README.md)). Live acceptance is not done. External push dependencies, none provisioned or assumed:
+
+1. A Fomio-owned HTTPS relay that receives Discourse's hub envelope (validates `push_api_secret_key`), maps `client_id` to APNs tokens and sends via an APNs key for team `LK9253R3XB`, topic `com.fomio.mobile`, sandbox and production.
+2. An authenticated device-enrollment contract (client ID ↔ token ↔ account binding, rotation, deletion on sign-out/revocation) that does not hand the relay a user API key; retention, retry, deduplication and monitoring policy.
+3. Discourse admin settings: the relay URL in hidden `allowed_user_api_push_urls`, `push_api_secret_key`; `push` already appears in the recorded `allow_user_api_key_scopes`.
+4. App: Push Notifications capability/`aps-environment` entitlement and profile, a re-authorization that sends `push_url` (existing keys have none), APNs registration wired to the enrollment API, privacy-label review.
+5. A tap payload carrying `notification_id`: the hub envelope has none, so acknowledgment from a push needs a verified server-side addition (e.g., a plugin payload modifier) or remains disabled.
+
+Until these exist, live Settings truthfully show alerts as not available.
+
 ## Keyboard follow-up — 2026-10-04
 
 Implemented a native single-line title field with distinct title/body focus, native Next/Done keyboard controls, interactive dismissal in composer/search/directory, retained search query on submission/navigation, Command-Return for guarded Post and Escape for protected Cancel. Native text selection is captured/restored through Keep editing and the community chooser; the Photos picker uses the same suspension path. Composer recovery messages receive scroll/accessibility focus, with Reduce Motion respected. Editing focus is cleared before sending and when inputs lock. No keyboard-height constants or custom focus navigation for ordinary buttons were introduced.

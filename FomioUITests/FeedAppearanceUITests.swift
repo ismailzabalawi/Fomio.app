@@ -113,7 +113,9 @@ import XCTest
         XCTAssertTrue(sparse.label.contains("No replies yet"))
         let failed = app.buttons["topic-5004"]
         scrollUntilHittable(app, failed)
-        XCTAssertFalse(failed.label.contains("Has image"), "Failed media falls back to text")
+        // The image request starts when the card appears; its failure is asynchronous, so wait for the fallback.
+        let fallback = XCTNSPredicateExpectation(predicate: NSPredicate(format: "NOT (label CONTAINS 'Has image')"), object: failed)
+        XCTAssertEqual(XCTWaiter.wait(for: [fallback], timeout: 10), .completed, "Failed media falls back to text")
         // Toolbar controls are system glass items; the options button matches the system Search control.
         XCTAssertEqual(app.buttons["feed-options"].frame.height, app.buttons["Search discussions"].frame.height)
         loadSecondPage(app)

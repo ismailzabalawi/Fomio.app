@@ -158,9 +158,9 @@ import UIKit
         let app = launch(["--preset", "newtopic"])
         let body = app.textViews["composer-body"]
         XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("Heading")
-        app.buttons["composer-block-type"].tap()
-        app.buttons["composer-turn-into-Heading 2"].tap()
-        app.buttons["composer-more"].tap(); app.buttons["Format"].tap()
+        tapSettled(app.buttons["composer-block-type"])
+        chooseTurnInto(app, "composer-turn-into-Heading 2")
+        tapSettled(app.buttons["composer-more"]); app.buttons["Format"].tap()
         for label in ["Bold", "Italic", "Link"] {
             let action = app.buttons[label].firstMatch
             XCTAssertTrue(action.waitForExistence(timeout: 5)); XCTAssertTrue(action.isEnabled)
@@ -172,11 +172,11 @@ import UIKit
         app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
         let body = app.textViews["composer-body"]
         XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("Recovery check")
-        app.buttons["composer-block-type"].tap(); app.buttons["composer-turn-into-Heading 2"].tap()
+        tapSettled(app.buttons["composer-block-type"]); chooseTurnInto(app, "composer-turn-into-Heading 2")
         XCTAssertEqual(body.value as? String, "Recovery check")
-        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        tapSettled(app.buttons["composer-more"]); app.buttons["Edit in Markdown"].tap()
         XCTAssertEqual(body.value as? String, "## Recovery check")
-        app.buttons["composer-more"].tap(); app.buttons["Rich text"].tap()
+        tapSettled(app.buttons["composer-more"]); app.buttons["Rich text"].tap()
         app.buttons["composer-close"].tap(); app.buttons["Keep draft"].tap()
         XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
         app.terminate(); app.launch()
@@ -186,7 +186,7 @@ import UIKit
         let draft = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Resume draft:")).firstMatch
         XCTAssertTrue(draft.waitForExistence(timeout: 5)); draft.tap()
         XCTAssertTrue(body.waitForExistence(timeout: 5)); XCTAssertEqual(body.value as? String, "Recovery check")
-        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        tapSettled(app.buttons["composer-more"]); app.buttons["Edit in Markdown"].tap()
         XCTAssertEqual(body.value as? String, "## Recovery check")
         let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Recovered formatted draft after relaunch"; capture.lifetime = .keepAlways; add(capture)
     }
@@ -194,22 +194,22 @@ import UIKit
         let app = launch(["--preset", "newtopic"])
         let body = app.textViews["composer-body"]
         XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("Sand the surface")
-        app.buttons["composer-block-type"].tap(); app.buttons["composer-turn-into-Checklist"].tap()
+        tapSettled(app.buttons["composer-block-type"]); chooseTurnInto(app, "composer-turn-into-Checklist")
         XCTAssertEqual(body.value as? String, "Sand the surface")
         let check = app.buttons["composer-task-0"]
         XCTAssertTrue(check.waitForExistence(timeout: 5)); XCTAssertEqual(check.value as? String, "Unchecked"); check.tap()
         XCTAssertEqual(check.value as? String, "Checked")
-        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        tapSettled(app.buttons["composer-more"]); app.buttons["Edit in Markdown"].tap()
         XCTAssertEqual(body.value as? String, "- [x] Sand the surface")
     }
     func testVisualHeadingMarkdownPreviewAndReturnPreserveDraft() {
         let app = launch(["--preset", "newtopic"])
         let body = app.textViews["composer-body"]
         XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("What I tried")
-        app.buttons["composer-block-type"].tap(); app.buttons["composer-turn-into-Heading 2"].tap()
+        tapSettled(app.buttons["composer-block-type"]); chooseTurnInto(app, "composer-turn-into-Heading 2")
         XCTAssertEqual(body.value as? String, "What I tried")
         let visual = XCTAttachment(screenshot: app.screenshot()); visual.name = "WYSIWYG heading without syntax"; visual.lifetime = .keepAlways; add(visual)
-        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        tapSettled(app.buttons["composer-more"]); app.buttons["Edit in Markdown"].tap()
         XCTAssertEqual(body.value as? String, "## What I tried")
         body.typeText("\n> A quieter finish\n- Thin coats")
         let source = body.value as? String
@@ -222,16 +222,21 @@ import UIKit
         let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Rendered Markdown preview"; capture.lifetime = .keepAlways; add(capture)
         app.navigationBars.buttons.element(boundBy: 0).tap()
         XCTAssertTrue(body.waitForExistence(timeout: 5)); XCTAssertEqual(body.value as? String, source)
-        app.buttons["composer-more"].tap(); app.buttons["Rich text"].tap()
+        tapSettled(app.buttons["composer-more"]); app.buttons["Rich text"].tap()
         XCTAssertEqual(body.value as? String, "What I tried\nA quieter finish\nThin coats")
         body.typeText(" matter")
-        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        tapSettled(app.buttons["composer-more"]); app.buttons["Edit in Markdown"].tap()
         XCTAssertEqual(body.value as? String, source! + " matter")
     }
     func testLargestTextSelectionFitsBar() {
         let app = launch(["--preset", "newtopic", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"])
         let body = app.textViews["composer-body"]
-        XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("Audit paragraph")
+        XCTAssertTrue(body.waitForExistence(timeout: 5))
+        // At this size the wrapped destination and title push the body's centre below the screen (iOS 27: y 788–988
+        // on an 874-pt window), so a centre tap misses. Tap its visible top edge; focus then scrolls it into view.
+        let visibleTop = min(0.5, max(0.02, (app.frame.maxY - body.frame.minY - 24) / max(body.frame.height, 1)))
+        body.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: visibleTop)).tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5)); body.typeText("Audit paragraph")
         body.press(forDuration: 1.1)
         let selectAll = app.menuItems["Select All"]
         if selectAll.waitForExistence(timeout: 2) { selectAll.tap() }
@@ -258,7 +263,7 @@ import UIKit
             XCTAssertTrue(app.buttons[id].isHittable); XCTAssertTrue(app.frame.contains(app.buttons[id].frame))
         }
         let selection = XCTAttachment(screenshot: app.screenshot()); selection.name = "Polished contextual selection bar"; selection.lifetime = .keepAlways; add(selection)
-        done.tap(); app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        done.tap(); tapSettled(app.buttons["composer-more"]); app.buttons["Edit in Markdown"].tap()
         XCTAssertTrue((body.value as? String)?.contains("**") == true)
     }
     func testComposerCatalogueQuickQuoteAndSearchRecovery() {
@@ -279,11 +284,25 @@ import UIKit
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5)); XCTAssertEqual(body.value as? String, "What I tried")
         app.buttons["composer-insert"].tap(); app.buttons["Quote"].tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5)); body.typeText("Two thin coats")
-        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        tapSettled(app.buttons["composer-more"]); app.buttons["Edit in Markdown"].tap()
         XCTAssertEqual(body.value as? String, "What I tried\n> Two thin coats")
     }
     override func setUp() { continueAfterFailure = false; MainActor.assumeIsolated { XCUIDevice.shared.orientation = .portrait } }
     override func tearDown() { MainActor.assumeIsolated { XCUIDevice.shared.orientation = .portrait } }
+    /// The formatting bar rides the keyboard; right after typing it can still be moving (iOS 27 probe: y 784 → 490 within
+    /// ~0.4 s), so a tap computed mid-move lands where the control was. Tap once its frame has settled.
+    private func tapSettled(_ element: XCUIElement, timeout: TimeInterval = 5) {
+        XCTAssertTrue(element.waitForExistence(timeout: timeout))
+        var last = element.frame
+        let end = Date().addingTimeInterval(timeout)
+        repeat { Thread.sleep(forTimeInterval: 0.15); let now = element.frame; if now == last { break }; last = now } while Date() < end
+        element.tap()
+    }
+    /// Chooses a Turn into option and verifies the strip closed, so a missed tap fails here rather than later.
+    private func chooseTurnInto(_ app: XCUIApplication, _ identifier: String) {
+        tapSettled(app.buttons[identifier])
+        if identifier != "composer-turn-into-close" { XCTAssertTrue(app.buttons["composer-turn-into-close"].waitForNonExistence(timeout: 3), "\(identifier) applied and the strip closed") }
+    }
     private func launch(_ arguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication(); app.launchArguments = arguments.contains("--live") ? arguments : ["--fixture", "--ui-testing"] + arguments; app.launchEnvironment["FOMIO_UI_TEST_NAMESPACE"] = UUID().uuidString; app.launch()
         if !arguments.contains("--live") {
@@ -319,7 +338,7 @@ import UIKit
         XCTAssertLessThanOrEqual(keyboard.frame.minY - more.frame.maxY, 64, "Only the prediction row should separate formatting controls from the keys")
         more.tap(); app.buttons["Format"].tap(); app.buttons["Bold"].firstMatch.tap()
         body.typeText("Bold")
-        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        tapSettled(app.buttons["composer-more"]); app.buttons["Edit in Markdown"].tap()
         XCTAssertEqual(body.value as? String, "Before **Bold**")
         app.buttons["composer-close"].tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
@@ -331,7 +350,7 @@ import UIKit
         body.tap(); body.typeText("What I tried")
         let chip = app.buttons["composer-block-type"]; XCTAssertTrue(chip.waitForExistence(timeout: 5))
         XCTAssertEqual(chip.label, "Turn into: Paragraph")
-        chip.tap(); let heading = app.buttons["composer-turn-into-Heading 2"]; XCTAssertTrue(heading.waitForExistence(timeout: 5)); heading.tap()
+        tapSettled(chip); chooseTurnInto(app, "composer-turn-into-Heading 2")
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == %@", "Turn into: Heading 2"), object: chip)], timeout: 5), .completed)
         XCTAssertTrue(app.keyboards.firstMatch.exists, "Changing the block type keeps the keyboard up")
         app.buttons["composer-insert"].tap()
@@ -340,7 +359,7 @@ import UIKit
         app.buttons["composer-insert-cancel"].tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
         body.typeText(" first")
-        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        tapSettled(app.buttons["composer-more"]); app.buttons["Edit in Markdown"].tap()
         XCTAssertEqual(body.value as? String, "## What I tried first", "Cancel changes nothing and returns to the captured caret")
         app.buttons["composer-close"].tap(); app.buttons["Discard"].tap()
     }
@@ -358,14 +377,15 @@ import UIKit
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
         // After the pushed form closes, the bar must float above the keyboard again rather than behind it.
         let keyboardTop = app.keyboards.firstMatch.frame.minY
-        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in app.buttons["composer-more"].frame.maxY <= keyboardTop }, object: nil)], timeout: 5), .completed)
-        app.buttons["composer-more"].tap()
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in app.buttons["composer-more"].frame.maxY <= keyboardTop }, object: nil)], timeout: 5), .completed,
+                       "Bar \(app.buttons["composer-more"].frame) vs keyboard top \(keyboardTop) (keyboard now \(app.keyboards.firstMatch.frame))")
+        tapSettled(app.buttons["composer-more"])
         let markdown = app.buttons["Edit in Markdown"]
-        if !markdown.waitForExistence(timeout: 2) { app.buttons["composer-more"].tap() }
+        if !markdown.waitForExistence(timeout: 2) { tapSettled(app.buttons["composer-more"]) }
         XCTAssertTrue(markdown.waitForExistence(timeout: 5)); markdown.tap()
         XCTAssertTrue((body.value as? String)?.contains("let greeting = 1") == true)
         XCTAssertTrue((body.value as? String)?.contains("```") == true)
-        app.buttons["composer-more"].tap(); app.buttons["Rich text"].tap()
+        tapSettled(app.buttons["composer-more"]); app.buttons["Rich text"].tap()
         let editBlock = app.buttons["composer-block-edit-code"]
         XCTAssertTrue(editBlock.waitForExistence(timeout: 5), "A rich block must expose its native editing card")
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: editBlock)], timeout: 5), .completed)
@@ -426,7 +446,7 @@ import UIKit
         create.tap(); app.buttons["composer-destination"].tap(); app.buttons["destination-toggle-1"].tap(); XCTAssertTrue(app.buttons["destination-2"].waitForExistence(timeout: 5)); app.buttons["destination-2"].tap()
         XCTAssertTrue(app.textViews["composer-title"].waitForExistence(timeout: 5)); app.textViews["composer-title"].tap(); app.textViews["composer-title"].typeText("Photo recovery")
         app.textViews["composer-body"].tap(); app.textViews["composer-body"].typeText("Writing stays")
-        app.buttons["composer-more"].tap(); let sample = app.buttons["Sample photo"]; XCTAssertTrue(sample.waitForExistence(timeout: 5)); sample.tap()
+        tapSettled(app.buttons["composer-more"]); let sample = app.buttons["Sample photo"]; XCTAssertTrue(sample.waitForExistence(timeout: 5)); sample.tap()
         XCTAssertTrue(app.buttons["Retry upload"].waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["composer-post"].isEnabled)
         app.buttons["composer-close"].tap(); XCTAssertTrue(app.buttons["Keep draft"].waitForExistence(timeout: 5)); app.buttons["Keep draft"].tap()
         XCTAssertTrue(app.buttons["New discussion"].waitForExistence(timeout: 5))
@@ -459,7 +479,7 @@ import UIKit
         let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5))
         body.tap(); body.typeText("مرحبا Fomio")
         let written = body.value as? String
-        app.buttons["composer-more"].tap()
+        tapSettled(app.buttons["composer-more"])
         XCTAssertTrue(app.buttons["التحرير بصيغة Markdown"].waitForExistence(timeout: 5)); app.buttons["التحرير بصيغة Markdown"].tap()
         XCTAssertEqual(body.value as? String, written)
         XCUIDevice.shared.orientation = .landscapeLeft

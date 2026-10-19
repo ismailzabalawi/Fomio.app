@@ -133,18 +133,6 @@ struct ChildPage: Sendable { var nodes: [ThreadNode]; var nextPage: Int? }
 struct ThreadContext: Sendable { var page: DiscussionPage; var ancestors: [Post]; var target: ThreadNode; var truncated: Bool }
 struct Page<Value: Sendable>: Sendable { var items: [Value]; var nextPage: Int? }
 struct Member: Identifiable, Sendable { var username: String; var name: String?; var bio: String; var recent: [DiscussionSummary]; var joined: String? = nil; var id: String { username } }
-struct Notice: Identifiable, Sendable {
-    enum Kind: Sendable { case reply, mention }
-    var id: Int
-    var kind: Kind
-    var actor: String
-    var title: String
-    var topicID: TopicID?
-    var number: PostNumber?
-    var age = ""
-    var read: Bool
-    var text: String { actor + (kind == .reply ? " replied to you" : " mentioned you") }
-}
 struct SavedItem: Identifiable, Sendable { var id: Int; var title: String; var topicID: TopicID; var number: PostNumber?; var categoryID: CategoryID? = nil; var postAuthor: String? = nil }
 
 enum ComposerIntent: Codable, Hashable, Sendable {

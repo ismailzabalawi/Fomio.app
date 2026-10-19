@@ -17,6 +17,10 @@ struct DiscussionView: View {
                         PendingNoticeSlot().padding(.horizontal, -20).padding(.bottom, 8)
                         if let page = state.page {
                             header(page)
+                            if let id = app.tabs[app.selectedTab]?.notificationRoutes[state.route] { NotificationAcknowledgmentStatus(id: id).padding(.bottom, 12) }
+                            if case let .groupedReplies(count)? = state.focus, case .discussion(_, nil) = state.route {
+                                Label("\(count) new replies to your discussion · Newest first", systemImage: "bubble.left.and.bubble.right").font(.subheadline.weight(.semibold)).foregroundStyle(Color.fomioAccent).padding(.bottom, 12)
+                            }
                             if case .discussion(_, .some) = state.route, state.focus != .published {
                                 Button("Show all replies") { app.navigate(.discussion(state.topicID, nil)) }.font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44).background(Color.fomioFill, in: .capsule).padding(.bottom, 12)
                             }
@@ -67,7 +71,9 @@ struct DiscussionView: View {
                 }
             }
         }
-        .task { if state.page == nil { await state.load() } }
+        .task { if state.page == nil { await state.load() }; app.displayed(state.route, state: state) }
+        .onChange(of: state.loading) { _, loading in if !loading { app.displayed(state.route, state: state) } }
+        .onChange(of: state.requiredContentReady) { _, ready in if ready { app.displayed(state.route, state: state) } }
         .refreshable { await state.load(refresh: true) }
         .onChange(of: app.safetyRevision) { _, _ in Task { await state.load(refresh: true) } }
     }
@@ -94,13 +100,16 @@ struct DiscussionView: View {
     }
     @ViewBuilder private func failure(_ error: String) -> some View {
         if state.page == nil, state.errorKind == .unavailable {
-            ScreenMessage(title: "This post isn't available", message: "It may have been deleted, or moved somewhere you can't see.", symbol: "bubble.left.and.exclamationmark.bubble.right", actionTitle: "Back") { app.tabs[app.selectedTab]?.path.removeLast() }
+            ScreenMessage(title: "This post isn't available", message: fromNotification ? "It may have been deleted, or you may no longer have access. The notification stays in your inbox, unread." : "It may have been deleted, or moved somewhere you can't see.", symbol: "bubble.left.and.exclamationmark.bubble.right", actionTitle: "Back") { app.tabs[app.selectedTab]?.path.removeLast() }
         } else if state.page == nil, state.errorKind == .denied {
             ScreenMessage(title: "You don't have access", message: "This discussion is only open to some members.", symbol: "lock", actionTitle: "Back") { app.tabs[app.selectedTab]?.path.removeLast() }
+        } else if state.page == nil, state.errorKind == .offline, fromNotification {
+            ScreenMessage(title: "You’re offline", message: "Connect to the internet and try again. The notification stays unread until the post opens.", symbol: "wifi.slash", action: { Task { await state.load() } })
         } else {
             ScreenMessage(title: state.page == nil ? "Discussion unavailable" : "Couldn’t load more", message: error, action: { Task { if state.page == nil { await state.load() } else { await state.moreRoots() } } })
         }
     }
+    private var fromNotification: Bool { app.tabs[app.selectedTab]?.notificationRoutes[state.route] != nil }
     private func save(_ post: Post) {
         guard app.username != nil else { app.requireMember(.save) { Task { await state.load(refresh: true) } }; return }
         Task {

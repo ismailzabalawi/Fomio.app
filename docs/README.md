@@ -19,6 +19,7 @@ Current native baseline: 2026-10-03. The fixture MVP is implemented; live releas
 ## Design and historical references
 
 - [Notifications IA and integration map](notifications-ia.md) is the 2026-10-18 pre-public planning packet: inbox/types, grouped-reply destinations, read/seen/count semantics, foreground freshness, push enrollment/relay boundaries, current native gaps and delivery acceptance. Source review is distinct from deployed/device verification.
+- [Notifications validation 2026-10-18](validation/2026-10-18-notifications/README.md) records native implementation evidence, simulator limits and live/push gates.
 - [Notifications Claude Design handoff](design/notifications-claude-handoff.md) records the IA-based mockup brief, design destination and browser review status.
 - [Category, subcategory and topic IA](category-topic-ia.md) is the focused 2026-10-06 pre-mockup map: root/child hierarchy, category-feed scope, nested/exact-reply navigation, permission and recovery states, source traces, and current native gaps. Native recommendations are proposals; source review is distinct from deployed verification.
 - [Category/topic Claude Design handoff](design/category-topic-claude-handoff.md) links the new IA-based mockups and records independent browser checks, review screenshots and remaining native/deployment validation.
