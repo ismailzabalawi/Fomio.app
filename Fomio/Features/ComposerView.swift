@@ -17,6 +17,7 @@ struct ComposerView: View {
     private var editingPhoto: ComposerAttachment? { get { if case let .photo(id) = presentation { return state.draft.attachments.first { $0.id == id } }; return nil } nonmutating set { presentation = newValue.map { .photo($0.id) } } }
     @State private var photoDescription = ""
     @State private var restoreTask: Task<Void, Never>?
+    @State private var navigationTransition = ComposerNavigationTransition()
     @State private var suspendedFocus: Field?
     @State private var titleEditor = EditorController()
     @State private var bodyEditor = EditorController()
@@ -100,7 +101,7 @@ struct ComposerView: View {
                 }
             }
             }
-            .background(ComposerDismissGuard(blocked: state.hasChanges, submitting: state.draft.submission == .submitting, onAttempt: { close() }).frame(width: 0, height: 0))
+            .background(ComposerDismissGuard(blocked: state.hasChanges, submitting: state.draft.submission == .submitting, transition: navigationTransition, onAttempt: { close() }).frame(width: 0, height: 0))
             .confirmationDialog(keepTitle, isPresented: presented(.exit), titleVisibility: .visible) {
                 Button(state.photoWillBeLost && state.photoUnfinished ? "Keep draft without photo" : "Keep draft") { state.keepDraft() }
                 Button(state.resumed ? "Discard draft" : "Discard", role: .destructive) { state.discard() }
@@ -150,7 +151,7 @@ struct ComposerView: View {
             .onChange(of: presentation) { previous, current in
                 if current == nil, case .block = previous { blockAffix = nil }
                 // A pushed form's keyboard would otherwise stay up across the pop, and the composer never
-                // receives the keyboard safe area, leaving the bar behind the keys. Restore brings it back.
+                // receives the keyboard safe area, leaving the bar behind the keys. Restore brings it back once the pop settles.
                 if current == nil, let previous, Self.isPushed(previous) {
                     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
                 }
@@ -213,6 +214,8 @@ struct ComposerView: View {
         restoreTask?.cancel()
         restoreTask = Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(350))
+            // A pop that outlasts the delay (a loaded device) would leave the bar behind the keyboard.
+            await navigationTransition.finished()
             guard !Task.isCancelled, !state.locked, app.composer?.id == state.id, !showPhotoPicker, !choosingCommunity, !showExit else { return }
             focusedField = field
             await Task.yield()

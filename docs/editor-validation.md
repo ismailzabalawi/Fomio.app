@@ -95,3 +95,28 @@ This remains a bounded native Markdown projection, not Discourse's complete cook
 On iPad Pro 11-inch (M5), iPadOS 26.1, all four requested composer journeys passed: selection formatting, checklist creation/checking, visual → Markdown → Preview → editing, and formatted draft recovery after terminating/relaunching the app. Recovery required explicit Keep draft and Resume; both the visual heading and exact raw `## Recovery check` were verified after relaunch. No live post was created. Result: `test_sim_2026-10-15T18-14-10-936Z_pid335_ecfc57e2.xcresult` (4 passed, 0 failures/skips). The new recovery UI regression is retained in the suite.
 
 A new Claude Code thread, “Composer release handoff”, was created in Fomio.app with the test summary and instructions to wait without editing or running commands. Release preparation increments 0.8.0 to build 5; upload outcome is recorded in release readiness only after Apple confirms it.
+
+## Floating bar behind the keyboard after a pushed block form — 2026-10-19
+
+Base revision: `4f0111e`, working-tree fix. Xcode 27.1; dedicated iPhone 17 / iOS 27.0 simulators created for this investigation (A, B, C). `testNativeBlockFormAndMarkdownRoundTrip` and its assertion are unchanged.
+
+**Symptom.** After Save in the pushed Code form, the keyboard returns (top ≈ 546–590) but the floating bar stays at the bottom safe area (bar `maxY` ≈ 840, bottom safe inset 34). It failed on newly created simulators and passed on settled ones with the same build, independent of notifications work.
+
+**Root cause (app defect, timing-dependent).** `restoreEditingFocus()` refocused the body after a fixed 350 ms. Temporary `KBDIAG` logging (keyboard notifications, bar global frame and safe-area insets, focus restore, and whether the composer's `UINavigationController` still had a `transitionCoordinator`) showed the following:
+
+- Failing runs (fresh A; same-build control with the new wait disabled): after Save the global resign posts `willHide`. At 350 ms the **pop transition is still running** (`transitioning=1`), and focus is restored. `didHide`, then `willChangeFrame` (end y 546), `willShow` and `didShow` all follow, but the bar never moves from y 780 and its safe area stays 34. A keyboard that appears while the pop is still animating reaches the screen, but the returning composer never gets the keyboard safe area.
+- Passing runs: the same notifications arrive after the pop has settled, and the bar moves to y 486 with a bottom safe area of 328. Earlier in the same test, the inserter sheet (not a navigation transition) restored correctly.
+- Why fresh simulators: during first boot, iOS 27.0 runs poster/wallpaper extensions (`KaleidoscopePoster`, `EmojiPoster`, at ~95% CPU each). On the shared host (load average 340–470), this stretches the pop past 350 ms. Once simulator A had settled, its next run reported `transitioning=0` at 350 ms, and the race did not occur.
+
+**Fix.** `ComposerNavigationTransition` (in `ComposerDismissGuard.swift`) finds the composer's navigation controller through the existing guard view. `restoreEditingFocus()` now waits for any in-flight push/pop to complete (`transitionCoordinator.animate(alongsideTransition:completion:)`) after the 350 ms delay and before refocusing. It returns at once when nothing is transitioning, so sheet and dialog returns are unchanged.
+
+| Run | Simulator | Build | Result |
+|---|---|---|---|
+| diag-A1 | fresh A | baseline + logging | failed at bar/keyboard assertion; restore before pop settled |
+| ctrlA1 | A | fix with wait disabled | failed, `transitioning=1` at restore |
+| fixB1 | fresh B (first run) | fix + logging | passed; `transitioning=1`, waited ≈130 ms, bar moved to y 486 |
+| fixA1 | A (settled) | fix + logging | passed; `transitioning=0` (no wait needed) |
+| finalC1, finalC2 | fresh C (new) | final fix | 2/2 passed |
+| regB | B | final fix | 6/6 passed: block form round trip, heading/preview return, catalogue quote/search, Turn into + inserter cancel, Next + Keep editing, caret formatting/source switch |
+
+The first baseline attempt on fresh A (`base-A`) failed earlier at a UI-query timeout during first-boot load. This is not evidence for this defect. Result bundles were kept in the session scratchpad, not in the repository. Not covered: iPad, physical devices, and other pushed forms (Link, Photo description, Preview), which share the fixed restore path but were not separately exercised by UI tests here.
