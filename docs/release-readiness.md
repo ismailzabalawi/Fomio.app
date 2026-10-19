@@ -112,3 +112,17 @@ Immediately preceding release, all four requested iPad Simulator composer journe
 ## Submission fixes — 2026-10-18 follow-up
 
 Build 0.8.0 (7) includes dynamic native report flow, server-persisted Ignore/block and unblock with account-scoped content filtering, eligible self-deletion, policy/support links, callback registration and expanded privacy manifest. Live policies/contact and owner-approved reporting/Ignore/deletion limits updated. Connect native metadata and linked privacy labels saved. Final simulator regression:102passes,0failures,4opt-in live skips. Signed device archive and distribution IPA pass packaging/signature checks. Final member/device acceptance and listing assets remain; see [current submission packet](app-store-submission.md) and [validation](validation/2026-10-18-submission/README.md). Earlier build 6 blockers are historical.
+
+
+## Build 0.9.0 (8) upload — 2026-10-20
+
+Owner-authorized push and upload only; no App Review submission, automatic review submission or release was performed.
+
+- **Source:** `59793c237305cf59cf6c1b292a9f98a15289da2f` on `main` (version commit on top of `293f3fa`: build 7 baseline, native notifications, composer transition fix, both audit-fix rounds, composer-bar test synchronization).
+- **Verification before release:** two independent clean complete suites on that code, each 183 tests (176 passed, 7 opt-in skips, 0 failed) on iOS 27.0 simulators, independently audited ([validation](validation/2026-10-18-notifications/README.md), [clean-suite review](validation/2026-10-19-independent-audit/clean-suite-review.md)).
+- **Version:** 0.8.0 is approved and closed for new builds (the earlier 0.8.0 (8) upload was rejected with “train version '0.8.0' is closed”, so no build 8 existed). `MARKETING_VERSION` 0.9.0, `CURRENT_PROJECT_VERSION` 8 in `project.yml`, regenerated project; packaged Info.plist resolves 0.9.0 (8).
+- **Archive:** Xcode 27.1 (27A9275), Release, generic iOS, automatic signing, team `LK9253R3XB`: `ARCHIVE SUCCEEDED` (`.build/release-0.9.0-8/Fomio.xcarchive` in the integration worktree).
+- **Export and checks:** app-store-connect export succeeded. IPA SHA-256 `ae178fe667b65dd681746cdc8b688c58faad0607380aa7f774759f4ee75093a5`. Signed by Apple Distribution: Ismail Zabalawi (LK9253R3XB); `codesign --verify --deep --strict` passes; entitlements: application identifier `LK9253R3XB.com.fomio.mobile`, `beta-reports-active` true, `get-task-allow` false, no push entitlement. `scripts/submission_preflight.py`: 20 PASS, no failures.
+- **Upload:** `xcodebuild -exportArchive` with destination `upload` on 2026-10-20 at 00:00:34 +03. Apple reported “Uploading Fomio.ipa is complete … Uploaded package is processing … Upload succeeded.” Exit 0.
+- **Processing:** not yet confirmed in App Store Connect by this session; the in-app browser was not signed in. Check TestFlight / Activity for 0.9.0 (8) before selecting it for a version.
+- **Not established:** live APNs/relay delivery (unavailable by design; live Settings show alerts as not available), live Discourse notification acceptance, iPad and physical-device acceptance. App Review submission remains pending for the owner.
