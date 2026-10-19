@@ -293,10 +293,23 @@ import UIKit
     /// ~0.4 s), so a tap computed mid-move lands where the control was. Tap once its frame has settled.
     private func tapSettled(_ element: XCUIElement, timeout: TimeInterval = 5) {
         XCTAssertTrue(element.waitForExistence(timeout: timeout))
+        waitForRaisedKeyboard(app: XCUIApplication(), above: element)
         var last = element.frame
         let end = Date().addingTimeInterval(timeout)
         repeat { Thread.sleep(forTimeInterval: 0.15); let now = element.frame; if now == last { break }; last = now } while Date() < end
         element.tap()
+    }
+    /// `typeText` drives a virtual (Recap) hardware keyboard; while UIKit treats it as attached, the software keyboard
+    /// is minimized and the bar drops to the bottom. UIKit notices the detach on its own 0.5–6.6 s later (iOS 27
+    /// simulator logs, 36 of 38 cases without any touch). A tap computed in that window lands where the bar no longer
+    /// is. When a keyboard is present, wait until it is on screen with `element` above it.
+    private func waitForRaisedKeyboard(app: XCUIApplication, above element: XCUIElement, timeout: TimeInterval = 10) {
+        let keyboard = app.keyboards.firstMatch
+        guard keyboard.exists else { return }
+        let raised = NSPredicate { _, _ in
+            keyboard.exists && keyboard.frame.minY < app.frame.maxY - 40 && element.exists && element.frame.maxY <= keyboard.frame.minY + 1
+        }
+        _ = XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: raised, object: nil)], timeout: timeout)
     }
     /// Chooses a Turn into option and verifies the strip closed, so a missed tap fails here rather than later.
     private func chooseTurnInto(_ app: XCUIApplication, _ identifier: String) {
@@ -314,7 +327,13 @@ import UIKit
     private func dismissComposerKeyboard(_ app: XCUIApplication) {
         guard app.keyboards.firstMatch.exists else { return }
         // The floating bar's own control; a drag on a short reply also pulls the sheet and opens Keep/Discard.
-        let toggle = app.buttons["composer-keyboard"]; XCTAssertEqual(toggle.label, "Hide keyboard"); toggle.tap()
+        let toggle = app.buttons["composer-keyboard"]
+        // The software keyboard must be back (not minimized by XCTest's virtual typing keyboard) with the bar above it.
+        let keyboard = app.keyboards.firstMatch
+        let raised = NSPredicate { _, _ in keyboard.exists && keyboard.frame.minY < app.frame.maxY - 40 && toggle.exists && toggle.frame.maxY <= keyboard.frame.minY + 1 }
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: raised, object: nil)], timeout: 10), .completed,
+                       "Keyboard \(keyboard.frame) and bar toggle \(toggle.frame) after typing")
+        XCTAssertEqual(toggle.label, "Hide keyboard"); tapSettled(toggle)
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
         // Hiding the keyboard keeps the floating bar reachable above the safe area.
         let docked = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true AND label == %@", "Show keyboard"), object: app.buttons["composer-keyboard"])

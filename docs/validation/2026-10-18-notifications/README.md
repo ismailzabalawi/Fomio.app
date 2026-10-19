@@ -106,3 +106,27 @@ Unit/contract target on the final code: 133 executed, 129 passed, 4 skipped (opt
 | `FomioUITests.testSwipeDismissalProtectsChangedWriting` (line 318, keyboard still present 5 s after Hide keyboard) | The toggle was tapped about 2 s after typing; the floating bar rides the keyboard and can still be moving (earlier probe: 300 pt within 0.4 s). The shared `dismissComposerKeyboard` helper does not yet use `tapSettled` | Passed 3/3 |
 
 Neither test exercises the notification store or model changed by the audit fixes. They are recorded as intermittent under load, not as passes; no assertion was changed. Recommended test-only follow-up: use `tapSettled` in `dismissComposerKeyboard`.
+
+
+## Remaining UI failures resolved and clean complete run — 2026-10-19
+
+Both failures from the run above were traced from `.build/final-complete.xcresult` (screen recordings, failure hierarchies, synthesized-event records) and the simulator's unified log.
+
+| Failure | Root cause (evidence) | Resolution |
+| --- | --- | --- |
+| `FeedAppearanceUITests.testDarkAccessibilityTextAndRightToLeftCaptures` | **Input from outside the test.** The recording shows the Feed options menu open (t ≈ 22–51 s); at failure the app was on the Notifications tab. UIKit logged touches at 16:29:20.65 (menu dismissed) and 16:29:23.72–.97 (`send control actions`, tab selected) while XCTest only queried for “Compact” and synthesized nothing. XCTest touches arrive through short-lived testmanagerd “Recap” digitizers; these came from the persistent host digitizer `11073EA000125` (Simulator window input). Codex Computer Use (`SkyComputerUseService`) was running on the host. Only `AppState.receive(_:)` selects Notifications in code, and no intent was delivered; the selection was a tab tap | No app or test defect; no code change. The final run logged every touch: none came from the host digitizer |
+| `FomioUITests.testSwipeDismissalProtectsChangedWriting` | **Test synchronization.** `typeText` attaches XCTest's virtual “Recap” hardware keyboard; UIKit set `hardwareKeyboardAttached = YES` and minimized the software keyboard at 16:51:04.113, so the bar dropped to the bottom. backboardd detached it at 04.486, but UIKit processed the detach only at 05.847. XCTest's “Hide keyboard” tap was synthesized at (364, 806), the bar's lowered position. Across 38 typing events in these runs UIKit processed the detach a median 1.1 s later (0.5–6.6 s), on its own in 36 cases | `dismissComposerKeyboard` waits until the software keyboard is on screen with the toggle above it (asserted, with frames in the message) and then uses `tapSettled`; `tapSettled` performs the same wait for bar controls when a keyboard is present. No assertion removed |
+
+Targeted verification: `testSwipeDismissalProtectsChangedWriting` 5/5 (`.build/targeted3a.xcresult`). A broader targeted run was cut off when the session ended; the complete run below supersedes it. One complete attempt (`.build/complete-final.xcresult`) is void: the Mac slept with the lid closed on battery (power log: maintenance sleep 18:50–19:20, lid wake 19:20); unit tests passed (133 run, 129 passed, 4 skipped) but the UI runner “timed out while preparing execution worker” and every UI test it attempted was killed.
+
+**Clean complete run (final code).** Command: `xcodebuild -project Fomio.xcodeproj -scheme Fomio -destination "id=CAB241D5-6903-45BC-91E8-FDECC89F6D78" -derivedDataPath .build/dd -resultBundlePath .build/complete-final2.xcresult -parallel-testing-enabled NO test`, worktree `.claude/worktrees/fomio-release-integration`, Xcode 27.1 (27A9275), iOS 27.0 (24A434) simulator “Fomio Release iPhone 17”, freshly rebooted, finished 19:54. Code: `4f52256` plus this keyboard-synchronization test change (committed next).
+
+| Target | Executed | Passed | Skipped | Failed |
+| --- | ---: | ---: | ---: | ---: |
+| Unit/contract | 133 | 129 | 4 | 0 |
+| UI | 50 | 47 | 3 | 0 |
+| **Total** | **183** | **176** | **7** | **0** |
+
+No runner restarts, no sleep during the run, no host-digitizer touches (`.build/complete-final2-touches.log`: 356 contacts from 353 XCTest digitizers). Skips are explicit opt-ins: `FOMIO_LIVE_READ_TESTS=1` (3), `FOMIO_LIVE_WRITE_TESTS=1` (1), live UI reads (1), store captures (2). Result bundle `.build/complete-final2.xcresult`, log `.build/complete-final2.log`.
+
+Still open: marketing-version decision (0.8.0 closed), push/upload (held), live Discourse acceptance, relay/APNs delivery, iPad/physical-device acceptance. Test runs on this host need the simulator left untouched and the Mac awake with the lid open.
