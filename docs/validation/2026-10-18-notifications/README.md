@@ -130,3 +130,42 @@ Targeted verification: `testSwipeDismissalProtectsChangedWriting` 5/5 (`.build/t
 No runner restarts, no sleep during the run, no host-digitizer touches (`.build/complete-final2-touches.log`: 356 contacts from 353 XCTest digitizers). Skips are explicit opt-ins: `FOMIO_LIVE_READ_TESTS=1` (3), `FOMIO_LIVE_WRITE_TESTS=1` (1), live UI reads (1), store captures (2). Result bundle `.build/complete-final2.xcresult`, log `.build/complete-final2.log`.
 
 Still open: marketing-version decision (0.8.0 closed), push/upload (held), live Discourse acceptance, relay/APNs delivery, iPad/physical-device acceptance. Test runs on this host need the simulator left untouched and the Mac awake with the lid open.
+
+## Clean complete suite and root causes of the last two UI failures — 2026-10-19
+
+Requested after the [final fixes review](../2026-10-19-independent-audit/final-fixes-review.md): the earlier complete run (`.build/final-complete.xcresult`) failed 2 of 183. Evidence came from that bundle's failure hierarchies, synthesized-event records and screen recordings, plus the simulator's unified log (`xcrun simctl spawn <udid> log show`).
+
+### `FeedAppearanceUITests.testDarkAccessibilityTextAndRightToLeftCaptures` — input from outside the test
+
+- The Feed options menu **did** open: recording frames 22–48 s show Compact/Cards. It then closed by itself at about 52 s, and the Notifications tab became selected at about 55.5 s. The failure hierarchy is the Notifications screen, not Home.
+- The app's UIKit log shows touch events at 16:29:20.65–.73 (context menu dismissed) and 16:29:23.71–.97 ("send control actions", the tab selection). XCTest's activity log for this test shows no synthesized event at those times; its only tap was Feed options at t 20.55 s (16:28:49). That tap used the usual short-lived testmanagerd "Recap" touch digitizer, attached and detached around it.
+- The foreign touches came from digitizer sender `11073EA000125`, a persistent host digitizer, with no testmanagerd digitizer attached. Only `AppState.receive` selects that tab in code; the tab change matches a direct tab-bar touch instead.
+- A later targeted run on the same simulator was disrupted the same way, and the source was identified: **another Claude Code session started `xcodebuild … -destination id=CAB241D5… -derivedDataPath .build/dd -resultBundlePath .build/complete-final.xcresult test` at 17:52:40**, in this worktree on this simulator (PID 87795; its parent was a different Claude Code process, and a second `testmanagerd`, PID 75833, was serving it). At 17:52:47 it reinstalled Fomio mid-test, and the app then showed live meta.fomio.app content. Our batch (`.build/targeted3b.xcresult`) recorded 1 failure plus 9 runner kills from that point. Whether the 16:29 touches came from that session's earlier activity, another process or a person cannot be proven from these logs; in every case they were not produced by this test.
+- No app or test defect, so no code change. Remedy: an isolated run (below).
+
+### `FomioUITests.testSwipeDismissalProtectsChangedWriting` — synchronization gap, fixed
+
+- XCTest's `typeText` attached a virtual "Recap" HID keyboard at 16:51:04.112. UIKit logged `hardwareKeyboardAttached = YES` and minimized the software keyboard (`setMinimized:1`); SpringBoard shows the keyboard frame moving off-screen at 04.182. The bar dropped to its no-keyboard position.
+- backboardd detached the virtual keyboard at 04.486, but the app processed the detach (`detachHardwareKeyboard`, `setMinimized:0`) only at 05.847. In between, XCTest computed the “Hide keyboard” tap from the bar's lowered frame: the synthesized event is at (364, 806), while the failure hierarchy has the toggle at y 490 above a keyboard at y 590.
+- Across this simulator's logs, 38 typing sessions show that lag: median 1.1 s, up to 6.6 s. 36 of them resolved with no touch, so waiting is valid.
+- Fix (`FomioUITests/FomioUITests.swift`): `dismissComposerKeyboard` now waits up to 10 s until the software keyboard is on screen with the bar toggle above it, with the frames in the failure message, then uses `tapSettled`. `tapSettled` performs the same wait for bar controls whenever a keyboard is present. No assertion, retry policy or test was removed.
+- Targeted: the swipe test passed 5/5 (`.build/targeted3a.xcresult`). The feed test and all `FomioUITests` before the concurrent install passed (`.build/targeted3b.xcresult`, before 17:52:47).
+
+### Final isolated complete suite
+
+- Code: `4f5225620552a3fcd839076514372773ca893182` plus this test-helper change, committed after the run as the follow-up below (no app code changed after the run).
+- Environment: Xcode 27.1 (27A9275), iOS 27.0 (24A434) simulator, new dedicated **Fomio Isolated Suite iPhone 17** `BA47EA08-4BCF-4579-BF2B-80F3BB24151A`, own derived data `.build/isolated-dd`. Started after the other session's run exited (19:26:24).
+- A watcher (`.build/isolated-watch.log`) sampled every 20 s for processes referencing the simulator: 0 foreign `xcodebuild`/`simctl` entries; only the simulator's own launchd_sim, the UI test runner and the app.
+
+```sh
+xcodebuild -project Fomio.xcodeproj -scheme Fomio -destination "id=BA47EA08-4BCF-4579-BF2B-80F3BB24151A" -derivedDataPath .build/isolated-dd -resultBundlePath .build/isolated-complete.xcresult -parallel-testing-enabled NO test
+```
+
+**Result: TEST SUCCEEDED — 183 tests: 176 passed, 7 skipped, 0 failed, 0 runner restarts.** Unit/contract: 133 executed, 4 skipped, 0 failures. UI: 50 executed, 3 skipped, 0 failures. Bundle and log: `.build/isolated-complete.xcresult`, `.build/isolated-complete.log` (integration worktree, ignored build outputs).
+
+Skips are all opt-in by design:
+- `LiveDiscourseTests` ×4 need `FOMIO_LIVE_READ_TESTS=1` / `FOMIO_LIVE_WRITE_TESTS=1` and real credentials.
+- `testCaptureIllustrativeStoreScreenshots` and `testCaptureLiveStoreScreenshots` need explicit store-capture environment flags.
+- `testLiveCategoryChildAboutAndTopicNavigation` needs the live UI read flag.
+
+Remaining gates are unchanged: live Discourse notification reads/writes, MessageBus, relay/APNs delivery, iPad and physical-device acceptance, the marketing-version decision, and push/upload approval.
