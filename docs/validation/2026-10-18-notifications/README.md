@@ -168,4 +168,6 @@ Skips are all opt-in by design:
 - `testCaptureIllustrativeStoreScreenshots` and `testCaptureLiveStoreScreenshots` need explicit store-capture environment flags.
 - `testLiveCategoryChildAboutAndTopicNavigation` needs the live UI read flag.
 
+**Relation to the section above.** That section and commit `df22e03` were written by another session working in this same worktree. `df22e03` carries the same test-helper change, byte for byte, that this isolated run tested. Its result bundles were checked here: `.build/complete-final.xcresult` (started 17:52:40, overlapping and disrupting the targeted run) **failed** (146 executed, 129 passed, 11 failed, 6 skipped); `.build/complete-final2.xcresult` on “Fomio Release iPhone 17” `CAB241D5…` **passed** (183: 176 passed, 7 skipped, 0 failed). With this isolated run on `BA47EA08…`, the same code has two independent clean complete runs on separate simulators.
+
 Remaining gates are unchanged: live Discourse notification reads/writes, MessageBus, relay/APNs delivery, iPad and physical-device acceptance, the marketing-version decision, and push/upload approval.
