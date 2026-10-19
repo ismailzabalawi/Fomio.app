@@ -63,17 +63,13 @@ struct DiscussionView: View {
                     Menu {
                         Button { save(opening) } label: { Label(opening.bookmarkID == nil ? "Save" : "Remove from Saved", systemImage: opening.bookmarkID == nil ? "bookmark" : "bookmark.slash") }
                         ShareButton(topic: opening.topicID, number: nil)
-                        // Separate from reporting the opening post; shown only when Discourse permits flagging the discussion.
-                        if let page = state.page, page.canFlagTopic {
-                            Button { app.startReport(.discussion(page.summary.id, opening: opening.id, author: opening.author), title: page.summary.title) } label: { Label("Report discussion", systemImage: "flag") }
-                        }
-                    } label: { Image(systemName: "ellipsis") }.accessibilityLabel("More actions for this discussion").accessibilityIdentifier("discussion-more")
+                    } label: { Image(systemName: "ellipsis") }.accessibilityLabel("More actions").accessibilityIdentifier("discussion-more")
                 }
             }
         }
         .task { if state.page == nil { await state.load() } }
-        .onChange(of: app.safetyRevision) { Task { await state.load(refresh: true) } }
         .refreshable { await state.load(refresh: true) }
+        .onChange(of: app.safetyRevision) { _, _ in Task { await state.load(refresh: true) } }
     }
     private func header(_ page: DiscussionPage) -> some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -85,7 +81,7 @@ struct DiscussionView: View {
                     Button(app.categoryName(page.summary.categoryID)) { app.navigate(.community(page.summary.categoryID)) }.frame(minHeight: 44)
                 }
             }
-            ScaledTitle(page.summary.title, size: 22)
+            ScaledTitle(app.isBlocked(page.summary.author) ? "Discussion by a blocked member" : page.summary.title, size: 22)
             if page.closed { Label("This discussion is closed", systemImage: "lock").font(.subheadline).foregroundStyle(Color.fomioSecondaryText) }
             if page.archived { Label("This discussion is archived", systemImage: "archivebox").font(.subheadline).foregroundStyle(Color.fomioSecondaryText) }
             if state.truncated { Text("Earlier thread context is unavailable here.").font(.subheadline).foregroundStyle(Color.fomioSecondaryText) }
@@ -158,6 +154,8 @@ struct PostCard: View {
     @Environment(AppState.self) private var app
     let post: Post
     let state: DiscussionState
+    @State private var reporting = false
+    @State private var blocking = false
     private var highlighted: Bool { state.highlight == post.id }
     private var own: Bool { app.username != nil && post.author == app.username }
     var body: some View {
@@ -176,25 +174,24 @@ struct PostCard: View {
                 }.buttonStyle(.plain).accessibilityLabel("View profile, \(post.author)")
                 Spacer()
                 Text("#\(post.number.rawValue)").font(.caption).foregroundStyle(Color.fomioSecondaryText)
-                if !post.deleted { moreMenu }
             }
-            if post.deleted { Text("This reply was deleted.").foregroundStyle(Color.fomioSecondaryText) }
-            else if hiddenByIgnore {
-                IgnoredPlaceholder(text: post.number.rawValue == 1 ? String(localized: "Opening post from someone you ignore") : String(localized: "Reply from someone you ignore")) { Task { await showOnce() } }
-                    .accessibilityIdentifier("ignored-\(post.number.rawValue)")
+            if post.deleted || post.ignored || app.isBlocked(post.author) {
+                Text(post.deleted ? "This reply was deleted." : "This reply is hidden.").foregroundStyle(Color.fomioSecondaryText)
+                if app.isBlocked(post.author) { BlockingButton(username: post.author) }
             }
             else {
-                if let quote = post.quote {
-                    if app.isIgnored(quote.author) && !app.revealed.contains(post.id) { IgnoredPlaceholder(text: String(localized: "Quote from someone you ignore")) { app.revealed.insert(post.id) } }
-                    else { QuoteBlock(quote: quote) }
-                }
+                if let quote = post.quote, !app.isBlocked(quote.author) { QuoteBlock(quote: quote) }
                 if let cooked = post.cooked { CookedContent(html: cooked, topic: post.topicID, number: post.number, textStyle: post.number.rawValue == 1 ? .body : .callout) }
                 else { Text(.init(post.body)).font(post.number.rawValue == 1 ? .body : .callout).textSelection(.enabled) }
                 if let image = post.image { SamplePhoto(name: image) }
                 FlowLayout(spacing: 10) { actions }
-                if app.revealed.contains(post.id) {
-                    Button("Hide again") { app.revealed.remove(post.id) }.font(.subheadline.weight(.semibold)).frame(minHeight: 44)
-                        .accessibilityHint(String(localized: "Collapses this post again. You keep ignoring this person."))
+                if !own, app.username != nil {
+                    Menu {
+                        Button { reporting = true } label: { Label("Report post", systemImage: "flag") }
+                        Button { blocking = true } label: { Label("Block member…", systemImage: "person.crop.circle.badge.xmark") }
+                            .disabled(app.safetyChanging.contains(post.author.lowercased()))
+                    } label: { Label("Safety", systemImage: "ellipsis.circle").frame(minHeight: 44) }
+                    .accessibilityLabel("Report or block @\(post.author), post \(post.number.rawValue)")
                 }
             }
         }.padding(highlighted ? 12 : 0)
@@ -202,43 +199,14 @@ struct PostCard: View {
         .overlay { if highlighted { RoundedRectangle(cornerRadius: 14).strokeBorder(Color.fomioAccent.opacity(0.4), lineWidth: 1.5).accessibilityHidden(true) } }
         .padding(.bottom, 12)
         .accessibilityElement(children: .contain).accessibilityLabel("\(post.number.rawValue == 1 ? "Opening post" : "Reply \(post.number.rawValue)") by \(post.author)")
+        .sheet(isPresented: $reporting) { ReportPostView(post: post) }
+        .modifier(BlockingConfirmation(username: post.author, confirming: $blocking))
         .contextMenu {
             if !post.deleted {
                 Button { save() } label: { Label(post.bookmarkID == nil ? "Save post" : "Remove from Saved", systemImage: post.bookmarkID == nil ? "bookmark" : "bookmark.slash") }
                 ShareButton(topic: post.topicID, number: post.number)
             }
         }
-    }
-    /// Server-hidden replies, plus opening posts and replies the client must hide because their author is ignored.
-    private var hiddenByIgnore: Bool { (post.ignored || app.isIgnored(post.author)) && !app.revealed.contains(post.id) }
-    private var noun: String { post.number.rawValue == 1 ? String(localized: "post") : String(localized: "reply") }
-    /// Report shows only when this account may flag, has flagged, or must sign in; ignored replies are rechecked on open.
-    private var reportable: Bool { !own && (app.username == nil || post.ignored || post.flags.contains { $0.canAct || $0.acted }) }
-    private var moreMenu: some View {
-        Menu {
-            if reportable {
-                Button { app.startReport(.post(post.id, topic: post.topicID, number: post.number, author: post.author), title: state.page?.summary.title ?? "") } label: {
-                    Label(post.number.rawValue == 1 ? String(localized: "Report post") : String(localized: "Report reply"), systemImage: "flag")
-                }
-            }
-            if !post.author.isEmpty {
-                Button { app.navigate(.profile(post.author)) } label: { Label(String(localized: "View \(post.author)’s profile"), systemImage: "person.crop.circle") }
-            }
-            Button { save() } label: { Label(post.bookmarkID == nil ? "Save post" : "Remove from Saved", systemImage: post.bookmarkID == nil ? "bookmark" : "bookmark.slash") }
-            ShareButton(topic: post.topicID, number: post.number)
-        } label: {
-            Image(systemName: "ellipsis").font(.body.weight(.semibold)).foregroundStyle(Color.fomioSecondaryText).frame(width: 44, height: 44).contentShape(.rect)
-        }
-        .accessibilityLabel(String(localized: "More actions for \(noun) by \(post.author)"))
-        .accessibilityIdentifier("post-more-\(post.number.rawValue)")
-    }
-    /// Reveals for this launch only; server-blanked replies are fetched fresh. The Ignore preference is unchanged.
-    private func showOnce() async {
-        if post.ignored {
-            do { var fresh = try await app.service.revealPost(post.id); fresh.canReply = post.canReply; fresh.childCount = post.childCount; fresh.parent = post.parent; state.nodes[post.id] = fresh }
-            catch { app.banner = error.localizedDescription; return }
-        }
-        app.revealed.insert(post.id)
     }
     @ViewBuilder private var actions: some View {
         if own {

@@ -8,6 +8,18 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
     nonisolated(unsafe) static var data = Data()
     nonisolated(unsafe) static var captured: URLRequest?
     nonisolated(unsafe) static var handler: (@Sendable (URLRequest) -> (Int, Data))?
+    nonisolated(unsafe) static var ignored = false
+    static func body(_ request: URLRequest) -> Data {
+        if let data = request.httpBody { return data }
+        guard let stream = request.httpBodyStream else { return Data() }
+        stream.open(); defer { stream.close() }
+        var data = Data(); var buffer = [UInt8](repeating: 0, count: 4096)
+        while stream.hasBytesAvailable {
+            let count = stream.read(&buffer, maxLength: buffer.count)
+            guard count > 0 else { break }; data.append(contentsOf: buffer.prefix(count))
+        }
+        return data
+    }
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
@@ -21,6 +33,135 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
     override func stopLoading() {}
 }
 @MainActor final class ContractTests: XCTestCase {
+    func testBundledAuthenticationCallbackIsRegisteredForIncomingURLs() throws {
+        let configuration = try XCTUnwrap(LiveConfiguration.fromBundle())
+        let types = try XCTUnwrap(Bundle.main.object(forInfoDictionaryKey: "CFBundleURLTypes") as? [[String: Any]])
+        let schemes = types.flatMap { $0["CFBundleURLSchemes"] as? [String] ?? [] }
+        XCTAssertTrue(schemes.contains(try XCTUnwrap(configuration.callbackURL.scheme)))
+    }
+    func testAccountDeletionRechecksCurrentIdentityAndPermission() async throws {
+        let (service, _) = try service(#"{"current_user":{"username":"member","can_delete_account":true}}"#, member: true)
+        StubURLProtocol.handler = { request in
+            if request.httpMethod == "DELETE" {
+                XCTAssertEqual(request.url?.path, "/forum/u/member.json")
+                XCTAssertEqual(request.value(forHTTPHeaderField: "User-Api-Key"), "fictional-test-key")
+                return (200, Data(#"{"success":"OK"}"#.utf8))
+            }
+            XCTAssertEqual(request.url?.path, "/forum/session/current.json")
+            return (200, Data(#"{"current_user":{"username":"member","can_delete_account":true}}"#.utf8))
+        }
+        try await service.deleteAccount(username: "member")
+        XCTAssertEqual(StubURLProtocol.captured?.httpMethod, "DELETE")
+    }
+    func testAccountDeletionDoesNotSendForMissingPermissionOrDifferentIdentity() async throws {
+        let (service, _) = try service(#"{"current_user":{"username":"member"}}"#, member: true)
+        do { try await service.deleteAccount(username: "member"); XCTFail("Expected denial") }
+        catch { XCTAssertEqual(error as? RepositoryError, .denied) }
+        XCTAssertEqual(StubURLProtocol.captured?.httpMethod, "GET")
+        StubURLProtocol.data = Data(#"{"current_user":{"username":"someone_else","can_delete_account":true}}"#.utf8)
+        do { try await service.deleteAccount(username: "member"); XCTFail("Expected identity rejection") }
+        catch { XCTAssertEqual(error as? RepositoryError, .unauthorized) }
+        XCTAssertEqual(StubURLProtocol.captured?.httpMethod, "GET")
+    }
+    func testAccountDeletionRequiresExplicitSuccessAndMemberCredential() async throws {
+        let (service, _) = try service("{}", member: true)
+        StubURLProtocol.handler = { request in
+            (200, Data((request.httpMethod == "DELETE" ? "{}" : #"{"current_user":{"username":"member","can_delete_account":true}}"#).utf8))
+        }
+        do { try await service.deleteAccount(username: "member"); XCTFail("Malformed success must stay uncertain") }
+        catch { XCTAssertEqual(error as? RepositoryError, .unconfirmed) }
+        let (guest, _) = try self.service("{}")
+        do { try await guest.deleteAccount(username: "member"); XCTFail("Guest must not send") }
+        catch { XCTAssertEqual(error as? RepositoryError, .unauthorized) }
+        XCTAssertNil(StubURLProtocol.captured)
+    }
+    private var safetyPost: Post { Post(id: .init(314), number: .init(3), topicID: .init(20), author: "other", body: "Content") }
+    func testReportUsesDynamicEnabledFlagsAndFreshPermission() async throws {
+        let (service, _) = try service("{}", member: true)
+        StubURLProtocol.handler = { request in
+            XCTAssertEqual(request.value(forHTTPHeaderField: "User-Api-Key"), "fictional-test-key")
+            if request.url?.path == "/forum/site.json" {
+                return (200, Data(#"{"post_action_types":[{"id":84,"name":"Custom concern","name_key":"custom","short_description":"<b>Details</b>","is_flag":true,"enabled":true,"applies_to":["Post"],"require_message":true},{"id":6,"name":"Message author","name_key":"notify_user","is_flag":true,"enabled":true,"applies_to":["Post"]},{"id":85,"name":"Disabled","name_key":"disabled","is_flag":true,"enabled":false,"applies_to":["Post"]}]}"#.utf8))
+            }
+            if request.httpMethod == "POST" {
+                XCTAssertEqual(request.url?.path, "/forum/post_actions.json")
+                let body = try? JSONSerialization.jsonObject(with: StubURLProtocol.body(request)) as? [String: Any]
+                XCTAssertEqual(body?["id"] as? Int, 314)
+                XCTAssertEqual(body?["post_action_type_id"] as? Int, 84)
+                XCTAssertEqual(body?["flag_topic"] as? Bool, false)
+                XCTAssertEqual(body?["message"] as? String, "Please review this concern")
+                return (200, Data(#"{"id":314,"post_number":3,"actions_summary":[{"id":84,"acted":true}]}"#.utf8))
+            }
+            return (200, Data(#"{"id":314,"post_number":3,"actions_summary":[{"id":84,"can_act":true},{"id":6,"can_act":true},{"id":85,"can_act":true}]}"#.utf8))
+        }
+        let reasons = try await service.reportReasons(post: safetyPost)
+        XCTAssertEqual(reasons.map(\.id), [84]); XCTAssertEqual(reasons.first?.description, "Details")
+        do { try await service.report(post: safetyPost, reason: 84, message: " "); XCTFail("Required message") }
+        catch { XCTAssertEqual(error as? RepositoryError, .invalid("Describe why you are reporting this post.")) }
+        XCTAssertEqual(StubURLProtocol.captured?.httpMethod, "GET")
+        try await service.report(post: safetyPost, reason: 84, message: "Please review this concern")
+    }
+    func testReportRejectsUnavailableActionAndAmbiguousResponse() async throws {
+        let (service, _) = try service("{}", member: true)
+        StubURLProtocol.handler = { request in
+            if request.url?.path == "/forum/site.json" { return (200, Data(#"{"post_action_types":[{"id":84,"name":"Concern","name_key":"custom","is_flag":true,"enabled":true,"applies_to":["Post"]}]}"#.utf8)) }
+            return (200, Data(#"{"id":314,"post_number":3,"actions_summary":[]}"#.utf8))
+        }
+        do { try await service.report(post: safetyPost, reason: 84, message: ""); XCTFail("Permission missing") }
+        catch { XCTAssertEqual(error as? RepositoryError, .denied) }
+        XCTAssertEqual(StubURLProtocol.captured?.httpMethod, "GET")
+        StubURLProtocol.handler = { request in
+            if request.httpMethod == "POST" { return (200, Data("{}".utf8)) }
+            if request.url?.path == "/forum/site.json" { return (200, Data(#"{"post_action_types":[{"id":84,"name":"Concern","name_key":"custom","is_flag":true,"enabled":true,"applies_to":["Post"]}]}"#.utf8)) }
+            return (200, Data(#"{"id":314,"post_number":3,"actions_summary":[{"id":84,"can_act":true}]}"#.utf8))
+        }
+        do { try await service.report(post: safetyPost, reason: 84, message: ""); XCTFail("Explicit receipt required") }
+        catch { XCTAssertEqual(error as? RepositoryError, .unconfirmed) }
+    }
+    func testBlockingUsesIgnoreForeverAndReadbackThenUnblock() async throws {
+        let (service, _) = try service("{}", member: true)
+        StubURLProtocol.ignored = false
+        StubURLProtocol.handler = { request in
+            if request.httpMethod == "PUT" {
+                XCTAssertEqual(request.url?.path, "/forum/u/other/notification_level.json")
+                let body = try? JSONSerialization.jsonObject(with: StubURLProtocol.body(request)) as? [String: Any]
+                StubURLProtocol.ignored = body?["notification_level"] as? String == "ignore"
+                if StubURLProtocol.ignored {
+                    let expiry = (body?["expiring_at"] as? String).flatMap { ISO8601DateFormatter().date(from: $0) }
+                    XCTAssertGreaterThan(expiry?.timeIntervalSinceNow ?? 0, 900 * 365 * 24 * 60 * 60)
+                } else { XCTAssertEqual(body?["notification_level"] as? String, "normal") }
+                return (200, Data(#"{"success":"OK"}"#.utf8))
+            }
+            let ignored = StubURLProtocol.ignored ? #"["other"]"# : "[]"
+            return (200, Data("{\"current_user\":{\"username\":\"member\",\"can_ignore_users\":true,\"ignored_users\":\(ignored)}}".utf8))
+        }
+        let blocked = try await service.setIgnored(username: "other", ignored: true)
+        XCTAssertEqual(blocked.ignoredUsers, ["other"])
+        let unblocked = try await service.setIgnored(username: "other", ignored: false)
+        XCTAssertTrue(unblocked.ignoredUsers.isEmpty)
+    }
+    func testBlockingDenialAndFailedReadbackDoNotClaimSuccess() async throws {
+        let (service, _) = try service(#"{"current_user":{"username":"member","can_ignore_users":false,"ignored_users":[]}}"#, member: true)
+        do { _ = try await service.setIgnored(username: "other", ignored: true); XCTFail("Permission missing") }
+        catch { XCTAssertEqual(error as? RepositoryError, .denied) }
+        XCTAssertEqual(StubURLProtocol.captured?.httpMethod, "GET")
+        StubURLProtocol.handler = { request in
+            if request.httpMethod == "PUT" { return (200, Data(#"{"success":"OK"}"#.utf8)) }
+            return (200, Data(#"{"current_user":{"username":"member","can_ignore_users":true,"ignored_users":[]}}"#.utf8))
+        }
+        do { _ = try await service.setIgnored(username: "other", ignored: true); XCTFail("Readback did not confirm") }
+        catch { XCTAssertEqual(error as? RepositoryError, .unconfirmed) }
+    }
+    func testBlockingIsAccountScopedAndClearedAtSignOut() async throws {
+        let fixture = FixtureService()
+        let app = AppState(service: fixture, fixture: fixture, configuration: nil, store: DraftStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)))
+        await app.refreshSafety()
+        try await app.changeBlocking("mara_k", blocked: true)
+        XCTAssertTrue(app.isBlocked("MARA_K"))
+        app.username = "different"; XCTAssertFalse(app.isBlocked("mara_k"))
+        app.username = FixtureService.member; app.signOut()
+        XCTAssertFalse(app.isBlocked("mara_k")); XCTAssertNil(app.safety)
+    }
     private func service(_ json: String, status: Int = 200, member: Bool = false, capabilities: ComposerCapabilities = ComposerCapabilities()) throws -> (DiscourseService, LiveConfiguration) {
         StubURLProtocol.status = status; StubURLProtocol.data = Data(json.utf8); StubURLProtocol.captured = nil; StubURLProtocol.handler = nil
         let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [StubURLProtocol.self]
@@ -382,7 +523,19 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
         _ = try await service.saved(username: username, page: 0)
         _ = try await service.notifications(page: 0)
         let latest = try await service.feed(category: nil, page: 0)
-        if let topic = latest.items.first { _ = try await service.discussion(topic.id, page: 0) }
+        let safety = try await service.safetySession()
+        XCTAssertEqual(safety.username.lowercased(), username.lowercased())
+        XCTAssertTrue(safety.canIgnoreUsers, "Configured member groups allow server Ignore")
+        var foundReportOptions = false
+        for topic in latest.items.prefix(3) {
+            let discussion = try await service.discussion(topic.id, page: 0)
+            guard discussion.opening.author.caseInsensitiveCompare(username) != .orderedSame else { continue }
+            let reasons = try await service.reportReasons(post: discussion.opening)
+            foundReportOptions = foundReportOptions || !reasons.isEmpty
+            XCTAssertEqual(Set(reasons.map(\.id)).count, reasons.count)
+        }
+        XCTAssertTrue(foundReportOptions, "Member has at least one current report option on recent public content")
+        _ = try await service.canDeleteAccount(username: username)
         if let values = ProcessInfo.processInfo.environment["FOMIO_CLEANUP_TOPIC_IDS"] {
             let ids = Set(values.split(separator: ",").compactMap { Int($0) }.map { TopicID($0) })
             var page = 0

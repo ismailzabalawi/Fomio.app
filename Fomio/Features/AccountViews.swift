@@ -16,6 +16,7 @@ struct MeView: View {
     @State private var signOutWarning = false
     @State private var savedCount: Int?
     @State private var draftCount = 0
+    @State private var deletingAccount = false
     var body: some View {
         List {
             if let username = app.username {
@@ -35,9 +36,17 @@ struct MeView: View {
                 Section {
                     row("Saved", symbol: "bookmark", count: savedCount) { app.navigate(.saved) }.accessibilityIdentifier("me-saved")
                     row("Drafts", symbol: "doc.text", count: draftCount) { app.navigate(.drafts) }.accessibilityIdentifier("me-drafts")
+                    NavigationLink { BlockedMembersView() } label: { Label("Blocked members", systemImage: "person.crop.circle.badge.xmark").frame(minHeight: 44) }
+                    if let configuration = app.configuration {
+                        Link(destination: configuration.url("u/\(username)/preferences/account")) {
+                            Label("Account settings on website", systemImage: "person.crop.circle")
+                        }.frame(minHeight: 44)
+                    }
                 }
-                Section { row(String(localized: "Safety & Help"), symbol: "shield.lefthalf.filled", count: nil) { app.navigate(.safety) }.accessibilityIdentifier("me-safety") }
-                Section { Button("Sign out", role: .destructive) { signOutWarning = true }.frame(minHeight: 44) }
+                Section {
+                    Button("Sign out", role: .destructive) { signOutWarning = true }.frame(minHeight: 44)
+                    Button("Delete account…", role: .destructive) { deletingAccount = true }.frame(minHeight: 44)
+                }
             } else {
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
@@ -46,8 +55,14 @@ struct MeView: View {
                         Button("Sign in") { app.requestSignIn() }.buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).frame(minHeight: 44)
                     }.padding(.vertical, 8)
                 }
-                // Safety resources stay reachable without signing in.
-                Section { row(String(localized: "Safety & Help"), symbol: "shield.lefthalf.filled", count: nil) { app.navigate(.safety) }.accessibilityIdentifier("me-safety") }
+            }
+            if let configuration = app.configuration {
+                Section("Support and policies") {
+                    Link(destination: URL(string: "mailto:support@fomio.app")!) { Label("Email support", systemImage: "envelope") }.frame(minHeight: 44)
+                    Link(destination: configuration.url("about")) { Label("Help and contact", systemImage: "questionmark.circle") }.frame(minHeight: 44)
+                    Link(destination: configuration.url("privacy")) { Label("Privacy policy", systemImage: "hand.raised") }.frame(minHeight: 44)
+                    Link(destination: configuration.url("tos")) { Label("Terms of service", systemImage: "doc.text") }.frame(minHeight: 44)
+                }
             }
             if app.fixture != nil {
                 Section("Development preview") {
@@ -58,6 +73,9 @@ struct MeView: View {
         }.scrollContentBackground(.hidden).background(Color.fomioGrouped).navigationTitle("Me")
         .toolbar { RootToolbar(app: app) }
         .task(id: "\(app.username ?? "")-\(app.draftsRevision)") { await loadCounts() }
+        .sheet(isPresented: $deletingAccount) {
+            if let username = app.username { DeleteAccountView(username: username) }
+        }
         .alert("Sign out of \(app.username ?? "this account")?", isPresented: $signOutWarning) { Button("Cancel", role: .cancel) {}; Button("Sign out", role: .destructive) { app.signOut() } } message: { Text("You can sign in again at any time. Drafts for this account will be removed from this device.") }
     }
     private func row(_ title: String, symbol: String, count: Int?, action: @escaping () -> Void) -> some View {
@@ -75,12 +93,99 @@ struct MeView: View {
         if let username = app.username, let page = try? await app.service.saved(username: username, page: 0), page.nextPage == nil { savedCount = page.items.count } else { savedCount = nil }
     }
 }
+
+struct DeleteAccountView: View {
+    @Environment(AppState.self) private var app
+    @Environment(\.dismiss) private var dismiss
+    let username: String
+    @State private var permitted: Bool?
+    @State private var confirmation = ""
+    @State private var confirming = false
+    @State private var submitting = false
+    @State private var deleted = false
+    @State private var uncertain = false
+    @State private var error: String?
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Text("Permanently delete your account and its posts. This cannot be undone.")
+                    Text("Local drafts and sign-in details will be removed from this device after the community confirms deletion.").foregroundStyle(.secondary)
+                }
+                if deleted {
+                    Section {
+                        Text("Your account was deleted. Local sign-out still needs to finish.")
+                        Button("Finish sign-out") { app.signOut(); if app.username == nil { dismiss() } }
+                    }
+                } else if uncertain {
+                    Section {
+                        Text("Deletion could not be confirmed. Check your account on the website or contact support before trying again.")
+                        if let configuration = app.configuration {
+                            Link("Check account on website", destination: configuration.url("u/\(username)/preferences/account"))
+                        }
+                    }
+                } else if permitted == true {
+                    Section {
+                        TextField("Type \(username) to confirm", text: $confirmation)
+                            .textInputAutocapitalization(.never).autocorrectionDisabled()
+                            .accessibilityLabel("Type your username to confirm account deletion")
+                        Button("Delete account permanently", role: .destructive) { confirming = true }
+                            .disabled(confirmation != username || submitting)
+                    } footer: { Text("You are deleting @\(username).") }
+                } else if permitted == false {
+                    Section { Text("This account cannot be deleted automatically. Contact support for help deleting your account and associated data.") }
+                } else if error == nil {
+                    ProgressView("Checking account…")
+                }
+                if let error { Section { Text(error).foregroundStyle(Color.fomioDanger) } }
+                if !deleted {
+                    Section {
+                        Link("Contact support", destination: URL(string: "mailto:support@fomio.app")!)
+                        if permitted == nil && error != nil { Button("Check again") { Task { await check() } }.disabled(submitting) }
+                    }
+                }
+                if submitting { ProgressView("Deleting account…") }
+            }
+            .disabled(submitting)
+            .navigationTitle("Delete account").navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() }.disabled(submitting) } }
+            .task { await check() }
+            .alert("Permanently delete @\(username)?", isPresented: $confirming) {
+                Button("Cancel", role: .cancel) {}
+                Button("Delete account", role: .destructive) { Task { await delete() } }
+            } message: { Text("Your account and its posts will be deleted. This cannot be undone.") }
+        }.interactiveDismissDisabled(submitting)
+    }
+    private func check() async {
+        guard app.username == username else { error = "Sign in to this account again."; return }
+        do { permitted = try await app.service.canDeleteAccount(username: username); error = nil }
+        catch { self.error = error.localizedDescription }
+    }
+    private func delete() async {
+        guard !submitting, !deleted, !uncertain, confirmation == username, app.username == username else { return }
+        submitting = true; error = nil
+        do {
+            try await app.service.deleteAccount(username: username)
+            deleted = true
+            app.signOut()
+            if app.username == nil { dismiss(); app.toast("Account deleted") }
+            else { error = app.banner }
+        } catch {
+            self.error = error.localizedDescription
+            // A transport failure may occur after deletion. Never offer a blind destructive retry.
+            let kind = error as? RepositoryError
+            uncertain = kind == .offline || kind == .unconfirmed || kind == nil
+            if case .server = kind { uncertain = true }
+        }
+        submitting = false
+    }
+}
 struct ProfileView: View {
     @Environment(AppState.self) private var app
     let username: String
     @State private var member: Member?
     @State private var error: String?
-    @State private var showActivityOnce = false
     var body: some View {
         ScrollView {
             ReadingColumn {
@@ -93,15 +198,13 @@ struct ProfileView: View {
                                 Text("@\(member.username)\(member.joined.map { " · Joined \($0)" } ?? "")").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
                             }
                         }
-                        if !member.bio.isEmpty { Text(member.bio).textSelection(.enabled) }
-                        ProfileSafetySection(username: member.username, name: member.name)
+                        BlockingButton(username: username)
+                        if app.isBlocked(username) { Text("You have blocked this member. Their content is hidden.").foregroundStyle(.secondary) }
+                        if !member.bio.isEmpty && !app.isBlocked(username) { Text(member.bio).textSelection(.enabled) }
                         SectionLabel("Recent discussions").padding(.top, 8)
                         if member.recent.isEmpty { Text("No discussions started yet.").foregroundStyle(Color.fomioSecondaryText) }
-                        else if app.isIgnored(member.username) && !showActivityOnce {
-                            IgnoredPlaceholder(text: String(localized: "Discussions hidden because you ignore \(member.username)")) { showActivityOnce = true }
-                        }
-                        if !app.isIgnored(member.username) || showActivityOnce { VStack(spacing: 0) {
-                            ForEach(member.recent) { topic in
+                        VStack(spacing: 0) {
+                            ForEach(member.recent.filter { !app.isBlocked($0.author) && !app.isBlocked(username) }) { topic in
                                 Button { app.navigate(.discussion(topic.id, nil)) } label: {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(app.categoryName(topic.categoryID)).font(.footnote.weight(.semibold)).foregroundStyle(Color.fomioAccent)
@@ -111,21 +214,12 @@ struct ProfileView: View {
                                 }.buttonStyle(.plain).accessibilityLabel("\(topic.title), in \(app.categoryName(topic.categoryID))")
                                 Divider().overlay(Color.fomioSeparator)
                             }
-                        } }
+                        }
                     } else if let error { ScreenMessage(title: "Profile unavailable", message: error, action: { Task { await load() } }) }
                     else { ProgressView().frame(maxWidth: .infinity).padding(40) }
                 }.padding(20)
             }
         }.background(Color.fomioBackground).navigationTitle(username == app.username ? "Profile" : username).navigationBarTitleDisplayMode(.inline).task { await load() }
-        .toolbar {
-            if username != app.username {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Button { app.navigate(.profileConcern(username)) } label: { Label("Report a profile concern", systemImage: "exclamationmark.bubble") }
-                    } label: { Image(systemName: "ellipsis") }.accessibilityLabel("More actions for this profile").accessibilityIdentifier("profile-more")
-                }
-            }
-        }
     }
     private func load() async { do { member = try await app.service.profile(username); error = nil } catch { self.error = error.localizedDescription } }
 }
@@ -195,7 +289,7 @@ struct SavedView: View {
     @State private var loaded = false
     var body: some View {
         List {
-            ForEach(items) { item in
+            ForEach(items.filter { !app.isBlocked($0.postAuthor ?? "") }) { item in
                 let reply = item.number.map { $0.rawValue > 1 } ?? false
                 Button { app.navigate(.discussion(item.topicID, reply ? item.number : nil), focus: reply ? .saved : nil) } label: {
                     VStack(alignment: .leading, spacing: 4) {
@@ -234,15 +328,9 @@ struct NotificationsView: View {
                 }
             } else {
                 List {
-                    ForEach(items) { notice in
-                        if app.hidesPreview(by: notice.actor, .notice(notice.id)) {
-                            // Discourse doesn't erase older notifications from someone you now ignore; collapse their text.
-                            IgnoredPlaceholder(text: String(localized: "Notification from someone you ignore")) { app.revealedPreviews.insert(.notice(notice.id)) }
-                                .accessibilityIdentifier("notice-hidden-\(notice.id)")
-                        } else {
+                    ForEach(items.filter { !app.isBlocked($0.actor) }) { notice in
                         Button { open(notice) } label: { row(notice) }.buttonStyle(.plain)
                             .accessibilityLabel("\(notice.read ? "" : "Unread. ")\(notice.text) in \(notice.title), post \(notice.number?.rawValue ?? 0)\(notice.age.isEmpty ? "" : ", \(notice.age)")")
-                        }
                     }
                     if loading { ProgressView() }
                     if let error { Text(error); Button("Try again") { Task { await load() } } }
@@ -277,7 +365,7 @@ struct NotificationsView: View {
         guard !loading, app.username != nil, let page = nextPage else { return }; loading = true; defer { loading = false }
         do {
             let result = try await app.service.notifications(page: page); items += result.items.filter { notice in !items.contains { $0.id == notice.id } }; nextPage = result.nextPage; error = nil
-            app.unreadCount = items.filter { !$0.read }.count
+            app.unreadCount = items.filter { !$0.read && !app.isBlocked($0.actor) }.count
         } catch { self.error = error.localizedDescription }
     }
 }
@@ -298,7 +386,7 @@ struct SearchView: View {
                         InfoCard(title: "No results for “\(query)”", message: "Check the spelling or try fewer words.").padding(20)
                     }
                     if !state.searchResults.isEmpty { SectionLabel("Discussions").padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 4) }
-                    ForEach(state.searchResults) { result in SearchResultRow(result: result, query: state.searchCompletedQuery ?? "").id(result.id) }
+                    ForEach(state.searchResults.filter { !app.isBlocked($0.matchAuthor ?? $0.author) }) { result in SearchResultRow(result: result, query: state.searchCompletedQuery ?? "").id(result.id) }
                     if loading { ProgressView().frame(maxWidth: .infinity).padding(30).accessibilityLabel("Searching") }
                     if state.searchNextPage != nil && !loading { Button("More results") { Task { await search(reset: false) } }.frame(maxWidth: .infinity, minHeight: 44) }
                 }.scrollTargetLayout().padding(.bottom, 20)
@@ -325,24 +413,17 @@ struct SearchResultRow: View {
     let result: DiscussionSummary
     let query: String
     private var inReply: Bool { (result.targetPostNumber?.rawValue ?? 1) > 1 }
-    /// The snippet comes from the matched post, so its author decides; absent authors are never inferred.
-    private var snippetAuthor: String? { result.matchAuthor ?? (result.author.isEmpty ? nil : result.author) }
-    private var hidden: Bool { app.hidesPreview(by: snippetAuthor, .search(result.id, result.targetPostNumber)) }
     var body: some View {
         Button { app.navigate(.discussion(result.id, inReply ? result.targetPostNumber : nil), focus: inReply ? .search : nil) } label: {
             VStack(alignment: .leading, spacing: 4) {
                 Text(app.categoryName(result.categoryID)).font(.footnote.weight(.semibold)).foregroundStyle(Color.fomioAccent)
                 Text(result.title).font(.body.weight(.semibold)).foregroundStyle(.primary).multilineTextAlignment(.leading)
-                if !result.excerpt.isEmpty && !hidden { Text(snippet).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).lineLimit(3).multilineTextAlignment(.leading) }
+                if !result.excerpt.isEmpty { Text(snippet).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).lineLimit(3).multilineTextAlignment(.leading) }
                 Text(inReply ? "Reply #\(result.targetPostNumber!.rawValue)\((result.matchAuthor ?? result.author).isEmpty ? "" : " by \(result.matchAuthor ?? result.author)")" : "Opening post\(result.author.isEmpty ? "" : " by \(result.author)")")
                     .font(.footnote).foregroundStyle(Color.fomioSecondaryText)
             }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 20).padding(.vertical, 12).contentShape(.rect)
         }.buttonStyle(.plain).accessibilityIdentifier("topic-\(result.id.rawValue)")
         .accessibilityLabel("\(result.title), \(inReply ? "match in reply \(result.targetPostNumber!.rawValue)" : "match in discussion")")
-        if hidden, let author = snippetAuthor {
-            IgnoredPlaceholder(text: String(localized: "Match hidden because you ignore \(author)")) { app.revealedPreviews.insert(.search(result.id, result.targetPostNumber)) }
-                .padding(.horizontal, 20).padding(.bottom, 10).accessibilityIdentifier("search-hidden-\(result.id.rawValue)")
-        }
         Divider().overlay(Color.fomioSeparator).padding(.leading, 20)
     }
     private var snippet: AttributedString {

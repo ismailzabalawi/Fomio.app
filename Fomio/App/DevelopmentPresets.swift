@@ -57,18 +57,6 @@ import Foundation
         case "newtopic": newTopic(body: "")
         case "uploading": fixture.uploadFails = false; fixture.uploadStep = .seconds(3); newTopic(body: "Two coats so far. The second one looks patchy where the grain is open."); app.composer?.addPhoto(photo)
         case "uploadfail": fixture.uploadFails = true; newTopic(body: "Two coats so far. The second one looks patchy where the grain is open."); app.composer?.addPhoto(photo)
-        case "report":
-            app.navigate(.discussion(walnut, nil))
-            app.startReport(.post(PostID(418202), topic: walnut, number: .init(2), author: "devon"), title: "Oil vs. hardwax on a walnut desk top?")
-        case "report-discussion":
-            app.navigate(.discussion(walnut, nil))
-            app.startReport(.discussion(walnut, opening: PostID(418201), author: "mara_k"), title: "Oil vs. hardwax on a walnut desk top?")
-        case "ignore": app.navigate(.discussion(walnut, nil)); app.navigate(.profile("devon")); app.startIgnore("devon", name: "Devon Price")
-        case "ignore-profile": app.navigate(.discussion(walnut, nil)); app.navigate(.profile("devon"))
-        case "hidden": app.navigate(.discussion(walnut, nil))
-        case "staff-profile": app.navigate(.discussion(walnut, nil)); app.navigate(.profile("alex.h"))
-        case "safety": app.selectedTab = .me; app.navigate(.safety, in: .me)
-        case "ignored-users": app.selectedTab = .me; app.navigate(.safety, in: .me); app.navigate(.ignoredUsers, in: .me)
         case "rejected", "expired", "unconfirmed", "pending":
             fixture.scenario = FixtureService.Scenario(rawValue: preset) ?? .published
             await reply(preset == "rejected" ? "Too short." : typed)

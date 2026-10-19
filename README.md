@@ -8,7 +8,7 @@ The native iOS/iPadOS 26+ SwiftUI MVP has an Xcode project, live Discourse scree
 
 Open `Fomio.xcodeproj`, select the Fomio scheme and an iOS 26+ simulator. Debug uses the live site configured in `project.yml` (`https://meta.fomio.app`); pass `--fixture` for the explicitly labeled fictional fixture preview. Pass `--guest` to exercise sign-in return intent or `--live --unconfigured` to prove the unconfigured-live screen. Release never falls back to fixture content.
 
-`project.yml` is the XcodeGen source (`xcodegen generate`). Build and test with Xcode, or `xcodebuild -project Fomio.xcodeproj -scheme Fomio -destination 'platform=iOS Simulator,name=<installed device>' test`. Simulator builds use ad hoc signing so protected Keychain storage can be tested; distribution signing remains unconfigured. The `FomioBaseURL`, `FomioAuthCallback` and `FomioUserAPIScopes` Info values are set under the app target's `info.properties`. The bundle identifier is `com.fomio.mobile` and the app icon is `Fomio/Resources/AppIcon.icon`; configure distribution signing before release. Never commit credentials.
+`project.yml` is the XcodeGen source (`xcodegen generate`). Build and test with Xcode, or `xcodebuild -project Fomio.xcodeproj -scheme Fomio -destination 'platform=iOS Simulator,name=<installed device>' test`. Simulator builds use ad hoc signing so protected Keychain storage can be tested; automatic signing uses the configured team; see the submission packet for the verified local distribution export. The `FomioBaseURL`, `FomioAuthCallback` and `FomioUserAPIScopes` Info values are set under the app target's `info.properties`. The bundle identifier is `com.fomio.mobile` and the app icon is `Fomio/Resources/AppIcon.icon`; distribution export is verified locally; App Store submission gates remain. Never commit credentials.
 
 ## Documentation
 
@@ -17,6 +17,7 @@ Open `Fomio.xcodeproj`, select the Fomio scheme and an iOS 26+ simulator. Debug 
 - [Development guide](docs/development-guide.md): build, fixtures, configuration and troubleshooting.
 - [Flows and recovery](docs/flows-and-recovery.md): authentication, threading, drafts, photos and write outcomes.
 - [Release readiness](docs/release-readiness.md): coverage, missing resources and acceptance procedure.
+- [App Store submission preparation](docs/app-store-submission.md): current blockers, metadata drafts and packaging checks.
 - [Accepted implementation plan](docs/implementation-plan.md)
 - [Implementation and validation status](docs/implementation-status.md)
 - [Latest composer snapshot](docs/design/snapshots/2026-10-04/README.md) and [previous design snapshot](docs/design/snapshots/2026-10-03/README.md)

@@ -1,17 +1,5 @@
 # Native implementation status — 2026-10-03
 
-## Reporting & Safety — 2026-10-17 (working tree)
-
-Implemented against the recorded contracts at deployed Discourse `28529a6d` and the deployed settings read on 2026-10-17. The user approved the designs and authorized native work after waiving the deployed account round trips.
-- Visible ••• on every post and reply, with server-permitted Report post/reply/discussion and a report sheet covering R03–R11.
-- Ignore user from profiles, with Forever default, reconcile-before-success and self/staff/new-member truthful states.
-- Hidden OP/reply/quote/profile-activity projections with Show once.
-- Me → Safety & Help for guests and members, Ignored users with Stop ignoring, and profile-concern escalation to the published contact.
-
-Follow-up 2026-10-18: ignored-author previews in feeds, search and notifications; Arabic safety strings (draft, needs native review). [Details](validation/2026-10-17-safety-native/README.md#follow-up--2026-10-18-ignored-previews-outside-discussions-arabic-safety-copy).
-
-Final run (2026-10-18, final tree): iPhone 169 tests, 164 passed, 0 failed, 5 live-only skipped; iPad safety UI 12/12. The follow-up added ignored-author preview hiding in feeds, search and notifications, plus draft Arabic safety strings (need native-speaker review). Current status and release items: [stage gates](design/reporting-safety/stage-gates.md#current-status--2026-10-18). Details, captures and gaps: [validation](validation/2026-10-17-safety-native/README.md). Flow contract: [flows](flows-and-recovery.md#reporting-and-ignore--2026-10-17). Not live-verified, not uploaded.
-
 ## Visual composer and Markdown preview — 2026-10-15
 
 The default native editor hides heading, quote, bullet, numbered-list and task prefixes; renders nested emphasis, links, inline code and strikethrough; and retains raw Discourse markup for drafts/submission. Heading formatting is now enabled. Numbered lists have native insertion/transformation; checklists have tappable draft checkboxes and continuation, gated by an explicit capability (enabled for fixtures, unverified/disabled in live). Formatting edits serialize only touched text runs, preserving block prefixes and unrelated source. Return continues lists/quotes or exits empty items; Backspace removes a hidden block prefix before joining text. Structured blocks retain native forms/cards. Unknown blocks remain preserved with an explicit source-edit action.
@@ -181,3 +169,11 @@ Local diagnostic probes confirmed stale child retention after successful refresh
 Corrected topic/reply refresh invalidation, preserving offline caches and reopening reachable branches from fresh data; authorization/availability errors clear old content and controls. Title Next now transfers the native first responder directly. The generated plist now includes the base orientation key; Arabic phone composer landscape geometry passes. Catalogue recovery automation dismisses native search (Close/Cancel) before the sheet. Concurrent toolbar/catalogue/localization edits were preserved.
 
 First green regression: **76 unit/contract and five UI tests passed, zero failures; three opt-in live tests skipped**. A final exact-context correction adds a target-beyond-first-sibling-page regression: all **77 unit/contract tests plus exact notification navigation pass**, zero failures, three live checks skipped. Six distinct UI journeys pass across the two green batches. Final Release simulator compilation succeeds with the existing unreachable fixture-branch warning. Keyboard and Arabic rotation passed in both fix runs. Large-text selection, dark accessibility and search/quote recovery also pass in the final batch. This closes the four original audit findings and catalogue verification gap for the tested Simulator scope; device/live/distribution gates remain. [Exact source snapshot and validation](validation/2026-10-07-audit-fixes/README.md).
+# App Store preparation — 2026-10-18
+
+Native Me now offers live policy/contact and account-settings links plus an account-deletion sheet. Eligible self-deletion uses the same DELETE endpoint as the Expo client, preceded by a fresh current-user identity/permission check; confirmation, denied/uncertain states and confirmed-success local sign-out are explicit. UserDefaults and known uploaded account/content/photo data are declared in the privacy manifest; callback scheme registration is generated from project.yml. Version 0.8.0 build 6 is prepared. See [submission packet](app-store-submission.md), [API evidence](discourse-api-reference.md) and [release readiness](release-readiness.md). This does not establish live deletion or App Review readiness.
+
+
+## Submission fixes — 2026-10-18 follow-up
+
+Build 0.8.0 (7) includes dynamic native report flow, server-persisted Ignore/block and unblock with account-scoped content filtering, eligible self-deletion, policy/support links, callback registration and expanded privacy manifest. Live policies/contact and owner-approved reporting/Ignore/deletion limits updated. Connect native metadata and linked privacy labels saved. Final simulator regression:102passes,0failures,4opt-in live skips. Signed device archive and distribution IPA pass packaging/signature checks. Final member/device acceptance and listing assets remain; see [current submission packet](app-store-submission.md) and [validation](validation/2026-10-18-submission/README.md). Earlier build 6 blockers are historical.

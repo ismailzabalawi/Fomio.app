@@ -42,10 +42,8 @@ struct TopicCard: View {
 
     private var stacked: Bool { typeSize.isAccessibilitySize }
     private var category: Community? { app.category(topic.categoryID) }
-    /// Topic author is ignored: keep title and identity, collapse excerpt and media until Show once.
-    private var hidden: Bool { app.hidesPreview(by: topic.author, .topic(topic.id)) }
     private var media: TopicMedia.Source? {
-        if mediaFailed || hidden { return nil }
+        if mediaFailed { return nil }
         if let url = topic.imageURL { return .remote(url) }
         // Bundled photos exist only in the fixture service; the live adapter never sets them.
         if app.fixture != nil, let name = topic.image { return .asset(name) }
@@ -61,10 +59,6 @@ struct TopicCard: View {
                 .accessibilityLabel(accessibilityText)
                 .accessibilityHint("Opens the discussion")
                 .accessibilityIdentifier("topic-\(topic.id.rawValue)")
-            if hidden {
-                IgnoredPlaceholder(text: String(localized: "Preview hidden because you ignore \(topic.author)")) { app.revealedPreviews.insert(.topic(topic.id)) }
-                    .accessibilityIdentifier("topic-hidden-\(topic.id.rawValue)")
-            }
         }
         switch appearance {
         case .compact:
@@ -117,7 +111,7 @@ struct TopicCard: View {
             Text(topic.title).font(.body.weight(.bold)).foregroundStyle(Color.fomioText)
                 .multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading).environment(\.layoutDirection, topic.title.naturalDirection)
-            if !excerpt.isEmpty && !hidden {
+            if !excerpt.isEmpty {
                 Text(excerpt).font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
                     .lineLimit(stacked ? 4 : 2).multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading).environment(\.layoutDirection, excerpt.naturalDirection)

@@ -1,5 +1,9 @@
 # Validation and release readiness
 
+Current submission status (2026-10-18): see [App Store preparation](app-store-submission.md). Build 0.8.0 (7) is signed, uploaded, processed and added to a Draft Submission with Ready for Review status after explicit owner approval. Final Submit for Review remains pending. Native safety/deletion, live policy/contact corrections, approved site permissions, privacy labels and native listing copy are implemented. Member authentication and safety read contracts pass. Required native iPhone/iPad screenshots are uploaded; the disk blocker is resolved. Physical/TestFlight acceptance remains. Historical fixture/upload evidence below is not current submission acceptance.
+
+Final preparation evidence: **96 unit/contract tests passed**, four live tests skipped; **one focused deletion UI test passed**. Signed Release archive and a local App Store distribution IPA exported successfully. Signature and packaging verification passed; no upload/submission performed. [Exact results, artifact paths and limits](validation/2026-10-18-submission/README.md).
+
 Baseline: 2026-10-03. The fixture milestone is delivered. Live release is **not accepted**. [Implementation status](implementation-status.md) contains exact simulator result-bundle names and inspected captures; [API reference](discourse-api-reference.md) contains source evidence.
 
 ## Recorded evidence
@@ -51,7 +55,9 @@ Record pass/fail/blocked with evidence and observed behavior. A test marked bloc
 
 The lightweight native cooked renderer, secure media, site-specific posting fields, live capability detection, pending/uncertain reconciliation, full accessibility/device proof and production signing/icon/link resources remain open. Navigation/reading caches are in memory, and supporting list views may reload; there is no durable whole-session restoration. Draft schema migrations/corruption isolation are not implemented. These limits should be assessed explicitly before release.
 
-Out of MVP: offline sending queue, server drafts, push transport, Hot/tracked feeds, notification-level controls, private messages/chat, AI, advanced settings, editing and formatting modes.
+Out of the original MVP: offline sending queue, server drafts, push transport, Hot/tracked feeds, notification-level controls, private messages/chat, AI, advanced settings, editing and formatting modes.
+
+2026-10-18: the user identified properly wired notifications as a pre-public requirement. The [notifications IA and integration map](notifications-ia.md) scopes inbox/read/count corrections, grouped destinations, foreground freshness and push/relay/device acceptance. Push remains unimplemented; this planning requirement does not establish relay configuration or device delivery.
 
 ## Keyboard follow-up — 2026-10-04
 
@@ -92,17 +98,7 @@ Uploaded with `xcodebuild -exportArchive`, method `app-store-connect`, destinati
 
 Immediately preceding release, all four requested iPad Simulator composer journeys passed, including exact Markdown recovery after app termination/relaunch; see [editor validation](editor-validation.md#release-verification--2026-10-15). A separate “Composer release handoff” Claude Code thread was opened with the results and told to await further instructions without modifying or running anything. No pending localization worktree was merged and the unrelated topic-card review file was excluded from the release commit.
 
-## Reporting & Safety build 0.8.0 (6) — 2026-10-18
 
-Archived commit `31b4d53`. It contains feature commit `6837b25`, recovery fixes `5d60931` and the build bump. Built with Xcode 27.1 (27A9275), Release, generic iOS, existing automatic signing (team LK9253R3XB), bundle `com.fomio.mobile`. The archive's Info.plist confirms version 0.8.0, build 6 and live site `https://meta.fomio.app`.
+## Submission fixes — 2026-10-18 follow-up
 
-Uploaded with `xcodebuild -exportArchive`, method `app-store-connect`, destination `upload`, using the same ExportOptions as build 5 and Xcode's existing account (no credentials stored or printed). At 08:14 Asia/Amman Apple reported “Uploaded package is processing” and “Upload succeeded”, and the export exited 0. Logs are in `.build/release-0.8.0-6/` (ignored). **Processing completion:** see the note below. This is an App Store Connect upload only, not an App Review submission, approval or public release.
-
-Pre-release checks on dedicated simulators, iOS 26.1:
-- **Unit:** 124 executed, 4 live-only skipped, 0 failures.
-- **UI:** 49 executed, 47 passed, 1 live-only skipped, 1 failure. The failure was existing composer test `testNativeBlockFormAndMarkdownRoundTrip` ("no keyboard focus").
-- **Flake check:** a first full run had a runner killed by `signal kill`, which failed `testUnconfirmedUIRequiresDuplicateWarning` and left later UI tests unrun. Both affected composer tests then passed 2/2 iterations, so they are recorded as simulator flakes, not passes on the first attempt.
-- **iPad Pro 11:** `SafetyUITests` and `SafetyPreviewUITests` 13/13.
-- **Backend:** deployed Discourse rechecked at `821e9e2f`, where the local backend checks passed. Deployed member round trips remain **waived, not passed**. Live plugin effects, moderator delivery and issued-key grants remain release items. Live settings unchanged.
-
-**Separate submission work:** the primary checkout's uncommitted App Store submission work uploaded build 0.8.0 (7) earlier the same day and selected it in a Draft Submission. Build 6 is a separate upload and was not selected for review. Build 7 and the draft submission were not changed. Build 6 does not include that uncommitted work, such as account deletion and privacy-manifest corrections. The localization branch was not merged.
+Build 0.8.0 (7) includes dynamic native report flow, server-persisted Ignore/block and unblock with account-scoped content filtering, eligible self-deletion, policy/support links, callback registration and expanded privacy manifest. Live policies/contact and owner-approved reporting/Ignore/deletion limits updated. Connect native metadata and linked privacy labels saved. Final simulator regression:102passes,0failures,4opt-in live skips. Signed device archive and distribution IPA pass packaging/signature checks. Final member/device acceptance and listing assets remain; see [current submission packet](app-store-submission.md) and [validation](validation/2026-10-18-submission/README.md). Earlier build 6 blockers are historical.

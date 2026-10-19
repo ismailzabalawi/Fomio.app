@@ -5,7 +5,7 @@ enum AppTab: String, CaseIterable, Identifiable { case home, communities, notifi
     var title: String { rawValue.capitalized }
     var symbol: String { switch self { case .home: "house"; case .communities: "square.grid.2x2"; case .notifications: "bell"; case .me: "person.crop.circle" } }
 }
-enum Route: Hashable { case community(CategoryID), discussion(TopicID, PostNumber?), thread(TopicID, PostNumber), search, profile(String), saved, drafts, credits, diagnostics, denied(CategoryID), unavailable, safety, ignoredUsers, reportingHelp, profileConcern(String) }
+enum Route: Hashable { case community(CategoryID), discussion(TopicID, PostNumber?), thread(TopicID, PostNumber), search, profile(String), saved, drafts, credits, diagnostics, denied(CategoryID), unavailable }
 /// Why a discussion opened at a specific post. Shown as a text label on that post.
 enum FocusReason: Hashable {
     case notification, search, saved, published
@@ -13,14 +13,9 @@ enum FocusReason: Hashable {
 }
 /// The member action that asked for sign-in; it names the action and is restored afterwards, never auto-applied.
 enum AuthGate: Equatable {
-    case signIn, reply, quote, like, save, create(String?), report(String), resumeReport, ignore(String), safety
+    case signIn, reply, quote, like, save, create(String?)
     var title: String {
-        switch self {
-        case .signIn: "Sign in"; case .reply: "Sign in to reply"; case .quote: "Sign in to quote"; case .like: "Sign in to like posts"; case .save: "Sign in to save discussions"; case .create: "Sign in to start a discussion"
-        case .report, .resumeReport: String(localized: "Sign in to report")
-        case .ignore: String(localized: "Sign in to ignore")
-        case .safety: String(localized: "Sign in to manage ignored users")
-        }
+        switch self { case .signIn: "Sign in"; case .reply: "Sign in to reply"; case .quote: "Sign in to quote"; case .like: "Sign in to like posts"; case .save: "Sign in to save discussions"; case .create: "Sign in to start a discussion" }
     }
     var message: String {
         switch self {
@@ -28,10 +23,6 @@ enum AuthGate: Equatable {
         case let .create(name): name.map { "You’ll come back with a new discussion in \($0) open. Nothing is posted until you tap Post." } ?? "You’ll come back and choose a community. Nothing is posted until you tap Post."
         case .like, .save: "You’ll come back to this post. Nothing is applied until you tap it again."
         case .signIn: "Reply to discussions, save them for later and get notified when someone replies to you."
-        case let .report(noun): String(localized: "After you sign in, you’ll come back to this \(noun) to choose a reason and send it. Nothing is sent automatically.")
-        case .resumeReport: String(localized: "Your session ended before the report was sent. What you entered is kept, and you’ll come back here to send it.")
-        case let .ignore(name): String(localized: "After you sign in, you’ll come back to confirm ignoring \(name). Nothing changes until you confirm.")
-        case .safety: String(localized: "Ignored users belong to your account. Sign in to see and manage them.")
         }
     }
 }
@@ -65,6 +56,10 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     var communityError: String?
     var account: AccountID = .guest
     var username: String?
+    var safety: SafetySession?
+    var safetyError: String?
+    var safetyRevision = 0
+    var safetyChanging: Set<String> = []
     var displayName: String?
     var composer: ComposerState?
     var authRequested = false
@@ -76,20 +71,6 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     var guestNoteDismissed = false
     var unreadCount = 0
     var draftsRevision = 0
-    /// Discourse account-wide Ignore state for `safetyAccount` only. Never carried across accounts.
-    var safety = AccountSafety()
-    var safetyAccount: AccountID?
-    var safetyError: String?
-    /// Bumped after a confirmed preference change so loaded discussions refetch server-hidden replies.
-    var safetyRevision = 0
-    /// "Show once" reveals for this launch. Revealing never changes the Ignore preference.
-    var revealed: Set<PostID> = []
-    /// "Show once" reveals for feed cards, search snippets and notifications, keyed by `IgnoredPreview`. Same lifecycle as `revealed`.
-    var revealedPreviews: Set<IgnoredPreview> = []
-    var report: ReportState?
-    var ignoreSheet: IgnoreState?
-    /// Set by the report receipt's separate Ignore offer; opened after the report sheet has dismissed.
-    var queuedIgnore: String?
     let service: any CommunityService
     let draftStore: DraftStore
     let fixture: FixtureService?
@@ -121,7 +102,7 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     }
     func refreshUnread() async {
         guard username != nil else { unreadCount = 0; return }
-        if let page = try? await service.notifications(page: 0) { unreadCount = page.items.filter { !$0.read }.count }
+        if let page = try? await service.notifications(page: 0) { unreadCount = page.items.filter { !$0.read && !isBlocked($0.actor) }.count }
     }
     /// Public category assets may use the site's relative root or an HTTPS CDN. Never attach user keys.
     func publicAssetURL(_ value: String?) -> URL? { PublicMedia.url(value, base: configuration?.baseURL) }
@@ -147,76 +128,6 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         if username != nil { Task { await action() } } else { pendingAction = action; self.gate = gate; authRequested = true }
     }
     func requestSignIn() { pendingAction = nil; gate = .signIn; authRequested = true }
-    func isIgnored(_ username: String) -> Bool { safetyAccount == account && account != .guest && safety.ignored.contains(username) }
-    /// Previews collapse only when the payload names the author. An empty or absent author is never inferred.
-    func hidesPreview(by author: String?, _ key: IgnoredPreview) -> Bool {
-        guard let author, !author.isEmpty else { return false }
-        return isIgnored(author) && !revealedPreviews.contains(key)
-    }
-    /// Loads Ignore state for the current account. A failure leaves an empty, account-scoped state and a retryable error.
-    func loadSafety() async {
-        let owner = account
-        guard owner != .guest else { safety = AccountSafety(); safetyAccount = nil; return }
-        do {
-            let value = try await service.accountSafety()
-            guard account == owner else { return }
-            safety = value; safetyAccount = owner; safetyError = nil
-        } catch {
-            guard account == owner else { return }
-            if safetyAccount != owner { safety = AccountSafety() }
-            safetyAccount = owner; safetyError = error.localizedDescription
-        }
-    }
-    /// Opens the report sheet for an exact target. Guests sign in first; the target is rechecked and nothing is sent automatically.
-    func startReport(_ target: ReportTarget, title: String) {
-        let open: @MainActor () async -> Void = { [weak self] in
-            guard let self else { return }
-            let state = ReportState(target: target, title: title, account: self.account, service: self.service)
-            self.report = state
-            await state.load(isOffline: self.isOffline)
-        }
-        if username == nil { pendingAction = open; gate = .report(target.noun); authRequested = true } else { Task { await open() } }
-    }
-    /// Session ended during a report: keep the same form and input, sign in, then recheck permissions.
-    func resumeReportAfterSignIn(_ state: ReportState) {
-        report = nil
-        requestAuthAfterDismiss(.resumeReport) { [weak self] in
-            guard let self else { return }
-            guard state.account == self.account || state.account == .guest else { return }
-            state.account = self.account
-            self.report = state
-            await state.load(isOffline: self.isOffline, keepInput: true)
-        }
-    }
-    /// Presents sign-in once the current sheet has finished dismissing. The action reopens context only; it never submits.
-    func requestAuthAfterDismiss(_ gate: AuthGate, _ action: @escaping @MainActor () async -> Void) {
-        pendingAction = action; self.gate = gate
-        Task { [weak self] in try? await Task.sleep(for: .milliseconds(650)); self?.authRequested = true }
-    }
-    /// Checks the member card first so self, staff, ineligible and already-ignored targets get their truthful state, never a sheet.
-    func startIgnore(_ username: String, name: String?) {
-        let open: @MainActor () async -> Void = { [weak self] in
-            guard let self else { return }
-            guard username != self.username else { return }
-            let member: MemberSafety
-            do { member = try await self.service.memberSafety(username) }
-            catch { self.banner = String(localized: "Couldn’t check whether you can ignore \(username). Nothing changed. Try again."); return }
-            if member.ignored { await self.loadSafety(); self.toast(String(localized: "You’re already ignoring \(username).")); return }
-            guard member.canIgnore else {
-                self.banner = member.staff ? String(localized: "Moderators and admins can’t be ignored. You can still report posts, or contact support.") : String(localized: "Ignore isn’t available for your account yet. You can still report posts, or contact support.")
-                return
-            }
-            self.ignoreSheet = IgnoreState(username: username, name: name, account: self.account)
-        }
-        if self.username == nil { pendingAction = open; gate = .ignore(username); authRequested = true } else { Task { await open() } }
-    }
-    /// Applies a confirmed preference change everywhere: account list, cached discussions and hidden replies.
-    func safetyChanged() async {
-        await loadSafety()
-        revealed = []; revealedPreviews = []
-        for tab in tabs.values { tab.discussions = [:] }
-        safetyRevision += 1
-    }
     func create(category: CategoryID? = nil) {
         requireMember(.create(category.flatMap { self.category($0)?.name })) { [weak self] in
             guard let self else { return }
@@ -252,21 +163,14 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
             else if let auth { let member = try await auth.signIn(); username = member; account = .init(rawValue: "\(configuration!.baseURL.absoluteString):\(member)") }
             else { throw RepositoryError.configuration }
             if let composer, composer.draft.account != account { self.composer = nil; banner = "The previous account’s draft remains private to that account." }
-            // Report text and Ignore context are account-scoped; a different member never inherits them.
-            if let report, report.account != .guest, report.account != account { self.report = nil }
-            if let ignoreSheet, ignoreSheet.account != .guest, ignoreSheet.account != account { self.ignoreSheet = nil }
-            if safetyAccount != account { safety = AccountSafety(); safetyAccount = nil; revealed = []; revealedPreviews = [] }
-            await loadSafety()
             try draftStore.migrateGuest(to: account)
             if composer == nil { try draftStore.reconcileFiles(account: account) }
             let action = pendingAction, gate = self.gate; pendingAction = nil
-            authRequested = false; await loadTheme(); await loadCommunities(); await action?()
+            authRequested = false; await refreshSafety(); await loadTheme(); await loadCommunities(); await action?()
             let name = username ?? "member"
             switch gate {
             case .reply, .quote: toast("Signed in as \(name). Your reply is ready.")
             case .like: toast("Signed in as \(name). Tap again to like the post.")
-            case .report: toast(String(localized: "Signed in as \(name). Choose a reason, then send."))
-            case .resumeReport: toast(String(localized: "Signed in again. Check the details, then send."))
             case .save: toast("Signed in as \(name). Tap again to save.")
             default: toast("Signed in as \(name).")
             }
@@ -279,7 +183,6 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         do {
             if try KeychainCredentialStore.read(site: configuration.baseURL.absoluteString) != nil {
                 let name = try await auth.currentUsername(); username = name; account = .init(rawValue: "\(configuration.baseURL.absoluteString):\(name)")
-                await loadSafety()
             }
             if composer == nil { try draftStore.reconcileFiles(account: account) }
         } catch { banner = error.localizedDescription }
@@ -288,12 +191,38 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         composer?.stopUploads()
         do { try draftStore.clear(account: account); try auth?.signOut() }
         catch { banner = "Sign-out could not finish: \(error.localizedDescription)"; return }
-        account = .guest; username = nil; displayName = nil; pendingAction = nil; composer = nil; pendingNotice = nil; unreadCount = 0; guestNoteDismissed = false
-        safety = AccountSafety(); safetyAccount = nil; safetyError = nil; revealed = []; revealedPreviews = []; report = nil; ignoreSheet = nil
+        account = .guest; username = nil; safety = nil; safetyError = nil; safetyChanging = []; displayName = nil; pendingAction = nil; composer = nil; pendingNotice = nil; unreadCount = 0; guestNoteDismissed = false
         tabs = Dictionary(uniqueKeysWithValues: AppTab.allCases.map { ($0, TabState()) }); draftsRevision += 1
         fixture?.bookmarks = [:]; fixture?.readNotices = []
         toast("Signed out")
         Task { await loadCommunities() }
+    }
+    func isBlocked(_ name: String) -> Bool {
+        guard safety?.username == username else { return false }
+        return safety?.ignoredUsers.contains { $0.caseInsensitiveCompare(name) == .orderedSame } == true
+    }
+    func refreshSafety() async {
+        guard let username else { safety = nil; safetyError = nil; return }
+        let account = self.account
+        do {
+            let value = try await service.safetySession()
+            guard self.account == account, self.username == username else { return }
+            guard value.username.caseInsensitiveCompare(username) == .orderedSame else { throw RepositoryError.unauthorized }
+            if safety?.ignoredUsers != value.ignoredUsers { safetyRevision += 1 }
+            safety = value; safetyError = nil
+        } catch { if self.account == account { safetyError = error.localizedDescription } }
+    }
+    func changeBlocking(_ name: String, blocked: Bool) async throws {
+        let key = name.lowercased()
+        guard let username, !safetyChanging.contains(key) else { return }
+        let account = self.account
+        safetyChanging.insert(key); defer { safetyChanging.remove(key) }
+        let result = try await service.setIgnored(username: name, ignored: blocked)
+        guard self.account == account, self.username == username, result.username.caseInsensitiveCompare(username) == .orderedSame else { throw RepositoryError.unauthorized }
+        safety = result; safetyError = nil; safetyRevision += 1
+        // Clear list caches so unblocking reloads content that the server omitted while ignored.
+        for tab in tabs.values { tab.feeds = [:]; tab.discussions = [:]; tab.searchResults = []; tab.searchCompletedQuery = nil; tab.searchNextPage = nil }
+        toast(blocked ? "Member blocked" : "Member unblocked")
     }
     func published(topic: TopicID, number: PostNumber, origin: AppTab, isReply: Bool, categoryID: CategoryID?) {
         composer = nil; selectedTab = origin

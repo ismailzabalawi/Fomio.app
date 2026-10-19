@@ -46,7 +46,7 @@ struct FeedView: View {
                     }.padding(.horizontal, 20).padding(.top, 18).padding(.bottom, 4)
                     if state.loading && !state.loaded { SkeletonRows() }
                     if appearance == .cards && !state.items.isEmpty { Color.clear.frame(height: 6).accessibilityHidden(true) }
-                    ForEach(state.items) { topic in
+                    ForEach(state.items.filter { !app.isBlocked($0.author) }) { topic in
                         TopicCard(topic: topic, appearance: appearance, showCategory: category == nil || topic.categoryID != category?.id,
                                   onOpen: { app.navigate(.discussion(topic.id, topic.targetPostNumber)) },
                                   onCategory: { app.navigate(.community($0)) })
@@ -91,6 +91,7 @@ struct FeedView: View {
         }
         .task { if !state.loaded { await load() } }
         .refreshable { await state.load(service: app.service, category: category, refresh: true) }
+        .onChange(of: app.safetyRevision) { _, _ in Task { await state.load(service: app.service, category: category, refresh: true) } }
     }
     private func load() async { await state.load(service: app.service, category: category) }
     private var optionsMenu: some View {

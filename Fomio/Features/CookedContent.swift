@@ -2,7 +2,7 @@ import SwiftUI
 import Foundation
 
 struct HTMLContent {
-    enum Block: Equatable { case text(String), quote(String), attributedQuote(author: String, text: String), code(String), image(String, String), details(String, String), spoiler(String), table([[String]]), date(String), unsupported }
+    enum Block: Equatable { case text(String), quote(String), code(String), image(String, String), details(String, String), spoiler(String), table([[String]]), date(String), unsupported }
     static func plainText(_ html: String) -> String {
         var result = html.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
         let entities = [("&quot;", "\""), ("&#39;", "'"), ("&nbsp;", " "), ("&lt;", "<"), ("&gt;", ">"), ("&amp;", "&")]
@@ -63,11 +63,6 @@ struct HTMLContent {
                 } else { blocks.append(.unsupported) }
             }
             else if lower.hasPrefix("<pre") { blocks.append(.code(plainText(segment))) }
-            else if lower.hasPrefix("<aside"), let author = attribute("data-username", in: segment), !author.isEmpty {
-                // Attributed Discourse quote. The author lets the reader hide quotes from people they ignore.
-                let body = segment.range(of: "<blockquote[\\s\\S]*</blockquote>", options: [.regularExpression, .caseInsensitive]).map { String(segment[$0]) } ?? segment
-                blocks.append(.attributedQuote(author: author, text: markdown(body)))
-            }
             else if lower.hasPrefix("<blockquote") || lower.hasPrefix("<aside") { blocks.append(.quote(markdown(segment))) }
             else if lower.hasPrefix("<img"), let source = attribute("src", in: segment) { blocks.append(.image(source, attribute("alt", in: segment) ?? "Community photo")) }
             else if !lower.hasPrefix("<script") && !lower.hasPrefix("<style") { blocks.append(.unsupported) }
@@ -83,22 +78,11 @@ struct CookedContent: View {
     let topic: TopicID
     let number: PostNumber
     var textStyle: Font = .body
-    @State private var revealedQuotes: Set<Int> = []
     var body: some View {
         let blocks = HTMLContent.blocks(html)
         VStack(alignment: .leading, spacing: 12) {
-            ForEach(Array(blocks.enumerated()), id: \.offset) { index, block in
+            ForEach(Array(blocks.enumerated()), id: \.offset) { _, block in
                 switch block {
-                case let .attributedQuote(author, text):
-                    if app.isIgnored(author) && !revealedQuotes.contains(index) {
-                        IgnoredPlaceholder(text: String(localized: "Quote from someone you ignore"), author: author) { revealedQuotes.insert(index) }
-                    } else {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(author).font(.caption.weight(.semibold)).foregroundStyle(Color.fomioSecondaryText)
-                            Text(.init(text)).font(textStyle).textSelection(.enabled)
-                        }.padding(12).frame(maxWidth: .infinity, alignment: .leading).background(Color.fomioHighlight, in: .rect(cornerRadius: 8))
-                        .accessibilityElement(children: .combine).accessibilityLabel(String(localized: "Quote from \(author): ") + HTMLContent.plainText(text))
-                    }
                 case let .text(text): Text(.init(text)).font(textStyle).textSelection(.enabled)
                 case let .quote(text): Text(.init(text)).font(textStyle).textSelection(.enabled).padding(12).background(Color.fomioHighlight, in: .rect(cornerRadius: 8)).accessibilityLabel("Quote: " + HTMLContent.plainText(text))
                 case let .code(text): ScrollView(.horizontal) { Text(text).font(.system(.body, design: .monospaced)).textSelection(.enabled).padding(12) }.background(Color.fomioHighlight, in: .rect(cornerRadius: 8))

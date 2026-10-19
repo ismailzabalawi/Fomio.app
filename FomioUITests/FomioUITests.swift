@@ -2,6 +2,85 @@ import XCTest
 import UIKit
 
 @MainActor final class FomioUITests: XCTestCase {
+    func testCaptureIllustrativeStoreScreenshots() throws {
+        guard ProcessInfo.processInfo.environment["FOMIO_STORE_CAPTURES"] == "1" else { throw XCTSkip("Store captures require explicit opt-in") }
+        let app = launch(["--store-preview"])
+        let topic = app.buttons["topic-4188"]
+        XCTAssertTrue(topic.waitForExistence(timeout: 15))
+        XCTAssertFalse(app.staticTexts["fixture-banner"].exists)
+        func capture(_ name: String) {
+            Thread.sleep(forTimeInterval: 1)
+            let attachment = XCTAttachment(screenshot: app.screenshot())
+            attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
+        }
+        capture("Illustrative-01-Home")
+        topic.tap()
+        XCTAssertTrue(app.buttons["discussion-more"].waitForExistence(timeout: 10))
+        capture("Illustrative-02-Discussion")
+        app.swipeUp()
+        capture("Illustrative-04-Replies")
+        app.buttons.matching(identifier: "Communities").firstMatch.tap()
+        XCTAssertTrue(app.buttons["community-1"].waitForExistence(timeout: 10))
+        capture("Illustrative-03-Communities")
+    }
+    func testCaptureLiveStoreScreenshots() throws {
+        guard ProcessInfo.processInfo.environment["FOMIO_STORE_CAPTURES"] == "1" else { throw XCTSkip("Store captures require explicit live read opt-in") }
+        let app = launch(["--live"])
+        let topic = app.buttons.matching(NSPredicate(format: "identifier MATCHES %@", "topic-[0-9]+" )).firstMatch
+        XCTAssertTrue(topic.waitForExistence(timeout: 30))
+        func capture(_ name: String) {
+            // Let the iPad tab/toolbar transition finish before recording a store asset.
+            Thread.sleep(forTimeInterval: 1)
+            let attachment = XCTAttachment(screenshot: app.screenshot())
+            attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
+        }
+        capture("Store-01-Home")
+        topic.tap()
+        XCTAssertTrue(app.buttons["discussion-more"].waitForExistence(timeout: 20))
+        capture("Store-02-Discussion")
+        app.buttons.matching(identifier: "Communities").firstMatch.tap()
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "identifier MATCHES %@", "community-[0-9]+" )).firstMatch.waitForExistence(timeout: 20))
+        capture("Store-03-Communities")
+        XCTAssertFalse(app.staticTexts["Fixture preview"].exists)
+    }
+    func testReportCustomReasonAndBlockThenUnblock() {
+        let app = launch()
+        app.buttons["topic-4182"].tap()
+        let safety = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Report or block @")).firstMatch
+        XCTAssertTrue(safety.waitForExistence(timeout: 5)); safety.tap()
+        app.buttons["Report post"].tap()
+        let picker = app.buttons["report-reason"]
+        XCTAssertTrue(picker.waitForExistence(timeout: 5)); picker.tap()
+        app.buttons["Something else"].tap()
+        XCTAssertFalse(app.buttons["Send report"].isEnabled)
+        let details = app.textFields["Explain your concern"]
+        XCTAssertTrue(details.waitForExistence(timeout: 5)); details.tap(); details.typeText("Fictional concern for the fixture moderators")
+        app.buttons["Send report"].tap()
+        XCTAssertTrue(safety.waitForExistence(timeout: 5)); safety.tap()
+        app.buttons["Block member…"].tap()
+        let confirm = app.buttons["Block member"].firstMatch
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5)); confirm.tap()
+        XCTAssertTrue(app.staticTexts["This reply is hidden."].firstMatch.waitForExistence(timeout: 5))
+        app.buttons.matching(identifier: "Me").firstMatch.tap()
+        app.buttons["Blocked members"].tap()
+        let unblock = app.buttons["Unblock member"].firstMatch
+        XCTAssertTrue(unblock.waitForExistence(timeout: 5)); unblock.tap()
+        let confirmUnblock = app.buttons["Unblock member"].firstMatch
+        XCTAssertTrue(confirmUnblock.waitForExistence(timeout: 5)); confirmUnblock.tap()
+        XCTAssertTrue(app.staticTexts["No blocked members"].waitForExistence(timeout: 5))
+    }
+    func testRestrictedAccountDeletionExplainsSupportAndCanBeCancelled() {
+        let app = launch()
+        app.buttons.matching(identifier: "Me").firstMatch.tap()
+        let delete = app.buttons["Delete account…"]
+        XCTAssertTrue(delete.waitForExistence(timeout: 10)); delete.tap()
+        XCTAssertTrue(app.staticTexts["This account cannot be deleted automatically. Contact support for help deleting your account and associated data."].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["Delete account permanently"].exists)
+        let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Restricted account deletion"; capture.lifetime = .keepAlways; add(capture)
+        app.buttons["Close"].tap()
+        XCTAssertTrue(delete.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Sign out"].exists)
+    }
     func testLiveCategoryChildAboutAndTopicNavigation() throws {
         guard ProcessInfo.processInfo.environment["FOMIO_LIVE_UI_TESTS"] == "1" else { throw XCTSkip("Live UI reads require explicit opt-in") }
         let app = launch(["--live"])
@@ -19,7 +98,7 @@ import UIKit
         child.tap()
         let about = app.buttons["community-about"]; XCTAssertTrue(about.waitForExistence(timeout: 15)); about.tap()
         XCTAssertTrue(app.buttons["Done"].waitForExistence(timeout: 5)); app.buttons["Done"].tap()
-        let topic = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "topic-")).firstMatch
+        let topic = app.buttons.matching(NSPredicate(format: "identifier MATCHES %@", "topic-[0-9]+" )).firstMatch
         XCTAssertTrue(topic.waitForExistence(timeout: 15))
         let feed = XCTAttachment(screenshot: app.screenshot()); feed.name = "Live subcategory header and feed"; feed.lifetime = .keepAlways; add(feed)
         topic.tap()
@@ -208,7 +287,7 @@ import UIKit
     private func launch(_ arguments: [String] = []) -> XCUIApplication {
         let app = XCUIApplication(); app.launchArguments = arguments.contains("--live") ? arguments : ["--fixture", "--ui-testing"] + arguments; app.launchEnvironment["FOMIO_UI_TEST_NAMESPACE"] = UUID().uuidString; app.launch()
         if !arguments.contains("--live") {
-            let ready = arguments.contains("communities") ? "community-1" : "topic-4182"
+            let ready = arguments.contains("--store-preview") ? "topic-4188" : arguments.contains("communities") ? "community-1" : "topic-4182"
             XCTAssertTrue(app.buttons[ready].waitForExistence(timeout: 10))
         }
         return app

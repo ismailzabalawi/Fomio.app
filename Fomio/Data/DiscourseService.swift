@@ -6,9 +6,23 @@ import Foundation
     private var topicSlugs: [TopicID: String] = [:]
     private var initialPages: [TopicID: DiscussionPage] = [:]
     private var metadata: [TopicID: DiscussionSummary] = [:]
-    /// Flag catalog and policy paths from `site.json`; refreshed per session, never hardcoded.
-    var safetyCatalog: SafetyCatalogDTO?
     init(configuration: LiveConfiguration?, session: URLSession? = nil, credentials: @escaping (String) throws -> Credential? = KeychainCredentialStore.read, composerCapabilities: ComposerCapabilities = ComposerCapabilities()) { self.composerCapabilities = composerCapabilities; api = APIClient(configuration: configuration, session: session, credentials: credentials) }
+    private struct DeletionSession: Decodable {
+        struct User: Decodable { let username: String; let canDeleteAccount: Bool? }
+        let currentUser: User
+    }
+    func canDeleteAccount(username: String) async throws -> Bool {
+        let session = try await api.get(DeletionSession.self, "session/current.json", member: true)
+        guard session.currentUser.username.caseInsensitiveCompare(username) == .orderedSame else { throw RepositoryError.unauthorized }
+        return session.currentUser.canDeleteAccount == true
+    }
+    func deleteAccount(username: String) async throws {
+        // Recheck the credential's current identity and permission immediately before the destructive request.
+        guard try await canDeleteAccount(username: username) else { throw RepositoryError.denied }
+        let data = try await api.json("u/\(username).json", method: "DELETE", payload: ["context": "Self-deletion from Fomio iOS app"])
+        struct Result: Decodable { let success: String }
+        guard (try? api.decode(Result.self, from: data).success) == "OK" else { throw RepositoryError.unconfirmed }
+    }
     func similarDiscussions(title: String, raw: String) async throws -> [DiscussionSummary] {
         guard composerCapabilities.similarDiscussions else { throw RepositoryError.unsupported }
         let data = try await api.request("topics/similar_to.json", query: [.init(name: "title", value: title), .init(name: "raw", value: raw)], member: true)
@@ -92,7 +106,7 @@ import Foundation
             if let cached = initialPages[id] { initial = cached } else { initial = try await discussion(id, page: 0) }
             detail = initial.summary; opening = initial.opening; canReply = initial.canReply
         }
-        let result = DiscussionPage(summary: detail, opening: opening, roots: envelope.roots.map { $0.node(canReply: canReply, topicID: id) }, nextPage: envelope.hasMoreRoots ? page + 1 : nil, closed: envelope.topic?.closed ?? initialPages[id]?.closed ?? false, canReply: canReply, effectiveSort: envelope.effectiveSort ?? initialPages[id]?.effectiveSort, archived: envelope.topic?.archived ?? initialPages[id]?.archived ?? false, canFlagTopic: envelope.topic.map { $0.details?.canFlagTopic == true } ?? initialPages[id]?.canFlagTopic ?? false)
+        let result = DiscussionPage(summary: detail, opening: opening, roots: envelope.roots.map { $0.node(canReply: canReply, topicID: id) }, nextPage: envelope.hasMoreRoots ? page + 1 : nil, closed: envelope.topic?.closed ?? initialPages[id]?.closed ?? false, canReply: canReply, effectiveSort: envelope.effectiveSort ?? initialPages[id]?.effectiveSort, archived: envelope.topic?.archived ?? initialPages[id]?.archived ?? false)
         if page == 0 { initialPages[id] = result }; return result
     }
     func children(topic: TopicID, parent: PostNumber, page: Int, depth: Int) async throws -> ChildPage {
@@ -107,7 +121,7 @@ import Foundation
         if focused { query.append(URLQueryItem(name: "context", value: "0")) }
         let dto = try await api.get(ContextDTO.self, nestedPath(topic) + "/context/\(number.rawValue).json", query: query)
         let detail = summary(dto.topic), canReply = dto.topic.details?.canCreatePost == true
-        let page = DiscussionPage(summary: detail, opening: dto.opPost.domain(canReply: canReply, topicID: topic), roots: [], nextPage: nil, closed: dto.topic.closed == true, canReply: canReply, effectiveSort: dto.effectiveSort, archived: dto.topic.archived == true, canFlagTopic: dto.topic.details?.canFlagTopic == true)
+        let page = DiscussionPage(summary: detail, opening: dto.opPost.domain(canReply: canReply, topicID: topic), roots: [], nextPage: nil, closed: dto.topic.closed == true, canReply: canReply, effectiveSort: dto.effectiveSort, archived: dto.topic.archived == true)
         return ThreadContext(page: page, ancestors: dto.ancestorChain.map { $0.domain(canReply: canReply, topicID: topic) }, target: dto.targetPost.node(canReply: canReply, topicID: topic), truncated: dto.ancestorsTruncated)
     }
     func like(_ post: Post) async throws -> Post {
@@ -216,7 +230,7 @@ struct SiteThemeDTO: Decodable {
 }
 struct UserDTO: Decodable { var id: Int; var username: String }
 struct TopicDTO: Decodable {
-    struct Details: Decodable { var canCreatePost: Bool?; var canFlagTopic: Bool? }
+    struct Details: Decodable { var canCreatePost: Bool? }
     struct Poster: Decodable { var userId: Int; var description: String? }
     var id: Int; var title: String; var slug: String?; var categoryId: Int?; var excerpt: String?; var replyCount: Int?; var postsCount: Int?; var lastPosterUsername: String?; var posters: [Poster]?; var closed: Bool?; var details: Details?; var archived: Bool?; var bumpedAt: String?; var pinned: Bool?; var imageUrl: String?; var unicodeTitle: String?
     func domain(users: [UserDTO], baseURL: URL? = nil) -> DiscussionSummary {
@@ -232,8 +246,7 @@ struct PostDTO: Decodable {
     var id: Int; var postNumber: Int; var topicId: Int?; var replyToPostNumber: Int?; var username: String?; var name: String?; var createdAt: String?; var cooked: String?; var raw: String?; var actionsSummary: [Action]?; var bookmarkId: Int?; var deletedPostPlaceholder: Bool?; var ignoredPostPlaceholder: Bool?; var directReplyCount: Int?; var children: [PostDTO]?
     func domain(canReply: Bool, topicID: TopicID? = nil) -> Post {
         let like = actionsSummary?.first { $0.id == 2 }
-        let flags = (actionsSummary ?? []).filter { $0.id != 2 }.map { FlagAction(id: $0.id, canAct: $0.canAct == true, acted: $0.acted == true) }
-        return Post(id: .init(id), number: .init(postNumber), topicID: topicId.map { TopicID($0) } ?? topicID ?? .init(0), parent: replyToPostNumber.map { PostNumber($0) }, author: username ?? "", body: raw ?? HTMLContent.plainText(cooked ?? ""), cooked: cooked, likeCount: like?.count ?? 0, liked: like?.acted == true, bookmarkID: bookmarkId, canLike: like?.canAct == true, canReply: canReply, deleted: deletedPostPlaceholder == true, ignored: ignoredPostPlaceholder == true, childCount: directReplyCount ?? 0, age: RelativeAge.string(iso: createdAt), authorName: name.flatMap { $0.isEmpty ? nil : $0 }, flags: flags)
+        return Post(id: .init(id), number: .init(postNumber), topicID: topicId.map { TopicID($0) } ?? topicID ?? .init(0), parent: replyToPostNumber.map { PostNumber($0) }, author: username ?? "", body: raw ?? HTMLContent.plainText(cooked ?? ""), cooked: cooked, likeCount: like?.count ?? 0, liked: like?.acted == true, bookmarkID: bookmarkId, canLike: like?.canAct == true, canReply: canReply, deleted: deletedPostPlaceholder == true, ignored: ignoredPostPlaceholder == true, childCount: directReplyCount ?? 0, age: RelativeAge.string(iso: createdAt), authorName: name.flatMap { $0.isEmpty ? nil : $0 })
     }
     func node(canReply: Bool, topicID: TopicID? = nil) -> ThreadNode { ThreadNode(post: domain(canReply: canReply, topicID: topicID), children: (children ?? []).map { $0.node(canReply: canReply, topicID: topicID) }) }
 }

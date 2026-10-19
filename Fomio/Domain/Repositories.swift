@@ -25,7 +25,38 @@ import Foundation
 @MainActor protocol UploadRepository {
     func upload(_ data: Data, progress: @escaping @MainActor @Sendable (Double) -> Void) async throws -> UploadedPhoto
 }
-@MainActor protocol CommunityService: FeedRepository, CommunityRepository, DiscussionRepository, SearchRepository, NotificationRepository, ProfileRepository, BookmarkRepository, PostingRepository, UploadRepository, ComposerRepository, SafetyRepository {}
+@MainActor protocol AccountRepository {
+    func canDeleteAccount(username: String) async throws -> Bool
+    func deleteAccount(username: String) async throws
+}
+extension AccountRepository {
+    func canDeleteAccount(username: String) async throws -> Bool { false }
+    func deleteAccount(username: String) async throws { throw RepositoryError.denied }
+}
+struct SafetySession: Sendable {
+    var username: String
+    var canIgnoreUsers: Bool
+    var ignoredUsers: [String]
+}
+struct ReportReason: Identifiable, Sendable {
+    var id: Int
+    var title: String
+    var description: String
+    var requiresMessage: Bool
+}
+@MainActor protocol SafetyRepository {
+    func safetySession() async throws -> SafetySession
+    func reportReasons(post: Post) async throws -> [ReportReason]
+    func report(post: Post, reason: Int, message: String) async throws
+    func setIgnored(username: String, ignored: Bool) async throws -> SafetySession
+}
+extension SafetyRepository {
+    func safetySession() async throws -> SafetySession { throw RepositoryError.unauthorized }
+    func reportReasons(post: Post) async throws -> [ReportReason] { [] }
+    func report(post: Post, reason: Int, message: String) async throws { throw RepositoryError.denied }
+    func setIgnored(username: String, ignored: Bool) async throws -> SafetySession { throw RepositoryError.denied }
+}
+@MainActor protocol CommunityService: FeedRepository, CommunityRepository, DiscussionRepository, SearchRepository, NotificationRepository, ProfileRepository, BookmarkRepository, PostingRepository, UploadRepository, ComposerRepository, AccountRepository, SafetyRepository {}
 
 struct ComposerCapabilities: Equatable, Sendable {
     var blocks: Set<ComposerBlockKind> = [.table, .code]

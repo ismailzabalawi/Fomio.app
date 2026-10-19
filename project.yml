@@ -11,7 +11,7 @@ settings:
     DEVELOPMENT_TEAM: LK9253R3XB
     CODE_SIGN_STYLE: Automatic
     MARKETING_VERSION: '0.8.0'
-    CURRENT_PROJECT_VERSION: '6'
+    CURRENT_PROJECT_VERSION: '7'
     "CODE_SIGN_IDENTITY[sdk=iphonesimulator*]": "-"
     GENERATE_INFOPLIST_FILE: YES
     TARGETED_DEVICE_FAMILY: '1,2'
@@ -33,6 +33,10 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         ITSAppUsesNonExemptEncryption: false
+        CFBundleURLTypes:
+          - CFBundleURLName: com.fomio.mobile.authentication
+            CFBundleURLSchemes: [fomio]
+            CFBundleTypeRole: Editor
         FomioBaseURL: https://meta.fomio.app
         FomioAuthCallback: fomio://auth_redirect
         FomioUserAPIScopes: read,write,notifications,session_info

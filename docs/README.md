@@ -14,15 +14,12 @@ Current native baseline: 2026-10-03. The fixture MVP is implemented; live releas
    [Localization implementation plan](localization-implementation-plan.md): live admin readiness findings, English-only fallback, and ordered delivery gates.
    [Discourse integration plan](discourse-integration-plan.md): staged live verification and the first authentication gate.
 7. [Release readiness](release-readiness.md): automated coverage, native/live acceptance and required resources.
+   [App Store submission](app-store-submission.md): current blockers, public-policy findings, listing/review drafts and packaging preflight.
 
 ## Design and historical references
 
-- [Reporting & Safety design review](design/reporting-safety/README.md) links the Claude Design project and the full requested screen/state inventory. User-directed sequence: review wireframes/mockups first, then backend configuration/validation, then native implementation. **Current status:** [stage gates → Current status](design/reporting-safety/stage-gates.md#current-status--2026-10-18). Designs approved 2026-10-17. Local backend checks passed. Deployed member round trips were waived, not passed. Native feature implemented ([validation](validation/2026-10-17-safety-native/README.md)).
-
-- [Ignore/blocking assessment](ignore-blocking-assessment.md) records deployed eligibility, source behavior, Forever support, native hiding gaps and the controlled member checks required before implementation.
-
-- [Reporting and safety IA](reporting-safety-ia.md) is the 2026-10-16 proposal for native reporting, user protection, Safety & Help and moderator handling, mapped to Apple Guideline 1.2. Source review is separate from deployed verification; no feature is implemented by this document.
-
+- [Notifications IA and integration map](notifications-ia.md) is the 2026-10-18 pre-public planning packet: inbox/types, grouped-reply destinations, read/seen/count semantics, foreground freshness, push enrollment/relay boundaries, current native gaps and delivery acceptance. Source review is distinct from deployed/device verification.
+- [Notifications Claude Design handoff](design/notifications-claude-handoff.md) records the IA-based mockup brief, design destination and browser review status.
 - [Category, subcategory and topic IA](category-topic-ia.md) is the focused 2026-10-06 pre-mockup map: root/child hierarchy, category-feed scope, nested/exact-reply navigation, permission and recovery states, source traces, and current native gaps. Native recommendations are proposals; source review is distinct from deployed verification.
 - [Category/topic Claude Design handoff](design/category-topic-claude-handoff.md) links the new IA-based mockups and records independent browser checks, review screenshots and remaining native/deployment validation.
 - [MVP design handoff](design/mvp-design-handoff.md) defines the narrowed launch direction.
