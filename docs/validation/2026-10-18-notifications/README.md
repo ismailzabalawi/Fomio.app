@@ -67,3 +67,42 @@ Captures in this folder (fixtures, labelled fictional): `iphone17-inbox-light.pn
 - Push: no relay, enrollment API, APNs credentials, entitlement or `push_url` authorization exists; live Settings show “Not available yet”. Fixture prompts, enrollment and taps are simulations and prove no delivery. Tap payloads would need a notification ID to acknowledge from a push.
 - Unsupported rows without a destination have no dismissal (proposal in the design handoff).
 - Device acceptance: VoiceOver order/announcements, every Dynamic Type size, RTL, external keyboard, iPad resizing and physical-device push.
+
+
+## Integration and second audit — 2026-10-19
+
+Integrated on `claude/fomio-release-integration` and pushed to `main` as `e3a6e04` (build 7 baseline over build 6), `afeea60` (notifications), `eef6b2f` (composer transition fix). A selected pre-push run passed (152 tests: 148 passed, 4 skipped). Uploading 0.8.0 (8) was rejected by App Store Connect because the 0.8.0 train is closed (previously approved); nothing was uploaded. Release is on hold pending these fixes and a marketing-version decision.
+
+[Second independent audit](../2026-10-19-independent-audit/README.md) (on `eef6b2f`) found two P2 issues, fixed in follow-up commits:
+
+| Finding | Fix | Regression tests (`FomioTests/NotificationTests.swift`) |
+| --- | --- | --- |
+| Refresh snapshot taken before an acknowledgment restored the read row in Unread and the stale offset skipped ID 6 | `NotificationStore` keeps a confirmation revision. An Unread refresh that overlapped a confirmed read or cursor change fetches again (up to three times, then restarts the feed); any snapshot older than a confirmed read cannot mark it unread (refresh, page loads and rechecks) | `testAudit2StaleUnreadRefreshCannotRestoreAcknowledgedRow`, `testAudit2StaleAllRefreshKeepsConfirmedReadAndUnreadStaysAligned`, `testAudit2StaleAllPageCannotDowngradeConfirmedRead` (fixture `suspendNextHistory` holds a response after its snapshot, as in the audit harness) |
+| Ignoring a grouped row's `original_username` hid replies from other members | `NotificationItem.filterNames` is empty unless the row is credited to one member (`actor != nil`), so grouped and collapsed reply rows are never filtered by one name | `testAudit2GroupedRowSurvivesIgnoringItsOriginalMember` (mixed bucket, collapsed row, fixture 5010, individual row still hidden) |
+
+Audit probes rerun against the fixed sources (`xcrun swiftc -parse-as-library` with production `Notifications.swift` and `NotificationStore.swift`):
+
+```text
+probes/Race.swift
+After successful acknowledgment: ["7:false"]
+After older refresh completes: ["7:false", "6:false"] next: Optional(2)
+Next page IDs: [7, 6, 5, 4] server ID8 read: true
+Grouped actor: nil hidden by ignoring original member: false
+
+2026-10-18 audit-probes/Probe.swift
+Unread after acknowledgment: ["7:read=false"]
+Unread after next page: [7, 6, 5] ; expected next unread ID 6, found: true
+After successful refresh removes access to all targets: [] ; refreshError: nil
+Recheck inaccessible unread row: server.read= false ; client.read= Optional(false) ; outcome= Optional(probe1.AcknowledgmentState.unknown)
+```
+
+Unit/contract target on the final code: 133 executed, 129 passed, 4 skipped (opt-in live), 0 failed (`.build/audit2-unit.xcresult` in the integration worktree). Two first-run failures were wrong test expectations, corrected to the specified behaviour: a re-fetched refresh returns the fresh first window `[7, 6]`, and ID 8 leaves memory rather than staying cached as read.
+
+**Complete suite on the final code** (`.build/final-complete.xcresult` in the integration worktree; Xcode 27.1, iOS 27.0, “Fomio Release iPhone 17” `CAB241D5-6903-45BC-91E8-FDECC89F6D78`; code = `eef6b2f` plus the uncommitted audit fixes later committed on top): **183 tests — 174 passed, 7 skipped (4 opt-in live checks, 3 existing UI skips), 2 failed.** Unit/contract: 133 executed, 129 passed, 4 skipped, 0 failed. UI: 50 executed, 3 skipped, 2 failed. A first attempt (`final-complete.log`, earlier) was interrupted when the session ended and produced no result.
+
+| Failure | Evidence | Rerun (same simulator and build, `.build/rerun2.xcresult`) |
+| --- | --- | --- |
+| `FeedAppearanceUITests.testDarkAccessibilityTextAndRightToLeftCaptures` (line 159, `Compact` menu item not found within 5 s) | After tapping Feed options, XCTest's “wait for app to idle” took 32 s (t 20.95 → 53.33) before the 5-s search; heavy host load from concurrent sessions | Passed 3/3 |
+| `FomioUITests.testSwipeDismissalProtectsChangedWriting` (line 318, keyboard still present 5 s after Hide keyboard) | The toggle was tapped about 2 s after typing; the floating bar rides the keyboard and can still be moving (earlier probe: 300 pt within 0.4 s). The shared `dismissComposerKeyboard` helper does not yet use `tapSettled` | Passed 3/3 |
+
+Neither test exercises the notification store or model changed by the audit fixes. They are recorded as intermittent under load, not as passes; no assertion was changed. Recommended test-only follow-up: use `tapSettled` in `dismissComposerKeyboard`.

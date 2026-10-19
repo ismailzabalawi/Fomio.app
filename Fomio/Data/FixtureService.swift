@@ -278,8 +278,19 @@ import Observation
         if notices.delay > .zero { try await Task.sleep(for: notices.delay) }
         if offset > 0 && notices.failNextPage { notices.failNextPage = false; throw RepositoryError.server(503) }
         if offset == 0 && notices.failNextRefresh { notices.failNextRefresh = false; throw RepositoryError.server(502) }
-        return notices.page(offset: offset, filter: filter)
+        let page = notices.page(offset: offset, filter: filter)
+        if suspendNextHistory {
+            // Tests: the server snapshot is taken, then the response is held until `resumeHistory()`.
+            suspendNextHistory = false; historySuspended = true
+            await withCheckedContinuation { historyResume = $0 }
+            historySuspended = false
+        }
+        return page
     }
+    var suspendNextHistory = false
+    private(set) var historySuspended = false
+    @ObservationIgnored private var historyResume: CheckedContinuation<Void, Never>?
+    func resumeHistory() { let resume = historyResume; historyResume = nil; resume?.resume() }
     func markNotificationRead(_ id: NotificationID) async throws {
         try check(); try await Task.sleep(for: .milliseconds(300))
         switch notices.nextAcknowledgment {

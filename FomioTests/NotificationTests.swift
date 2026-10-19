@@ -395,4 +395,63 @@ import XCTest
         let mismatch = try await other.credentialIsValid(username: "member")
         XCTAssertFalse(mismatch)
     }
+
+    // MARK: 2026-10-19 audit regressions
+
+    private func suspendedRefresh(_ store: NotificationStore, _ service: FixtureService) async -> Task<Void, Never> {
+        service.suspendNextHistory = true
+        let refresh = Task { await store.refresh() }
+        while !service.historySuspended { await Task.yield() }
+        return refresh
+    }
+    func testAudit2StaleUnreadRefreshCannotRestoreAcknowledgedRow() async {
+        let (store, service) = auditStore()
+        await store.select(.unread)
+        let refresh = await suspendedRefresh(store, service)
+        await store.acknowledge(.init(8))
+        XCTAssertEqual(store.rows().map(\.id.rawValue), [7])
+        service.resumeHistory(); await refresh.value
+        XCTAssertEqual(store.rows().map(\.id.rawValue), [7, 6], "The refresh re-fetched after the acknowledgment: a fresh first window, without ID 8")
+        XCTAssertNotEqual(store.item(.init(8))?.read, false, "ID 8 is never held as unread again (it is read or no longer loaded)")
+        while store.feed.nextOffset != nil { await store.loadMore() }
+        XCTAssertEqual(store.rows().map(\.id.rawValue), [7, 6, 5, 4, 3, 2, 1], "No unread row is skipped")
+    }
+    func testAudit2StaleAllRefreshKeepsConfirmedReadAndUnreadStaysAligned() async {
+        let (store, service) = auditStore()
+        await store.select(.unread)
+        await store.select(.all)
+        let refresh = await suspendedRefresh(store, service)
+        await store.acknowledge(.init(8))
+        service.resumeHistory(); await refresh.value
+        XCTAssertEqual(store.item(.init(8))?.read, true, "A stale All snapshot cannot downgrade a confirmed read")
+        XCTAssertEqual(store.rows().first?.id, .init(8))
+        await store.select(.unread)
+        while store.feed.nextOffset != nil { await store.loadMore() }
+        XCTAssertEqual(store.rows().map(\.id.rawValue), [7, 6, 5, 4, 3, 2, 1])
+    }
+    func testAudit2StaleAllPageCannotDowngradeConfirmedRead() async {
+        let (store, service) = auditStore()
+        await store.loadMore()
+        service.suspendNextHistory = true
+        let page = Task { await store.loadMore() }
+        while !service.historySuspended { await Task.yield() }
+        await store.acknowledge(.init(5))
+        service.resumeHistory(); await page.value
+        XCTAssertEqual(store.item(.init(5))?.read, true)
+        XCTAssertEqual(store.rows().map(\.id.rawValue), [8, 7, 6, 5])
+    }
+    func testAudit2GroupedRowSurvivesIgnoringItsOriginalMember() async {
+        let (app, _) = await fixtureApp()
+        app.safety = SafetySession(username: AppState.fixtureMember, canIgnoreUsers: true, ignoredUsers: ["ines.r", "devon"])
+        let hidden: (NotificationItem) -> Bool = { item in item.filterNames.contains { app.isBlocked($0) } }
+        var grouped = NotificationItem(id: .init(90), kind: .replied, read: false, topicID: .init(90), postNumber: .init(5), displayUsername: "3 replies", originalUsername: "ines.r", replyBucket: .init(4), consolidatedCount: 3)
+        XCTAssertNil(grouped.actor); XCTAssertFalse(hidden(grouped), "Other members' replies in the bucket stay visible")
+        grouped.replyBucket = nil; grouped.consolidatedCount = nil
+        XCTAssertFalse(hidden(grouped), "A collapsed multi-reply row is not credited to one member either")
+        let single = NotificationItem(id: .init(91), kind: .replied, read: false, topicID: .init(91), postNumber: .init(2), displayUsername: "devon", originalUsername: "devon")
+        XCTAssertTrue(hidden(single), "Individual notifications from an ignored member stay hidden")
+        await app.notifications.loadIfNeeded()
+        let fixtureGrouped = try? XCTUnwrap(app.notifications.item(.init(5010)))
+        XCTAssertEqual(fixtureGrouped?.originalUsername, "ines.r"); XCTAssertEqual(fixtureGrouped.map(hidden), false)
+    }
 }

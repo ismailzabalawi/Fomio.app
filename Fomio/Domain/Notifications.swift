@@ -62,8 +62,13 @@ struct NotificationItem: Identifiable, Equatable, Sendable {
         if kind == .replied, let original = originalUsername, displayUsername != original, displayUsername?.contains(where: \.isNumber) == true { return nil }
         return displayUsername ?? originalUsername ?? dataUsername
     }
-    /// Usernames that local Ignore filtering compares against.
-    var filterNames: [String] { [displayUsername, originalUsername, dataUsername].compactMap { $0 } }
+    /// Usernames that local Ignore filtering compares against. Only a row credited to a single member is filtered:
+    /// a grouped or collapsed reply keeps `original_username` from one incoming post while counting replies from
+    /// several members (`PostAlerter#create_notification`), so one ignored name is not evidence about the aggregate.
+    var filterNames: [String] {
+        guard actor != nil else { return [] }
+        return [displayUsername, originalUsername, dataUsername].compactMap { $0 }
+    }
 }
 
 /// Where a notification opens. Built from server fields only.

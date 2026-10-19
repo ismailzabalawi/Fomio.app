@@ -34,6 +34,10 @@ import Observation
     /// Bumped whenever a feed's raw cursor is rewritten locally. A page request that started before the rewrite
     /// cannot be placed safely, so it is discarded and the feed restarts from the server.
     private var cursorEpoch: [NotificationFilter: Int] = [.all: 0, .unread: 0]
+    /// Bumped by every confirmed read. A server snapshot taken before a confirmation can never turn that row back
+    /// to unread, and an Unread refresh that overlapped one is fetched again.
+    private var revision = 0
+    private var readRevision: [NotificationID: Int] = [:]
 
     init(service: any CommunityService, account: AccountID) { self.service = service; self.account = account }
 
@@ -47,7 +51,7 @@ import Observation
         self.account = account
         items = [:]; feeds = [.all: Feed(), .unread: Feed()]; totals = nil; acknowledgments = [:]
         refreshing = false; refreshError = nil; lastUpdated = nil; syncNote = nil; anchor = nil; locallyRead = []; filter = .all
-        cursorEpoch = [.all: 0, .unread: 0]
+        cursorEpoch = [.all: 0, .unread: 0]; revision = 0; readRevision = [:]
     }
 
     func loadIfNeeded() async { if feeds[filter]?.loaded != true { await loadMore() } }
@@ -56,7 +60,7 @@ import Observation
     func loadMore(hiding hidden: (NotificationItem) -> Bool = { _ in false }) async {
         let filter = self.filter
         guard var feed = feeds[filter], !feed.loading, let offset = feed.nextOffset else { return }
-        let token = generation, epoch = cursorEpoch[filter]
+        let token = generation, epoch = cursorEpoch[filter], snapshot = revision
         feed.loading = true; feed.pageError = nil; feeds[filter] = feed
         do {
             let page = try await service.notificationHistory(offset: offset, limit: pageSize, filter: filter)
@@ -68,7 +72,7 @@ import Observation
                 if filter == self.filter { await loadMore(hiding: hidden) }
                 return
             }
-            merge(page.items)
+            merge(page.items, snapshot: snapshot)
             feed = feeds[filter] ?? Feed()
             let fresh = page.items.map(\.id).filter { !feed.ids.contains($0) }
             feed.ids += fresh
@@ -96,12 +100,24 @@ import Observation
         let token = generation
         refreshing = true; defer { if token == generation { refreshing = false } }
         do {
-            let page = try await service.notificationHistory(offset: 0, limit: pageSize, filter: filter)
+            var snapshot = revision, epoch = cursorEpoch[filter]
+            var page = try await service.notificationHistory(offset: 0, limit: pageSize, filter: filter)
             guard token == generation else { return }
+            // An Unread window fetched before a read was confirmed (or before its cursor moved) is placed against the
+            // wrong offsets and would bring the read row back. Fetch again until a snapshot postdates every change.
+            var attempts = 0
+            while filter == .unread, snapshot != revision || epoch != cursorEpoch[filter], attempts < 3 {
+                attempts += 1; snapshot = revision; epoch = cursorEpoch[filter]
+                page = try await service.notificationHistory(offset: 0, limit: pageSize, filter: filter)
+                guard token == generation else { return }
+            }
+            if filter == .unread, snapshot != revision || epoch != cursorEpoch[filter] {
+                restart(filter); refreshError = nil; await loadMore(); return
+            }
             let readElsewhere = page.items.filter { incoming in items[incoming.id].map { !$0.read && incoming.read && !locallyRead.contains(incoming.id) } ?? false }.count
-            merge(page.items)
+            merge(page.items, snapshot: snapshot)
             var feed = feeds[filter] ?? Feed()
-            let returned = page.items.map(\.id)
+            let returned = page.items.map(\.id).filter { filter == .all || items[$0]?.read != true }
             let returnedSet = Set(returned)
             // Rows that the server no longer returns inside the window it just covered were consolidated, deleted or
             // hidden. Rows below the window are kept; the next offset is lowered by removals so nothing is skipped.
@@ -183,7 +199,7 @@ import Observation
     /// Reconciles an unknown outcome from server truth. Only a returned row is evidence: read → confirmed, unread →
     /// failed. Absence proves nothing, because permission and badge filtering remove rows after the query.
     func recheck(_ id: NotificationID) async {
-        let token = generation
+        let token = generation, snapshot = revision
         acknowledgments[id] = .checking
         var offset: Int? = 0
         var pages = 0
@@ -192,8 +208,9 @@ import Observation
                 let page = try await service.notificationHistory(offset: current, limit: pageSize, filter: .all)
                 guard token == generation else { return }
                 if let found = page.items.first(where: { $0.id == id }) {
-                    if found.read { merge([found]); confirmRead(id) }
-                    else { merge([found]); acknowledgments[id] = .failed("Not marked as read. It stays unread.") }
+                    if found.read { merge([found], snapshot: snapshot); confirmRead(id) }
+                    else if readRevision[id].map({ $0 > snapshot }) == true { /* confirmed meanwhile */ }
+                    else { merge([found], snapshot: snapshot); acknowledgments[id] = .failed("Not marked as read. It stays unread.") }
                     await refreshTotals(); return
                 }
                 offset = page.nextOffset; pages += 1
@@ -211,6 +228,7 @@ import Observation
     /// moves back by one, because Discourse applies `read: false` before `offset`.
     private func confirmRead(_ id: NotificationID) {
         items[id]?.read = true; locallyRead.insert(id); acknowledgments[id] = nil
+        revision += 1; readRevision[id] = revision
         guard var unread = feeds[.unread], let index = unread.ids.firstIndex(of: id) else {
             if feeds[.unread]?.loading == true { cursorEpoch[.unread, default: 0] += 1 }
             return
@@ -225,8 +243,10 @@ import Observation
     }
 
     /// Inserts or updates rows by ID. Existing rows take the server's current read state and content.
-    private func merge(_ incoming: [NotificationItem]) {
+    private func merge(_ incoming: [NotificationItem], snapshot: Int) {
         for var item in incoming {
+            // A snapshot older than this client's confirmed read cannot downgrade it.
+            if !item.read, let confirmed = readRevision[item.id], confirmed > snapshot { item.read = true }
             if let existing = items[item.id], existing.categoryID != nil, item.categoryID == nil { item.categoryID = existing.categoryID }
             if item.read { acknowledgments[item.id] = nil }
             items[item.id] = item
