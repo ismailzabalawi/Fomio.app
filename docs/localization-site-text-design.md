@@ -39,7 +39,7 @@ The plugin ships the 433 Fomio-only keys (and English values for all 482 keys) a
 | Override edits reach the catalog | `upsert!`/`revert!` call `i18n_changed` → `I18n.reload!`; v0.2.0 `CatalogBuilder` digests the assembled body into `revision` (`catalog_builder.rb:148`) | An override changes the ETag. The app sees it at its next refresh (launch or foreground once its copy is 24 hours old). |
 | Who can edit | Admin site-text routes are under the admin constraint (`config/routes.rb`; `Admin::AdminController`) | Administrators only. No member key is involved. |
 
-**Not verified:** that Admin → Customize → Text actually lists a plugin's keys on the deployed revision (`821e9e2f`). The source path above says it should. This must be checked on a staging install before the plugin depends on it.
+**Verified live, 2026-10-21 (read-only, signed-in admin browser session on meta.fomio.app, plugin v0.1.1):** Admin → Customize → Text searched for `fomio_app_locales` lists both keys from the deployed plugin's `config/locales/server.en.yml` (`site_settings.fomio_app_locales_enabled`, `site_settings.fomio_app_locales`), each with an Edit button. With Language set to Arabic, for which the plugin has no file, the same keys are listed showing the English value, also with Edit. So an admin can add a per-locale override for a key the plugin has not translated. It also confirms that the editor displays fallback English, which is why the builder must look up a locale's own value without fallback. No text was edited. Still unverified: saving an override of a plugin key, plural plugin keys, and a `fomio_app.*` top-level namespace (the deployed keys sit under core's `site_settings.` namespace).
 
 ### Namespace: server file, not client file
 
@@ -119,13 +119,13 @@ The catalog and index payloads do not need to change shape: `messages`, `fallbac
 | Unreviewed wording reaches all app users immediately | Only administrators can override. Overrides are visible in the admin "overridden" filter. Terminology overrides are gated by a setting. |
 | English edited in the app but not in the plugin | Generated YAML plus a parity check. Discourse marks overrides of changed sentences `outdated`. |
 | Fallback leakage hides missing translations | No-fallback lookups, enforced by a spec. Every English value is listed in `fallback`. |
-| Plugin keys missing from the admin editor on the deployed revision | Verify on staging first (open item above). |
+| Plugin keys missing from the admin editor on the deployed revision | Listing verified live for the plugin's `site_settings.*` keys in English and Arabic (2026-10-21). Saving an override, plural keys and the `fomio_app.*` namespace still need a staging check. |
 | Catalog build cost with 482 I18n lookups plus override queries | Same order as v0.2.0, which already does per-key lookups. Measure, and cache by override and plugin revision if needed. |
 
 ## Implementation steps (each needs its own authorization)
 
 1. **App repository, no backend:** generator for `server.en.yml` and the manifest from the bundled English, plus the parity check. Manifest `terminology` noun lists.
 2. **Plugin v0.3.0 (local):** move Fomio keys to `fomio_app.*` locale files; builder resolution order above; no-fallback lookups; `fomio_app_terminology_overrides`; coverage fields; specs (override precedence, outdated/deprecated/invalid overrides, no fallback leakage, `pt_BR`, plural categories, markup rejection, parity with app English).
-3. **Staging verification:** admin editor lists `fomio_app.*` keys; an override changes the catalog revision and the app's text after refresh; a terminology override is ignored while the setting is off.
+3. **Staging verification:** admin editor lists `fomio_app.*` keys (plugin keys in general are already listed live); an override changes the catalog revision and the app's text after refresh; a terminology override is ignored while the setting is off.
 4. **Mapping review:** next candidate families, re-run the 49-locale coverage export.
-5. **Deployment** (v0.2.0 or straight to v0.3.0), then anonymous and member verification as in the [2026-10-16 record](validation/2026-10-16-live-deployment/README.md).
+5. **Deployment:** decided 2026-10-21 by the project owner: v0.2.0 is not deployed; the next deployment is v0.3.0. Then anonymous and member verification as in the [2026-10-16 record](validation/2026-10-16-live-deployment/README.md).
