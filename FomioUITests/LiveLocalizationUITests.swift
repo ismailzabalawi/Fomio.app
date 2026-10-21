@@ -33,9 +33,30 @@ import XCTest
         XCTAssertFalse(tab(app, "الصفحة الرئيسية").exists, "no Arabic interface", file: file, line: line)
         XCTAssertLessThan(tab(app, "Home").frame.midX, tab(app, "Me").frame.midX, "tabs run left to right", file: file, line: line)
     }
+    /// Taps a tab until it is selected. iPad on iOS 26.0: a synthesized tap on the floating tab bar was seen to
+    /// select the tab and then snap back to the previous one, with no app code writing the selection (2026-10-22).
+    private func select(_ app: XCUIApplication, tab label: String, file: StaticString = #filePath, line: UInt = #line) {
+        let item = tab(app, label)
+        for _ in 0..<3 where !item.isSelected {
+            item.tap()
+            _ = XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "isSelected == true"), object: item)], timeout: 3)
+        }
+        XCTAssertTrue(item.isSelected, "\(label) tab selected", file: file, line: line)
+    }
+    /// Chooses a feed appearance from the options menu. iPad on iOS 26.0: a synthesized tap on an open menu item
+    /// was seen to leave the menu open with nothing chosen (2026-10-22); the menu is reopened if it closed.
+    private func choose(_ app: XCUIApplication, appearance title: String, file: StaticString = #filePath, line: UInt = #line) {
+        let feed = app.scrollViews["feed-\(title.lowercased())"], item = app.buttons[title]
+        for _ in 0..<3 where !feed.exists {
+            if !item.exists { app.buttons["feed-options"].tap() }
+            XCTAssertTrue(item.waitForExistence(timeout: 5), file: file, line: line); item.tap()
+            _ = feed.waitForExistence(timeout: 5)
+        }
+        XCTAssertTrue(feed.waitForExistence(timeout: 5), "\(title) appearance applied", file: file, line: line)
+    }
     /// Opens Me › Language and waits for the live list (English always; other rows only if the site offers them).
     private func openLanguage(_ app: XCUIApplication) {
-        tab(app, "Me").tap()
+        select(app, tab: "Me")
         let row = app.buttons["language-en"]
         if !row.waitForExistence(timeout: 3) { app.buttons["me-language"].tap() }
         XCTAssertTrue(row.waitForExistence(timeout: 10))
@@ -89,6 +110,10 @@ import XCTest
         assertEnglish(app)
         let topic = firstTopic(app)
         XCTAssertTrue(topic.waitForExistence(timeout: 20))
+        // Rows gain their community line once communities load, which can follow the feed and moves the row
+        // (8 pt, iPad iOS 27.0). The anchor is read after that, so it measures only the Back restoration.
+        let community = app.buttons.matching(NSPredicate(format: "identifier MATCHES %@", "topic-category-[0-9]+")).firstMatch
+        XCTAssertTrue(community.waitForExistence(timeout: 20), "communities loaded")
         let identifier = topic.identifier, anchor = topic.frame.minY
         topic.tap()
         XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 20))
@@ -110,15 +135,11 @@ import XCTest
         XCTAssertLessThan(abs(same.frame.minY - anchor), 4, "swipe Back returns to the same position")
 
         // Cards, then relaunch: the appearance persists.
-        app.buttons["feed-options"].tap()
-        let cards = app.buttons["Cards"]; XCTAssertTrue(cards.waitForExistence(timeout: 5)); cards.tap()
-        XCTAssertTrue(app.scrollViews["feed-cards"].waitForExistence(timeout: 10))
+        choose(app, appearance: "Cards")
         capture(app, "Live 6 Live feed in Cards")
         app.terminate()
         let again = launch([], namespace: namespace, keepPreferences: true)
         XCTAssertTrue(again.scrollViews["feed-cards"].waitForExistence(timeout: 20), "Cards persisted across relaunch")
-        again.buttons["feed-options"].tap()
-        let compact = again.buttons["Compact"]; XCTAssertTrue(compact.waitForExistence(timeout: 5)); compact.tap()
-        XCTAssertTrue(again.scrollViews["feed-compact"].waitForExistence(timeout: 10))
+        choose(again, appearance: "Compact")
     }
 }
