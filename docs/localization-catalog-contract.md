@@ -1,5 +1,7 @@
 # Interface catalog contract and backend handoff
 
+Proposal, 2026-10-21: [interface strings as Discourse site texts](localization-site-text-design.md) (source schema 3; wire schema stays 2). Not implemented.
+
 Status, 2026-10-18: **schema 2 (Discourse translation reuse, sparse Fomio overlays, English fallback) is implemented locally in plugin v0.2.0 and the app; it is not published or deployed.** The live site still runs v0.1.1 (schema 1, `07bb7d3`, deployed 2026-10-17 on Discourse `821e9e2f`). An app build with this change requests schema 2, so against the current site it gets 404 and offers English only, until v0.2.0 is deployed (separate authorization). History of the schema-1 deployment: [deployment record](validation/2026-10-16-live-deployment/README.md). Schema-2 evidence: [validation record](validation/2026-10-18-sparse-catalogs/README.md).
 
 ## Deployed-site check (2026-10-15, read-only, anonymous)

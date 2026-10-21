@@ -98,4 +98,6 @@ Until that contract exists and is live-verified, ship bundled localization and s
 
 ## Terminology and override policy
 
+Proposal, 2026-10-21 (not implemented): [interface strings as Discourse site texts](localization-site-text-design.md) would let administrators brand the app by overriding whole sentences, behind a plugin setting. Until that is built and authorized, the policy below stands.
+
 Native interface nouns stay "discussion" (topic) and "community"/"subcommunity" (category) in every locale. The deployed English overrides (Byte/Bytes, Hub, Teret) are branding for the web UI; they are inconsistent (casing differs across keys; `js.category.all` holds the literal "js.hubs.all") and exist only for English. Mapping them key by key would mix "Byte" with Fomio sentences that say "discussion". They are therefore not mapped; the catalog validator also rejects key-valued and markup values. An override never transfers to another locale. Adopting the branding natively requires a reviewed terminology variant of every sentence containing those nouns, per locale, mapped together (manifest `terminology.to_adopt_branding`).
