@@ -1,0 +1,10 @@
+{
+  "captured": "2026-10-22, in-app browser, signed-in admin session on meta.fomio.app, the admin editor's own endpoints with the session's CSRF token",
+  "key": "fomio_app.auth__signed_in",
+  "locale": "ru (not offered to the app: fomio_app_locales = en; fomio_app.* keys are not used by the Discourse web UI)",
+  "before": { "ru overrides of the key": [] },
+  "invalid_save": { "request": "PUT value \"Проверка %{someone}\"", "status": 422, "message": "The following interpolation key is invalid: someone", "ru overrides after": [] },
+  "valid_save": { "request": "PUT value \"Вы вошли как %{name} (проверка Fomio)\"", "status": 200, "ru overrides after": ["Вы вошли как %{name} (проверка Fomio)"] },
+  "revert": { "request": "DELETE ?locale=ru", "status": 200, "value after": "Signed in as %{name}. (English shown: the plugin has no Russian file)", "ru overrides after": [] },
+  "side_effects": "Two staff action log entries (site text change: the save and the revert; the refused save is not logged) on meta.fomio.app. Live en catalog ETag unchanged (4bb2ee82cea51f43)."
+}
