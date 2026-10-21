@@ -452,7 +452,20 @@
     "total": 482,
     "discourse": 44,
     "overlay": 0,
-    "english_fallback": 438
+    "english_fallback": 438,
+    "override": 0,
+    "outdated_override": 0,
+    "terminology": {
+      "enabled": false,
+      "discussion": {
+        "total": 51,
+        "overridden": 0
+      },
+      "community": {
+        "total": 75,
+        "overridden": 0
+      }
+    }
   },
   "messages": {
     "access.back_to_communities": "Back to Communities",
@@ -974,5 +987,5 @@
     "topic.pinned": "Fixado",
     "topic.started_by": "Started by {name}"
   },
-  "revision": "f754d7ad0882ce96"
+  "revision": "9a2adca6a1ae4dac"
 }

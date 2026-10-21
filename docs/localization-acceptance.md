@@ -85,6 +85,8 @@ The branch is **not merged**: E3 is open (no approved non-English language). Liv
 
 **Schema 2 (2026-10-18, local):** the app now requests schema 2. Until plugin v0.2.0 is deployed (not authorized in this task), live builds of this branch get 404 and offer English only; E2 was verified for v0.1.1 (schema 1) and must be repeated for v0.2.0 before merge. See [validation/2026-10-18-sparse-catalogs/README.md](validation/2026-10-18-sparse-catalogs/README.md).
 
+**Site texts, plugin v0.3.0 (2026-10-21, local):** every app sentence is a Discourse site text (`fomio_app.*` for Fomio keys); overrides apply per locale, plural overrides per category, terminology overrides only with `fomio_app_terminology_overrides` on. 57 plugin examples pass at `d4296c5`, including admin site-text request specs; served messages are unchanged from schema 2 for all 49 locales. v0.2.0 will not be deployed; E1/E2 are to be repeated for v0.3.0. See [validation/2026-10-21-site-texts/README.md](validation/2026-10-21-site-texts/README.md).
+
 ## F. Independent review of 6162c57 (2026-10-15)
 
 | # | Finding | Resolution and evidence | Status |

@@ -16,9 +16,22 @@
         "total": 482,
         "discourse": 0,
         "overlay": 0,
-        "english_fallback": 0
+        "english_fallback": 0,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
       },
-      "revision": "f672ddfb46b11677"
+      "revision": "4bb2ee82cea51f43"
     },
     {
       "locale": "ar",
@@ -38,9 +51,22 @@
         "total": 482,
         "discourse": 49,
         "overlay": 433,
-        "english_fallback": 0
+        "english_fallback": 0,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
       },
-      "revision": "1bf3dccc6b3344c7"
+      "revision": "fa2e5b2474ad3544"
     },
     {
       "locale": "he",
@@ -58,9 +84,22 @@
         "total": 482,
         "discourse": 49,
         "overlay": 0,
-        "english_fallback": 433
+        "english_fallback": 433,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
       },
-      "revision": "ab262fae153db294"
+      "revision": "9092f9a4106109e3"
     },
     {
       "locale": "ru",
@@ -78,9 +117,22 @@
         "total": 482,
         "discourse": 46,
         "overlay": 0,
-        "english_fallback": 436
+        "english_fallback": 436,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
       },
-      "revision": "cc69e54d8f90e0bd"
+      "revision": "048c5ec18dfdf086"
     },
     {
       "locale": "pt_BR",
@@ -97,9 +149,22 @@
         "total": 482,
         "discourse": 44,
         "overlay": 0,
-        "english_fallback": 438
+        "english_fallback": 438,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
       },
-      "revision": "f754d7ad0882ce96"
+      "revision": "9a2adca6a1ae4dac"
     },
     {
       "locale": "ja",
@@ -114,9 +179,22 @@
         "total": 482,
         "discourse": 44,
         "overlay": 0,
-        "english_fallback": 438
+        "english_fallback": 438,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
       },
-      "revision": "65ca4609e9d26ec7"
+      "revision": "a619a7ab26468c24"
     }
   ]
 }

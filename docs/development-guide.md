@@ -44,9 +44,11 @@ Set arguments in the Xcode scheme’s Run action. Fixture account defaults to `j
 | `TEST_RUNNER_FOMIO_LIVE_UI_TESTS=1` | Opt-in for live UI tests (`FomioUITests` live case, `LiveLocalizationUITests`), anonymous reads against the configured site |
 | `--l10n-incomplete-ar` | Debug, fixture mode. The fixture Arabic response omits a required key (must be rejected) |
 
-Fixture catalogs (`Localization/fixtures`: en, ar, he, ru, pt_BR, ja and `index.json`) are produced by the backend plugin, not edited by hand. After changing `Localization/manifest.json`, the bundled English or an overlay in `Localization/catalogs`, copy the three to the plugin's `catalogs/` and regenerate in the Discourse checkout:
+Fixture catalogs (`Localization/fixtures`: en, ar, he, ru, pt_BR, ja and `index.json`) are produced by the backend plugin, not edited by hand. After changing `Localization/manifest.json`, the bundled English or a translation in `Localization/catalogs`, generate the plugin's files (manifest, English, and `config/locales/fomio_app.<locale>.yml`, the site texts administrators can override) and regenerate the fixtures in the Discourse checkout. `check` exits 1 when the plugin is out of date:
 
 ```
+ruby Localization/tools/site-texts.rb sync <discourse>/plugins/discourse-fomio-app-locales
+ruby Localization/tools/site-texts.rb check <discourse>/plugins/discourse-fomio-app-locales
 LOAD_PLUGINS=1 RAILS_ENV=test bin/rails runner plugins/discourse-fomio-app-locales/script/export_catalogs.rb fixtures <app>/Localization/fixtures en ar he ru pt_BR ja
 ```
 | `--l10n-changed-override` | Debug, fixture mode. The fixture English response has a new revision renaming Home (site-text override change) |
@@ -107,6 +109,6 @@ The write test additionally requires explicit user authorization for its tempora
 
 ### Interface localization — 2026-10-15
 
-Bundled English lives in `Fomio/Resources/Localization/fomio-catalog-en.json`; add every new interface string there with a semantic key and use `L("key")` (or `LText` for styled runs). Add the same key to `Localization/catalogs/ar.json` and `Localization/manifest.json`; `LocalizationCoverageTests` fail on missing, orphaned or hard-coded copy. Plural messages use `{count}`; English needs `one`/`other`, Arabic all six CLDR forms. Use `DevText` only for fixture/development-only surfaces.
+Bundled English lives in `Fomio/Resources/Localization/fomio-catalog-en.json`; add every new interface string there with a semantic key and use `L("key")` (or `LText` for styled runs). Add the same key to `Localization/catalogs/ar.json` and `Localization/manifest.json` (then run `Localization/tools/site-texts.rb sync`, which adds its `site_text_key`); `LocalizationCoverageTests` fail on missing, orphaned or hard-coded copy. Plural messages use `{count}`; English needs `one`/`other`, Arabic all six CLDR forms. Use `DevText` only for fixture/development-only surfaces.
 
 UI tests isolate catalogs under `Application Support/UITests/<namespace>/Localization` and reset the language preference unless `--keep-preferences` is passed. Unit-test host launches always start from bundled English. Live catalogs need `FomioLocaleIndexPath` and `FomioLocaleCatalogPath` in `project.yml` once the backend endpoint is deployed; do not add them before that. See the [catalog contract](localization-catalog-contract.md).

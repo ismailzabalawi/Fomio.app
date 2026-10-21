@@ -12,7 +12,20 @@
     "total": 482,
     "discourse": 0,
     "overlay": 0,
-    "english_fallback": 0
+    "english_fallback": 0,
+    "override": 0,
+    "outdated_override": 0,
+    "terminology": {
+      "enabled": false,
+      "discussion": {
+        "total": 51,
+        "overridden": 0
+      },
+      "community": {
+        "total": 75,
+        "overridden": 0
+      }
+    }
   },
   "messages": {
     "access.back_to_communities": "Back to Communities",
@@ -534,5 +547,5 @@
     "topic.pinned": "Pinned",
     "topic.started_by": "Started by {name}"
   },
-  "revision": "f672ddfb46b11677"
+  "revision": "4bb2ee82cea51f43"
 }

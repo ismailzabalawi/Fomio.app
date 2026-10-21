@@ -16,7 +16,20 @@
     "total": 482,
     "discourse": 49,
     "overlay": 433,
-    "english_fallback": 0
+    "english_fallback": 0,
+    "override": 0,
+    "outdated_override": 0,
+    "terminology": {
+      "enabled": false,
+      "discussion": {
+        "total": 51,
+        "overridden": 0
+      },
+      "community": {
+        "total": 75,
+        "overridden": 0
+      }
+    }
   },
   "messages": {
     "access.back_to_communities": "العودة إلى المجتمعات",
@@ -586,5 +599,5 @@
     "topic.pinned": "مثبَّت",
     "topic.started_by": "بدأه {name}"
   },
-  "revision": "1bf3dccc6b3344c7"
+  "revision": "fa2e5b2474ad3544"
 }

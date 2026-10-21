@@ -1,6 +1,6 @@
 # Interface strings as Discourse site texts (source schema 3)
 
-Status, 2026-10-21: **design proposal only.** No backend file, plugin, setting or site text was changed, and nothing was deployed. Backend findings below come from the local reference checkout `/Volumes/Develop/Projects/Dicourse` at `d4296c5ecf2` and the local plugin branch `fomio/app-locale-catalog` (v0.2.0, not pushed). None of them are verified on the deployed site. Implementation needs a task that authorizes backend work ([AGENTS.md](../AGENTS.md)).
+Status, 2026-10-21: **implemented locally, not published or deployed.** Plugin v0.3.0 on the local backend branch `fomio/app-locale-catalog` (Discourse worktree `/Volumes/Develop/Projects/Dicourse-worktrees/fomio-app-locales`, base `d4296c5ecf2`) and the generator `Localization/tools/site-texts.rb` in this repository. No live site, setting or site text was changed. Evidence: [validation record](validation/2026-10-21-site-texts/README.md). The design below was written first and is kept as the rationale; where the implementation settled a detail, the record says so. Backend findings come from the local reference checkout `/Volumes/Develop/Projects/Dicourse` at `d4296c5ecf2`. The project owner decided to skip deploying v0.2.0 and deploy v0.3.0 next (2026-10-21).
 
 This builds on the [catalog contract](localization-catalog-contract.md) (schema 2) and the [strategy](localization-strategy.md). It does not replace the app-side validator, the allowlist or the bundled English fallback.
 

@@ -13,7 +13,7 @@ Current native baseline: 2026-10-03. The fixture MVP is implemented; live releas
    [Localization strategy](localization-strategy.md): native strings, Discourse terminology contract, cache, and offline fallback.
    [Localization implementation plan](localization-implementation-plan.md): live admin readiness findings, English-only fallback, and ordered delivery gates.
    [Localization catalog contract and backend handoff](localization-catalog-contract.md) and [acceptance checklist](localization-acceptance.md): 2026-10-15 iOS implementation evidence and remaining backend gates.
-   [Interface strings as Discourse site texts](localization-site-text-design.md): 2026-10-21 proposal (source schema 3) to make every app string an admin-editable site text, brand by sentence overrides and widen Discourse key mapping; not implemented.
+   [Interface strings as Discourse site texts](localization-site-text-design.md): 2026-10-21 design (source schema 3): every app string an admin-editable site text, branding by sentence overrides, wider Discourse key mapping. Implemented locally in plugin v0.3.0; not deployed.
    [Discourse integration plan](discourse-integration-plan.md): staged live verification and the first authentication gate.
 7. [Release readiness](release-readiness.md): automated coverage, native/live acceptance and required resources.
 

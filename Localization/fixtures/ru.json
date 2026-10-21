@@ -451,7 +451,20 @@
     "total": 482,
     "discourse": 46,
     "overlay": 0,
-    "english_fallback": 436
+    "english_fallback": 436,
+    "override": 0,
+    "outdated_override": 0,
+    "terminology": {
+      "enabled": false,
+      "discussion": {
+        "total": 51,
+        "overridden": 0
+      },
+      "community": {
+        "total": 75,
+        "overridden": 0
+      }
+    }
   },
   "messages": {
     "access.back_to_communities": "Back to Communities",
@@ -983,5 +996,5 @@
     "topic.pinned": "Закреплена",
     "topic.started_by": "Started by {name}"
   },
-  "revision": "cc69e54d8f90e0bd"
+  "revision": "048c5ec18dfdf086"
 }

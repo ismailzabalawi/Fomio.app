@@ -1,0 +1,1355 @@
+{
+  "discourse": "01e457a927580f47623ed836fde1108ea02f78a5",
+  "mapped_keys": 49,
+  "total_keys": 482,
+  "locales": {
+    "ar": {
+      "direction": "rtl",
+      "plural_categories": [
+        "zero",
+        "one",
+        "two",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 433,
+        "english_fallback": 0,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": true
+    },
+    "be": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 29,
+        "overlay": 0,
+        "english_fallback": 453,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "bg": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 35,
+        "overlay": 0,
+        "english_fallback": 447,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "bs_BA": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 36,
+        "overlay": 0,
+        "english_fallback": 446,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "ca": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 36,
+        "overlay": 0,
+        "english_fallback": 446,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "cs": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "da": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "de": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 0,
+        "english_fallback": 433,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "el": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 0,
+        "english_fallback": 433,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "en": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 0,
+        "overlay": 0,
+        "english_fallback": 0,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": true
+    },
+    "en_GB": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 0,
+        "overlay": 0,
+        "english_fallback": 482,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "es": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "et": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 33,
+        "overlay": 0,
+        "english_fallback": 449,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "fa_IR": {
+      "direction": "rtl",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 39,
+        "overlay": 0,
+        "english_fallback": 443,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "fi": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "fr": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 0,
+        "english_fallback": 433,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "gl": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 38,
+        "overlay": 0,
+        "english_fallback": 444,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "he": {
+      "direction": "rtl",
+      "plural_categories": [
+        "one",
+        "two",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 0,
+        "english_fallback": 433,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "hr": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "hu": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "hy": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 36,
+        "overlay": 0,
+        "english_fallback": 446,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "id": {
+      "direction": "ltr",
+      "plural_categories": [
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 29,
+        "overlay": 0,
+        "english_fallback": 453,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "it": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "ja": {
+      "direction": "ltr",
+      "plural_categories": [
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "ko": {
+      "direction": "ltr",
+      "plural_categories": [
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 39,
+        "overlay": 0,
+        "english_fallback": 443,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "lt": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 39,
+        "overlay": 0,
+        "english_fallback": 443,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "lv": {
+      "direction": "ltr",
+      "plural_categories": [
+        "zero",
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 34,
+        "overlay": 0,
+        "english_fallback": 448,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "nb_NO": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 36,
+        "overlay": 0,
+        "english_fallback": 446,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "nl": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 46,
+        "overlay": 0,
+        "english_fallback": 436,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "pl_PL": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 0,
+        "english_fallback": 433,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "pt": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 43,
+        "overlay": 0,
+        "english_fallback": 439,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "pt_BR": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "ro": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 42,
+        "overlay": 0,
+        "english_fallback": 440,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "ru": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 46,
+        "overlay": 0,
+        "english_fallback": 436,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "sk": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 43,
+        "overlay": 0,
+        "english_fallback": 439,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "sl": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "two",
+        "few",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 38,
+        "overlay": 0,
+        "english_fallback": 444,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "sq": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 34,
+        "overlay": 0,
+        "english_fallback": 448,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "sr": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 33,
+        "overlay": 0,
+        "english_fallback": 449,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "sv": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 39,
+        "overlay": 0,
+        "english_fallback": 443,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "sw": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 31,
+        "overlay": 0,
+        "english_fallback": 451,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "te": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 38,
+        "overlay": 0,
+        "english_fallback": 444,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "th": {
+      "direction": "ltr",
+      "plural_categories": [
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 34,
+        "overlay": 0,
+        "english_fallback": 448,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "tr_TR": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 46,
+        "overlay": 0,
+        "english_fallback": 436,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "ug": {
+      "direction": "rtl",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "uk": {
+      "direction": "ltr",
+      "plural_categories": [
+        "one",
+        "few",
+        "many",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 0,
+        "english_fallback": 433,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "ur": {
+      "direction": "rtl",
+      "plural_categories": [
+        "one",
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 47,
+        "overlay": 0,
+        "english_fallback": 435,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "vi": {
+      "direction": "ltr",
+      "plural_categories": [
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 44,
+        "overlay": 0,
+        "english_fallback": 438,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "zh_CN": {
+      "direction": "ltr",
+      "plural_categories": [
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 0,
+        "english_fallback": 433,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    },
+    "zh_TW": {
+      "direction": "ltr",
+      "plural_categories": [
+        "other"
+      ],
+      "coverage": {
+        "total": 482,
+        "discourse": 49,
+        "overlay": 0,
+        "english_fallback": 433,
+        "override": 0,
+        "outdated_override": 0,
+        "terminology": {
+          "enabled": false,
+          "discussion": {
+            "total": 51,
+            "overridden": 0
+          },
+          "community": {
+            "total": 75,
+            "overridden": 0
+          }
+        }
+      },
+      "site_texts": false
+    }
+  }
+}

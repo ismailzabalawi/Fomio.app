@@ -1,0 +1,78 @@
+
+Randomized with seed 16243
+
+DiscourseFomioAppLocales::CatalogsController
+  #index
+    lists only allowed, Discourse-supported locales with complete catalogs, anonymously
+    does not depend on the site default locale or a signed-in member's locale
+    returns 404 for another schema or when the plugin is disabled
+    is served anonymously on login-required sites
+  #show
+    does not use the requester's credentials or locale
+    serves a complete Arabic catalog with plural metadata, ETag and 304 revalidation
+    revalidates with the weak ETag a compressing proxy hands to clients (production finding 2026-10-16)
+    keeps topic/category terminology Fomio-owned despite branding overrides
+    returns 404 for locales that are not allowed, unsupported or malformed
+    reflects a changed site-text override for that locale in a new revision
+    never applies another locale's override and rejects unsafe override values
+  member headers on public responses
+    never names the member on the index or a catalog, including 304 revalidations
+    removes the header after the stubbed callback really set it
+
+Fomio app keys in the admin site-text editor
+  lists a plural Fomio key per category of the locale
+  lists Fomio keys with their interpolation keys, in English and in a locale's own text
+  saves per-category plural overrides for a locale without its own text
+  saves an override that the app catalog then serves
+  refuses an override with an unknown interpolation key
+
+DiscourseFomioAppLocales::CatalogBuilder
+  assembly
+    does not serve a payload larger than the app accepts
+    offers nothing when the English reference is invalid
+    assembles Arabic from Discourse's Arabic, the plugin's site texts, and English for what neither covers
+    keeps a regional locale's own translations without borrowing its parent language's
+    uses English, with English plural forms, for a missing or invalid Discourse translation
+    prefers a valid same-locale override, skips an invalid one, never uses another locale's
+    serves bundled English, applying only valid English overrides on mapped keys
+    accepts a Discourse plural without every category; the app then shows 'other', as Discourse does
+    uses English as served (including an English override) for a fallback
+    replaces an invalid site text with English
+    serves a locale without site texts: Discourse text where mapped, English everywhere else
+  configuration
+    keeps the manifest, English and the plugin's site texts aligned
+    defaults the app allowlist to English only and never enables a language by itself
+    keeps topic/category nouns Fomio-owned
+    takes plural categories from Discourse's CLDR rules and refuses locales without them
+    maps only keys whose Discourse English is equivalent at this Discourse revision
+    lists every sentence naming a topic/category noun for the terminology setting
+  site-text overrides
+    changes the revision when an override changes
+    merges per-category plural overrides over the locale's own forms
+    merges plural overrides of a mapped key too
+    fills an untranslated locale from its own override, and uses English as served otherwise
+    applies a valid override of a Fomio key in its own locale only, skipping an invalid one
+    ignores overrides of terminology sentences until the setting declares the set complete
+    serves and counts an outdated override, and ignores a deprecated one
+  message validation
+    checks plural forms against the locale's categories, 'other' and {count}
+    rejects a non-string value
+    rejects a blank value
+    rejects a printf format
+    rejects markup
+    rejects an invalid placeholder name
+    rejects an unbalanced brace
+    rejects an overlong value
+    rejects an extra placeholder
+    rejects a control character
+    rejects a raw translation key
+    rejects a positional printf format
+    rejects Discourse interpolation
+    rejects a tab
+    rejects nested braces
+
+Finished in 26.11 seconds (files took 7.86 seconds to load)
+57 examples, 0 failures
+
+Randomized with seed 16243
+
