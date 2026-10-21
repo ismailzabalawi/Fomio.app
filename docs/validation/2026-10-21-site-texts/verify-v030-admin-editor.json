@@ -1,0 +1,8 @@
+{
+  "captured": "2026-10-21T21:17Z (approx.), same admin session, read-only GETs; nothing saved",
+  "settings": { "fomio_app_locales_enabled": "true", "fomio_app_locales": "en", "fomio_app_terminology_overrides": "false (default false)" },
+  "search q=fomio_app.": { "en": "200, first page of 50 fomio_app.* keys, has_more", "ar": "200, first page of 50 fomio_app.* keys, has_more" },
+  "fomio_app.auth__signed_in": { "en": { "value": "Signed in as %{name}.", "interpolation_keys": ["name"] }, "ar": { "value": "سجّلت الدخول باسم %{name}.", "interpolation_keys": ["name"] } },
+  "fomio_app.post__like_count, locale ru": ["fomio_app.post__like_count.few", "fomio_app.post__like_count.many", "fomio_app.post__like_count.one", "fomio_app.post__like_count.other"],
+  "fomio_app.tab__communities, en": { "value": "Communities", "interpolation_keys": [] }
+}

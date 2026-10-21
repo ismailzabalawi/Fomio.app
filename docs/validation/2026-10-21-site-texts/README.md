@@ -1,6 +1,6 @@
-# Interface strings as Discourse site texts: plugin v0.3.0 (local)
+# Interface strings as Discourse site texts: plugin v0.3.0
 
-Date: 2026-10-21. Design: [localization-site-text-design.md](../../localization-site-text-design.md). Authorized by the project owner as local backend work only: no push, no publication, no deployment, no live setting or site text changed.
+Date: 2026-10-21 (Amman; deployment the evening of 2026-10-21 UTC). Design: [localization-site-text-design.md](../../localization-site-text-design.md). Built as local backend work, then published and deployed with the project owner's authorization. **Status: v0.3.0 (`171fa30`) is live on meta.fomio.app (Discourse `02e1115201f`) and verified anonymously and signed in; see [Deployment](#deployment-and-live-verification).** No live setting or site text was changed.
 
 ## What changed
 
@@ -55,11 +55,23 @@ These cover the three points the [live listing check](../../localization-site-te
 ## Not done
 
 - Wider Discourse key mapping (design step 4): no new mappings; still 49.
-- Publication (v0.3.0 tag in the standalone repository), deployment, and live verification on meta.fomio.app.
-- Specs at the deployed revision `821e9e2f`.
-- Push of either branch.
+- Specs at a deployed revision (`821e9e2f` before the rebuild, `02e1115201f` after): not run; `821e9e2f` needs a pnpm 12 native binary that is not installed locally (as for v0.1.1), and `02e1115201f` is not in the local reference checkout.
+- Live app UI tests against v0.3.0 (`LiveLocalizationUITests`).
+- Push of the app branch or the backend branch (only the standalone plugin repository was pushed).
 
-## Commits (local, not pushed)
+## Commits
 
 - Plugin: `32d78e57942` on `fomio/app-locale-catalog` (parent `01e457a9275`). The new plugin files were force-added, since Discourse's `.gitignore` excludes `/plugins/*`. Discourse's pre-commit hook (i18n-lint, yaml-syntax, syntax_tree with the repository's `.streerc`, rubocop) passed; it reformatted two lines to the 100-column setting, after which the plugin specs were rerun: 57 examples, 0 failures.
 - App: this branch, the commit that adds this record.
+
+## Deployment and live verification
+
+| Step | Status / evidence |
+| --- | --- |
+| Release commit | `git subtree split` produced `d3391cc`, which is **not** a descendant of the published `main` (`07bb7d3`): the split rebuilt earlier commits with different IDs. Instead, `171fa30465cda55bbbc24c140e884c811aa91f12` was created with `git commit-tree`: tree of `32d78e57942:plugins/discourse-fomio-app-locales` (checked identical), parent `07bb7d3`. 15 files changed against `07bb7d3`; secret scan of the diff: no matches other than two manifest notes naming Discourse keys (`js.user_api_key…`, "auth token details") |
+| Publish (owner-authorized) | `git push --atomic … 171fa30:refs/heads/main 171fa30:refs/tags/v0.3.0`, no force. Remote: `main` and `v0.3.0` → `171fa30`; `v0.1.0` → `52cbcad` and `v0.1.1` → `07bb7d3` unchanged. Anonymous `git clone --branch v0.3.0 --depth 1` → `171fa30`, `diff -r` identical to the plugin directory |
+| Released app builds | `main` and `27db168` (0.9.0 (8)) contain no `Localization/` code and no `app-locales` request, so the retired schema-1 routes affect only unmerged branch builds, which request schema 2 |
+| Host installation | Done by the project owner in the droplet console with [operator-v0.3.0.md](operator-v0.3.0.md) (the agent did not drive the console): one clone line `v0.1.1` → `v0.3.0`, rebuild exit 0, `/srv/status` ok. Discourse is unpinned and moved from `821e9e2f9f94` to `02e1115201f01cf33427b1adec96674e8010bb2b` |
+| Anonymous ([log](verify-v030-anonymous.txt), [script](verify-live-catalogs.sh)) | **All pass.** Index lists `en` only. `en` 200, 482 messages, revision `4bb2ee82cea51f43` (**identical to the local builder's fixture revision**, so the live output is byte-for-byte the tested one), `fallback` empty, `override` 0, terminology `enabled: false`. Public 5-minute caching; no `X-Discourse-Username`. Conditional 304 uncompressed; gzip `W/"4bb2ee82cea51f43"` → 304; index (not compressed in transit) → 304. 404: `/2/xx`, `/2/AR`, `/2/ar` (not allowlisted), `/3/index`, and the retired `/1/index`, `/1/en`. Live English messages equal the app's bundled English (0 differing keys) |
+| Signed in ([result](verify-v030-signed-in.json), [script](verify-member-session.js)) | Admin session (v0.1.1 was checked with a moderator). Index and `en` 200, bodies identical to anonymous, no username in headers or bodies, 404s correct. **Difference from v0.1.1:** signed-in responses carry `Cache-Control: no-store, must-revalidate, private, max-age=0` and no ETag, so no 304. The same session gets the same header on `/latest.json` and `/site/basic-info.json`, which the plugin does not serve, so this is Discourse's handling of this signed-in admin session at `02e1115201f`, not the plugin. Not investigated further: `02e1115201f` is not in the local checkout. The app's catalog requests carry no cookies and get public caching and 304 (same session, credentials omitted: `max-age=300, public`, `W/"4bb2ee82cea51f43"`) |
+| Admin editor ([result](verify-v030-admin-editor.json)) | Read-only GETs, nothing saved. Settings: `fomio_app_locales_enabled` true, `fomio_app_locales` `en`, `fomio_app_terminology_overrides` false. Search `fomio_app.` returns Fomio keys in pages of 50 (en and ar). `fomio_app.auth__signed_in`: en "Signed in as %{name}.", ar the plugin's Arabic, `interpolation_keys` `["name"]`. `fomio_app.post__like_count` in Russian is listed per category (`one`, `few`, `many`, `other`). Saving an override was verified only by the local request specs, not on the live site |

@@ -1,0 +1,32 @@
+Base: https://meta.fomio.app   2026-10-21T21:13:21Z
+Generator: version 02e1115201f01cf33427b1adec96674e8010bb2b
+PASS  /srv/status ok
+PASS  anonymous index 200
+      locales: [('en', True)] default_locale: en
+PASS  anonymous index has no X-Discourse-Username
+PASS  anonymous index Cache-Control public
+PASS  anonymous en 200
+PASS  anonymous en ETag "4bb2ee82cea51f43"
+PASS  anonymous en has no X-Discourse-Username
+PASS  anonymous en Cache-Control public
+      en messages: 482 revision: 4bb2ee82cea51f43 coverage: {'total': 482, 'override': 0, 'outdated_override': 0} terminology enabled: False
+PASS  anonymous en conditional 304
+PASS  anonymous 304 has no X-Discourse-Username
+PASS  anonymous index compressed 200 (, ETag "3cb689b13afac373")
+NOTE  anonymous index compressed ETag is not weak ("3cb689b13afac373"): this response was not compressed in transit
+PASS  anonymous index compressed Cache-Control public
+PASS  anonymous index compressed conditional with returned ETag "3cb689b13afac373" → 304
+PASS  anonymous index compressed responses have no X-Discourse-Username
+PASS  anonymous en compressed 200 (gzip, ETag W/"4bb2ee82cea51f43")
+PASS  anonymous en compressed Cache-Control public
+PASS  anonymous en compressed conditional with returned ETag W/"4bb2ee82cea51f43" → 304
+PASS  anonymous en compressed responses have no X-Discourse-Username
+PASS  anonymous /fomio/app-locales/2/xx.json 404
+PASS  anonymous /fomio/app-locales/1/index.json 404
+PASS  anonymous /fomio/app-locales/1/en.json 404
+PASS  anonymous /fomio/app-locales/3/index.json 404
+PASS  anonymous /fomio/app-locales/2/AR.json 404
+PASS  anonymous /fomio/app-locales/2/ar.json 404
+      differing keys: 0 []
+PASS  live en messages equal the app's bundled English
+SKIP  member checks (set FOMIO_MEMBER_API_KEY and FOMIO_MEMBER_USERNAME to run them)

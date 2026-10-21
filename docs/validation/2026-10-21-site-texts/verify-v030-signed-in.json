@@ -1,0 +1,8 @@
+{
+  "captured": "2026-10-21T21:15Z (approx.), in-app browser, signed-in session on meta.fomio.app; script: verify-member-session.js",
+  "session": { "signed_in": true, "admin": true, "moderator": false, "trust_level": 1 },
+  "index": { "status": 200, "cache_control": "no-store, must-revalidate, private, max-age=0", "etag": null, "conditional_status": 200, "username_header": false, "body_equals_anonymous": true, "username_in_body": false },
+  "en": { "status": 200, "cache_control": "no-store, must-revalidate, private, max-age=0", "etag": null, "conditional_status": 200, "username_header": false, "body_equals_anonymous": true, "username_in_body": false },
+  "negatives": { "/fomio/app-locales/2/ar.json": 404, "/fomio/app-locales/2/xx.json": 404, "/fomio/app-locales/1/index.json": 404, "/fomio/app-locales/2/AR.json": 404 },
+  "comparison_same_session": { "/latest.json": "no-store, must-revalidate, private, max-age=0", "/site/basic-info.json": "no-store, must-revalidate, private, max-age=0", "catalog en, credentials omitted": { "cache_control": "max-age=300, public", "etag": "W/\"4bb2ee82cea51f43\"" } }
+}
