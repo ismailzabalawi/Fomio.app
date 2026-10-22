@@ -1,0 +1,10 @@
+{
+  "baseCommit": "b62aef54873762b3235d6e846d4d6fe20762f6b5",
+  "files": {
+    "Fomio/App/FomioApp.swift": "6d352be5474dfc41b8a75457ad8a8b1ac4176beb2ce521c876ea747dee08c95a",
+    "Fomio/Features/ComposerView.swift": "34bc941e7b47077abee50dfdb2a8403f64692378f42e35d4acc6c4341781e8b3",
+    "Fomio/Features/Editor/NativeComposerEditor.swift": "c5e24713a564758ab1bd40af271965f45e8659fb6fac89b7229ad9c42c0a4562",
+    "Fomio/Features/Editor/ComposerBar.swift": "6b7db11efa72026b0d387011680579c039693f6a791b778b39f7eb3cd72d3681",
+    "FomioUITests/FomioUITests.swift": "22671623d6674bcc9d6567ab7d111ffbb7110de50fc295b98503de75bfd7f1ac"
+  }
+}

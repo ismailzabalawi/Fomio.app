@@ -1,0 +1,18 @@
+{
+  "resultBundle": "test_sim_2026-10-20T20-40-06-238Z_pid87845_a1a46678.xcresult",
+  "device": "iPad Pro 13-inch (M5)",
+  "os": "iPadOS 27.0",
+  "content": "isolated fictional fixtures",
+  "captures": [
+    {
+      "file": "ipad-audit-placeholder.txt",
+      "sourceAttachment": "2CA2D647-22DA-4778-BDD6-A8440BC43C6D.txt",
+      "sha256": "a6f92e8e584ff632cfd9804d73782ddc647407d0dabf4f8fea102a26aa49099e"
+    },
+    {
+      "file": "ipad-audit-placeholder.png",
+      "sourceAttachment": "A15D6530-9F2B-47B0-84A0-B2E621E59988.png",
+      "sha256": "9be8dbe74865b01f3e9a07701025136be5ac8131046aa40770a20e6c759f2e2f"
+    }
+  ]
+}

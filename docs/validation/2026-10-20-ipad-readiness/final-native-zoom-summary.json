@@ -1,0 +1,37 @@
+{
+  "devicesAndConfigurations": [
+    {
+      "device": {
+        "architecture": "arm64",
+        "deviceId": "F9CF0E5F-02E0-4E30-8C28-1C3DD4183F2F",
+        "deviceName": "iPad mini (A17 Pro)",
+        "modelName": "iPad mini (A17 Pro)",
+        "osBuildNumber": "23A343",
+        "osVersion": "26.0",
+        "platform": "iOS Simulator"
+      },
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "passedTests": 2,
+      "skippedTests": 0,
+      "testPlanConfiguration": {
+        "configurationId": "1",
+        "configurationName": "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription": "Fomio \u00b7 Built with macOS 26.6.2",
+  "expectedFailures": 0,
+  "failedTests": 0,
+  "finishTime": 1792554731.601,
+  "passedTests": 2,
+  "result": "Passed",
+  "runtimeWarnings": [],
+  "skippedTests": 0,
+  "startTime": 1792554656.471,
+  "statistics": [],
+  "testFailures": [],
+  "title": "Test - Fomio",
+  "topInsights": [],
+  "totalTestCount": 2
+}

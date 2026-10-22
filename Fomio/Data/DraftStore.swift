@@ -34,8 +34,10 @@ import CryptoKit
         let account = SHA256.hash(data: Data(draft.account.rawValue.utf8)).map { String(format: "%02x", $0) }.joined()
         return directory.appendingPathComponent("Photos", isDirectory: true).appendingPathComponent(account, isDirectory: true).appendingPathComponent(draft.id.uuidString, isDirectory: true)
     }
-    func reconcileFiles(account: AccountID) throws {
-        let drafts = try list(account: account)
+    func reconcileFiles(account: AccountID, preserving openDrafts: [Draft] = []) throws {
+        let open = openDrafts.filter { $0.account == account }
+        let openIDs = Set(open.map(\.id))
+        let drafts = try list(account: account).filter { !openIDs.contains($0.id) } + open
         let accountFolder = photoFolder(Draft(account: account, intent: .newDiscussion)).deletingLastPathComponent()
         if FileManager.default.fileExists(atPath: accountFolder.path) {
             let ids = Set(drafts.map { $0.id.uuidString })

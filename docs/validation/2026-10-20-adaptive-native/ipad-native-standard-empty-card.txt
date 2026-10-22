@@ -1,0 +1,117 @@
+Application: (0.0, 0.0, 1366.0, 1024.0)
+Window: (0.0, 0.0, 1366.0, 1024.0)
+Active screens: 1
+Attributes: Application, 0x113f20140, pid: 3584, label: 'Fomio'
+Element subtree:
+ →Application, 0x113f20140, pid: 3584, label: 'Fomio'
+    Window (Main), 0x113f20780, {{0.0, 0.0}, {1366.0, 1024.0}}
+      Other, 0x113f22a80, {{0.0, 0.0}, {1366.0, 1024.0}}
+      Other, 0x113f22bc0, {{0.0, 0.0}, {1366.0, 1024.0}}
+        Other, 0x113f22d00, {{0.0, 0.0}, {1366.0, 1024.0}}
+          Other, 0x113f20280, {{0.0, 0.0}, {1366.0, 1024.0}}
+            Other, 0x113f203c0, {{0.0, 0.0}, {1366.0, 1024.0}}
+              Other, 0x113f20500, {{0.0, 0.0}, {1366.0, 1024.0}}
+                Other, 0x113f20640, {{0.0, 0.0}, {1366.0, 1024.0}}
+                  Other, 0x113f22e40, {{0.0, 0.0}, {1366.0, 1024.0}}
+                    Other, 0x113f22f80, {{0.0, 0.0}, {1366.0, 1024.0}}
+                      Other, 0x113f230c0, {{0.0, 0.0}, {1366.0, 1024.0}}
+                        Other, 0x113f23200, {{0.0, 0.0}, {1366.0, 1024.0}}
+                          Other, 0x113f23340, {{220.0, 32.0}, {1146.0, 992.0}}, identifier: 'reading-three-pane'
+                            Other, 0x113f23480, {{220.0, 32.0}, {1146.0, 992.0}}
+                              Other, 0x113f235c0, {{220.0, 32.0}, {1146.0, 992.0}}
+                                Other, 0x113f23700, {{220.0, 32.0}, {360.0, 992.0}}
+                                  Other, 0x113f23840, {{220.0, 32.0}, {360.0, 992.0}}
+                                    Other, 0x113f23980, {{220.0, 32.0}, {360.0, 992.0}}
+                                      Other, 0x113f23ac0, {{220.0, 32.0}, {360.0, 992.0}}
+                                        Other, 0x113f23c00, {{220.0, 32.0}, {360.0, 992.0}}
+                                          Other, 0x113f23d40, {{220.0, 32.0}, {360.0, 992.0}}
+                                            Other, 0x113f23e80, {{220.0, 32.0}, {360.0, 56.0}}, identifier: 'browse-header'
+                                              Button, 0x113f32440, {{236.0, 38.0}, {80.0, 44.0}}, identifier: 'community-scope', label: 'Community: Turning. Change community'
+                                                StaticText, 0x113f32580, {{236.0, 38.0}, {80.0, 44.0}}, label: 'Turning'
+                                                Image, 0x113f326c0, {{303.5, 57.0}, {11.0, 6.5}}, identifier: 'chevron.down', label: 'Go Down'
+                                              Button, 0x113f32800, {{468.0, 38.0}, {44.0, 44.0}}, identifier: 'reveal-topic-search', label: 'Search discussions'
+                                              Button, 0x113f32940, {{520.0, 38.0}, {44.0, 44.0}}, identifier: 'feed-options', label: 'Feed options'
+                                                Button, 0x113f32a80, {{520.0, 38.0}, {44.0, 44.0}}
+                                                  Image, 0x113f32bc0, {{520.0, 38.0}, {44.0, 44.0}}, identifier: 'ellipsis', label: 'Feed options'
+                                            ScrollView, 0x113f32d00, {{220.0, 32.0}, {360.0, 992.0}}, identifier: 'feed-compact'
+                                              Other, 0x113f32e40, {{220.0, 88.0}, {360.0, 143.0}}
+                                                Other, 0x113f32f80, {{256.0, 124.0}, {243.0, 50.5}}
+                                                  StaticText, 0x113f330c0, {{256.0, 124.0}, {149.5, 22.5}}, label: 'No discussions yet'
+                                                  StaticText, 0x113f33200, {{256.0, 154.5}, {243.0, 20.0}}, label: 'Start the first discussion in Turning.'
+                                              Other, 0x113f33340, {{547.0, 88.0}, {30.0, 936.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                Other, 0x113f33480, {{574.0, 864.0}, {3.0, 157.0}}
+                                              Other, 0x113f335c0, {{547.0, 88.0}, {30.0, 936.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                Other, 0x113f33700, {{574.0, 864.0}, {3.0, 157.0}}
+                                    Toolbar, 0x113f33840, {{220.0, 32.0}, {360.0, 992.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                                      Other, 0x113f33980, {{220.0, 32.0}, {360.0, 992.0}}
+                                  Other, 0x113f33ac0, {{220.0, 32.0}, {360.0, 992.0}}
+                                    Other, 0x113f33c00, {{220.0, 32.0}, {360.0, 992.0}}
+                                      Other, 0x113f33d40, {{220.0, 32.0}, {360.0, 992.0}}
+                                        Other, 0x113f33e80, {{220.0, 32.0}, {360.0, 992.0}}
+                                          Other, 0x106fab980, {{220.0, 32.0}, {360.0, 992.0}}
+                                            Other, 0x113f44000, {{220.0, 32.0}, {360.0, 928.0}}
+                                        Other, 0x113f44140, {{220.0, 32.0}, {360.0, 992.0}}
+                                          Other, 0x113f44280, {{220.0, 32.0}, {360.0, 928.0}}
+                                Other, 0x113f443c0, {{220.0, 32.0}, {1146.0, 992.0}}
+                                  Other, 0x113f44500, {{220.0, 32.0}, {1146.0, 992.0}}
+                                    NavigationBar, 0x113f44640, {{220.0, 42.0}, {1146.0, 54.0}}, identifier: '_TtGC7SwiftUI32NavigationStackHosting'
+                                      Button, 0x113f44780, {{594.0, 46.0}, {36.0, 36.0}}, identifier: 'toggle-topic-list', label: 'Focus on discussion'
+                                    Other, 0x113f448c0, {{220.0, 32.0}, {1146.0, 992.0}}
+                                      Other, 0x113f44a00, {{220.0, 32.0}, {1146.0, 992.0}}
+                                        Other, 0x113f44b40, {{220.0, 32.0}, {1146.0, 992.0}}
+                                          Other, 0x113f44c80, {{220.0, 32.0}, {1146.0, 992.0}}
+                                            StaticText, 0x113f44dc0, {{876.8, 479.0}, {192.5, 90.0}}, label: 'Choose a discussion'
+                                            Image, 0x113f44f00, {{951.5, 479.0}, {43.5, 40.5}}, identifier: 'text.bubble', label: 'Comment Lines'
+                                            StaticText, 0x113f45040, {{816.5, 572.0}, {313.0, 22.5}}, label: 'Select a topic to read it alongside the list.'
+                                    Toolbar, 0x113f45180, {{220.0, 32.0}, {1146.0, 992.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                                      Other, 0x113f452c0, {{220.0, 32.0}, {1146.0, 992.0}}
+                                Toolbar, 0x113f45400, {{220.0, 32.0}, {1146.0, 992.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                                  Other, 0x113f45540, {{220.0, 32.0}, {1146.0, 992.0}}
+                            Other, 0x113f45680, {{220.0, 32.0}, {1146.0, 992.0}}
+                              Other, 0x113f457c0, {{220.0, 32.0}, {1146.0, 992.0}}
+                          Image, 0x113f45900, {{24.0, 52.0}, {60.0, 28.0}}, identifier: 'reading-three-pane', label: 'Fomio'
+                          ScrollView, 0x113f45a40, {{0.0, 0.0}, {220.0, 1024.0}}, identifier: 'reading-three-pane'
+                            Other, 0x113f45b80, {{0.0, 0.0}, {220.0, 1024.0}}
+                              Other, 0x113f45cc0, {{0.0, 0.0}, {220.0, 72.0}}
+                            Other, 0x113f45e00, {{0.0, 0.0}, {220.0, 1024.0}}
+                            Other, 0x113f45f40, {{0.0, 88.0}, {220.0, 676.5}}
+                              Button, 0x113f46080, {{10.0, 98.0}, {200.0, 44.0}}, label: 'Home', Selected
+                                StaticText, 0x113f461c0, {{24.0, 108.8}, {75.5, 22.5}}, label: 'Home'
+                                Image, 0x113f46300, {{24.0, 111.0}, {20.0, 17.5}}, identifier: 'house', label: 'Home'
+                              Button, 0x113f46440, {{24.0, 160.8}, {126.0, 22.5}}, label: 'Communities'
+                                StaticText, 0x113f46580, {{24.0, 160.8}, {126.0, 22.5}}, label: 'Communities'
+                                Image, 0x113f466c0, {{24.0, 164.0}, {15.5, 15.5}}, identifier: 'square.grid.2x2', label: 'Grid View'
+                              Button, 0x113f46800, {{24.0, 212.8}, {122.0, 22.5}}, label: 'Notifications'
+                                StaticText, 0x113f46940, {{24.0, 212.8}, {122.0, 22.5}}, label: 'Notifications'
+                                Image, 0x113f46a80, {{24.0, 215.0}, {16.0, 17.5}}, identifier: 'bell', label: 'Notifications'
+                              Button, 0x113f46bc0, {{23.5, 264.8}, {50.5, 22.5}}, label: 'Me'
+                                StaticText, 0x113f46d00, {{23.5, 264.8}, {50.5, 22.5}}, label: 'Me'
+                                Image, 0x113f46e40, {{23.5, 267.5}, {17.0, 17.0}}, identifier: 'person.crop.circle', label: 'Account'
+                              StaticText, 0x113f46f80, {{22.0, 322.0}, {78.0, 16.5}}, label: 'Communities'
+                              Button, 0x113f470c0, {{10.0, 346.5}, {200.0, 44.0}}, identifier: 'sidebar-all', label: 'All communities'
+                              Button, 0x113f47200, {{10.0, 398.5}, {200.0, 44.0}}, identifier: 'sidebar-1', label: 'Woodworking'
+                              Button, 0x113f47340, {{10.0, 450.5}, {200.0, 44.0}}, identifier: 'sidebar-4', label: 'Hand Tools'
+                              Button, 0x113f47480, {{10.0, 502.5}, {200.0, 44.0}}, identifier: 'sidebar-2', label: 'Finishing'
+                              Button, 0x113f475c0, {{10.0, 554.5}, {200.0, 44.0}}, identifier: 'sidebar-3', label: 'Joinery'
+                              Button, 0x113f47700, {{10.0, 606.5}, {200.0, 44.0}}, identifier: 'sidebar-9', label: 'Turning, Selected', Selected
+                                StaticText, 0x113f47840, {{34.0, 618.5}, {55.0, 20.0}}, label: 'Turning'
+                                Image, 0x113f47980, {{182.5, 622.0}, {13.5, 13.0}}, identifier: 'checkmark', label: 'Selected', Selected
+                              Button, 0x113f47ac0, {{10.0, 658.5}, {200.0, 44.0}}, identifier: 'sidebar-5', label: 'Electronics'
+                              Button, 0x113f47c00, {{10.0, 710.5}, {200.0, 44.0}}, identifier: 'sidebar-8', label: 'Gardening'
+                            Other, 0x113f47d40, {{187.0, 88.0}, {30.0, 889.5}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                              Other, 0x113f47e80, {{214.0, 512.0}, {3.0, 462.5}}
+                            Other, 0x113f48000, {{187.0, 88.0}, {30.0, 889.5}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                              Other, 0x113f48140, {{214.0, 512.0}, {3.0, 462.5}}
+                          StaticText, 0x113f48280, {{627.5, 977.5}, {111.0, 22.5}}, identifier: 'fixture-banner', label: 'Sample community content. This is a preview.'
+                Other, 0x113f483c0, {{0.0, 0.0}, {1366.0, 1024.0}}
+              Other, 0x113f48500, {{0.0, 32.0}, {1366.0, 972.0}}
+    Window, 0x113f48640, {{0.0, 0.0}, {1366.0, 1024.0}}
+      Other, 0x113f48780, {{0.0, 0.0}, {1366.0, 1024.0}}
+        Other, 0x113f488c0, {{0.0, 0.0}, {1366.0, 1024.0}}
+Path to element:
+ →Application, 0x113f20140, pid: 3584, label: 'Fomio'
+Query chain:
+ →Find: Target Application 'com.fomio.mobile'
+  Output: {
+    Application, 0x113f48a00, pid: 3584, label: 'Fomio'
+  }

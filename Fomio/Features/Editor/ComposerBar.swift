@@ -1,4 +1,52 @@
 import SwiftUI
+import UIKit
+
+/// SwiftUI avoids docked keyboards. Convert keyboard changes through this window
+/// and measure only the overlap remaining in the composer's available bounds.
+struct ComposerKeyboardAvoidance: UIViewRepresentable {
+    var onInsetChange: (CGFloat) -> Void
+    func makeUIView(context: Context) -> GeometryView { GeometryView(onInsetChange: onInsetChange) }
+    func updateUIView(_ view: GeometryView, context: Context) {
+        view.onInsetChange = onInsetChange
+        view.setNeedsLayout()
+    }
+    final class GeometryView: UIView {
+        var onInsetChange: (CGFloat) -> Void
+        private var reportedInset: CGFloat = 0
+        private var keyboardFrame: CGRect?
+        init(onInsetChange: @escaping (CGFloat) -> Void) {
+            self.onInsetChange = onInsetChange
+            super.init(frame: .zero)
+            isUserInteractionEnabled = false
+            accessibilityElementsHidden = true
+            for name in [UIResponder.keyboardWillChangeFrameNotification, UIResponder.keyboardWillHideNotification] {
+                NotificationCenter.default.addObserver(self, selector: #selector(keyboardChanged(_:)), name: name, object: nil)
+            }
+        }
+        required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+        deinit { NotificationCenter.default.removeObserver(self) }
+        @objc private func keyboardChanged(_ notification: Notification) {
+            if let screen = notification.object as? UIScreen, let window, screen !== window.screen { return }
+            keyboardFrame = notification.name == UIResponder.keyboardWillHideNotification ? nil :
+                (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue
+            setNeedsLayout()
+        }
+        override func layoutSubviews() {
+            super.layoutSubviews()
+            guard let window else { return }
+            let inWindow = keyboardFrame.map { window.convert($0, from: window.screen.coordinateSpace) } ?? .null
+            // The system already lifts the SwiftUI bar for a bottom-docked,
+            // full-width keyboard. Only floating/undocked geometry needs more room.
+            let undocked = !inWindow.isNull && (inWindow.width < window.bounds.width - 1 || inWindow.maxY < window.bounds.maxY - 1)
+            let keyboard = undocked ? convert(inWindow, from: window) : .null
+            let overlap = bounds.intersection(keyboard)
+            let inset = overlap.isNull || overlap.isEmpty ? 0 : max(0, bounds.maxY - safeAreaInsets.bottom - overlap.minY)
+            guard abs(inset - reportedInset) > 0.5 else { return }
+            reportedInset = inset
+            DispatchQueue.main.async { [weak self] in self?.onInsetChange(inset) }
+        }
+    }
+}
 
 /// Contextual floating composer bar: + inserts a block, the type chip changes the current block,
 /// and a selection swaps the centre to formatting. It reflects editor state; it never owns it.

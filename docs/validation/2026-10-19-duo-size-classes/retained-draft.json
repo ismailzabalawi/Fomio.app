@@ -1,0 +1,21 @@
+{
+  "title": "",
+  "version": 2,
+  "missingPhoto": false,
+  "account": "fixture:jonah.w",
+  "submission": {
+    "editing": {}
+  },
+  "id": "0180A048-2E56-4400-95CD-EDE2A347BAD1",
+  "intent": {
+    "reply": {
+      "topic": 4182,
+      "parent": 1
+    }
+  },
+  "body": "Trait draft",
+  "updatedAt": 814108071.308781,
+  "contextTitle": "Oil vs. hardwax on a walnut desk top?",
+  "contextCategory": 2,
+  "attachments": []
+}

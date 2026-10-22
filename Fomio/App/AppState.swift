@@ -35,15 +35,57 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     var communityQuery = ""
     var directoryInitialized = false
     var expandedCommunities: Set<CategoryID> = []
-    var searchQuery = ""
-    var searchResults: [DiscussionSummary] = []
-    var searchNextPage: Int?
-    var searchCompletedQuery: String?
-    var searchAnchor: TopicID?
+    var browseScope: BrowseScope = .all
+    var discussionSearch = DiscussionSearchState()
+    var readingSelectionRevision = 0
     var feeds: [String: FeedState] = [:]
     var discussions: [Route: DiscussionState] = [:]
     var focus: [Route: FocusReason] = [:]
     func feed(key: String) -> FeedState { if let value = feeds[key] { return value }; let value = FeedState(); feeds[key] = value; return value }
+}
+/// Process-wide identity and draft ownership; browsing state belongs to each scene.
+@MainActor @Observable final class AppWindows {
+    let service: any CommunityService
+    let fixture: FixtureService?
+    let configuration: LiveConfiguration?
+    let store: DraftStore
+    let auth: AuthenticationService?
+    private(set) var account: AccountID
+    private(set) var username: String?
+    private(set) var displayName: String?
+    private(set) var identityRevision = 0
+    var draftsRevision = 0
+    var unreadCount = 0
+    private struct Window { weak var state: AppState? }
+    @ObservationIgnored private var windows: [Window] = []
+
+    init(service: any CommunityService, fixture: FixtureService?, configuration: LiveConfiguration?, store: DraftStore = DraftStore()) {
+        self.service = service; self.fixture = fixture; self.configuration = configuration; self.store = store
+        auth = configuration.map { AuthenticationService(configuration: $0) }
+        let member = fixture != nil && !ProcessInfo.processInfo.arguments.contains("--guest")
+        account = member ? .fixture : .guest
+        username = member ? AppState.fixtureMember : nil
+        displayName = member ? "Jonah Wells" : nil
+    }
+    func makeWindow() -> AppState { AppState(service: service, fixture: fixture, configuration: configuration, store: store, windows: self) }
+    func register(_ state: AppState) {
+        windows.removeAll { $0.state == nil }; windows.append(Window(state: state))
+        state.account = account; state.username = username; state.displayName = displayName
+    }
+    var states: [AppState] { windows.compactMap(\.state) }
+    func editor(for id: UUID) -> AppState? { states.first { $0.ownedDraftID == id } }
+    var openDrafts: [Draft] { states.flatMap { $0.ownedDrafts } }
+    func expireAuthentication() {
+        identityRevision += 1; username = nil
+        for state in states { state.receiveExpiredAuthentication() }
+    }
+    func publish(account: AccountID, username: String?, displayName: String?, from origin: AppState, signingOut: Bool = false) {
+        identityRevision += 1
+        self.account = account; self.username = username; self.displayName = displayName
+        for state in states {
+            state.receiveAccount(account, username: username, displayName: displayName, signingOut: signingOut, preserveIntent: state === origin)
+        }
+    }
 }
 @MainActor @Observable final class AppState {
     static let fixtureMember = "jonah.w"
@@ -53,11 +95,46 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     var siteTheme = SiteTheme()
     var themeError: String?
     var communitiesLoaded = false
+    var catalogRevision = 0
+    @ObservationIgnored private var catalogRequest: UUID?
+    @ObservationIgnored private var categoryRequests: [CategoryID: UUID] = [:]
+    private var resolvedCategories: [CategoryID: Community] = [:]
+    var resolvingCategories: Set<CategoryID> = []
+    var categoryResolutionErrors: [CategoryID: String] = [:]
     var communityError: String?
     var account: AccountID = .guest
     var username: String?
+    var safety: SafetySession?
+    var safetyError: String?
+    var safetyRevision = 0
+    var safetyChanging: Set<String> = []
     var displayName: String?
-    var composer: ComposerState?
+    private var presentedComposer: ComposerState?
+    private var suspendedComposer: ComposerState?
+    @ObservationIgnored private var completingAuthentication = false
+    var ownedDraftID: UUID? { presentedComposer?.id ?? suspendedComposer?.id }
+    var ownedDrafts: [Draft] { [presentedComposer?.draft, suspendedComposer?.draft].compactMap { $0 } }
+    func reserveForAuthentication(_ composer: ComposerState) { suspendedComposer = composer }
+    func cancelAuthenticationIntent() {
+        guard !completingAuthentication else { return }
+        pendingAction = nil; suspendedComposer = nil; gate = .signIn
+    }
+    var composer: ComposerState? {
+        get { presentedComposer }
+        set {
+            if let newValue, let ownedDraftID, newValue.id != ownedDraftID {
+                banner = String(localized: "Finish or close your current draft first."); return
+            }
+            if let newValue, let owner = windows?.editor(for: newValue.id), owner !== self {
+                banner = String(localized: "This draft is already open in another window."); return
+            }
+            guard presentedComposer !== newValue else { return }
+            presentedComposer?.deactivate()
+            presentedComposer = newValue
+            if newValue?.id == suspendedComposer?.id { suspendedComposer = nil }
+            newValue?.activate()
+        }
+    }
     var authRequested = false
     var gate: AuthGate = .signIn
     var pendingAction: (@MainActor () async -> Void)?
@@ -65,8 +142,18 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     var toastMessage: String?
     var pendingNotice: PendingNotice?
     var guestNoteDismissed = false
-    var unreadCount = 0
-    var draftsRevision = 0
+    private var localUnreadCount = 0
+    var unreadCount: Int {
+        get { windows?.unreadCount ?? localUnreadCount }
+        set { if let windows { windows.unreadCount = newValue } else { localUnreadCount = newValue } }
+    }
+    private var localDraftsRevision = 0
+    var draftsRevision: Int {
+        get { windows?.draftsRevision ?? localDraftsRevision }
+        set { if let windows { windows.draftsRevision = newValue } else { localDraftsRevision = newValue } }
+    }
+    let windows: AppWindows?
+    private(set) var identityRevision = 0
     let service: any CommunityService
     let draftStore: DraftStore
     let fixture: FixtureService?
@@ -75,22 +162,34 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     let connectivity = Connectivity()
     let isConfigured: Bool
     @ObservationIgnored private var toastTask: Task<Void, Never>?
-    init(service: any CommunityService, fixture: FixtureService?, configuration: LiveConfiguration?, store: DraftStore = DraftStore()) {
+    init(service: any CommunityService, fixture: FixtureService?, configuration: LiveConfiguration?, store: DraftStore = DraftStore(), windows: AppWindows? = nil) {
+        self.windows = windows
         self.service = service; self.fixture = fixture; self.configuration = configuration; self.draftStore = store
         self.isConfigured = fixture != nil || configuration != nil
-        self.auth = configuration.map { AuthenticationService(configuration: $0) }
+        self.auth = windows?.auth ?? configuration.map { AuthenticationService(configuration: $0) }
         if fixture != nil, !ProcessInfo.processInfo.arguments.contains("--guest") { account = .fixture; username = Self.fixtureMember; displayName = "Jonah Wells" }
-        do { try draftStore.reconcileFiles(account: account) } catch { banner = error.localizedDescription }
+        windows?.register(self)
+        do { try reconcileDraftFiles() } catch { banner = error.localizedDescription }
+    }
+    func closeWindow() {
+        identityRevision += 1
+        if let composer, composer.hasChanges { _ = composer.save() }
+        composer = nil; suspendedComposer = nil; pendingAction = nil
     }
     var isOffline: Bool { fixture?.offline == true || (fixture == nil && connectivity.offline) }
     func loadCommunities() async {
+        let request = UUID(), viewer = account
+        catalogRequest = request
         do {
-            communities = try await service.communities(); communitiesLoaded = true; communityError = nil
+            let catalog = try await service.communities()
+            guard catalogRequest == request, account == viewer else { return }
+            if communities != catalog { catalogRevision += 1 }
+            communities = catalog; communitiesLoaded = true; communityError = nil
             if let tab = tabs[.communities], !tab.directoryInitialized {
                 tab.expandedCommunities = Set(communities.filter { $0.parentID == nil }.prefix(2).map(\.id))
                 tab.directoryInitialized = true
             }
-        } catch { communityError = error.localizedDescription }
+        } catch { if catalogRequest == request && account == viewer { communityError = error.localizedDescription } }
     }
     func loadTheme() async {
         do { siteTheme = try await service.siteTheme(); FomioTheme.current = siteTheme; themeError = nil }
@@ -98,11 +197,47 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     }
     func refreshUnread() async {
         guard username != nil else { unreadCount = 0; return }
-        if let page = try? await service.notifications(page: 0) { unreadCount = page.items.filter { !$0.read }.count }
+        let revision = identityRevision
+        if let page = try? await service.notifications(page: 0), revision == identityRevision, username != nil { unreadCount = page.items.filter { !$0.read && !isBlocked($0.actor) }.count }
     }
     /// Public category assets may use the site's relative root or an HTTPS CDN. Never attach user keys.
     func publicAssetURL(_ value: String?) -> URL? { PublicMedia.url(value, base: configuration?.baseURL) }
-    func category(_ id: CategoryID) -> Community? { communities.first { $0.id == id } }
+    func category(_ id: CategoryID) -> Community? { communities.first { $0.id == id } ?? resolvedCategories[id] }
+    /// Discussions in a scope from Discourse's cached per-category counts: a category plus its visible
+    /// children, or every visible community for All. Nil when the site omits any needed count.
+    func topicCount(_ scope: BrowseScope) -> Int? {
+        let visible = communities.filter { !$0.restricted }
+        let included = scope.categoryID.map { id in visible.filter { $0.id == id || $0.parentID == id } } ?? visible
+        guard !included.isEmpty else { return nil }
+        return included.reduce(0 as Int?) { total, community in total.flatMap { sum in community.topicCount.map { sum + $0 } } }
+    }
+    /// Per window: hiding the sidebar returns destinations to the tab bar until it is shown again.
+    var sidebarHidden = false
+    var browseCatalog: [Community] {
+        let known = Set(communities.map(\.id))
+        return communities + resolvedCategories.values.filter { !known.contains($0.id) }.sorted { $0.id.rawValue < $1.id.rawValue }
+    }
+    func resolveCategory(_ id: CategoryID, retry: Bool = false) async {
+        guard category(id) == nil, !resolvingCategories.contains(id), retry || categoryResolutionErrors[id] == nil else { return }
+        let viewer = account, request = UUID()
+        categoryRequests[id] = request
+        resolvingCategories.insert(id)
+        defer {
+            if categoryRequests[id] == request { categoryRequests[id] = nil; resolvingCategories.remove(id) }
+        }
+        do {
+            let value = try await service.community(id)
+            guard account == viewer, categoryRequests[id] == request else { return }
+            var ancestor: Community?
+            if let parent = value.parentID, category(parent) == nil { ancestor = try await service.community(parent) }
+            guard account == viewer, categoryRequests[id] == request, !Task.isCancelled else { return }
+            resolvedCategories[id] = value; categoryResolutionErrors[id] = nil
+            if let ancestor { resolvedCategories[ancestor.id] = ancestor }
+            catalogRevision += 1
+        } catch is CancellationError {} catch {
+            if account == viewer, categoryRequests[id] == request { categoryResolutionErrors[id] = error.localizedDescription }
+        }
+    }
     func categoryName(_ id: CategoryID) -> String {
         guard let value = category(id) else { return "Community" }
         if let parent = value.parentID.flatMap(category) { return "\(value.name) · \(parent.name)" }
@@ -114,11 +249,41 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     }
     func navigate(_ route: Route, in tab: AppTab? = nil, focus: FocusReason? = nil) {
         let tab = tab ?? selectedTab
+        if case let .community(id) = route { selectScope(.category(id), in: tab); return }
+        if route == .search { tabs[tab]?.discussionSearch.revealed = true }
+        if case .discussion = route { tabs[tab]?.readingSelectionRevision += 1 }
+        if case .thread = route { tabs[tab]?.readingSelectionRevision += 1 }
         if let focus { tabs[tab]?.focus[route] = focus; tabs[tab]?.discussions[route]?.focus = focus }
+        if case .discussion = route, let state = tabs[tab], let index = state.path.firstIndex(where: {
+            if case .discussion = $0 { true } else if case .thread = $0 { true } else { false }
+        }) {
+            state.path = Array(state.path.prefix(index)) + [route]
+            return
+        }
         tabs[tab]?.path.append(route)
     }
     func search(_ query: String) {
-        tabs[selectedTab]?.searchQuery = query; navigate(.search)
+        tabs[selectedTab]?.discussionSearch.query = query
+        tabs[selectedTab]?.discussionSearch.revealed = true
+        navigate(.search)
+    }
+    func selectScope(_ scope: BrowseScope, in origin: AppTab? = nil) {
+        let tab = origin ?? selectedTab
+        guard let state = tabs[tab] else { return }
+        if state.browseScope != scope {
+            if !state.discussionSearch.active { state.feeds[state.browseScope.feedKey]?.capturePosition() }
+            state.feeds[scope.feedKey]?.needsPositionRestore = true
+            state.discussionSearch.invalidateViewer()
+        }
+        state.browseScope = scope
+        // Scope selection changes the list while retaining the selected reading route/cache.
+        let index = state.path.firstIndex { if case .discussion = $0 { return true }; if case .thread = $0 { return true }; return false }
+        let reading = index.map { Array(state.path[$0...]) } ?? []
+        let list: [Route] = tab == .home ? [] : scope.categoryID.map { [.community($0)] } ?? [.search]
+        state.path = list + reading
+    }
+    var searchViewer: SearchViewer {
+        SearchViewer(site: configuration?.baseURL.absoluteString ?? "fixture", account: account, revision: catalogRevision &+ safetyRevision &+ identityRevision, locale: Locale.current.identifier, username: username)
     }
     func requireMember(_ gate: AuthGate, _ action: @escaping @MainActor () async -> Void) {
         if username != nil { Task { await action() } } else { pendingAction = action; self.gate = gate; authRequested = true }
@@ -127,7 +292,7 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     func create(category: CategoryID? = nil) {
         requireMember(.create(category.flatMap { self.category($0)?.name })) { [weak self] in
             guard let self else { return }
-            guard self.communities.contains(where: { $0.canCreate && (category == nil || $0.id == category) }) else { self.banner = "No permitted destination is available."; return }
+            guard self.browseCatalog.contains(where: { $0.canCreate && (category == nil || $0.id == category) }) else { self.banner = "No permitted destination is available."; return }
             // Contextual Create inherits its community; global Create picks one in the composer's Post in field.
             self.openComposer(category: category)
         }
@@ -138,10 +303,16 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     func reply(to post: Post, quote: Bool = false) {
         requireMember(quote ? .quote : .reply) { [weak self] in
             guard let self else { return }
+            // Reply continues a kept draft for the same post rather than starting a second one.
+            if !quote, let kept = self.keptReplies(topic: post.topicID).first(where: { $0.intent == .reply(topic: post.topicID, parent: post.number) }) {
+                self.resume(kept); return
+            }
+            let revision = self.identityRevision
             let current: Post
             let page: DiscussionPage
             do {
                 let context = try await self.service.context(topic: post.topicID, number: post.number, focused: true)
+                guard self.identityRevision == revision else { return }
                 guard context.page.canReply, !context.target.post.deleted, !context.target.post.ignored else { self.banner = "Replies are not permitted here."; return }
                 current = context.target.post; page = context.page
             } catch { self.banner = error.localizedDescription; return }
@@ -152,49 +323,180 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
             self.composer = ComposerState(draft: draft, app: self, origin: self.selectedTab)
         }
     }
-    func resume(_ draft: Draft) { composer = ComposerState(draft: draft, app: self, origin: selectedTab, resumed: true) }
-    func signIn() async {
+    func resume(_ draft: Draft) {
+        guard draft.account == account else { banner = String(localized: "This draft belongs to another account."); return }
+        guard windows?.editor(for: draft.id) == nil else { banner = String(localized: "This draft is already open in another window."); return }
+        // Reload after a different window has saved, rather than overwriting it with a stale list row.
         do {
-            if fixture != nil { username = Self.fixtureMember; displayName = "Jonah Wells"; account = .fixture }
-            else if let auth { let member = try await auth.signIn(); username = member; account = .init(rawValue: "\(configuration!.baseURL.absoluteString):\(member)") }
+            guard let latest = try draftStore.list(account: account).first(where: { $0.id == draft.id }) else { draftsRevision += 1; return }
+            composer = ComposerState(draft: latest, app: self, origin: selectedTab, resumed: true)
+        } catch { banner = error.localizedDescription }
+    }
+    /// Unsent replies kept on a topic, newest first, excluding any open in a window.
+    func keptReplies(topic: TopicID) -> [Draft] {
+        ((try? draftStore.list(account: account)) ?? []).filter {
+            $0.intent.topicID == topic && $0.submission == .editing && composer?.id != $0.id && windows?.editor(for: $0.id) == nil
+        }
+    }
+    func reconcileDraftFiles() throws {
+        try draftStore.reconcileFiles(account: account, preserving: windows?.openDrafts ?? ownedDrafts)
+    }
+    func discardDraft(_ draft: Draft) throws {
+        guard draft.account == account else { throw RepositoryError.unauthorized }
+        guard windows?.editor(for: draft.id) == nil, composer?.id != draft.id else {
+            throw RepositoryError.invalid(String(localized: "Close this draft in its window before discarding it."))
+        }
+        try draftStore.delete(draft.id); draftsRevision += 1
+    }
+    func receiveAccount(_ account: AccountID, username: String?, displayName: String?, signingOut: Bool, preserveIntent: Bool) {
+        identityRevision += 1
+        if signingOut || self.account != account {
+            if !signingOut, let composer { _ = composer.save() }
+            composer = nil; suspendedComposer = nil
+            safety = nil; safetyError = nil; safetyChanging = []; pendingNotice = nil; unreadCount = 0
+            invalidateBrowseViewer()
+            if signingOut { tabs = Dictionary(uniqueKeysWithValues: AppTab.allCases.map { ($0, TabState()) }) }
+        }
+        self.account = account; self.username = username; self.displayName = displayName
+        if !preserveIntent || signingOut { pendingAction = nil; suspendedComposer = nil; gate = .signIn; authRequested = false }
+        if signingOut { guestNoteDismissed = false }
+    }
+    /// `anchor` is the window presenting the sign-in UI; live authorization is shown over it.
+    /// Fixture sign-in ignores it, so unit tests can omit the argument.
+    func signIn(anchor: UIWindow? = nil) async {
+        let epoch = windows?.identityRevision ?? identityRevision
+        var acceptedEpoch = epoch
+        do {
+            let member: String
+            if fixture != nil { member = Self.fixtureMember }
+            else if let auth { member = try await auth.signIn(anchor: anchor) }
             else { throw RepositoryError.configuration }
-            if let composer, composer.draft.account != account { self.composer = nil; banner = "The previous account’s draft remains private to that account." }
-            try draftStore.migrateGuest(to: account)
-            if composer == nil { try draftStore.reconcileFiles(account: account) }
-            let action = pendingAction, gate = self.gate; pendingAction = nil
-            authRequested = false; await loadTheme(); await loadCommunities(); await action?()
-            let name = username ?? "member"
+            guard epoch == (windows?.identityRevision ?? identityRevision) else { return }
+            let next: AccountID = fixture != nil ? .fixture : .init(rawValue: "\(configuration!.baseURL.absoluteString):\(member)")
+            let action = pendingAction, gate = self.gate
+            if let windows { windows.publish(account: next, username: member, displayName: fixture != nil ? "Jonah Wells" : nil, from: self) }
+            else { receiveAccount(next, username: member, displayName: fixture != nil ? "Jonah Wells" : nil, signingOut: false, preserveIntent: true) }
+            acceptedEpoch = windows?.identityRevision ?? identityRevision
+            completingAuthentication = true
+            defer { completingAuthentication = false; suspendedComposer = nil }
+            pendingAction = nil; authRequested = false
+            try draftStore.migrateGuest(to: account); draftsRevision += 1
+            try reconcileDraftFiles()
+            let revision = identityRevision
+            await refreshSafety(); await loadTheme(); await loadCommunities()
+            guard identityRevision == revision else { return }
+            await action?()
+            guard identityRevision == revision else { return }
             switch gate {
-            case .reply, .quote: toast("Signed in as \(name). Your reply is ready.")
-            case .like: toast("Signed in as \(name). Tap again to like the post.")
-            case .save: toast("Signed in as \(name). Tap again to save.")
-            default: toast("Signed in as \(name).")
+            case .reply, .quote: toast("Signed in as \(member). Your reply is ready.")
+            case .like: toast("Signed in as \(member). Tap again to like the post.")
+            case .save: toast("Signed in as \(member). Tap again to save.")
+            default: toast("Signed in as \(member).")
             }
             self.gate = .signIn
             await refreshUnread()
-        } catch { banner = error.localizedDescription }
+        } catch { if acceptedEpoch == (windows?.identityRevision ?? identityRevision) { banner = error.localizedDescription } }
     }
     func restoreAccount() async {
         guard fixture == nil, let auth, let configuration else { return }
+        let epoch = windows?.identityRevision ?? identityRevision
         do {
             if try KeychainCredentialStore.read(site: configuration.baseURL.absoluteString) != nil {
-                let name = try await auth.currentUsername(); username = name; account = .init(rawValue: "\(configuration.baseURL.absoluteString):\(name)")
+                let name = try await auth.currentUsername()
+                guard epoch == (windows?.identityRevision ?? identityRevision) else { return }
+                let next = AccountID(rawValue: "\(configuration.baseURL.absoluteString):\(name)")
+                if next != account || username != name {
+                    if let windows { windows.publish(account: next, username: name, displayName: nil, from: self) }
+                    else { receiveAccount(next, username: name, displayName: nil, signingOut: false, preserveIntent: true) }
+                }
             }
-            if composer == nil { try draftStore.reconcileFiles(account: account) }
-        } catch { banner = error.localizedDescription }
+            try reconcileDraftFiles()
+        } catch { if epoch == (windows?.identityRevision ?? identityRevision) { banner = error.localizedDescription } }
+    }
+    func receiveExpiredAuthentication() {
+        identityRevision += 1
+        username = nil; safety = nil; pendingAction = nil
+        composer?.expired = true
+        invalidateBrowseViewer()
+    }
+    func authenticationExpired() {
+        if let windows { windows.expireAuthentication() } else { receiveExpiredAuthentication() }
     }
     func signOut() {
-        composer?.stopUploads()
         do { try draftStore.clear(account: account); try auth?.signOut() }
         catch { banner = "Sign-out could not finish: \(error.localizedDescription)"; return }
-        account = .guest; username = nil; displayName = nil; pendingAction = nil; composer = nil; pendingNotice = nil; unreadCount = 0; guestNoteDismissed = false
-        tabs = Dictionary(uniqueKeysWithValues: AppTab.allCases.map { ($0, TabState()) }); draftsRevision += 1
+        // Synchronous broadcast cancels every editor before another autosave can run.
+        if let windows { windows.publish(account: .guest, username: nil, displayName: nil, from: self, signingOut: true) }
+        else { receiveAccount(.guest, username: nil, displayName: nil, signingOut: true, preserveIntent: false) }
+        draftsRevision += 1
         fixture?.bookmarks = [:]; fixture?.readNotices = []
         toast("Signed out")
         Task { await loadCommunities() }
     }
+    private func invalidateBrowseViewer(pauseSearch: Bool = false, needsSignIn: Bool = false) {
+        service.invalidateViewerCaches()
+        resolvedCategories = [:]; resolvingCategories = []; categoryRequests = [:]; categoryResolutionErrors = [:]
+        catalogRequest = nil; communities = []; communitiesLoaded = false; communityError = nil; catalogRevision += 1
+        for tab in tabs.values {
+            if pauseSearch { tab.discussionSearch.pauseForAccessChange(viewer: searchViewer, scope: tab.browseScope, needsSignIn: needsSignIn) }
+            else { tab.discussionSearch.invalidateViewer() }
+            tab.feeds = [:]; tab.discussions = [:]
+        }
+    }
+    func invalidateSearchAccess(in origin: AppTab) {
+        guard let search = tabs[origin]?.discussionSearch, search.consumeAccessInvalidation() else { return }
+        let needsSignIn = search.failure?.needsSignIn == true
+        service.invalidateViewerCaches()
+        resolvedCategories = [:]; resolvingCategories = []; categoryRequests = [:]; categoryResolutionErrors = [:]
+        catalogRequest = nil; communities = []; communitiesLoaded = false
+        communityError = "Community access changed. Reload communities to check current access."
+        catalogRevision += 1
+        for (tab, state) in tabs {
+            state.feeds = [:]; state.discussions = [:]
+            if tab != origin { state.discussionSearch.pauseForAccessChange(viewer: searchViewer, scope: state.browseScope, needsSignIn: needsSignIn) }
+        }
+        for other in windows?.states ?? [] where other !== self {
+            other.invalidateBrowseViewer(pauseSearch: true, needsSignIn: needsSignIn)
+            other.communityError = "Community access changed. Reload communities to check current access."
+        }
+        // Keep the original visible recovery action, rebased to the new permission revision.
+        // The view's schedule task then sees the same input rather than automatically retrying.
+        search.rebaseAccessFailure(viewer: searchViewer)
+    }
+    func isBlocked(_ name: String) -> Bool {
+        guard safety?.username == username else { return false }
+        return safety?.ignoredUsers.contains { $0.caseInsensitiveCompare(name) == .orderedSame } == true
+    }
+    func refreshSafety() async {
+        guard let username else { safety = nil; safetyError = nil; return }
+        let account = self.account
+        do {
+            let value = try await service.safetySession()
+            guard self.account == account, self.username == username else { return }
+            guard value.username.caseInsensitiveCompare(username) == .orderedSame else { throw RepositoryError.unauthorized }
+            if safety?.ignoredUsers != value.ignoredUsers { safetyRevision += 1 }
+            safety = value; safetyError = nil
+        } catch { if self.account == account { safetyError = error.localizedDescription } }
+    }
+    func changeBlocking(_ name: String, blocked: Bool) async throws {
+        let key = name.lowercased()
+        guard let username, !safetyChanging.contains(key) else { return }
+        let account = self.account
+        safetyChanging.insert(key); defer { safetyChanging.remove(key) }
+        let result = try await service.setIgnored(username: name, ignored: blocked)
+        guard self.account == account, self.username == username, result.username.caseInsensitiveCompare(username) == .orderedSame else { throw RepositoryError.unauthorized }
+        safety = result; safetyError = nil; safetyRevision += 1
+        // Clear list caches so unblocking reloads content that the server omitted while ignored.
+        for tab in tabs.values { tab.feeds = [:]; tab.discussions = [:]; tab.discussionSearch.invalidateViewer() }
+        toast(blocked ? "Member blocked" : "Member unblocked")
+    }
     func published(topic: TopicID, number: PostNumber, origin: AppTab, isReply: Bool, categoryID: CategoryID?) {
         composer = nil; selectedTab = origin
+        // Publication is an explicit destination, even if the list's scope changed while writing.
+        if let selected = tabs[origin]?.browseScope.categoryID,
+           categoryID != selected && !browseCatalog.contains(where: { $0.id == categoryID && $0.parentID == selected }) {
+            selectScope(.all, in: origin)
+        }
         tabs[origin]?.discussions = [:]; tabs[origin]?.feeds = [:]
         let route = Route.discussion(topic, number)
         // Replace the discussion the reply was written from, so Back does not return to a stale copy.
@@ -202,8 +504,8 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         navigate(route, in: origin, focus: isReply ? .published : nil); draftsRevision += 1
         toast(isReply ? "Reply posted" : "Discussion posted in \(categoryID.flatMap { category($0)?.name } ?? "the community")")
     }
-    func discussionState(_ route: Route) -> DiscussionState {
-        let tab = tabs[selectedTab]!
+    func discussionState(_ route: Route, in origin: AppTab? = nil) -> DiscussionState {
+        let tab = tabs[origin ?? selectedTab]!
         if let state = tab.discussions[route] { return state }
         let state = DiscussionState(route: route, service: service)
         state.focus = tab.focus[route]
@@ -212,6 +514,12 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     func handleLink(_ url: URL) {
         if auth?.receiveCallback(url) == true { return }
         guard let configuration, let route = LinkRouter.route(url, baseURL: configuration.baseURL) else { banner = "This link is not a supported community destination."; return }
+        // A public link names an explicit target whose category is not yet known. Display it
+        // in All rather than hiding it behind the previous list's unrelated category filter.
+        switch route {
+        case .discussion, .thread: selectScope(.all)
+        default: break
+        }
         navigate(route)
     }
 }

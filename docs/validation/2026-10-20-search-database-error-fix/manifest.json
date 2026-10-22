@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-20",
+  "timezone": "Asia/Amman",
+  "backend_base_revision": "d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2",
+  "state": "uncommitted local backend patch; not deployed",
+  "patch_sha256": "b7055a9e52c85415c3d1416a296ff2c84d6cc8b085c96043efd37551862d9c23",
+  "files": {
+    "lib/search.rb": "05f3bed3c1ccb7399dcb7c770ec26fdfdece678d9cafe24bd3d7c3247b207e1a",
+    "config/locales/server.en.yml": "33fec40e996194dabbff70f63b4c044218eb98951e29ea721d58ddb7005295f4",
+    "spec/lib/search_spec.rb": "f301a557a791262d971f2eb717c6170941a3d2eccfb9b0ca2428409a049763e8",
+    "spec/requests/search_controller_spec.rb": "bbeec801f8c17828c137c2590e94367f54ce16f1674ccfdf5598b160d7097429"
+  },
+  "app_code_changed": false,
+  "deployed_faults_induced": false
+}

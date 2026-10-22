@@ -1,0 +1,36 @@
+(lldb) process attach --pid 35987
+Process 35987 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = signal SIGSTOP
+       frame #0: 0x00000001006dcb70 libsystem_kernel.dylib`mach_msg2_trap + 8
+libsystem_kernel.dylib`mach_msg2_trap:
+->  0x1006dcb70 <+8>: ret    
+
+libsystem_kernel.dylib`macx_swapon:
+    0x1006dcb74 <+0>: mov    x16, #-0x30               ; =-48 
+    0x1006dcb78 <+4>: svc    #0x80
+    0x1006dcb7c <+8>: ret    
+Target 0: (Fomio) stopped.
+Executable binary set to "/Users/ismailzabalawi/Library/Developer/CoreSimulator/Devices/5325EFBF-C37B-47D8-AE20-41CCB4945844/data/Containers/Bundle/Application/E10D68E6-CC07-4FAB-A05E-429D7B6C025B/Fomio.app/Fomio".
+Architecture set to: arm64-apple-ios-simulator.
+(lldb) command source -s 0 '/private/tmp/fomio-duo-editor.lldb'
+Executing commands in '/private/tmp/fomio-duo-editor.lldb'.
+(lldb) expr -l objc++ -- @import UIKit;
+(lldb) expr -l objc++ -O -- ({NSMutableArray *q=[NSMutableArray array]; NSMutableArray *result=[NSMutableArray array]; for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) { if ([scene isKindOfClass:[UIWindowScene class]]) { [q addObjectsFromArray:((UIWindowScene *)scene).windows]; } } while(q.count) { UIView *v=q.lastObject; [q removeLastObject]; if ([v isKindOfClass:[UITextView class]] && [v.accessibilityIdentifier isEqualToString:@"composer-body"]) { UITextView *t=(UITextView *)v; [result addObject:@{@"view": [NSString stringWithFormat:@"%p",t], @"text": t.text ?: @"", @"selection": NSStringFromRange(t.selectedRange), @"firstResponder": @(t.isFirstResponder), @"undoManager": [NSString stringWithFormat:@"%p",t.undoManager], @"canUndo": @(t.undoManager.canUndo), @"canRedo": @(t.undoManager.canRedo), @"window": NSStringFromCGRect(t.window.bounds), @"sizeClass": @(t.traitCollection.horizontalSizeClass), @"scene": t.window.windowScene.session.persistentIdentifier ?: @""}]; } [q addObjectsFromArray:v.subviews]; } result;})
+<__NSArrayM 0x1163f2430>(
+{
+    canRedo = 0;
+    canUndo = 1;
+    firstResponder = 1;
+    scene = "2F51C9BE-58F0-43BF-82E6-A39177D6C8BF";
+    selection = "{11, 6}";
+    sizeClass = 1;
+    text = "Duo reply: closed.";
+    undoManager = 0x115cf1180;
+    view = 0x10e5c6400;
+    window = "{{0, 0}, {466, 678}}";
+}
+)
+
+(lldb) detach
+Process 35987 detached
+(lldb) quit

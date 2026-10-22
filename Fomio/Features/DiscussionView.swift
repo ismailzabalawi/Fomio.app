@@ -3,6 +3,7 @@ import SwiftUI
 struct DiscussionView: View {
     @Environment(AppState.self) private var app
     @Bindable var state: DiscussionState
+    @State private var kept: Draft?
     var body: some View {
         let _ = app.siteTheme
         ScrollViewReader { proxy in
@@ -21,6 +22,7 @@ struct DiscussionView: View {
                                 Button("Show all replies") { app.navigate(.discussion(state.topicID, nil)) }.font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44).background(Color.fomioFill, in: .capsule).padding(.bottom, 12)
                             }
                             if let opening = state.opening { PostCard(post: opening, state: state).id(opening.id) }
+                            if let kept { KeptReplyCard(draft: kept) { app.resume(kept) } }
                             HStack(alignment: .firstTextBaseline) {
                                 ScaledTitle("Replies", size: 19)
                                 Text("\(page.summary.replyCount)").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
@@ -42,8 +44,19 @@ struct DiscussionView: View {
                         if let error = state.error { failure(error) }
                     }.padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 24).scrollTargetLayout()
                 }
-            }.scrollPosition(id: $state.anchor)
-            .onChange(of: state.highlight) { _, value in if let value { proxy.scrollTo(value, anchor: .center) } }
+            }.accessibilityIdentifier("discussion-content")
+            .scrollPosition(id: $state.anchor, anchor: .top)
+            // A reply branch can be taller than a short window. Centering that
+            // branch can put its target header behind floating navigation controls.
+            .task(id: state.highlight) {
+                // This also runs when scope exclusion remounts a retained discussion.
+                // Let the loaded nested branch install its IDs before scrolling; a cold
+                // link can finish loading before the first scroll view layout.
+                guard let target = state.anchor ?? state.highlight else { return }
+                await Task.yield()
+                guard !Task.isCancelled else { return }
+                proxy.scrollTo(target, anchor: .top)
+            }
             .safeAreaInset(edge: .bottom) {
                 if let page = state.page, let opening = state.opening, page.canReply || app.username == nil {
                     let target = state.focus == .notification ? state.highlighted ?? opening : opening
@@ -67,20 +80,26 @@ struct DiscussionView: View {
                 }
             }
         }
-        .task { if state.page == nil { await state.load() } }
+        // Keyed by the state object: clearing the tab's discussion cache (for example after blocking)
+        // hands this still-mounted view a fresh, empty state for the same route, which must load.
+        .task(id: ObjectIdentifier(state)) { if state.page == nil { await state.load() } }
+        .task(id: [app.draftsRevision, app.identityRevision, app.composer == nil ? 0 : 1]) {
+            kept = app.composer == nil ? app.keptReplies(topic: state.topicID).first : nil
+        }
         .refreshable { await state.load(refresh: true) }
+        .onChange(of: app.safetyRevision) { _, _ in Task { await state.load(refresh: true) } }
     }
     private func header(_ page: DiscussionPage) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             FlowLayout(spacing: 4) {
                 if let category = app.category(page.summary.categoryID) {
-                    if let parent = category.parentID.flatMap(app.category) { pathLink(parent); Image(systemName: "chevron.right").font(.caption).foregroundStyle(Color.fomioSecondaryText).frame(minHeight: 44).accessibilityHidden(true) }
+                    if let parent = category.parentID.flatMap(app.category) { pathLink(parent); Image(systemName: "chevron.forward").font(.caption).foregroundStyle(Color.fomioSecondaryText).frame(minHeight: 44).accessibilityHidden(true) }
                     pathLink(category)
                 } else {
                     Button(app.categoryName(page.summary.categoryID)) { app.navigate(.community(page.summary.categoryID)) }.frame(minHeight: 44)
                 }
             }
-            ScaledTitle(page.summary.title, size: 22)
+            ScaledTitle(app.isBlocked(page.summary.author) ? "Discussion by a blocked member" : page.summary.title, size: 22)
             if page.closed { Label("This discussion is closed", systemImage: "lock").font(.subheadline).foregroundStyle(Color.fomioSecondaryText) }
             if page.archived { Label("This discussion is archived", systemImage: "archivebox").font(.subheadline).foregroundStyle(Color.fomioSecondaryText) }
             if state.truncated { Text("Earlier thread context is unavailable here.").font(.subheadline).foregroundStyle(Color.fomioSecondaryText) }
@@ -149,10 +168,40 @@ struct ThreadBranch: View {
         }
     }
 }
+/// An unsent reply kept on this discussion, offered where the conversation continues.
+struct KeptReplyCard: View {
+    @Environment(\.dynamicTypeSize) private var textSize
+    let draft: Draft
+    let resume: () -> Void
+    private var preview: String { draft.body.isEmpty ? String(localized: "No text yet") : draft.body }
+    var body: some View {
+        let layout = textSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 10))
+        Button(action: resume) {
+            layout {
+                Text("Draft reply").fontWeight(.semibold).foregroundStyle(Color.fomioText)
+                Text(preview).foregroundStyle(Color.fomioSecondaryText).lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text("Resume").fontWeight(.semibold).foregroundStyle(Color.fomioAccent)
+            }.font(.subheadline).multilineTextAlignment(.leading)
+            .padding(.horizontal, 16).padding(.vertical, 10)
+            .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
+            .background(Color.fomioFill, in: .rect(cornerRadius: 14))
+            .overlay { RoundedRectangle(cornerRadius: 14).strokeBorder(Color.fomioSeparator, lineWidth: 0.5) }
+            .contentShape(.rect(cornerRadius: 14))
+        }.buttonStyle(.plain).padding(.top, 4)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("Resume draft reply")).accessibilityValue(preview)
+            .accessibilityAddTraits(.isButton).accessibilityIdentifier("resume-kept-reply")
+    }
+}
 struct PostCard: View {
     @Environment(AppState.self) private var app
     let post: Post
     let state: DiscussionState
+    @State private var reporting = false
+    @State private var blocking = false
     private var highlighted: Bool { state.highlight == post.id }
     private var own: Bool { app.username != nil && post.author == app.username }
     var body: some View {
@@ -172,19 +221,32 @@ struct PostCard: View {
                 Spacer()
                 Text("#\(post.number.rawValue)").font(.caption).foregroundStyle(Color.fomioSecondaryText)
             }
-            if post.deleted || post.ignored { Text(post.deleted ? "This reply was deleted." : "This reply is hidden.").foregroundStyle(Color.fomioSecondaryText) }
+            if post.deleted || post.ignored || app.isBlocked(post.author) {
+                Text(post.deleted ? "This reply was deleted." : "This reply is hidden.").foregroundStyle(Color.fomioSecondaryText)
+                if app.isBlocked(post.author) { BlockingButton(username: post.author) }
+            }
             else {
-                if let quote = post.quote { QuoteBlock(quote: quote) }
+                if let quote = post.quote, !app.isBlocked(quote.author) { QuoteBlock(quote: quote) }
                 if let cooked = post.cooked { CookedContent(html: cooked, topic: post.topicID, number: post.number, textStyle: post.number.rawValue == 1 ? .body : .callout) }
                 else { Text(.init(post.body)).font(post.number.rawValue == 1 ? .body : .callout).textSelection(.enabled) }
                 if let image = post.image { SamplePhoto(name: image) }
                 FlowLayout(spacing: 10) { actions }
+                if !own, app.username != nil {
+                    Menu {
+                        Button { reporting = true } label: { Label("Report post", systemImage: "flag") }
+                        Button { blocking = true } label: { Label("Block member…", systemImage: "person.crop.circle.badge.xmark") }
+                            .disabled(app.safetyChanging.contains(post.author.lowercased()))
+                    } label: { Label("Safety", systemImage: "ellipsis.circle").frame(minHeight: 44) }
+                    .accessibilityLabel("Report or block @\(post.author), post \(post.number.rawValue)")
+                }
             }
         }.padding(highlighted ? 12 : 0)
         .background(highlighted ? Color.fomioSelected : Color.clear, in: .rect(cornerRadius: 14))
         .overlay { if highlighted { RoundedRectangle(cornerRadius: 14).strokeBorder(Color.fomioAccent.opacity(0.4), lineWidth: 1.5).accessibilityHidden(true) } }
         .padding(.bottom, 12)
         .accessibilityElement(children: .contain).accessibilityLabel("\(post.number.rawValue == 1 ? "Opening post" : "Reply \(post.number.rawValue)") by \(post.author)")
+        .sheet(isPresented: $reporting) { ReportPostView(post: post) }
+        .modifier(BlockingConfirmation(username: post.author, confirming: $blocking))
         .contextMenu {
             if !post.deleted {
                 Button { save() } label: { Label(post.bookmarkID == nil ? "Save post" : "Remove from Saved", systemImage: post.bookmarkID == nil ? "bookmark" : "bookmark.slash") }

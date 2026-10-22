@@ -6,7 +6,31 @@ import Foundation
     private var topicSlugs: [TopicID: String] = [:]
     private var initialPages: [TopicID: DiscussionPage] = [:]
     private var metadata: [TopicID: DiscussionSummary] = [:]
+    private var viewerGeneration = 0
+    func invalidateViewerCaches() {
+        viewerGeneration += 1; topicSlugs = [:]; initialPages = [:]; metadata = [:]
+    }
+    private func checkViewer(_ generation: Int) throws {
+        try Task.checkCancellation()
+        guard generation == viewerGeneration else { throw CancellationError() }
+    }
     init(configuration: LiveConfiguration?, session: URLSession? = nil, credentials: @escaping (String) throws -> Credential? = KeychainCredentialStore.read, composerCapabilities: ComposerCapabilities = ComposerCapabilities()) { self.composerCapabilities = composerCapabilities; api = APIClient(configuration: configuration, session: session, credentials: credentials) }
+    private struct DeletionSession: Decodable {
+        struct User: Decodable { let username: String; let canDeleteAccount: Bool? }
+        let currentUser: User
+    }
+    func canDeleteAccount(username: String) async throws -> Bool {
+        let session = try await api.get(DeletionSession.self, "session/current.json", member: true)
+        guard session.currentUser.username.caseInsensitiveCompare(username) == .orderedSame else { throw RepositoryError.unauthorized }
+        return session.currentUser.canDeleteAccount == true
+    }
+    func deleteAccount(username: String) async throws {
+        // Recheck the credential's current identity and permission immediately before the destructive request.
+        guard try await canDeleteAccount(username: username) else { throw RepositoryError.denied }
+        let data = try await api.json("u/\(username).json", method: "DELETE", payload: ["context": "Self-deletion from Fomio iOS app"])
+        struct Result: Decodable { let success: String }
+        guard (try? api.decode(Result.self, from: data).success) == "OK" else { throw RepositoryError.unconfirmed }
+    }
     func similarDiscussions(title: String, raw: String) async throws -> [DiscussionSummary] {
         guard composerCapabilities.similarDiscussions else { throw RepositoryError.unsupported }
         let data = try await api.request("topics/similar_to.json", query: [.init(name: "title", value: title), .init(name: "raw", value: raw)], member: true)
@@ -67,9 +91,21 @@ import Foundation
         let site = try await api.get(SiteThemeDTO.self, "site.json")
         return site.domain
     }
+    func community(_ id: CategoryID) async throws -> Community {
+        guard id.rawValue > 0 else { throw RepositoryError.unavailable }
+        let generation = viewerGeneration
+        struct Envelope: Decodable { var category: CategoryDTO }
+        let result = try await api.get(Envelope.self, "c/\(id.rawValue)/show.json")
+        try checkViewer(generation)
+        guard result.category.id == id.rawValue else { throw SearchFailure.contract }
+        // This controller sets full permission only through Category.topic_create_allowed.
+        return result.category.domain(canCreate: true)
+    }
     func feed(category: Community?, page: Int) async throws -> Page<DiscussionSummary> {
+        let generation = viewerGeneration
         let path = category.map { "c/\($0.id.rawValue)/l/latest.json" } ?? "latest.json"
         let envelope = try await api.get(FeedEnvelope.self, path, query: [URLQueryItem(name: "page", value: String(page))])
+        try checkViewer(generation)
         let items = envelope.topicList.topics.map { $0.domain(users: envelope.users ?? [], baseURL: api.configuration?.baseURL) }
         for item in items { metadata[item.id] = item; topicSlugs[item.id] = item.slug }
         return Page(items: items, nextPage: envelope.topicList.moreTopicsUrl == nil ? nil : page + 1)
@@ -77,7 +113,9 @@ import Foundation
     private func nestedPath(_ id: TopicID) -> String { "n/\(topicSlugs[id] ?? "topic")/\(id.rawValue)" }
     private func summary(_ dto: TopicDTO) -> DiscussionSummary { let result = dto.domain(users: []); metadata[result.id] = result; topicSlugs[result.id] = result.slug; return result }
     func discussion(_ id: TopicID, page: Int) async throws -> DiscussionPage {
+        let generation = viewerGeneration
         let envelope = try await api.get(RootsDTO.self, nestedPath(id) + ".json", query: [URLQueryItem(name: "page", value: String(page)), URLQueryItem(name: "sort", value: "new")])
+        try checkViewer(generation)
         let detail: DiscussionSummary
         let opening: Post
         let canReply: Bool
@@ -91,19 +129,24 @@ import Foundation
             detail = initial.summary; opening = initial.opening; canReply = initial.canReply
         }
         let result = DiscussionPage(summary: detail, opening: opening, roots: envelope.roots.map { $0.node(canReply: canReply, topicID: id) }, nextPage: envelope.hasMoreRoots ? page + 1 : nil, closed: envelope.topic?.closed ?? initialPages[id]?.closed ?? false, canReply: canReply, effectiveSort: envelope.effectiveSort ?? initialPages[id]?.effectiveSort, archived: envelope.topic?.archived ?? initialPages[id]?.archived ?? false)
+        try checkViewer(generation)
         if page == 0 { initialPages[id] = result }; return result
     }
     func children(topic: TopicID, parent: PostNumber, page: Int, depth: Int) async throws -> ChildPage {
+        let generation = viewerGeneration
         let dto = try await api.get(ChildrenDTO.self, nestedPath(topic) + "/children/\(parent.rawValue).json", query: [URLQueryItem(name: "page", value: String(page)), URLQueryItem(name: "sort", value: "new"), URLQueryItem(name: "depth", value: String(depth))])
         // Reply permission comes from topic details, never from tree existence.
         let detail: DiscussionPage
         if let cached = initialPages[topic] { detail = cached } else { detail = try await discussion(topic, page: 0) }
+        try checkViewer(generation)
         return ChildPage(nodes: dto.children.map { $0.node(canReply: detail.canReply, topicID: topic) }, nextPage: dto.hasMore ? page + 1 : nil)
     }
     func context(topic: TopicID, number: PostNumber, focused: Bool) async throws -> ThreadContext {
+        let generation = viewerGeneration
         var query = [URLQueryItem(name: "sort", value: "new")]
         if focused { query.append(URLQueryItem(name: "context", value: "0")) }
         let dto = try await api.get(ContextDTO.self, nestedPath(topic) + "/context/\(number.rawValue).json", query: query)
+        try checkViewer(generation)
         let detail = summary(dto.topic), canReply = dto.topic.details?.canCreatePost == true
         let page = DiscussionPage(summary: detail, opening: dto.opPost.domain(canReply: canReply, topicID: topic), roots: [], nextPage: nil, closed: dto.topic.closed == true, canReply: canReply, effectiveSort: dto.effectiveSort, archived: dto.topic.archived == true)
         return ThreadContext(page: page, ancestors: dto.ancestorChain.map { $0.domain(canReply: canReply, topicID: topic) }, target: dto.targetPost.node(canReply: canReply, topicID: topic), truncated: dto.ancestorsTruncated)
@@ -123,17 +166,56 @@ import Foundation
         }
         return result
     }
-    func search(_ query: String, page: Int) async throws -> Page<DiscussionSummary> {
-        let dto = try await api.get(SearchDTO.self, "search.json", query: [URLQueryItem(name: "q", value: query), URLQueryItem(name: "page", value: String(page)), URLQueryItem(name: "type_filter", value: "topic")])
-        let items: [DiscussionSummary] = (dto.posts ?? []).compactMap { post in
-            guard let topic = dto.topics?.first(where: { $0.id == post.topicId }) else { return nil }
-            var item = topic.domain(users: dto.users ?? [])
+    func searchSettings() async throws -> SearchSettings {
+        struct Settings: Decodable { let minSearchTermLength: Int; let defaultLocale: String }
+        let dto: Settings
+        do { dto = try await api.get(Settings.self, "site/settings.json") }
+        catch is DecodingError { throw SearchFailure.settings }
+        return try SearchSettings(minimumTermLength: dto.minSearchTermLength, locale: dto.defaultLocale)
+    }
+    func verifySearchViewer(username: String) async throws {
+        let session = try await api.get(DeletionSession.self, "session/current.json", member: true)
+        guard session.currentUser.username.caseInsensitiveCompare(username) == .orderedSame else { throw RepositoryError.unauthorized }
+    }
+    func search(_ request: DiscussionSearchRequest) async throws -> DiscussionSearchPage {
+        let generation = viewerGeneration
+        let data = try await api.request("search.json", query: request.queryItems, searchResponse: true)
+        try Task.checkCancellation()
+        // Decode failure independently of hit facets. Even malformed/partial hits cannot hide
+        // a real server error or poison metadata before the response has been validated.
+        do {
+            let header = try api.decode(SearchErrorDTO.self, from: data)
+            if let error = header.groupedSearchResult?.error, !error.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { throw SearchFailure.serverSearch }
+        } catch is DecodingError { throw SearchFailure.contract }
+        let dto: SearchDTO
+        do { dto = try api.decode(SearchDTO.self, from: data) }
+        catch { throw SearchFailure.contract }
+        // The current deployed stop-word and zero-match envelopes both include posts: [].
+        // Omitted topics are legitimate for them; omitted/null posts are not proven empty.
+        guard let group = dto.groupedSearchResult, let posts = dto.posts else { throw SearchFailure.contract }
+        guard !posts.isEmpty || (dto.topics ?? []).isEmpty else { throw SearchFailure.contract }
+        guard !(posts.isEmpty && group.moreFullPageResults == true) else { throw SearchFailure.contract }
+        var seen: Set<PostID> = []
+        var destinations: Set<String> = []
+        var items: [DiscussionSearchHit] = []
+        for post in posts {
+            guard post.id > 0, post.topicId > 0, post.postNumber > 0,
+                  let topic = dto.topics?.first(where: { $0.id == post.topicId }),
+                  dto.topics?.filter({ $0.id == post.topicId }).count == 1,
+                  let categoryID = topic.categoryId, categoryID > 0,
+                  topic.archetype == "regular",
+                  request.allowedCategoryIDs?.contains(.init(categoryID)) != false,
+                  seen.insert(.init(post.id)).inserted,
+                  destinations.insert("\(post.topicId):\(post.postNumber)").inserted else { throw SearchFailure.contract }
+            var item = topic.domain(users: dto.users ?? [], baseURL: api.configuration?.baseURL)
             item.excerpt = HTMLContent.plainText(post.blurb ?? ""); item.author = post.username ?? item.author
-            item.targetPostNumber = post.postNumber.map { PostNumber($0) }; item.matchAuthor = post.username
-            return item
+            item.targetPostNumber = .init(post.postNumber); item.matchAuthor = post.username
+            items.append(.init(id: .init(post.id), discussion: item, number: .init(post.postNumber)))
         }
-        items.forEach { metadata[$0.id] = $0; topicSlugs[$0.id] = $0.slug }
-        return Page(items: items, nextPage: dto.groupedSearchResult?.moreFullPageResults == true ? page + 1 : nil)
+        try Task.checkCancellation()
+        try checkViewer(generation)
+        for hit in items { metadata[hit.discussion.id] = hit.discussion; topicSlugs[hit.discussion.id] = hit.discussion.slug }
+        return DiscussionSearchPage(items: items, nextPage: group.moreFullPageResults == true && request.page < 10 ? request.page + 1 : nil, reachedLimit: group.moreFullPageResults == true && request.page == 10)
     }
     func notifications(page: Int) async throws -> Page<Notice> {
         let dto = try await api.get(NoticesDTO.self, "notifications.json", query: [URLQueryItem(name: "offset", value: String(page * 30)), URLQueryItem(name: "limit", value: "30"), URLQueryItem(name: "filter_by_types", value: "replied,mentioned")], member: true)
@@ -193,13 +275,13 @@ struct CategoryEnvelope: Decodable {
 struct CategoryDTO: Decodable {
     var id: Int; var name: String; var slug: String?; var parentCategoryId: Int?; var descriptionText: String?; var descriptionExcerpt: String?; var permission: Int?; var subcategoryList: [CategoryDTO]?; var topicTemplate: String?
     var color: String?; var textColor: String?; var styleType: String?; var icon: String?; var emoji: String?; var readRestricted: Bool?; var topicUrl: String?
-    var subcategoryIds: [Int]?; var subcategoryCount: Int?; var hasChildren: Bool?
+    var subcategoryIds: [Int]?; var subcategoryCount: Int?; var hasChildren: Bool?; var topicCount: Int?
     var uploadedLogo: CategoryAsset?; var uploadedLogoDark: CategoryAsset?; var uploadedBackground: CategoryAsset?; var uploadedBackgroundDark: CategoryAsset?
     func domain(canCreate: Bool) -> Community {
         Community(id: .init(id), name: name, slug: slug ?? "", parentID: parentCategoryId.map { CategoryID($0) }, description: descriptionText ?? "", canCreate: canCreate && permission == 1,
                   topicTemplate: topicTemplate,
                   identity: CategoryIdentity(color: color, textColor: textColor, style: styleType, icon: icon, emoji: emoji, logo: uploadedLogo, darkLogo: uploadedLogoDark, background: uploadedBackground, darkBackground: uploadedBackgroundDark),
-                  descriptionExcerpt: descriptionExcerpt.map(HTMLContent.plainText), aboutURL: topicUrl)
+                  descriptionExcerpt: descriptionExcerpt.map(HTMLContent.plainText), aboutURL: topicUrl, topicCount: topicCount)
         // read_restricted means a visible secured category, not that this viewer is denied access.
     }
 }
@@ -216,7 +298,7 @@ struct UserDTO: Decodable { var id: Int; var username: String }
 struct TopicDTO: Decodable {
     struct Details: Decodable { var canCreatePost: Bool? }
     struct Poster: Decodable { var userId: Int; var description: String? }
-    var id: Int; var title: String; var slug: String?; var categoryId: Int?; var excerpt: String?; var replyCount: Int?; var postsCount: Int?; var lastPosterUsername: String?; var posters: [Poster]?; var closed: Bool?; var details: Details?; var archived: Bool?; var bumpedAt: String?; var pinned: Bool?; var imageUrl: String?; var unicodeTitle: String?
+    var id: Int; var title: String; var slug: String?; var categoryId: Int?; var excerpt: String?; var replyCount: Int?; var postsCount: Int?; var lastPosterUsername: String?; var posters: [Poster]?; var closed: Bool?; var details: Details?; var archived: Bool?; var bumpedAt: String?; var pinned: Bool?; var imageUrl: String?; var unicodeTitle: String?; var archetype: String?
     func domain(users: [UserDTO], baseURL: URL? = nil) -> DiscussionSummary {
         let authorID = posters?.first(where: { $0.description?.contains("Original Poster") == true })?.userId ?? posters?.first?.userId
         let author = users.first { $0.id == authorID }?.username ?? ""
@@ -237,7 +319,8 @@ struct PostDTO: Decodable {
 struct RootsDTO: Decodable { var topic: TopicDTO?; var opPost: PostDTO?; var roots: [PostDTO]; var hasMoreRoots: Bool; var page: Int; var sort: String?; var effectiveSort: String? }
 struct ChildrenDTO: Decodable { var children: [PostDTO]; var hasMore: Bool; var page: Int }
 struct ContextDTO: Decodable { var topic: TopicDTO; var opPost: PostDTO; var ancestorChain: [PostDTO]; var targetPost: PostDTO; var ancestorsTruncated: Bool; var sort: String?; var effectiveSort: String? }
-struct SearchDTO: Decodable { struct Result: Decodable { var topicId: Int; var postNumber: Int?; var blurb: String?; var username: String? }; struct Group: Decodable { var moreFullPageResults: Bool? }; var topics: [TopicDTO]?; var posts: [Result]?; var users: [UserDTO]?; var groupedSearchResult: Group? }
+struct SearchErrorDTO: Decodable { struct Group: Decodable { var error: String? }; var groupedSearchResult: Group? }
+struct SearchDTO: Decodable { struct Result: Decodable { var id: Int; var topicId: Int; var postNumber: Int; var blurb: String?; var username: String? }; struct Group: Decodable { var moreFullPageResults: Bool? }; var topics: [TopicDTO]?; var posts: [Result]?; var users: [UserDTO]?; var groupedSearchResult: Group? }
 struct NoticesDTO: Decodable {
     struct Item: Decodable { struct Info: Decodable { var displayUsername: String? }; var id: Int; var notificationType: Int; var read: Bool; var topicId: Int?; var postNumber: Int?; var fancyTitle: String?; var createdAt: String?; var data: Info? }
     var notifications: [Item]; var totalRowsNotifications: Int

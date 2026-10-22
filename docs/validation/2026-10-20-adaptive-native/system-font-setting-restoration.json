@@ -1,0 +1,6 @@
+{
+  "simulator": "F11F33D4-541C-411D-8230-4DD2DA76AFFD",
+  "previous": "large",
+  "testSize": "accessibility-extra-extra-extra-large",
+  "status": "36fabf1d in-place transition passed; baseline large restored/readback after terminal"
+}

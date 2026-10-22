@@ -1,0 +1,131 @@
+Application, 0x109320000, pid: 54872, label: 'Fomio' <App element pid: 54872>
+  Window, 0x109320140, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4402511872.4>
+    Other, 0x109320280, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4403657216.5>
+    Other, 0x1093203c0, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4403743232.6>
+      Other, 0x109320500, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4476229248.7>
+        Other, 0x109320640, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4402448896.8>
+          Other, 0x109320780, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4761362720.9>
+            Other, 0x1093208c0, {{0.0, 0.0}, {867.0, 635.0}} <AX element pid: 54872, elementOrHash.elementID: 4403320832.10>
+            Other, 0x109320a00, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4403646976.11>
+              Other, 0x109320b40, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4479163264.12>
+                Other, 0x109320c80, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4476391936.14>
+                  Other, 0x109320dc0, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4402451456.16>
+                    Other, 0x109320f00, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4761362400.18>
+                      Other, 0x109322e40, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4761359040.20>
+                        Other, 0x109322f80, {{0.0, 0.0}, {951.0, 669.0}}, identifier: 'reading-one-pane' <AX element pid: 54872, elementOrHash.elementID: 4482867968.22>
+                          Other, 0x1093230c0, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4482868416.25>
+                            Other, 0x109323200, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4615101440.28>
+                              Other, 0x109323340, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4614725760.31>
+                                Other, 0x109323480, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4476212224.34>
+                                  Other, 0x1093235c0, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4615098752.37>
+                                    Other, 0x109323700, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4476214272.40>
+                                      Other, 0x109323840, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4614701056.43>
+                                        Other, 0x109323980, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4478759424.49>
+                                          Other, 0x109323ac0, {{0.0, 0.0}, {951.0, 114.3}}, identifier: 'browse-header' <AX element pid: 54872, elementOrHash.elementID: 4478759264.56>
+                                            Button, 0x109323c00, {{489.7, 6.0}, {277.3, 52.3}}, identifier: 'community-scope', label: 'المجتمع: ⁨كل المجتمعات⁩. تغيير المجتمع' <AX element pid: 54872, elementOrHash.elementID: 4478757504.65>
+                                              StaticText, 0x109323d40, {{489.7, 6.0}, {277.3, 52.3}}, label: 'كل المجتمعات' <AX element pid: 54872, elementOrHash.elementID: 4478757184.74>
+                                              Image, 0x109323e80, {{493.7, 24.0}, {28.3, 16.7}}, identifier: 'chevron.down', label: 'الانتقال لأسفل' <AX element pid: 54872, elementOrHash.elementID: 4478757344.75>
+                                            Button, 0x10926f480, {{68.0, 64.3}, {44.0, 44.0}}, identifier: 'reveal-topic-search', label: 'البحث في النقاشات' <AX element pid: 54872, elementOrHash.elementID: 4478757824.66>
+                                            Button, 0x10926f5c0, {{16.0, 64.3}, {44.0, 44.0}}, identifier: 'feed-options', label: 'خيارات الرئيسية' <AX element pid: 54872, elementOrHash.elementID: 4478758784.67>
+                                              Button, 0x10926f700, {{16.0, 64.3}, {44.0, 44.0}} <AX element pid: 54872, elementOrHash.elementID: 4403888128.76>
+                                                Image, 0x10926f840, {{16.0, 64.3}, {44.0, 44.0}}, identifier: 'ellipsis', label: 'خيارات الرئيسية' <AX element pid: 54872, elementOrHash.elementID: 4478758144.84>
+                                          ScrollView, 0x10926f980, {{0.0, 0.0}, {951.0, 669.0}}, identifier: 'feed-compact' <AX element pid: 54872, elementOrHash.elementID: 4402075648.57>
+                                            Other, 0x10926fac0, {{0.0, 114.3}, {951.0, 1888.0}} <AX element pid: 54872, elementOrHash.elementID: 4615063424.68>
+                                              Other, 0x10926fc00, {{123.7, 118.3}, {600.0, 1241.3}} <AX element pid: 54872, elementOrHash.elementID: 4478749984.77>
+                                                Button, 0x10926fd40, {{391.0, 118.3}, {332.7, 44.0}}, identifier: 'topic-category-6', label: 'Open community Repairs, in Electronics' <AX element pid: 54872, elementOrHash.elementID: 4761363360.85>
+                                                  StaticText, 0x10926fe80, {{391.0, 118.3}, {332.7, 44.0}}, label: 'Electronics › Repairs' <AX element pid: 54872, elementOrHash.elementID: 4761363200.99>
+                                                  Image, 0x10935c000, {{705.5, 132.1}, {16.4, 16.4}}, identifier: 'wrench.and.screwdriver', label: 'مفتاح ربط ومفك براغي متقاطعان' <AX element pid: 54872, elementOrHash.elementID: 4761363040.100>
+                                                Button, 0x10935c140, {{143.7, 158.3}, {580.0, 253.0}}, identifier: 'topic-9101', label: 'Adaptive discussion 01, in Repairs, Electronics, started by devon, No replies yet, active 2 minutes ago' <AX element pid: 54872, elementOrHash.elementID: 4761364640.86>
+                                                  StaticText, 0x10935c280, {{143.5, 158.3}, {427.7, 52.3}}, label: 'Adaptive discussion 01' <AX element pid: 54872, elementOrHash.elementID: 4761363520.101>
+                                                  StaticText, 0x10935c3c0, {{143.5, 214.7}, {568.7, 94.7}}, label: 'Fictional discussion for native search recovery checks.' <AX element pid: 54872, elementOrHash.elementID: 4761363680.102>
+                                                  StaticText, 0x10935c500, {{479.2, 319.3}, {244.3, 44.0}}, label: 'Started by devon' <AX element pid: 54872, elementOrHash.elementID: 4761363840.103>
+                                                  StaticText, 0x10935c640, {{493.5, 367.3}, {226.8, 44.0}}, label: 'No replies yet' <AX element pid: 54872, elementOrHash.elementID: 4761364160.104>
+                                                  StaticText, 0x10935c780, {{479.8, 367.3}, {7.7, 44.0}}, label: '·' <AX element pid: 54872, elementOrHash.elementID: 4761364320.105>
+                                                  StaticText, 0x10935c8c0, {{271.5, 367.3}, {202.3, 44.0}}, label: 'Active 2m ago' <AX element pid: 54872, elementOrHash.elementID: 4761364480.106>
+                                                  Image, 0x10935ca00, {{692.0, 376.0}, {28.3, 26.7}}, identifier: 'bubble.left', label: 'تعليق على اليسار' <AX element pid: 54872, elementOrHash.elementID: 4761364000.107>
+                                                Button, 0x10935cb40, {{391.0, 429.7}, {332.7, 44.0}}, identifier: 'topic-category-6', label: 'Open community Repairs, in Electronics' <AX element pid: 54872, elementOrHash.elementID: 4761365280.87>
+                                                  StaticText, 0x10935cc80, {{391.0, 429.7}, {332.7, 44.0}}, label: 'Electronics › Repairs' <AX element pid: 54872, elementOrHash.elementID: 4761365120.108>
+                                                  Image, 0x10935cdc0, {{705.5, 443.5}, {16.4, 16.4}}, identifier: 'wrench.and.screwdriver', label: 'مفتاح ربط ومفك براغي متقاطعان' <AX element pid: 54872, elementOrHash.elementID: 4761364960.109>
+                                                Other, 0x10935cf00, {{123.7, 425.3}, {600.0, 0.3}} <AX element pid: 54872, elementOrHash.elementID: 4761364800.88>
+                                                Button, 0x10935d040, {{143.7, 469.7}, {580.0, 253.0}}, identifier: 'topic-9102', label: 'Adaptive discussion 02, in Repairs, Electronics, started by devon, No replies yet, active 2 minutes ago' <AX element pid: 54872, elementOrHash.elementID: 4761366560.89>
+                                                  StaticText, 0x10935d180, {{143.5, 469.7}, {432.7, 52.3}}, label: 'Adaptive discussion 02' <AX element pid: 54872, elementOrHash.elementID: 4761365440.110>
+                                                  StaticText, 0x10935d2c0, {{143.5, 526.0}, {568.7, 94.7}}, label: 'Fictional discussion for native search recovery checks.' <AX element pid: 54872, elementOrHash.elementID: 4761365600.111>
+                                                  StaticText, 0x10935d400, {{479.2, 630.7}, {244.3, 44.0}}, label: 'Started by devon' <AX element pid: 54872, elementOrHash.elementID: 4761365760.112>
+                                                  StaticText, 0x10935d540, {{493.5, 678.7}, {226.8, 44.0}}, label: 'No replies yet' <AX element pid: 54872, elementOrHash.elementID: 4761366080.113>
+                                                  StaticText, 0x10935d680, {{479.8, 678.7}, {7.7, 44.0}}, label: '·' <AX element pid: 54872, elementOrHash.elementID: 4761366240.114>
+                                                  StaticText, 0x10935d7c0, {{271.5, 678.7}, {202.3, 44.0}}, label: 'Active 2m ago' <AX element pid: 54872, elementOrHash.elementID: 4761366400.115>
+                                                  Image, 0x10935d900, {{692.0, 687.3}, {28.3, 26.7}}, identifier: 'bubble.left', label: 'تعليق على اليسار' <AX element pid: 54872, elementOrHash.elementID: 4761365920.116>
+                                                Button, 0x10935da40, {{391.0, 741.0}, {332.7, 44.0}}, identifier: 'topic-category-6', label: 'Open community Repairs, in Electronics' <AX element pid: 54872, elementOrHash.elementID: 4761367200.91>
+                                                  StaticText, 0x10935db80, {{391.0, 741.0}, {332.7, 44.0}}, label: 'Electronics › Repairs' <AX element pid: 54872, elementOrHash.elementID: 4761367040.117>
+                                                  Image, 0x10935dcc0, {{705.5, 754.8}, {16.4, 16.4}}, identifier: 'wrench.and.screwdriver', label: 'مفتاح ربط ومفك براغي متقاطعان' <AX element pid: 54872, elementOrHash.elementID: 4761366880.118>
+                                                Other, 0x10935de00, {{123.7, 736.7}, {600.0, 0.3}} <AX element pid: 54872, elementOrHash.elementID: 4761366720.90>
+                                                Button, 0x10935df40, {{143.7, 781.0}, {580.0, 253.0}}, identifier: 'topic-9103', label: 'Adaptive discussion 03, in Repairs, Electronics, started by devon, No replies yet, active 2 minutes ago' <AX element pid: 54872, elementOrHash.elementID: 4761368480.93>
+                                                  StaticText, 0x10935e080, {{143.5, 781.0}, {434.0, 52.3}}, label: 'Adaptive discussion 03' <AX element pid: 54872, elementOrHash.elementID: 4761367360.121>
+                                                  StaticText, 0x10935e1c0, {{143.5, 837.3}, {568.7, 94.7}}, label: 'Fictional discussion for native search recovery checks.' <AX element pid: 54872, elementOrHash.elementID: 4761367520.122>
+                                                  StaticText, 0x10935e300, {{479.2, 942.0}, {244.3, 44.0}}, label: 'Started by devon' <AX element pid: 54872, elementOrHash.elementID: 4761367680.123>
+                                                  StaticText, 0x10935e440, {{493.5, 990.0}, {226.8, 44.0}}, label: 'No replies yet' <AX element pid: 54872, elementOrHash.elementID: 4761368000.124>
+                                                  StaticText, 0x10935e580, {{479.8, 990.0}, {7.7, 44.0}}, label: '·' <AX element pid: 54872, elementOrHash.elementID: 4761368160.125>
+                                                  StaticText, 0x10935e6c0, {{271.5, 990.0}, {202.3, 44.0}}, label: 'Active 2m ago' <AX element pid: 54872, elementOrHash.elementID: 4761368320.126>
+                                                  Image, 0x10935e800, {{692.0, 998.7}, {28.3, 26.7}}, identifier: 'bubble.left', label: 'تعليق على اليسار' <AX element pid: 54872, elementOrHash.elementID: 4761367840.127>
+                                                Button, 0x10935e940, {{391.0, 1052.3}, {332.7, 44.0}}, identifier: 'topic-category-6', label: 'Open community Repairs, in Electronics' <AX element pid: 54872, elementOrHash.elementID: 4761369120.92>
+                                                  StaticText, 0x10935ea80, {{391.0, 1052.3}, {332.7, 44.0}}, label: 'Electronics › Repairs' <AX element pid: 54872, elementOrHash.elementID: 4761368960.119>
+                                                  Image, 0x10935ebc0, {{705.5, 1066.1}, {16.4, 16.4}}, identifier: 'wrench.and.screwdriver', label: 'مفتاح ربط ومفك براغي متقاطعان' <AX element pid: 54872, elementOrHash.elementID: 4761368800.120>
+                                                Other, 0x10935ed00, {{123.7, 1048.0}, {600.0, 0.3}} <AX element pid: 54872, elementOrHash.elementID: 4761368640.95>
+                                                Button, 0x10935ee40, {{143.7, 1092.3}, {580.0, 253.0}}, identifier: 'topic-9104', label: 'Adaptive discussion 04, in Repairs, Electronics, started by devon, No replies yet, active 2 minutes ago' <AX element pid: 54872, elementOrHash.elementID: 4761370400.94>
+                                                  StaticText, 0x10935ef80, {{143.5, 1092.3}, {434.7, 52.3}}, label: 'Adaptive discussion 04' <AX element pid: 54872, elementOrHash.elementID: 4761369280.128>
+                                                  StaticText, 0x10935f0c0, {{143.5, 1148.7}, {568.7, 94.7}}, label: 'Fictional discussion for native search recovery checks.' <AX element pid: 54872, elementOrHash.elementID: 4761369440.129>
+                                                  StaticText, 0x10935f200, {{479.2, 1253.3}, {244.3, 44.0}}, label: 'Started by devon' <AX element pid: 54872, elementOrHash.elementID: 4761369600.130>
+                                                  StaticText, 0x10935f340, {{493.5, 1301.3}, {226.8, 44.0}}, label: 'No replies yet' <AX element pid: 54872, elementOrHash.elementID: 4761369920.131>
+                                                  StaticText, 0x10935f480, {{479.8, 1301.3}, {7.7, 44.0}}, label: '·' <AX element pid: 54872, elementOrHash.elementID: 4761370080.132>
+                                                  StaticText, 0x10935f5c0, {{271.5, 1301.3}, {202.3, 44.0}}, label: 'Active 2m ago' <AX element pid: 54872, elementOrHash.elementID: 4761370240.133>
+                                                  Image, 0x10935f700, {{692.0, 1310.0}, {28.3, 26.7}}, identifier: 'bubble.left', label: 'تعليق على اليسار' <AX element pid: 54872, elementOrHash.elementID: 4761369760.134>
+                                                Other, 0x10935f840, {{123.7, 1359.3}, {600.0, 0.3}} <AX element pid: 54872, elementOrHash.elementID: 4401773728.96>
+                                            Other, 0x10935f980, {{-24.0, 55.0}, {30.0, 559.0}}, label: 'Vertical scroll bar, 4 pages', value: 0% <AX element pid: 54872, elementOrHash.elementID: 4476141568.69>
+                                              Other, 0x10935fac0, {{3.0, 61.0}, {3.0, 180.7}} <AX element pid: 54872, elementOrHash.elementID: 4615106368.78>
+                                            Other, 0x10935fc00, {{-24.0, 55.0}, {30.0, 559.0}}, label: 'Vertical scroll bar, 4 pages', value: 0% <AX element pid: 54872, elementOrHash.elementID: 4476141568.69>
+                                              Other, 0x10935fd40, {{3.0, 61.0}, {3.0, 180.7}} <AX element pid: 54872, elementOrHash.elementID: 4615106368.78>
+                                  Toolbar, 0x10935fe80, {{0.0, 0.0}, {951.0, 669.0}}, identifier: 'Toolbar', label: 'Toolbar' <AX element pid: 54872, elementOrHash.elementID: 4615069824.38>
+                                    Other, 0x109360000, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4615070464.41>
+                              Toolbar, 0x109360140, {{0.0, 0.0}, {951.0, 669.0}}, identifier: 'Toolbar', label: 'Toolbar' <AX element pid: 54872, elementOrHash.elementID: 4615071104.32>
+                                Other, 0x109360280, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4615071744.35>
+                          Other, 0x1093603c0, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4476307968.26>
+                            Other, 0x109360500, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4482868864.29>
+                        StaticText, 0x109360640, {{332.7, 581.7}, {201.3, 49.3}}, identifier: 'fixture-banner', label: 'محتوى مجتمعي تجريبي. هذه معاينة.' <AX element pid: 54872, elementOrHash.elementID: 4761360640.23>
+              Other, 0x109360780, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4402512896.13>
+                Toolbar, 0x1093608c0, {{0.0, 0.0}, {951.0, 669.0}}, identifier: 'Toolbar', label: 'Toolbar' <AX element pid: 54872, elementOrHash.elementID: 4479161984.15>
+                  Other, 0x109360a00, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4479162624.17>
+                    Other, 0x109360b40, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4403526528.19>
+                      Other, 0x109360c80, {{0.0, 0.0}, {951.0, 669.0}} <AX element pid: 54872, elementOrHash.elementID: 4403526976.21>
+                        Other, 0x109360dc0, {{0.0, 0.0}, {0.0, 0.0}} <AX element pid: 54872, elementOrHash.elementID: 4482859008.24>
+                          Other, 0x109360f00, {{879.0, 433.0}, {48.0, 212.0}} <AX element pid: 54872, elementOrHash.elementID: 4476396032.27>
+                            Other, 0x109361040, {{879.0, 433.0}, {48.0, 212.0}} <AX element pid: 54872, elementOrHash.elementID: 4482859456.30>
+                              Other, 0x109361180, {{879.0, 433.0}, {48.0, 212.0}} <AX element pid: 54872, elementOrHash.elementID: 4481417984.33>
+                                Other, 0x1093612c0, {{879.0, 433.0}, {48.0, 212.0}} <AX element pid: 54872, elementOrHash.elementID: 4476393472.36>
+                                  Other, 0x109361400, {{879.0, 433.0}, {48.0, 212.0}} <AX element pid: 54872, elementOrHash.elementID: 4479163904.39>
+                                    Other, 0x109361540, {{879.0, 433.0}, {48.0, 212.0}} <AX element pid: 54872, elementOrHash.elementID: 4403648512.42>
+                                      Other, 0x109361680, {{881.0, 435.0}, {44.0, 58.0}} <AX element pid: 54872, elementOrHash.elementID: 4479161344.44>
+                                        Other, 0x1093617c0, {{881.0, 435.0}, {44.0, 58.0}} <AX element pid: 54872, elementOrHash.elementID: 4403513536.50>
+                                          Other, 0x109361900, {{881.0, 435.0}, {44.0, 58.0}} <AX element pid: 54872, elementOrHash.elementID: 4403651584.58>
+                                          Other, 0x109361a40, {{881.0, 435.0}, {44.0, 58.0}} <AX element pid: 54872, elementOrHash.elementID: 4403653632.59>
+                                            Other, 0x109361b80, {{881.0, 435.0}, {44.0, 58.0}} <AX element pid: 54872, elementOrHash.elementID: 4403514432.70>
+                                              Other, 0x109361cc0, {{881.0, 435.0}, {44.0, 58.0}} <AX element pid: 54872, elementOrHash.elementID: 4403514880.79>
+                                                Other, 0x109361e00, {{881.0, 435.0}, {44.0, 58.0}} <AX element pid: 54872, elementOrHash.elementID: 4403515328.97>
+                                              Other, 0x109361f40, {{881.0, 435.0}, {44.0, 58.0}} <AX element pid: 54872, elementOrHash.elementID: 4403654144.80>
+                                            Other, 0x109362080, {{881.0, 435.0}, {44.0, 58.0}} <AX element pid: 54872, elementOrHash.elementID: 4403513984.71>
+                                      Other, 0x1093621c0, {{879.0, 433.0}, {44.0, 58.0}} <AX element pid: 54872, elementOrHash.elementID: 4476396544.45>
+                                      Other, 0x109362300, {{879.0, 433.0}, {48.0, 212.0}} <AX element pid: 54872, elementOrHash.elementID: 4403512192.46>
+                                        Button, 0x109362440, {{881.0, 435.0}, {44.0, 58.0}}, identifier: 'house', label: 'الرئيسية', Selected <AX element pid: 54872, elementOrHash.elementID: 4402518016.51>
+                                          Image, 0x109362580, {{886.3, 450.0}, {33.3, 28.0}}, identifier: 'house.fill', label: 'home' <AX element pid: 54872, elementOrHash.elementID: 4479164544.60>
+                                        Button, 0x1093626c0, {{881.0, 485.0}, {44.0, 58.0}}, identifier: 'square.grid.2x2', label: 'المجتمعات' <AX element pid: 54872, elementOrHash.elementID: 4402520064.52>
+                                          Image, 0x109362800, {{889.7, 501.3}, {27.0, 25.0}}, identifier: 'square.grid.2x2.fill', label: 'grid 2x2' <AX element pid: 54872, elementOrHash.elementID: 4479165824.61>
+                                        Button, 0x109362940, {{881.0, 535.0}, {44.0, 58.0}}, identifier: 'bell', label: 'الإشعارات', value: 2 items <AX element pid: 54872, elementOrHash.elementID: 4402522112.53>
+                                          Image, 0x109362a80, {{890.0, 550.0}, {26.3, 28.0}}, identifier: 'bell.fill', label: 'notifications' <AX element pid: 54872, elementOrHash.elementID: 4479167104.62>
+                                        Button, 0x109362bc0, {{881.0, 585.0}, {44.0, 58.0}}, identifier: 'person.crop.circle', label: 'أنا' <AX element pid: 54872, elementOrHash.elementID: 4402524160.54>
+                                          Image, 0x109362d00, {{889.3, 600.3}, {27.3, 27.3}}, identifier: 'person.crop.circle.fill', label: 'account' <AX element pid: 54872, elementOrHash.elementID: 4479168384.63>
+                                      Other, 0x109362e40, {{879.0, 433.0}, {48.0, 212.0}} <AX element pid: 54872, elementOrHash.elementID: 4403512640.47>
+                                      Other, 0x109362f80, {{879.0, 433.0}, {48.0, 212.0}} <AX element pid: 54872, elementOrHash.elementID: 4476397056.48>
+                                        Other, 0x1093630c0, {{879.0, 433.0}, {48.0, 212.0}} <AX element pid: 54872, elementOrHash.elementID: 4402301952.55>
+                                          Other, 0x109363200, {{879.0, 433.0}, {48.0, 212.0}} <AX element pid: 54872, elementOrHash.elementID: 4476397568.64>
+                                            Other, 0x109363340, {{879.0, 433.0}, {48.0, 212.0}} <AX element pid: 54872, elementOrHash.elementID: 4476398080.72>
+                                              Other, 0x109363480, {{879.0, 433.0}, {48.0, 212.0}} <AX element pid: 54872, elementOrHash.elementID: 4479169664.81>
+                                            Other, 0x1093635c0, {{879.0, 433.0}, {48.0, 212.0}} <AX element pid: 54872, elementOrHash.elementID: 4479170304.73>

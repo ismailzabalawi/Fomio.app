@@ -196,18 +196,34 @@ struct TopicMedia: View {
     let source: Source
     let style: Style
     @Binding var failed: Bool
+    @State private var loaded: UIImage?
     var body: some View {
         switch source {
         case let .asset(name): framed(Image(name).resizable().scaledToFill())
         case let .remote(url):
-            AsyncImage(url: url, transaction: Transaction(animation: nil)) { phase in
-                switch phase {
-                case let .success(image): framed(image.resizable().scaledToFill())
-                case .failure: Color.clear.frame(width: 0, height: 0).onAppear { failed = true }
-                default: framed(Color.fomioFill).accessibilityLabel("Loading image")
-                }
+            Group {
+                if let loaded { framed(Image(uiImage: loaded).resizable().scaledToFill()) }
+                else { framed(Color.fomioFill).accessibilityLabel("Loading image") }
             }
+            .task(id: url) { await load(url) }
         }
+    }
+    /// AsyncImage stays in its empty phase when a host can't be reached, so a broken image never fell back
+    /// to text. A plain request reports errors, non-success statuses and undecodable data as failure.
+    private func load(_ url: URL) async {
+        loaded = nil
+        var request = URLRequest(url: url); request.timeoutInterval = 15
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) { throw URLError(.badServerResponse) }
+            let image = await Task.detached(priority: .utility) { UIImage(data: data)?.preparingForDisplay() }.value
+            guard let image else { throw URLError(.cannotDecodeContentData) }
+            try Task.checkCancellation()
+            loaded = image
+        } catch is CancellationError {
+            // A recycled row cancels its load; that is not a failed image.
+        } catch let error as URLError where error.code == .cancelled {
+        } catch { failed = true }
     }
     @ViewBuilder private func framed(_ content: some View) -> some View {
         switch style {

@@ -1,0 +1,13 @@
+** TEST BUILD SUCCEEDED **
+Test Suite 'Selected tests' started at 2026-10-20 00:13:59.432.
+Test Suite 'FomioUITests.xctest' started at 2026-10-20 00:13:59.433.
+Test Suite 'FomioUITests' started at 2026-10-20 00:13:59.433.
+Test Case '-[FomioUITests.FomioUITests testComposerMoreRefreshesUndoRedoAfterEachAction]' started.
+Test Case '-[FomioUITests.FomioUITests testComposerMoreRefreshesUndoRedoAfterEachAction]' passed (68.992 seconds).
+Test Suite 'FomioUITests' passed at 2026-10-20 00:15:08.456.
+	 Executed 1 test, with 0 failures (0 unexpected) in 68.992 (69.023) seconds
+Test Suite 'FomioUITests.xctest' passed at 2026-10-20 00:15:08.466.
+	 Executed 1 test, with 0 failures (0 unexpected) in 68.992 (69.033) seconds
+Test Suite 'Selected tests' passed at 2026-10-20 00:15:08.487.
+	 Executed 1 test, with 0 failures (0 unexpected) in 68.992 (69.055) seconds
+** TEST EXECUTE SUCCEEDED **

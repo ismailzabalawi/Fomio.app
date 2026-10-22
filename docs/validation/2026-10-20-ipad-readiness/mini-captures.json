@@ -1,0 +1,18 @@
+{
+  "resultBundle": "test_sim_2026-10-20T19-51-32-174Z_pid87845_a1c7da56.xcresult",
+  "device": "iPad mini (A17 Pro)",
+  "os": "iPadOS 26.0",
+  "content": "isolated fictional fixtures",
+  "captures": [
+    {
+      "file": "ipad-mini-final-reading.png",
+      "sourceAttachment": "0BCF428C-93A5-4A5A-97C4-2930BC848B5F.png",
+      "sha256": "98f91d9e11cd3d29b8ac99ce48b29c576149b1e9ac71e00bf3f5be9eefdda3ce"
+    },
+    {
+      "file": "ipad-mini-final-rtl-chooser.png",
+      "sourceAttachment": "F3FC9865-5066-4F42-A009-A632CCA85F79.png",
+      "sha256": "11c29c117df99c219786b3e2880b0b6db5d5778aaf1a3caf6a681b980aa174f1"
+    }
+  ]
+}

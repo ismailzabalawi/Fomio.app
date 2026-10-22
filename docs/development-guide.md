@@ -12,7 +12,7 @@ xcodebuild -project Fomio.xcodeproj -scheme Fomio \
   -destination 'platform=iOS Simulator,name=iPhone 17' test
 ```
 
-Use an installed simulator name in place of the example. Native tests use ad hoc simulator signing because Keychain access needs a signed executable. Distribution signing is unconfigured. Simulator UDIDs in validation evidence are machine-local and should not be copied as portable configuration.
+Use an installed simulator name in place of the example. Native tests use ad hoc simulator signing because Keychain access needs a signed executable. Automatic signing uses the existing team; a local App Store distribution export passed on 2026-10-18. See release readiness for evidence and remaining Connect validation. Simulator UDIDs in validation evidence are machine-local and should not be copied as portable configuration.
 
 ## Environment selection
 
@@ -38,6 +38,7 @@ Set arguments in the Xcode scheme’s Run action. Fixture account defaults to `j
 | `--rtl` | Override layout direction |
 | `--preset <name>` | Debug only. Open a Screen Pack state: `communities`, `findcom`, `findnone`, `community`, `subcommunity`, `empty`, `denied`, `discussion`, `offline`, `linked`, `unavailable`, `search`, `notifications`, `me`, `profile`, `saved`, `drafts`, `draftlost`, `resumelost`, `chooser`, `reply`, `quote`, `newtopic`, `uploading`, `uploadfail`, `rejected`, `expired`, `unconfirmed`, `pending`, `loading`. Combine with `--guest`, `--dark` or `--accessibility-text`. |
 | `--ui-testing` | Enables isolated fixture draft directory when a valid namespace is supplied |
+| `--rich-editor-prototype` | Debug only. Open the memory-only SwiftUI rich text experiment instead of the app shell. No posting, uploads or saved-draft access. See [scope and validation](validation/2026-10-19-rich-prototype/README.md). Omit the argument to use the existing composer. The prototype has its own Undo/Redo history and a checked native Paste button; unsupported rich clipboard content offers explicit plain-text recovery where available. System gesture/shortcut parity remains a migration gate. |
 
 UI tests set `FOMIO_UI_TEST_NAMESPACE` to a fresh UUID and use `Application Support/UITests/<UUID>`. Normal drafts use `Application Support/Drafts`. Use simulator container inspection for debugging; local records may contain private writing. Do not commit credentials or real private draft data.
 
@@ -88,3 +89,7 @@ Use `--fixture --preset communities`, `community`, `subcommunity`, `discussion` 
 `LiveDiscourseTests` uses the app's supplied configuration and, for member reads, its existing per-user Keychain credential. Enable `FOMIO_LIVE_READ_TESTS=1` in the test runner environment for guest/member integration reads. `FOMIO_LIVE_UI_TESTS=1` enables the native category → child → About → topic journey. XcodeBuildMCP's `testRunnerEnv` passes these values; ordinary runs skip the live checks. Run anonymous and member batches separately and leave at least a minute between them: Discourse returned real 429s during burst integration runs. Deployed limit values are not established. `FOMIO_CLEANUP_TOPIC_IDS` optionally supplies comma-separated exact recorded test IDs for read-only Saved/guest cleanup verification.
 
 The write test additionally requires explicit user authorization for its temporary topic/replies and `FOMIO_LIVE_WRITE_TESTS=1`. Run only that test when exercising approved writes; do not enable write checks for unattended regression runs. It checks the precise approved category, per-user authentication and cleanup authority first, records the exact created topic ID, removes its bookmark and deletes its topic, and checks guest unavailability. A publication with uncertain outcome is never retried automatically. Recovery using `FOMIO_PREVIOUS_TEST_TOPIC_ID` is restricted to the exact ID recorded by a prior approved test; it must not be filled from a search/title guess. See the [live API verification record](discourse-api-reference.md#live-categorytopic-api-validation--2026-10-06).
+
+### Owner-authorized App Store illustration captures — 2026-10-18
+
+Debug-only `--store-preview` selects fictional fixture content, removes sample photos, and leads Home with replied discussions. It hides the ordinary development banner solely for marketing screenshots. The exported artwork must disclose “Illustrative community content”; ordinary `--fixture` keeps its banner, and Release does not accept this mode. Capture with `FOMIO_STORE_CAPTURES=1` and `FomioUITests/testCaptureIllustrativeStoreScreenshots`. No data is posted to the live site. Final artwork and evidence: `docs/app-store-assets/0.8.0/final-en-US/`.

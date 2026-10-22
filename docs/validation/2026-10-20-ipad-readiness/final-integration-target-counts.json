@@ -1,0 +1,9 @@
+{
+  "FomioTests": {
+    "Passed": 174,
+    "Skipped": 4
+  },
+  "FomioUITests": {
+    "Passed": 2
+  }
+}

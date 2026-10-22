@@ -1,0 +1,7 @@
+VARIANTREPORT
+swiftui: XCUIAccessibilityAuditType(rawValue: 131072) | Text clipped | field
+vertical: no textClipped issues
+uikit: no textClipped issues
+vertical elementType raw=49
+vertical type: textViews=true textFields=true value=Optional(Adaptive)
+after delete+return: value=Optional(Adaptive) submits=submits 2 keyboard=false

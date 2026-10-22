@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-21",
+  "device": "Root iPhone Duo / iOS27.1",
+  "posture": "Open, observed in native Device Hub screenshot",
+  "environment": "Isolated fictional fixture; Arabic AX3; dark; one-shot grouped search failure",
+  "method": "Native CUA accessibility targets and AX field values with simulator VoiceOver enabled; separate from the failed XCTest touch run",
+  "observations": [
+    {
+      "action": "Enable VoiceOver",
+      "observed": "Native inspector VoiceOver on"
+    },
+    {
+      "action": "Activate community-scope accessibility target",
+      "observed": "Arabic chooser, community-filter and scope-cancel appear"
+    },
+    {
+      "action": "Set local filter to Finishing",
+      "observed": "Exact Finishing field value; scope-1 Woodworking and scope-2 Finishing remain; unrelated rows disappear"
+    },
+    {
+      "action": "Cancel chooser",
+      "observed": "Chooser disappears; original All communities scope remains"
+    },
+    {
+      "action": "Activate search; enter Adaptive",
+      "observed": "Exact Adaptive value; Arabic Search unavailable heading; localized grouped-error body; labeled retry-topic-search; Cancel remains"
+    },
+    {
+      "action": "Activate explicit Retry",
+      "observed": "Failure heading/body/Retry replaced by topic-9101 through topic-9104; exact query retained"
+    },
+    {
+      "action": "Cancel search",
+      "observed": "Search field and Cancel disappear; scoped feed rows return"
+    },
+    {
+      "action": "Restore original setting",
+      "observed": "Native inspector VoiceOver off"
+    }
+  ],
+  "limitations": [
+    "Does not convert failed XCTest15683a5f into a pass.",
+    "Verifies native accessibility actions and retained state; does not prove touch gesture delivery on the Open simulator or full rotor traversal.",
+    "Spoken audio cannot be heard by current tooling; human speech check requested."
+  ]
+}

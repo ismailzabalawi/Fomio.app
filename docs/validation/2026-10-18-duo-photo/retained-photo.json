@@ -1,0 +1,9 @@
+{
+  "attachmentID": "06259CA4-6219-4FC3-9EBF-1615A7BCAA75",
+  "storedBytes": 180708,
+  "sha256": "146c4c930c0442b6e20ac501f64b5bcd0f481c25182ba6d66b2780fed03e9c30",
+  "relativeStoredPath": "8E46A17B-95DC-48B7-A118-191CAD86310B/Photos/7f341afc7504293da6c4ed72c55b44ae9b2272be261b11739b17f5913b641866/1A076A12-A91A-4970-A2F0-89A92F529CBA/06259CA4-6219-4FC3-9EBF-1615A7BCAA75.jpg",
+  "fixtureSource": "Fomio/Resources/fixture-photo.jpg",
+  "sourceSHA256": "2d9dd22fdd1cf8c69f8c3f731737910dec77125c88d6aa26b70e25e89369e5be",
+  "note": "Read after successful fold, save and reopen test. Photos picker re-encodes the selected image; source and retained hashes need not match."
+}

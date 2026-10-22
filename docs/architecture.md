@@ -2,11 +2,22 @@
 
 Implementation baseline: 2026-10-03. This describes the code currently present, not a deployed integration guarantee. Read [status](implementation-status.md) and [API evidence](discourse-api-reference.md) alongside it.
 
+## Adaptive reading update — 2026-10-20
+
+Native implementation is in progress; see [evidence and remaining acceptance](validation/2026-10-20-adaptive-native/README.md). `TabRoot` projects a tab's canonical route path into list and detail NavigationStacks inside one NavigationSplitView. Width and scaled readable-column minima choose compact reading, list/detail and optional community sidebar. Detail identity, list/search anchors and composer ownership are independent of pane placement. Focused-reading preference survives temporary collapse. This is in-memory retention, not process restoration.
+
+`CommunityScopePicker` uses the secured catalog/root-child hierarchy, local filtering and a single popover that adapts to a sheet. Header/sidebar/directory all call `selectScope`; topic search is separate from both local chooser and directory filters. C08 fallback metadata is identity-checked, account/request-guarded and merged into a browsing catalog without claiming a complete directory. Unknown scope cannot fall back to a global feed. Search/input/settings/results are partitioned by viewer/site/scope/locale and attempt identity.
+
+`DiscussionSearchRequest` and `DiscourseService.search` enforce original-term validation, request allowlist, numeric category guard, discussion archetype, exact post identity and atomic metadata publication after full validation. A preliminary error-envelope decoder recognizes nonblank grouped errors before decoding unused facets. Grouped/contract failures preserve permitted same-key snapshots according to the failed operation. Explicit auth/visibility failures instead invalidate service, catalog, feed/discussion and other-tab search snapshots; the current error is rebased to the new permission revision and remains manual recovery. They do not erase credentials or drafts or downgrade to guest.
+
+Search requests bypass HTTP cache reuse, and the URLSession delegate refuses their storage. Canonical API redirects retain configured origin/base path. Public introduction links use the same origin/base-path checks and supported exact-topic grammar. No new backend or authentication scope is introduced.
+
 ## Ownership and dependency flow
 
 ```mermaid
 flowchart TD
-  App[FomioApp: select environment] --> State[AppState: session, navigation, composer]
+  App[FomioApp: select environment] --> Shared[AppWindows: identity, services, draft ownership]
+  Shared --> State[AppState per window: navigation, composer]
   State --> Views[SwiftUI feature views]
   Views --> Feature[Observable feature state]
   Feature --> Protocols[CommunityService repository interfaces]
@@ -18,7 +29,7 @@ flowchart TD
   Feature --> Drafts[DraftStore: protected local JSON]
 ```
 
-Swift 6 strict concurrency is enabled. Mutable app, repository and feature state is isolated to the main actor; network calls suspend through Swift concurrency. SwiftUI Observation owns UI updates. `FomioApp` creates one service and injects it through `AppState`; views access the app through the environment. This is a small explicit composition root, without a service locator or third-party dependency framework.
+Swift 6 strict concurrency is enabled. Mutable app, repository and feature state is isolated to the main actor; network calls suspend through Swift concurrency. SwiftUI Observation owns UI updates. `FomioApp` creates shared `AppWindows` services and identity coordination. Each `FomioWindow` scene owns a separate `AppState` for navigation, search, reading and presentation; views access their window state through the environment. Shared identity broadcasts invalidate every window, while a draft can have one editor across all scenes (including an authentication suspension). This is a small explicit composition root, without a service locator or third-party dependency framework.
 
 | Area | Source | Responsibility |
 | --- | --- | --- |
@@ -42,11 +53,13 @@ Swift 6 strict concurrency is enabled. Mutable app, repository and feature state
 
 ## Navigation and retained state
 
-`AppTab` defines Home, Communities, Notifications and Me. Each `TabState` holds its own `Route` path, feed cache, discussion cache, community query/expansions and search query/results/pagination/anchor. Search is pushed into the originating stack. Create/Reply/Quote/Resume present one composer with an explicit origin. Publication returns to that tab and opens the resulting exact post, clearing its stale feed/discussion caches.
+`AppTab` defines Home, Communities, Notifications and Me. Each `TabState` owns its `Route` path, typed `BrowseScope`, feed/discussion caches, directory query/expansions and one retained `DiscussionSearchState`. `FeedView` receives an explicit originating tab; a background pane never resolves its search through `selectedTab`. Topic search replaces the list content and has no reserved field row when collapsed. Legacy Search routes present the same scoped feed/controller. Create/Reply/Quote/Resume present one composer with an explicit origin. Publication returns to that tab and opens the exact confirmed post, clearing stale feed/discussion caches; explicit publication/public-link destinations leave an unrelated scope so the requested target remains visible.
 
 `FeedState` retains rows, pagination and reading anchor. `DiscussionState` normalizes posts by post ID, tracks roots/child lists, independent pagination, expanded branches, per-branch errors and highlighted target. Child branches begin collapsed. Three visible levels lead to a focused thread route. Exact-post context keeps at most two visible ancestors plus the target and reports truncated context.
 
-The system tab view is `sidebarAdaptable`; regular-width iPad offers native sidebar behavior. Content uses a 620-point maximum reading column. Composer uses a large native sheet and form presentation sizing. Native bars and controls supply Liquid Glass; content remains flat.
+The system tab view uses `tabBarOnly`. `TabRoot` projects each window’s retained navigation into a native `NavigationSplitView`, adding community navigation only when the actual window width and scaled reading minima allow it. Content uses a 620-point maximum reading column. Composer uses a large native sheet: `ComposerPresentationSizing` delegates to system form sizing for regular-width presenting windows and page sizing otherwise, with one editor view identity across width changes. Native bars and controls supply Liquid Glass; content remains flat. See [iPhone Duo preparation](iphone-duo-readiness.md) for validation limits.
+
+Shared visibility invalidation pauses each active search at its updated viewer/query/scope instead of clearing its request identity and accidentally restarting another visible window. Private rows/cursors/settings are removed, while explicit Retry or a new user intent controls recovery. Search identity includes the account's authentication generation, including same-account reauthentication. A synthetic pause does not rebroadcast an access failure.
 
 State retention is in memory for navigation, reading, branch expansion and search. Only drafts and credentials survive process termination. Supporting lists such as notifications/profile/Saved use view-local state and can reload after reconstruction. Do not describe every screen’s position as durably persisted.
 

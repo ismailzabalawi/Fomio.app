@@ -1,0 +1,1030 @@
+{
+  "date": "2026-10-20",
+  "timezone": "Asia/Amman",
+  "base": "https://meta.fomio.app",
+  "reference_revision": "d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2",
+  "deployed_revision": "unknown",
+  "mode": "guest; no credentials, cookies, posts, uploads or settings changes",
+  "recorded_requests": 22,
+  "note": "Assertions include reproduced hazardous behavior; all true does not mean the unguarded contract is safe. IDs only; no response bodies or private content retained.",
+  "observations": {
+    "root_scope_contains_only_root_and_children": true,
+    "root_scope_has_root_and_child_hits": true,
+    "child_scope_nonempty_and_exact": true,
+    "unknown_category_forbidden": true,
+    "missing_context_id_falls_back_global": true,
+    "context_can_be_overridden_by_topic_operator": true,
+    "numeric_guard_blocks_tested_override": true,
+    "numeric_guard_preserves_tested_root_results": true,
+    "conflicting_category_filters_intersect": true,
+    "page11_rejected": true,
+    "empty_search_omits_topics": true,
+    "second_search_page_empty": true,
+    "root_catalog_page2_empty": true,
+    "child_catalog_parity": true,
+    "root_feed_scope": true,
+    "child_feed_scope": true,
+    "current_request_minimum_boundary": true
+  },
+  "requests": [
+    {
+      "label": "all",
+      "path": "search.json",
+      "params": {
+        "q": "Fomio",
+        "page": 1
+      },
+      "status": 200,
+      "keys": [
+        "categories",
+        "grouped_search_result",
+        "groups",
+        "posts",
+        "topics",
+        "users"
+      ],
+      "post_count": 9,
+      "topic_count": 9,
+      "category_ids": [
+        4,
+        10,
+        12,
+        43,
+        45,
+        48,
+        54
+      ],
+      "hits": [
+        {
+          "post_id": 157,
+          "topic_id": 114,
+          "post_number": 1,
+          "category_id": 43
+        },
+        {
+          "post_id": 111,
+          "topic_id": 83,
+          "post_number": 1,
+          "category_id": 45
+        },
+        {
+          "post_id": 156,
+          "topic_id": 113,
+          "post_number": 1,
+          "category_id": 10
+        },
+        {
+          "post_id": 6,
+          "topic_id": 5,
+          "post_number": 1,
+          "category_id": 4
+        },
+        {
+          "post_id": 22,
+          "topic_id": 19,
+          "post_number": 1,
+          "category_id": 10
+        },
+        {
+          "post_id": 141,
+          "topic_id": 98,
+          "post_number": 1,
+          "category_id": 54
+        },
+        {
+          "post_id": 133,
+          "topic_id": 91,
+          "post_number": 1,
+          "category_id": 48
+        },
+        {
+          "post_id": 89,
+          "topic_id": 75,
+          "post_number": 1,
+          "category_id": 43
+        },
+        {
+          "post_id": 24,
+          "topic_id": 21,
+          "post_number": 1,
+          "category_id": 12
+        }
+      ],
+      "grouped": {
+        "more_full_page_results": null,
+        "error": null
+      },
+      "error_type": null
+    },
+    {
+      "label": "root45",
+      "path": "search.json",
+      "params": {
+        "q": "Fomio",
+        "page": 1,
+        "context": "category",
+        "context_id": 45
+      },
+      "status": 200,
+      "keys": [
+        "categories",
+        "grouped_search_result",
+        "groups",
+        "posts",
+        "topics",
+        "users"
+      ],
+      "post_count": 8,
+      "topic_count": 8,
+      "category_ids": [
+        10,
+        12,
+        43,
+        45,
+        48,
+        54
+      ],
+      "hits": [
+        {
+          "post_id": 157,
+          "topic_id": 114,
+          "post_number": 1,
+          "category_id": 43
+        },
+        {
+          "post_id": 111,
+          "topic_id": 83,
+          "post_number": 1,
+          "category_id": 45
+        },
+        {
+          "post_id": 156,
+          "topic_id": 113,
+          "post_number": 1,
+          "category_id": 10
+        },
+        {
+          "post_id": 22,
+          "topic_id": 19,
+          "post_number": 1,
+          "category_id": 10
+        },
+        {
+          "post_id": 141,
+          "topic_id": 98,
+          "post_number": 1,
+          "category_id": 54
+        },
+        {
+          "post_id": 133,
+          "topic_id": 91,
+          "post_number": 1,
+          "category_id": 48
+        },
+        {
+          "post_id": 89,
+          "topic_id": 75,
+          "post_number": 1,
+          "category_id": 43
+        },
+        {
+          "post_id": 24,
+          "topic_id": 21,
+          "post_number": 1,
+          "category_id": 12
+        }
+      ],
+      "grouped": {
+        "more_full_page_results": null,
+        "error": null
+      },
+      "error_type": null
+    },
+    {
+      "label": "child47",
+      "path": "search.json",
+      "params": {
+        "q": "Fomio",
+        "page": 1,
+        "context": "category",
+        "context_id": 47
+      },
+      "status": 200,
+      "keys": [
+        "categories",
+        "grouped_search_result",
+        "groups",
+        "posts",
+        "users"
+      ],
+      "post_count": 0,
+      "topic_count": 0,
+      "category_ids": [],
+      "hits": [],
+      "grouped": {
+        "more_full_page_results": null,
+        "error": null
+      },
+      "error_type": null
+    },
+    {
+      "label": "missing_context",
+      "path": "search.json",
+      "params": {
+        "q": "Fomio",
+        "page": 1,
+        "context": "category",
+        "context_id": 2147483647
+      },
+      "status": 403,
+      "keys": [
+        "error_type",
+        "errors"
+      ],
+      "post_count": 0,
+      "topic_count": 0,
+      "category_ids": [],
+      "hits": [],
+      "grouped": {
+        "more_full_page_results": null,
+        "error": null
+      },
+      "error_type": "invalid_access"
+    },
+    {
+      "label": "missing_context_id",
+      "path": "search.json",
+      "params": {
+        "q": "Fomio",
+        "page": 1,
+        "context": "category"
+      },
+      "status": 200,
+      "keys": [
+        "categories",
+        "grouped_search_result",
+        "groups",
+        "posts",
+        "topics",
+        "users"
+      ],
+      "post_count": 9,
+      "topic_count": 9,
+      "category_ids": [
+        4,
+        10,
+        12,
+        43,
+        45,
+        48,
+        54
+      ],
+      "hits": [
+        {
+          "post_id": 157,
+          "topic_id": 114,
+          "post_number": 1,
+          "category_id": 43
+        },
+        {
+          "post_id": 111,
+          "topic_id": 83,
+          "post_number": 1,
+          "category_id": 45
+        },
+        {
+          "post_id": 156,
+          "topic_id": 113,
+          "post_number": 1,
+          "category_id": 10
+        },
+        {
+          "post_id": 6,
+          "topic_id": 5,
+          "post_number": 1,
+          "category_id": 4
+        },
+        {
+          "post_id": 22,
+          "topic_id": 19,
+          "post_number": 1,
+          "category_id": 10
+        },
+        {
+          "post_id": 141,
+          "topic_id": 98,
+          "post_number": 1,
+          "category_id": 54
+        },
+        {
+          "post_id": 133,
+          "topic_id": 91,
+          "post_number": 1,
+          "category_id": 48
+        },
+        {
+          "post_id": 89,
+          "topic_id": 75,
+          "post_number": 1,
+          "category_id": 43
+        },
+        {
+          "post_id": 24,
+          "topic_id": 21,
+          "post_number": 1,
+          "category_id": 12
+        }
+      ],
+      "grouped": {
+        "more_full_page_results": null,
+        "error": null
+      },
+      "error_type": null
+    },
+    {
+      "label": "topic_operator_override",
+      "path": "search.json",
+      "params": {
+        "q": "Fomio topic:5",
+        "page": 1,
+        "context": "category",
+        "context_id": 45
+      },
+      "status": 200,
+      "keys": [
+        "categories",
+        "grouped_search_result",
+        "groups",
+        "posts",
+        "topics",
+        "users"
+      ],
+      "post_count": 1,
+      "topic_count": 1,
+      "category_ids": [
+        4
+      ],
+      "hits": [
+        {
+          "post_id": 6,
+          "topic_id": 5,
+          "post_number": 1,
+          "category_id": 4
+        }
+      ],
+      "grouped": {
+        "more_full_page_results": null,
+        "error": null
+      },
+      "error_type": null
+    },
+    {
+      "label": "invalid_page",
+      "path": "search.json",
+      "params": {
+        "q": "Fomio",
+        "page": 11,
+        "context": "category",
+        "context_id": 45
+      },
+      "status": 400,
+      "keys": [
+        "error_type",
+        "errors"
+      ],
+      "post_count": 0,
+      "topic_count": 0,
+      "category_ids": [],
+      "hits": [],
+      "grouped": {
+        "more_full_page_results": null,
+        "error": null
+      },
+      "error_type": "invalid_parameters"
+    },
+    {
+      "label": "scoped_page2",
+      "path": "search.json",
+      "params": {
+        "q": "Fomio",
+        "page": 2,
+        "context": "category",
+        "context_id": 45
+      },
+      "status": 200,
+      "keys": [
+        "categories",
+        "grouped_search_result",
+        "groups",
+        "posts",
+        "users"
+      ],
+      "post_count": 0,
+      "topic_count": 0,
+      "category_ids": [],
+      "hits": [],
+      "grouped": {
+        "more_full_page_results": null,
+        "error": null
+      },
+      "error_type": null
+    },
+    {
+      "label": "child12_nonempty",
+      "path": "search.json",
+      "params": {
+        "q": "Fomio",
+        "page": 1,
+        "context": "category",
+        "context_id": 12
+      },
+      "status": 200,
+      "keys": [
+        "categories",
+        "grouped_search_result",
+        "groups",
+        "posts",
+        "topics",
+        "users"
+      ],
+      "post_count": 1,
+      "topic_count": 1,
+      "category_ids": [
+        12
+      ],
+      "hits": [
+        {
+          "post_id": 24,
+          "topic_id": 21,
+          "post_number": 1,
+          "category_id": 12
+        }
+      ],
+      "grouped": {
+        "more_full_page_results": null,
+        "error": null
+      },
+      "error_type": null
+    },
+    {
+      "label": "locked_operator_intersection",
+      "path": "search.json",
+      "params": {
+        "q": "Fomio topic:5 category:45",
+        "page": 1,
+        "context": "category",
+        "context_id": 45
+      },
+      "status": 200,
+      "keys": [
+        "categories",
+        "grouped_search_result",
+        "groups",
+        "posts",
+        "users"
+      ],
+      "post_count": 0,
+      "topic_count": 0,
+      "category_ids": [],
+      "hits": [],
+      "grouped": {
+        "more_full_page_results": null,
+        "error": null
+      },
+      "error_type": null
+    },
+    {
+      "label": "locked_root",
+      "path": "search.json",
+      "params": {
+        "q": "Fomio category:45",
+        "page": 1,
+        "context": "category",
+        "context_id": 45
+      },
+      "status": 200,
+      "keys": [
+        "categories",
+        "grouped_search_result",
+        "groups",
+        "posts",
+        "topics",
+        "users"
+      ],
+      "post_count": 8,
+      "topic_count": 8,
+      "category_ids": [
+        10,
+        12,
+        43,
+        45,
+        48,
+        54
+      ],
+      "hits": [
+        {
+          "post_id": 157,
+          "topic_id": 114,
+          "post_number": 1,
+          "category_id": 43
+        },
+        {
+          "post_id": 111,
+          "topic_id": 83,
+          "post_number": 1,
+          "category_id": 45
+        },
+        {
+          "post_id": 156,
+          "topic_id": 113,
+          "post_number": 1,
+          "category_id": 10
+        },
+        {
+          "post_id": 22,
+          "topic_id": 19,
+          "post_number": 1,
+          "category_id": 10
+        },
+        {
+          "post_id": 141,
+          "topic_id": 98,
+          "post_number": 1,
+          "category_id": 54
+        },
+        {
+          "post_id": 133,
+          "topic_id": 91,
+          "post_number": 1,
+          "category_id": 48
+        },
+        {
+          "post_id": 89,
+          "topic_id": 75,
+          "post_number": 1,
+          "category_id": 43
+        },
+        {
+          "post_id": 24,
+          "topic_id": 21,
+          "post_number": 1,
+          "category_id": 12
+        }
+      ],
+      "grouped": {
+        "more_full_page_results": null,
+        "error": null
+      },
+      "error_type": null
+    },
+    {
+      "label": "empty_scoped",
+      "path": "search.json",
+      "params": {
+        "q": "fomiozzqxcontractnevermatch",
+        "page": 1,
+        "context": "category",
+        "context_id": 45
+      },
+      "status": 200,
+      "keys": [
+        "categories",
+        "grouped_search_result",
+        "groups",
+        "posts",
+        "users"
+      ],
+      "post_count": 0,
+      "topic_count": 0,
+      "category_ids": [],
+      "hits": [],
+      "grouped": {
+        "more_full_page_results": null,
+        "error": null
+      },
+      "error_type": null
+    },
+    {
+      "label": "short_scoped",
+      "path": "search.json",
+      "params": {
+        "q": "x",
+        "page": 1,
+        "context": "category",
+        "context_id": 45
+      },
+      "status": 400,
+      "keys": [
+        "error_type",
+        "errors"
+      ],
+      "post_count": 0,
+      "topic_count": 0,
+      "category_ids": [],
+      "hits": [],
+      "grouped": {
+        "more_full_page_results": null,
+        "error": null
+      },
+      "error_type": "invalid_parameters"
+    },
+    {
+      "label": "category_intersection",
+      "path": "search.json",
+      "params": {
+        "q": "Fomio category:4 category:45",
+        "page": 1,
+        "context": "category",
+        "context_id": 45
+      },
+      "status": 200,
+      "keys": [
+        "categories",
+        "grouped_search_result",
+        "groups",
+        "posts",
+        "users"
+      ],
+      "post_count": 0,
+      "topic_count": 0,
+      "category_ids": [],
+      "hits": [],
+      "grouped": {
+        "more_full_page_results": null,
+        "error": null
+      },
+      "error_type": null
+    },
+    {
+      "label": "catalog_page1",
+      "path": "categories.json",
+      "params": {
+        "include_subcategories": "true",
+        "page": 1
+      },
+      "status": 200,
+      "categories": [
+        {
+          "id": 57,
+          "parent_category_id": null,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": [],
+          "embedded": []
+        },
+        {
+          "id": 4,
+          "parent_category_id": null,
+          "has_children": true,
+          "subcategory_count": 2,
+          "subcategory_ids": [
+            11,
+            42
+          ],
+          "embedded": [
+            {
+              "id": 11,
+              "parent_category_id": 4,
+              "has_children": false,
+              "subcategory_count": null,
+              "subcategory_ids": [],
+              "embedded": []
+            },
+            {
+              "id": 42,
+              "parent_category_id": 4,
+              "has_children": false,
+              "subcategory_count": null,
+              "subcategory_ids": [],
+              "embedded": []
+            }
+          ]
+        },
+        {
+          "id": 56,
+          "parent_category_id": null,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": [],
+          "embedded": []
+        },
+        {
+          "id": 61,
+          "parent_category_id": null,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": [],
+          "embedded": []
+        },
+        {
+          "id": 59,
+          "parent_category_id": null,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": [],
+          "embedded": []
+        },
+        {
+          "id": 58,
+          "parent_category_id": null,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": [],
+          "embedded": []
+        },
+        {
+          "id": 63,
+          "parent_category_id": null,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": [],
+          "embedded": []
+        },
+        {
+          "id": 62,
+          "parent_category_id": null,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": [],
+          "embedded": []
+        },
+        {
+          "id": 60,
+          "parent_category_id": null,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": [],
+          "embedded": []
+        },
+        {
+          "id": 45,
+          "parent_category_id": null,
+          "has_children": true,
+          "subcategory_count": 7,
+          "subcategory_ids": [
+            47,
+            43,
+            10,
+            12,
+            48,
+            54,
+            55
+          ],
+          "embedded": [
+            {
+              "id": 47,
+              "parent_category_id": 45,
+              "has_children": false,
+              "subcategory_count": null,
+              "subcategory_ids": [],
+              "embedded": []
+            },
+            {
+              "id": 43,
+              "parent_category_id": 45,
+              "has_children": false,
+              "subcategory_count": null,
+              "subcategory_ids": [],
+              "embedded": []
+            },
+            {
+              "id": 10,
+              "parent_category_id": 45,
+              "has_children": false,
+              "subcategory_count": null,
+              "subcategory_ids": [],
+              "embedded": []
+            },
+            {
+              "id": 12,
+              "parent_category_id": 45,
+              "has_children": false,
+              "subcategory_count": null,
+              "subcategory_ids": [],
+              "embedded": []
+            },
+            {
+              "id": 48,
+              "parent_category_id": 45,
+              "has_children": false,
+              "subcategory_count": null,
+              "subcategory_ids": [],
+              "embedded": []
+            },
+            {
+              "id": 54,
+              "parent_category_id": 45,
+              "has_children": false,
+              "subcategory_count": null,
+              "subcategory_ids": [],
+              "embedded": []
+            },
+            {
+              "id": 55,
+              "parent_category_id": 45,
+              "has_children": false,
+              "subcategory_count": null,
+              "subcategory_ids": [],
+              "embedded": []
+            }
+          ]
+        },
+        {
+          "id": 9,
+          "parent_category_id": null,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": [],
+          "embedded": []
+        }
+      ],
+      "topic_count": 0,
+      "topic_category_ids": [],
+      "has_more_topics": false,
+      "error_type": null
+    },
+    {
+      "label": "catalog_page2",
+      "path": "categories.json",
+      "params": {
+        "include_subcategories": "true",
+        "page": 2
+      },
+      "status": 200,
+      "categories": [],
+      "topic_count": 0,
+      "topic_category_ids": [],
+      "has_more_topics": false,
+      "error_type": null
+    },
+    {
+      "label": "general_children",
+      "path": "categories.json",
+      "params": {
+        "include_subcategories": "true",
+        "parent_category_id": 4,
+        "page": 1
+      },
+      "status": 200,
+      "categories": [
+        {
+          "id": 11,
+          "parent_category_id": 4,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": null,
+          "embedded": []
+        },
+        {
+          "id": 42,
+          "parent_category_id": 4,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": null,
+          "embedded": []
+        }
+      ],
+      "topic_count": 0,
+      "topic_category_ids": [],
+      "has_more_topics": false,
+      "error_type": null
+    },
+    {
+      "label": "fomio_children",
+      "path": "categories.json",
+      "params": {
+        "include_subcategories": "true",
+        "parent_category_id": 45,
+        "page": 1
+      },
+      "status": 200,
+      "categories": [
+        {
+          "id": 47,
+          "parent_category_id": 45,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": null,
+          "embedded": []
+        },
+        {
+          "id": 43,
+          "parent_category_id": 45,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": null,
+          "embedded": []
+        },
+        {
+          "id": 10,
+          "parent_category_id": 45,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": null,
+          "embedded": []
+        },
+        {
+          "id": 12,
+          "parent_category_id": 45,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": null,
+          "embedded": []
+        },
+        {
+          "id": 48,
+          "parent_category_id": 45,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": null,
+          "embedded": []
+        },
+        {
+          "id": 54,
+          "parent_category_id": 45,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": null,
+          "embedded": []
+        },
+        {
+          "id": 55,
+          "parent_category_id": 45,
+          "has_children": false,
+          "subcategory_count": null,
+          "subcategory_ids": null,
+          "embedded": []
+        }
+      ],
+      "topic_count": 0,
+      "topic_category_ids": [],
+      "has_more_topics": false,
+      "error_type": null
+    },
+    {
+      "label": "parent_feed",
+      "path": "c/45/l/latest.json",
+      "params": {
+        "page": 0
+      },
+      "status": 200,
+      "categories": [],
+      "topic_count": 4,
+      "topic_category_ids": [
+        10,
+        43,
+        45,
+        47
+      ],
+      "has_more_topics": false,
+      "error_type": null
+    },
+    {
+      "label": "child_feed",
+      "path": "c/12/l/latest.json",
+      "params": {
+        "page": 0
+      },
+      "status": 200,
+      "categories": [],
+      "topic_count": 1,
+      "topic_category_ids": [
+        12
+      ],
+      "has_more_topics": false,
+      "error_type": null
+    },
+    {
+      "label": "two_character_search",
+      "path": "search.json",
+      "params": {
+        "q": "xy",
+        "page": 1,
+        "context": "category",
+        "context_id": 45
+      },
+      "status": 400,
+      "categories": [],
+      "topic_count": 0,
+      "topic_category_ids": [],
+      "has_more_topics": false,
+      "error_type": "invalid_parameters"
+    },
+    {
+      "label": "three_character_search",
+      "path": "search.json",
+      "params": {
+        "q": "xyz",
+        "page": 1,
+        "context": "category",
+        "context_id": 45
+      },
+      "status": 200,
+      "categories": [],
+      "topic_count": 0,
+      "topic_category_ids": [],
+      "has_more_topics": false,
+      "error_type": null
+    }
+  ]
+}

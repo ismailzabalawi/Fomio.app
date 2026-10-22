@@ -1,0 +1,38 @@
+(lldb) process attach --pid 63120
+Process 63120 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = signal SIGSTOP
+       frame #0: 0x00000001049acb70 libsystem_kernel.dylib`mach_msg2_trap + 8
+libsystem_kernel.dylib`mach_msg2_trap:
+->  0x1049acb70 <+8>: ret    
+
+libsystem_kernel.dylib`macx_swapon:
+    0x1049acb74 <+0>: mov    x16, #-0x30               ; =-48 
+    0x1049acb78 <+4>: svc    #0x80
+    0x1049acb7c <+8>: ret    
+Target 0: (Fomio) stopped.
+Executable binary set to "/Users/ismailzabalawi/Library/Developer/CoreSimulator/Devices/5325EFBF-C37B-47D8-AE20-41CCB4945844/data/Containers/Bundle/Application/EB5C382D-C74F-46B5-BE41-787D388CF610/Fomio.app/Fomio".
+Architecture set to: arm64-apple-ios-simulator.
+(lldb) command source -s 0 '/private/tmp/fomio-duo-traits.lldb'
+Executing commands in '/private/tmp/fomio-duo-traits.lldb'.
+(lldb) expr -l objc++ -- @import UIKit;
+(lldb) expr -l objc++ -O -- ({NSMutableArray *q=[NSMutableArray array]; NSMutableArray *result=[NSMutableArray array]; for (UIScene *scene in [UIApplication sharedApplication].connectedScenes) { if ([scene isKindOfClass:[UIWindowScene class]]) { [q addObjectsFromArray:((UIWindowScene *)scene).windows]; } } while(q.count) { UIView *v=q.lastObject; [q removeLastObject]; if ([v isKindOfClass:[UITextView class]] && [v.accessibilityIdentifier isEqualToString:@"composer-body"]) { UITextView *t=(UITextView *)v; [result addObject:@{@"view": [NSString stringWithFormat:@"%p",t], @"text": t.text ?: @"", @"selection": NSStringFromRange(t.selectedRange), @"firstResponder": @(t.isFirstResponder), @"markedText": @(t.markedTextRange != nil), @"undoManager": [NSString stringWithFormat:@"%p",t.undoManager], @"canUndo": @(t.undoManager.canUndo), @"canRedo": @(t.undoManager.canRedo), @"window": NSStringFromCGRect(t.window.bounds), @"editorSizeClass": @(t.traitCollection.horizontalSizeClass), @"rootSizeClass": @(t.window.rootViewController.traitCollection.horizontalSizeClass), @"scene": t.window.windowScene.session.persistentIdentifier ?: @""}]; } [q addObjectsFromArray:v.subviews]; } result;})
+<__NSArrayM 0x107449950>(
+{
+    canRedo = 0;
+    canUndo = 1;
+    editorSizeClass = 1;
+    firstResponder = 1;
+    markedText = 0;
+    rootSizeClass = 2;
+    scene = "2F51C9BE-58F0-43BF-82E6-A39177D6C8BF";
+    selection = "{2, 0}";
+    text = Qq;
+    undoManager = 0x1146e48c0;
+    view = 0x110fbb000;
+    window = "{{0, 0}, {1000, 678}}";
+}
+)
+
+(lldb) detach
+Process 63120 detached
+(lldb) quit

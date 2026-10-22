@@ -1,0 +1,270 @@
+Outer enabled: true, inner enabled: true
+Attributes: Application, 0x106e8b700, pid: 9200, label: 'Settings'
+Element subtree:
+ →Application, 0x106e8b700, pid: 9200, label: 'Settings'
+    Window (Main), 0x106e888c0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x106e89040, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x10a954000, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x10a954140, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x10a954280, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x10a9543c0, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x10a954500, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10a954640, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x10a954780, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x10a9548c0, {{0.0, 0.0}, {402.0, 874.0}}
+                        NavigationBar, 0x10a954a00, {{0.0, 62.0}, {402.0, 54.0}}, identifier: 'VoiceOver'
+                          Button, 0x10a954b40, {{16.0, 62.0}, {44.0, 44.0}}, identifier: 'BackButton', label: 'Accessibility'
+                          StaticText, 0x10a954c80, {{160.0, 72.7}, {81.7, 22.7}}, label: 'VoiceOver'
+                        Other, 0x10a954dc0, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x10a954f00, {{0.0, 0.0}, {402.0, 874.0}}
+                            Other, 0x10a955040, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x10a955180, {{0.0, 0.0}, {402.0, 874.0}}
+                                Other, 0x10a9552c0, {{0.0, 116.0}, {402.0, 724.0}}
+                                  Table, 0x10a955400, {{0.0, 0.0}, {402.0, 874.0}}
+                                    Other, 0x10a955540, {{0.0, 116.0}, {402.0, 17.7}}
+                                    Cell, 0x10a955680, {{20.0, 133.7}, {362.0, 55.0}}, identifier: 'VoiceOverTouchEnabled'
+                                      Other, 0x10a9557c0, {{20.0, 133.7}, {362.0, 55.0}}
+                                        Other, 0x10a955900, {{20.0, 133.7}, {362.0, 55.0}}
+                                          Switch, 0x10a955a40, {{36.0, 147.3}, {330.0, 28.0}}, identifier: 'VoiceOverTouchEnabled', label: 'VoiceOver', value: 0
+                                            Button, 0x10a955b80, {{36.0, 150.0}, {78.7, 22.3}}, identifier: 'VoiceOverTouchEnabled', label: 'VoiceOver'
+                                            Switch, 0x10a955cc0, {{305.0, 147.3}, {63.0, 28.0}}, value: 0
+                                    Other, 0x10a955e00, {{0.0, 188.7}, {402.0, 117.0}}, identifier: 'VoiceOver speaks items on the screen:'
+                                      StaticText, 0x10a955f40, {{35.0, 193.7}, {244.3, 17.7}}, label: 'VoiceOver speaks items on the screen:'
+                                      StaticText, 0x10a956080, {{35.0, 211.3}, {176.0, 17.7}}, label: '  Tap once to select an item.'
+                                      StaticText, 0x10a9561c0, {{35.0, 229.0}, {261.0, 17.7}}, label: '  Double-tap to activate the selected item.'
+                                      Link, 0x10a956300, {{35.0, 251.7}, {79.0, 22.0}}, label: 'Learn more…'
+                                        Link, 0x10a956440, {{35.0, 250.7}, {78.7, 21.7}}, label: 'Learn more…'
+                                        Other, 0x10a956580, {{35.0, 259.7}, {79.0, 11.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                                          Other, 0x10a9566c0, {{-4.0, 267.7}, {36.0, 3.0}}
+                                      Link, 0x10a956800, {{35.0, 278.7}, {160.0, 22.0}}, label: 'What’s new in VoiceOver…'
+                                        Link, 0x10a956940, {{35.0, 277.7}, {159.7, 21.7}}, label: 'What’s new in VoiceOver…'
+                                        Other, 0x10a956a80, {{35.0, 286.7}, {160.0, 11.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                                          Other, 0x10a956bc0, {{-4.0, 294.7}, {36.0, 3.0}}
+                                    Other, 0x10a956d00, {{0.0, 305.7}, {402.0, 17.7}}
+                                    Cell, 0x10a956e40, {{20.0, 323.3}, {362.0, 195.7}}, identifier: 'VO_TipKit'
+                                      Other, 0x10a956f80, {{20.0, 323.3}, {362.0, 195.7}}
+                                        Other, 0x10a9570c0, {{20.0, 323.3}, {362.0, 195.7}}
+                                          Other, 0x10a957200, {{20.0, 323.3}, {362.0, 195.7}}, identifier: 'AXInstructionalCell'
+                                            Image, 0x10a957340, {{42.0, 345.3}, {56.0, 56.0}}
+                                            StaticText, 0x10a957480, {{110.0, 340.6}, {131.0, 22.3}}, label: 'Live Recognition'
+                                            Button, 0x10a9575c0, {{341.7, 337.7}, {26.0, 26.0}}, identifier: 'xmark.circle.fill', label: 'Close'
+                                            StaticText, 0x10a957700, {{110.0, 366.9}, {237.3, 130.0}}, label: 'Using on-device intelligence, your iPhone can detect people, doors, scenes, text, and furniture around you. Four finger triple-tap to start Live Recognition or use the Live Recognition Rotor.'
+                                      Other, 0x10a957840, {{20.0, 518.0}, {362.0, 1.0}}
+                                    Other, 0x10a957980, {{0.0, 519.0}, {402.0, 17.3}}
+                                    Other, 0x10a957ac0, {{0.0, 536.3}, {402.0, 17.7}}
+                                    Cell, 0x10a957c00, {{20.0, 554.0}, {362.0, 55.0}}, identifier: 'VoiceOverTouchTutorialEnabled', label: 'VoiceOver Tutorial'
+                                      Other, 0x10a957d40, {{20.0, 554.0}, {362.0, 55.0}}
+                                        Other, 0x10a957e80, {{20.0, 554.0}, {362.0, 55.0}}
+                                          Button, 0x10a968000, {{36.0, 570.3}, {139.3, 22.3}}, identifier: 'VoiceOverTouchTutorialEnabled', label: 'VoiceOver Tutorial'
+                                      Other, 0x10a968140, {{20.0, 554.0}, {362.0, 55.0}}
+                                        Other, 0x10a968280, {{20.0, 554.0}, {362.0, 55.0}}
+                                      Other, 0x10a9683c0, {{20.0, 608.0}, {362.0, 1.0}}
+                                    Other, 0x10a968500, {{0.0, 609.0}, {402.0, 17.3}}
+                                    Other, 0x10a968640, {{0.0, 626.3}, {402.0, 45.3}}, identifier: 'Speaking Rate'
+                                      Other, 0x10a968780, {{20.0, 626.3}, {362.0, 45.3}}, label: 'Speaking Rate'
+                                    Cell, 0x10a9688c0, {{20.0, 671.7}, {362.0, 53.0}}, identifier: 'SpeakingRateSlider', label: 'Speaking Rate', value: 50%
+                                      StaticText, 0x10a968a00, {{20.0, 671.7}, {0.0, 0.0}}
+                                      Other, 0x10a968b40, {{20.0, 671.7}, {362.0, 53.0}}
+                                        Other, 0x10a968c80, {{20.0, 671.7}, {362.0, 53.0}}
+                                      Other, 0x10a968dc0, {{20.0, 723.7}, {362.0, 1.0}}
+                                      Slider, 0x10a968f00, {{36.0, 679.7}, {330.0, 37.0}}, value: 50%
+                                    Other, 0x10a969040, {{0.0, 724.7}, {402.0, 30.0}}, identifier: 'Adjusts the speaking rate of the current voice.'
+                                      Other, 0x10a969180, {{20.0, 724.7}, {362.0, 30.0}}, label: 'Adjusts the speaking rate of the current voice.'
+                                    Other, 0x10a9692c0, {{0.0, 754.7}, {402.0, 17.7}}
+                                    Cell, 0x10a969400, {{20.0, 772.3}, {362.0, 55.0}}, identifier: 'Voices', label: 'Speech'
+                                      Other, 0x10a969540, {{20.0, 772.3}, {331.7, 55.0}}
+                                        Other, 0x10a969680, {{20.0, 772.3}, {331.7, 55.0}}
+                                          StaticText, 0x10a9697c0, {{36.0, 788.7}, {57.7, 22.3}}, label: 'Speech'
+                                      Other, 0x10a969900, {{20.0, 772.3}, {362.0, 55.0}}
+                                        Other, 0x10a969a40, {{20.0, 772.3}, {362.0, 55.0}}
+                                      Other, 0x10a969b80, {{36.0, 826.3}, {330.0, 1.0}}
+                                      Button, 0x10a969cc0, {{351.7, 792.3}, {10.3, 14.0}}, label: 'chevron', Disabled
+                                    Cell, 0x10a969e00, {{20.0, 827.3}, {362.0, 55.0}}, identifier: 'Braille', label: 'Braille'
+                                      Other, 0x10a969f40, {{20.0, 827.3}, {331.7, 55.0}}
+                                        Other, 0x10a96a080, {{20.0, 827.3}, {331.7, 55.0}}
+                                          StaticText, 0x10a96a1c0, {{36.0, 843.7}, {46.7, 22.3}}, label: 'Braille'
+                                      Other, 0x10a96a300, {{20.0, 827.3}, {362.0, 55.0}}
+                                        Other, 0x10a96a440, {{20.0, 827.3}, {362.0, 55.0}}
+                                      Other, 0x10a96a580, {{36.0, 881.3}, {330.0, 1.0}}
+                                      Button, 0x10a96a6c0, {{351.7, 847.3}, {10.3, 14.0}}, label: 'chevron', Disabled
+                                    Cell, 0x10a96a800, {{20.0, 882.3}, {362.0, 55.0}}, identifier: 'Verbosity', label: 'Verbosity'
+                                      Other, 0x10a96a940, {{20.0, 882.3}, {331.7, 55.0}}
+                                        Other, 0x10a96aa80, {{20.0, 882.3}, {331.7, 55.0}}
+                                          StaticText, 0x10a96abc0, {{36.0, 898.7}, {72.0, 22.3}}, label: 'Verbosity'
+                                      Other, 0x10a96ad00, {{20.0, 882.3}, {362.0, 55.0}}
+                                        Other, 0x10a96ae40, {{20.0, 882.3}, {362.0, 55.0}}
+                                      Other, 0x10a96af80, {{36.0, 936.3}, {330.0, 1.0}}
+                                      Button, 0x10a96b0c0, {{351.7, 902.3}, {10.3, 14.0}}, label: 'chevron', Disabled
+                                    Cell, 0x10a96b200, {{20.0, 937.3}, {362.0, 55.0}}, identifier: 'Audio', label: 'Audio'
+                                      Other, 0x10a96b340, {{0.0, 116.0}, {362.0, 55.0}}
+                                        Other, 0x10a96b480, {{0.0, 116.0}, {362.0, 55.0}}
+                                      Button, 0x10a96b5c0, {{0.0, 116.0}, {10.3, 14.0}}, label: 'chevron', Disabled
+                                      Other, 0x10a96b700, {{0.0, 116.0}, {362.0, 1.0}}
+                                      Other, 0x10a96b840, {{0.0, 116.0}, {331.7, 55.0}}
+                                        Other, 0x10a96b980, {{0.0, 116.0}, {331.7, 55.0}}
+                                          StaticText, 0x10a96bac0, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Audio'
+                                    Other, 0x10a96bc00, {{0.0, 822.7}, {402.0, 17.3}}
+                                    Other, 0x10a96bd40, {{0.0, 1009.7}, {402.0, 17.7}}
+                                    Cell, 0x10a96be80, {{20.0, 1027.3}, {362.0, 55.0}}, identifier: 'CustomizeCommands', label: 'Commands'
+                                      Other, 0x10a970000, {{0.0, 116.0}, {362.0, 55.0}}
+                                        Other, 0x10a970140, {{0.0, 116.0}, {362.0, 55.0}}
+                                      Button, 0x10a970280, {{0.0, 116.0}, {10.3, 14.0}}, label: 'chevron', Disabled
+                                      Other, 0x10a9703c0, {{0.0, 116.0}, {330.0, 1.0}}
+                                      Other, 0x10a970500, {{0.0, 116.0}, {331.7, 55.0}}
+                                        Other, 0x10a970640, {{0.0, 116.0}, {331.7, 55.0}}
+                                          StaticText, 0x10a970780, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Commands'
+                                    Cell, 0x10a9708c0, {{20.0, 1082.3}, {362.0, 55.0}}, identifier: 'RotorActions', label: 'Rotor'
+                                      Other, 0x10a970a00, {{0.0, 116.0}, {362.0, 55.0}}
+                                        Other, 0x10a970b40, {{0.0, 116.0}, {362.0, 55.0}}
+                                      Button, 0x10a970c80, {{0.0, 116.0}, {10.3, 14.0}}, label: 'chevron', Disabled
+                                      Other, 0x10a970dc0, {{0.0, 116.0}, {330.0, 1.0}}
+                                      Other, 0x10a970f00, {{0.0, 116.0}, {331.7, 55.0}}
+                                        Other, 0x10a971040, {{0.0, 116.0}, {331.7, 55.0}}
+                                          StaticText, 0x10a971180, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Rotor'
+                                    Cell, 0x10a9712c0, {{20.0, 1137.3}, {362.0, 55.0}}, identifier: 'activities', label: 'Activities'
+                                      Other, 0x10a971400, {{0.0, 116.0}, {362.0, 55.0}}
+                                        Other, 0x10a971540, {{0.0, 116.0}, {362.0, 55.0}}
+                                      Button, 0x10a971680, {{0.0, 116.0}, {10.3, 14.0}}, label: 'chevron', Disabled
+                                      Other, 0x10a9717c0, {{0.0, 116.0}, {330.0, 1.0}}
+                                      Other, 0x10a971900, {{0.0, 116.0}, {331.7, 55.0}}
+                                        Other, 0x10a971a40, {{0.0, 116.0}, {331.7, 55.0}}
+                                          StaticText, 0x10a971b80, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Activities'
+                                    Cell, 0x10a971cc0, {{20.0, 1192.3}, {362.0, 55.0}}, identifier: 'TypingOptions', label: 'Typing'
+                                      Other, 0x10a971e00, {{0.0, 116.0}, {362.0, 55.0}}
+                                        Other, 0x10a971f40, {{0.0, 116.0}, {362.0, 55.0}}
+                                      Button, 0x10a972080, {{0.0, 116.0}, {10.3, 14.0}}, label: 'chevron', Disabled
+                                      Other, 0x10a9721c0, {{0.0, 116.0}, {330.0, 1.0}}
+                                      Other, 0x10a972300, {{0.0, 116.0}, {331.7, 55.0}}
+                                        Other, 0x10a972440, {{0.0, 116.0}, {331.7, 55.0}}
+                                          StaticText, 0x10a972580, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Typing'
+                                    Cell, 0x10a9726c0, {{20.0, 1247.3}, {362.0, 55.0}}, identifier: 'QuickSettings', label: 'Quick Settings'
+                                      Other, 0x10a972800, {{0.0, 116.0}, {362.0, 55.0}}
+                                        Other, 0x10a972940, {{0.0, 116.0}, {362.0, 55.0}}
+                                      Button, 0x10a972a80, {{0.0, 116.0}, {10.3, 14.0}}, label: 'chevron', Disabled
+                                      Other, 0x10a972bc0, {{0.0, 116.0}, {362.0, 1.0}}
+                                      Other, 0x10a972d00, {{0.0, 116.0}, {331.7, 55.0}}
+                                        Other, 0x10a972e40, {{0.0, 116.0}, {331.7, 55.0}}
+                                          StaticText, 0x10a972f80, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Quick Settings'
+                                    Other, 0x10a9730c0, {{0.0, 1027.3}, {402.0, 70.0}}
+                                      StaticText, 0x10a973200, {{0.0, 1027.3}, {402.0, 70.0}}, label: 'Quick settings allows you to access VoiceOver settings at any time. Access quick settings with Two finger quadruple tap.'
+                                    Other, 0x10a973340, {{0.0, 1372.3}, {402.0, 17.7}}
+                                    Cell, 0x10a973480, {{20.0, 1390.0}, {362.0, 55.0}}, identifier: 'NavigationStyle', label: 'Navigation Style, Flat'
+                                      Other, 0x10a9735c0, {{0.0, 116.0}, {362.0, 55.0}}
+                                        Other, 0x10a973700, {{0.0, 116.0}, {362.0, 55.0}}
+                                      Other, 0x10a973840, {{0.0, 116.0}, {331.7, 55.0}}
+                                        Other, 0x10a973980, {{0.0, 116.0}, {331.7, 55.0}}
+                                          Button, 0x10a973ac0, {{0.0, 0.0}, {0.0, 0.0}}, identifier: 'NavigationStyle', label: 'Navigation Style, Flat'
+                                            StaticText, 0x10a973c00, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Flat'
+                                            StaticText, 0x10a973d40, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Navigation Style'
+                                      Button, 0x10a973e80, {{0.0, 116.0}, {10.3, 14.0}}, label: 'chevron', Disabled
+                                      Other, 0x10a984000, {{0.0, 116.0}, {330.0, 1.0}}
+                                    Cell, 0x10a984140, {{20.0, 1445.0}, {362.0, 55.0}}, identifier: 'IncludeUnlabeledImages', label: 'Navigate Images, Always'
+                                      Other, 0x10a984280, {{0.0, 116.0}, {362.0, 55.0}}
+                                        Other, 0x10a9843c0, {{0.0, 116.0}, {362.0, 55.0}}
+                                      Other, 0x10a984500, {{0.0, 116.0}, {331.7, 55.0}}
+                                        Other, 0x10a984640, {{0.0, 116.0}, {331.7, 55.0}}
+                                          Button, 0x10a984780, {{0.0, 0.0}, {0.0, 0.0}}, identifier: 'IncludeUnlabeledImages', label: 'Navigate Images, Always'
+                                            StaticText, 0x10a9848c0, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Always'
+                                            StaticText, 0x10a984a00, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Navigate Images'
+                                      Button, 0x10a984b40, {{0.0, 116.0}, {10.3, 14.0}}, label: 'chevron', Disabled
+                                      Other, 0x10a984c80, {{0.0, 116.0}, {362.0, 1.0}}
+                                    Other, 0x10a984dc0, {{0.0, 1390.0}, {402.0, 17.3}}
+                                    Other, 0x10a984f00, {{0.0, 1517.3}, {402.0, 38.0}}
+                                      StaticText, 0x10a985040, {{0.0, 1517.3}, {402.0, 38.0}}, label: 'Text'
+                                    Cell, 0x10a985180, {{20.0, 1555.3}, {362.0, 55.0}}, identifier: 'TextExploration', label: 'Text Exploration, Paragraph'
+                                      Other, 0x10a9852c0, {{0.0, 116.0}, {362.0, 55.0}}
+                                        Other, 0x10a985400, {{0.0, 116.0}, {362.0, 55.0}}
+                                      Other, 0x10a985540, {{0.0, 116.0}, {331.7, 55.0}}
+                                        Other, 0x10a985680, {{0.0, 116.0}, {331.7, 55.0}}
+                                          Button, 0x10a9857c0, {{0.0, 0.0}, {0.0, 0.0}}, identifier: 'TextExploration', label: 'Text Exploration, Paragraph'
+                                            StaticText, 0x10a985900, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Paragraph'
+                                            StaticText, 0x10a985a40, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Text Exploration'
+                                      Button, 0x10a985b80, {{0.0, 116.0}, {10.3, 14.0}}, label: 'chevron', Disabled
+                                      Other, 0x10a985cc0, {{0.0, 116.0}, {330.0, 1.0}}
+                                    Cell, 0x10a985e00, {{20.0, 1610.3}, {362.0, 55.0}}, identifier: 'SwipeNavigation', label: 'Text Navigation, Element'
+                                      Other, 0x10a985f40, {{0.0, 116.0}, {362.0, 55.0}}
+                                        Other, 0x10a986080, {{0.0, 116.0}, {362.0, 55.0}}
+                                      Other, 0x10a9861c0, {{0.0, 116.0}, {331.7, 55.0}}
+                                        Other, 0x10a986300, {{0.0, 116.0}, {331.7, 55.0}}
+                                          Button, 0x10a986440, {{0.0, 0.0}, {0.0, 0.0}}, identifier: 'SwipeNavigation', label: 'Text Navigation, Element'
+                                            StaticText, 0x10a986580, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Element'
+                                            StaticText, 0x10a9866c0, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Text Navigation'
+                                      Button, 0x10a986800, {{0.0, 116.0}, {10.3, 14.0}}, label: 'chevron', Disabled
+                                      Other, 0x10a986940, {{0.0, 116.0}, {362.0, 1.0}}
+                                    Other, 0x10a986a80, {{0.0, 1555.3}, {402.0, 17.3}}
+                                    Other, 0x10a986bc0, {{0.0, 1682.7}, {402.0, 38.0}}
+                                      StaticText, 0x10a986d00, {{0.0, 1682.7}, {402.0, 38.0}}, label: 'Cursor'
+                                    Cell, 0x10a986e40, {{20.0, 1720.7}, {362.0, 55.0}}, identifier: 'CursorStyle'
+                                    Cell, 0x10a986f80, {{20.0, 1775.7}, {362.0, 55.0}}, identifier: 'CursorVisibility', label: 'Cursor Visibility, Show Cursor'
+                                      Other, 0x10a9870c0, {{0.0, 116.0}, {362.0, 55.0}}
+                                        Other, 0x10a987200, {{0.0, 116.0}, {362.0, 55.0}}
+                                      Other, 0x10a987340, {{0.0, 116.0}, {331.7, 55.0}}
+                                        Other, 0x10a987480, {{0.0, 116.0}, {331.7, 55.0}}
+                                          Button, 0x10a9875c0, {{0.0, 0.0}, {0.0, 0.0}}, identifier: 'CursorVisibility', label: 'Cursor Visibility, Show Cursor'
+                                            StaticText, 0x10a987700, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Show Cursor'
+                                            StaticText, 0x10a987840, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Cursor Visibility'
+                                      Button, 0x10a987980, {{0.0, 116.0}, {10.3, 14.0}}, label: 'chevron', Disabled
+                                      Other, 0x10a987ac0, {{0.0, 116.0}, {362.0, 1.0}}
+                                    Other, 0x10a987c00, {{0.0, 1720.7}, {402.0, 17.3}}
+                                    Other, 0x10a987d40, {{0.0, 1848.0}, {402.0, 17.7}}
+                                    Cell, 0x10a987e80, {{20.0, 1865.7}, {362.0, 55.0}}, identifier: 'CaptionPanel'
+                                    Other, 0x10a98c000, {{0.0, 1865.7}, {402.0, 17.3}}
+                                    Other, 0x10a98c140, {{0.0, 1938.0}, {402.0, 17.7}}
+                                    Cell, 0x10a98c280, {{20.0, 1955.7}, {362.0, 55.0}}, identifier: 'VoiceOverDelayUntilSpeak', label: 'Delay before Selection, 0s'
+                                      Other, 0x10a98c3c0, {{0.0, 116.0}, {362.0, 55.0}}
+                                        Other, 0x10a98c500, {{0.0, 116.0}, {362.0, 55.0}}
+                                      Other, 0x10a98c640, {{0.0, 116.0}, {331.7, 55.0}}
+                                        Other, 0x10a98c780, {{0.0, 116.0}, {331.7, 55.0}}
+                                          Button, 0x10a98c8c0, {{0.0, 0.0}, {0.0, 0.0}}, identifier: 'VoiceOverDelayUntilSpeak', label: 'Delay before Selection, 0s'
+                                            StaticText, 0x10a98ca00, {{0.0, 0.0}, {0.0, 0.0}}, label: '0s'
+                                            StaticText, 0x10a98cb40, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Delay before Selection'
+                                      Button, 0x10a98cc80, {{0.0, 116.0}, {10.3, 14.0}}, label: 'chevron', Disabled
+                                      Other, 0x10a98cdc0, {{0.0, 116.0}, {330.0, 1.0}}
+                                    Cell, 0x10a98cf00, {{20.0, 2010.7}, {362.0, 55.0}}, identifier: 'DOUBLE_TAP_INTERVAL', label: 'Double-tap Timeout, 0.35s'
+                                      Other, 0x10a98d040, {{0.0, 116.0}, {362.0, 55.0}}
+                                        Other, 0x10a98d180, {{0.0, 116.0}, {362.0, 55.0}}
+                                      Other, 0x10a98d2c0, {{0.0, 116.0}, {331.7, 55.0}}
+                                        Other, 0x10a98d400, {{0.0, 116.0}, {331.7, 55.0}}
+                                          Button, 0x10a98d540, {{0.0, 0.0}, {0.0, 0.0}}, identifier: 'DOUBLE_TAP_INTERVAL', label: 'Double-tap Timeout, 0.35s'
+                                            StaticText, 0x10a98d680, {{0.0, 0.0}, {0.0, 0.0}}, label: '0.35s'
+                                            StaticText, 0x10a98d7c0, {{0.0, 0.0}, {0.0, 0.0}}, label: 'Double-tap Timeout'
+                                      Button, 0x10a98d900, {{0.0, 116.0}, {10.3, 14.0}}, label: 'chevron', Disabled
+                                      Other, 0x10a98da40, {{0.0, 116.0}, {362.0, 1.0}}
+                                    Other, 0x10a98db80, {{0.0, 1955.7}, {402.0, 17.3}}
+                                    Other, 0x10a98dcc0, {{0.0, 2083.0}, {402.0, 17.7}}
+                                    Cell, 0x10a98de00, {{20.0, 2100.7}, {362.0, 55.0}}, identifier: 'resetSettingsButton', label: 'Reset VoiceOver Settings'
+                                      Other, 0x10a98df40, {{0.0, 116.0}, {362.0, 55.0}}
+                                        Other, 0x10a98e080, {{0.0, 116.0}, {362.0, 55.0}}
+                                      Other, 0x10a98e1c0, {{0.0, 116.0}, {362.0, 55.0}}
+                                        Other, 0x10a98e300, {{0.0, 116.0}, {362.0, 55.0}}
+                                          Button, 0x10a98e440, {{0.0, 0.0}, {0.0, 0.0}}, identifier: 'resetSettingsButton', label: 'Reset VoiceOver Settings'
+                                      Other, 0x10a98e580, {{0.0, 116.0}, {362.0, 1.0}}
+                                    Other, 0x10a98e6c0, {{0.0, 2100.7}, {402.0, 17.3}}
+                                    Other, 0x10a98e800, {{369.0, 116.0}, {30.0, 696.0}}, label: 'Vertical scroll bar, 3 pages', value: 0%
+                                      Other, 0x10a98e940, {{396.0, 119.0}, {3.0, 277.0}}
+                                    Other, 0x10a98ea80, {{62.0, 841.0}, {278.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                                      Other, 0x10a98ebc0, {{65.0, 868.0}, {272.0, 3.0}}
+                                    StaticText, 0x10a98ed00, {{35.0, 193.7}, {244.3, 17.7}}, label: 'VoiceOver speaks items on the screen:'
+                                    StaticText, 0x10a98ee40, {{35.0, 211.3}, {176.0, 17.7}}, label: '  Tap once to select an item.'
+                                    StaticText, 0x10a98ef80, {{35.0, 229.0}, {261.0, 17.7}}, label: '  Double-tap to activate the selected item.'
+                                    Link, 0x10a98f0c0, {{35.0, 251.7}, {79.0, 22.0}}, label: 'Learn more…'
+                                      Link, 0x10a98f200, {{35.0, 250.7}, {78.7, 21.7}}, label: 'Learn more…'
+                                      Other, 0x10a98f340, {{35.0, 259.7}, {79.0, 11.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                                        Other, 0x10a98f480, {{-4.0, 267.7}, {36.0, 3.0}}
+                                    Link, 0x10a98f5c0, {{35.0, 278.7}, {160.0, 22.0}}, label: 'What’s new in VoiceOver…'
+                                      Link, 0x10a98f700, {{35.0, 277.7}, {159.7, 21.7}}, label: 'What’s new in VoiceOver…'
+                                      Other, 0x10a98f840, {{35.0, 286.7}, {160.0, 11.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                                        Other, 0x10a98f980, {{-4.0, 294.7}, {36.0, 3.0}}
+                        Toolbar, 0x10a98fac0, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                          Other, 0x10a98fc00, {{0.0, 0.0}, {402.0, 874.0}}
+                    Toolbar, 0x10a98fd40, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                      Other, 0x10a98fe80, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x10a998000, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x10a998140, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x106e8b700, pid: 9200, label: 'Settings'
+Query chain:
+ →Find: Application 'com.apple.Preferences'
+  Output: {
+    Application, 0x10a998280, pid: 9200, label: 'Settings'
+  }

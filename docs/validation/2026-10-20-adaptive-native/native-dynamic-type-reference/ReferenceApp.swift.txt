@@ -1,0 +1,22 @@
+import SwiftUI
+
+@main struct ReferenceApp: App {
+    var body: some Scene { WindowGroup { ReferenceView() } }
+}
+struct ReferenceView: View {
+    var body: some View {
+        if ProcessInfo.processInfo.arguments.contains("--unavailable") {
+            ContentUnavailableView {
+                Label("Choose a discussion", systemImage: "text.bubble")
+            } description: {
+                Text("Select a topic to read it alongside the list.").font(.body)
+            }
+        } else {
+            VStack(alignment: .leading, spacing: 16) {
+                Text("All communities").font(.headline)
+                Text("Start the first discussion in Turning.").font(.subheadline)
+                Button("Start a discussion") {}.font(.body)
+            }.padding()
+        }
+    }
+}

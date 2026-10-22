@@ -1,0 +1,98 @@
+--- a/lib/search.rb
++++ b/lib/search.rb
+@@ -367,6 +367,7 @@
+     end
+ 
+     find_grouped_results if @results.posts.blank?
++    return @results if @results.error.present?
+ 
+     if preloaded_topic_custom_fields.present? && @results.posts.present?
+       topics = @results.posts.map(&:topic)
+@@ -1082,9 +1083,16 @@
+     end
+ 
+     @results
+-  rescue ActiveRecord::StatementInvalid
+-    # In the event of a PG:Error return nothing, it is likely they used a foreign language whose
+-    # locale is not supported by postgres
++  rescue ActiveRecord::StatementInvalid => error
++    Discourse.warn_exception(error)
++    @results =
++      GroupedSearchResults.new(
++        type_filter: @results.type_filter,
++        term: @results.term,
++        search_context: @results.search_context,
++      )
++    @results.error = I18n.t("search.query_error")
++    @results
+   end
+ 
+   # If we're searching for a single topic
+--- a/config/locales/server.en.yml
++++ b/config/locales/server.en.yml
+@@ -3349,6 +3349,7 @@
+         value: "DiscourseConnect secret"
+ 
+   search:
++    query_error: "Search could not be completed. Please try again."
+     extreme_load_error: "Site is under extreme load, search is disabled, try again later"
+     within_post: "#%{post_number} by %{username}"
+     types:
+--- a/spec/lib/search_spec.rb
++++ b/spec/lib/search_spec.rb
+@@ -134,6 +134,24 @@
+ 
+   describe "#execute" do
+     before { SiteSetting.tagging_enabled = true }
++
++    it "discards partial results and returns an error when a later search facet fails" do
++      user = Fabricate(:user, username: "searchfailureuser")
++      SearchIndexer.index(user, force: true)
++      expect(Search.execute(user.username).users).to contain_exactly(user)
++      search = Search.new(user.username)
++      search.stubs(:posts_query).raises(ActiveRecord::StatementInvalid.new("database failure"))
++
++      result = search.execute
++
++      expect(result.error).to eq(I18n.t("search.query_error"))
++      expect(result.posts).to eq([])
++      expect(result.users).to eq([])
++      expect(result.categories).to eq([])
++      expect(result.tags).to eq([])
++      expect(result.groups).to eq([])
++      expect(result.more_full_page_results).to be_nil
++    end
+ 
+     context "with staff tags" do
+       fab!(:hidden_tag, :tag)
+--- a/spec/requests/search_controller_spec.rb
++++ b/spec/requests/search_controller_spec.rb
+@@ -417,6 +417,28 @@
+         expect(response.status).to eq(200)
+         expect(response.headers["X-Robots-Tag"]).to eq("noindex")
+         expect(response.body).to include("<meta name='robots' content='noindex'>")
++      end
++    end
++  end
++
++  describe "database search failures" do
++    %w[/search.json /search/query.json].each do |path|
++      it "returns an explicit error without partial results from #{path}" do
++        database_error = ActiveRecord::StatementInvalid.new("private database details")
++        Search.any_instance.stubs(:posts_query).raises(database_error)
++        params = path == "/search.json" ? { q: "awesome" } : { term: "awesome" }
++
++        get path, params: params
++
++        expect(response.status).to eq(200)
++        data = response.parsed_body
++        expect(data["grouped_search_result"]["error"]).to eq(I18n.t("search.query_error"))
++        expect(data["posts"]).to eq([])
++        expect(data["topics"]).to be_nil
++        expect(data["users"]).to eq([])
++        expect(data["categories"]).to eq([])
++        expect(data["grouped_search_result"]["more_full_page_results"]).to be_nil
++        expect(response.body).not_to include(database_error.message)
+       end
+     end
+   end

@@ -16,6 +16,7 @@ struct MeView: View {
     @State private var signOutWarning = false
     @State private var savedCount: Int?
     @State private var draftCount = 0
+    @State private var deletingAccount = false
     var body: some View {
         List {
             if let username = app.username {
@@ -35,8 +36,17 @@ struct MeView: View {
                 Section {
                     row("Saved", symbol: "bookmark", count: savedCount) { app.navigate(.saved) }.accessibilityIdentifier("me-saved")
                     row("Drafts", symbol: "doc.text", count: draftCount) { app.navigate(.drafts) }.accessibilityIdentifier("me-drafts")
+                    NavigationLink { BlockedMembersView() } label: { Label("Blocked members", systemImage: "person.crop.circle.badge.xmark").frame(minHeight: 44) }
+                    if let configuration = app.configuration {
+                        Link(destination: configuration.url("u/\(username)/preferences/account")) {
+                            Label("Account settings on website", systemImage: "person.crop.circle")
+                        }.frame(minHeight: 44)
+                    }
                 }
-                Section { Button("Sign out", role: .destructive) { signOutWarning = true }.frame(minHeight: 44) }
+                Section {
+                    Button("Sign out", role: .destructive) { signOutWarning = true }.frame(minHeight: 44)
+                    Button("Delete account…", role: .destructive) { deletingAccount = true }.frame(minHeight: 44)
+                }
             } else {
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
@@ -44,6 +54,14 @@ struct MeView: View {
                         Text("Your saved discussions and drafts live here once you're signed in.").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
                         Button("Sign in") { app.requestSignIn() }.buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).frame(minHeight: 44)
                     }.padding(.vertical, 8)
+                }
+            }
+            if let configuration = app.configuration {
+                Section("Support and policies") {
+                    Link(destination: URL(string: "mailto:support@fomio.app")!) { Label("Email support", systemImage: "envelope") }.frame(minHeight: 44)
+                    Link(destination: configuration.url("about")) { Label("Help and contact", systemImage: "questionmark.circle") }.frame(minHeight: 44)
+                    Link(destination: configuration.url("privacy")) { Label("Privacy policy", systemImage: "hand.raised") }.frame(minHeight: 44)
+                    Link(destination: configuration.url("tos")) { Label("Terms of service", systemImage: "doc.text") }.frame(minHeight: 44)
                 }
             }
             if app.fixture != nil {
@@ -55,6 +73,9 @@ struct MeView: View {
         }.scrollContentBackground(.hidden).background(Color.fomioGrouped).navigationTitle("Me")
         .toolbar { RootToolbar(app: app) }
         .task(id: "\(app.username ?? "")-\(app.draftsRevision)") { await loadCounts() }
+        .sheet(isPresented: $deletingAccount) {
+            if let username = app.username { DeleteAccountView(username: username) }
+        }
         .alert("Sign out of \(app.username ?? "this account")?", isPresented: $signOutWarning) { Button("Cancel", role: .cancel) {}; Button("Sign out", role: .destructive) { app.signOut() } } message: { Text("You can sign in again at any time. Drafts for this account will be removed from this device.") }
     }
     private func row(_ title: String, symbol: String, count: Int?, action: @escaping () -> Void) -> some View {
@@ -70,6 +91,94 @@ struct MeView: View {
     private func loadCounts() async {
         draftCount = (try? app.draftStore.list(account: app.account).count) ?? 0
         if let username = app.username, let page = try? await app.service.saved(username: username, page: 0), page.nextPage == nil { savedCount = page.items.count } else { savedCount = nil }
+    }
+}
+
+struct DeleteAccountView: View {
+    @Environment(AppState.self) private var app
+    @Environment(\.dismiss) private var dismiss
+    let username: String
+    @State private var permitted: Bool?
+    @State private var confirmation = ""
+    @State private var confirming = false
+    @State private var submitting = false
+    @State private var deleted = false
+    @State private var uncertain = false
+    @State private var error: String?
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    Text("Permanently delete your account and its posts. This cannot be undone.")
+                    Text("Local drafts and sign-in details will be removed from this device after the community confirms deletion.").foregroundStyle(.secondary)
+                }
+                if deleted {
+                    Section {
+                        Text("Your account was deleted. Local sign-out still needs to finish.")
+                        Button("Finish sign-out") { app.signOut(); if app.username == nil { dismiss() } }
+                    }
+                } else if uncertain {
+                    Section {
+                        Text("Deletion could not be confirmed. Check your account on the website or contact support before trying again.")
+                        if let configuration = app.configuration {
+                            Link("Check account on website", destination: configuration.url("u/\(username)/preferences/account"))
+                        }
+                    }
+                } else if permitted == true {
+                    Section {
+                        TextField("Type \(username) to confirm", text: $confirmation)
+                            .textInputAutocapitalization(.never).autocorrectionDisabled()
+                            .accessibilityLabel("Type your username to confirm account deletion")
+                        Button("Delete account permanently", role: .destructive) { confirming = true }
+                            .disabled(confirmation != username || submitting)
+                    } footer: { Text("You are deleting @\(username).") }
+                } else if permitted == false {
+                    Section { Text("This account cannot be deleted automatically. Contact support for help deleting your account and associated data.") }
+                } else if error == nil {
+                    ProgressView("Checking account…")
+                }
+                if let error { Section { Text(error).foregroundStyle(Color.fomioDanger) } }
+                if !deleted {
+                    Section {
+                        Link("Contact support", destination: URL(string: "mailto:support@fomio.app")!)
+                        if permitted == nil && error != nil { Button("Check again") { Task { await check() } }.disabled(submitting) }
+                    }
+                }
+                if submitting { ProgressView("Deleting account…") }
+            }
+            .disabled(submitting)
+            .navigationTitle("Delete account").navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() }.disabled(submitting) } }
+            .task { await check() }
+            .alert("Permanently delete @\(username)?", isPresented: $confirming) {
+                Button("Cancel", role: .cancel) {}
+                Button("Delete account", role: .destructive) { Task { await delete() } }
+            } message: { Text("Your account and its posts will be deleted. This cannot be undone.") }
+        }.interactiveDismissDisabled(submitting)
+    }
+    private func check() async {
+        guard app.username == username else { error = "Sign in to this account again."; return }
+        do { permitted = try await app.service.canDeleteAccount(username: username); error = nil }
+        catch { self.error = error.localizedDescription }
+    }
+    private func delete() async {
+        guard !submitting, !deleted, !uncertain, confirmation == username, app.username == username else { return }
+        submitting = true; error = nil
+        do {
+            try await app.service.deleteAccount(username: username)
+            deleted = true
+            app.signOut()
+            if app.username == nil { dismiss(); app.toast("Account deleted") }
+            else { error = app.banner }
+        } catch {
+            self.error = error.localizedDescription
+            // A transport failure may occur after deletion. Never offer a blind destructive retry.
+            let kind = error as? RepositoryError
+            uncertain = kind == .offline || kind == .unconfirmed || kind == nil
+            if case .server = kind { uncertain = true }
+        }
+        submitting = false
     }
 }
 struct ProfileView: View {
@@ -89,11 +198,13 @@ struct ProfileView: View {
                                 Text("@\(member.username)\(member.joined.map { " · Joined \($0)" } ?? "")").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
                             }
                         }
-                        if !member.bio.isEmpty { Text(member.bio).textSelection(.enabled) }
+                        BlockingButton(username: username)
+                        if app.isBlocked(username) { Text("You have blocked this member. Their content is hidden.").foregroundStyle(.secondary) }
+                        if !member.bio.isEmpty && !app.isBlocked(username) { Text(member.bio).textSelection(.enabled) }
                         SectionLabel("Recent discussions").padding(.top, 8)
                         if member.recent.isEmpty { Text("No discussions started yet.").foregroundStyle(Color.fomioSecondaryText) }
                         VStack(spacing: 0) {
-                            ForEach(member.recent) { topic in
+                            ForEach(member.recent.filter { !app.isBlocked($0.author) && !app.isBlocked(username) }) { topic in
                                 Button { app.navigate(.discussion(topic.id, nil)) } label: {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(app.categoryName(topic.categoryID)).font(.footnote.weight(.semibold)).foregroundStyle(Color.fomioAccent)
@@ -148,7 +259,7 @@ struct DraftsView: View {
         }.navigationTitle("Drafts").task(id: app.draftsRevision) { reload(); await loadTitles() }
         .alert("Discard this draft?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } })) {
             Button("Cancel", role: .cancel) { deleting = nil }
-            Button("Discard", role: .destructive) { if let deleting { do { try app.draftStore.delete(deleting.id); reload(); app.toast("Draft discarded") } catch { self.error = error.localizedDescription } }; deleting = nil }
+            Button("Discard", role: .destructive) { if let deleting { do { try app.discardDraft(deleting); reload(); app.toast("Draft discarded") } catch { self.error = error.localizedDescription } }; deleting = nil }
         } message: { Text(deleting?.submission == .editing ? "This can’t be undone." : "This can’t be undone. It removes the local record only, not a post the community already received.") }
     }
     private func kind(_ draft: Draft) -> String {
@@ -178,7 +289,7 @@ struct SavedView: View {
     @State private var loaded = false
     var body: some View {
         List {
-            ForEach(items) { item in
+            ForEach(items.filter { !app.isBlocked($0.postAuthor ?? "") }) { item in
                 let reply = item.number.map { $0.rawValue > 1 } ?? false
                 Button { app.navigate(.discussion(item.topicID, reply ? item.number : nil), focus: reply ? .saved : nil) } label: {
                     VStack(alignment: .leading, spacing: 4) {
@@ -217,7 +328,7 @@ struct NotificationsView: View {
                 }
             } else {
                 List {
-                    ForEach(items) { notice in
+                    ForEach(items.filter { !app.isBlocked($0.actor) }) { notice in
                         Button { open(notice) } label: { row(notice) }.buttonStyle(.plain)
                             .accessibilityLabel("\(notice.read ? "" : "Unread. ")\(notice.text) in \(notice.title), post \(notice.number?.rawValue ?? 0)\(notice.age.isEmpty ? "" : ", \(notice.age)")")
                     }
@@ -254,60 +365,23 @@ struct NotificationsView: View {
         guard !loading, app.username != nil, let page = nextPage else { return }; loading = true; defer { loading = false }
         do {
             let result = try await app.service.notifications(page: page); items += result.items.filter { notice in !items.contains { $0.id == notice.id } }; nextPage = result.nextPage; error = nil
-            app.unreadCount = items.filter { !$0.read }.count
+            app.unreadCount = items.filter { !$0.read && !app.isBlocked($0.actor) }.count
         } catch { self.error = error.localizedDescription }
-    }
-}
-struct SearchView: View {
-    @Environment(AppState.self) private var app
-    @Bindable var state: TabState
-    @FocusState private var searchFocused: Bool
-    @State private var loading = false
-    @State private var error: String?
-    var body: some View {
-        ScrollView {
-            ReadingColumn {
-                LazyVStack(alignment: .leading, spacing: 0) {
-                    if let error { ScreenMessage(title: "Search unavailable", message: error, action: { Task { await search(reset: true) } }) }
-                    else if state.searchCompletedQuery == nil && !loading {
-                        Text("Search discussion titles and posts across the communities you can see.").font(.subheadline).foregroundStyle(Color.fomioSecondaryText).padding(20)
-                    } else if let query = state.searchCompletedQuery, state.searchResults.isEmpty && !loading {
-                        InfoCard(title: "No results for “\(query)”", message: "Check the spelling or try fewer words.").padding(20)
-                    }
-                    if !state.searchResults.isEmpty { SectionLabel("Discussions").padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 4) }
-                    ForEach(state.searchResults) { result in SearchResultRow(result: result, query: state.searchCompletedQuery ?? "").id(result.id) }
-                    if loading { ProgressView().frame(maxWidth: .infinity).padding(30).accessibilityLabel("Searching") }
-                    if state.searchNextPage != nil && !loading { Button("More results") { Task { await search(reset: false) } }.frame(maxWidth: .infinity, minHeight: 44) }
-                }.scrollTargetLayout().padding(.bottom, 20)
-            }
-        }.scrollDismissesKeyboard(.interactively).scrollPosition(id: $state.searchAnchor).background(Color.fomioBackground).navigationTitle("Search").navigationBarTitleDisplayMode(.inline)
-        .searchable(text: $state.searchQuery, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search discussions")
-        .searchFocused($searchFocused)
-        .onSubmit(of: .search) { searchFocused = false }
-        .onDisappear { searchFocused = false }
-        .task(id: state.searchQuery) { do { try await Task.sleep(for: .milliseconds(350)); try Task.checkCancellation(); if state.searchCompletedQuery != state.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines) { await search(reset: true) } } catch {} }
-    }
-    private func search(reset: Bool) async {
-        let query = state.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        if query.count < 2 { state.searchResults = []; state.searchCompletedQuery = nil; state.searchNextPage = nil; error = nil; return }
-        let requestQuery = query
-        loading = true; defer { loading = false }
-        do { let result = try await app.service.search(query, page: reset ? 1 : state.searchNextPage ?? 1); guard !Task.isCancelled, state.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines) == requestQuery else { return }; state.searchResults = reset ? result.items : state.searchResults + result.items.filter { item in !state.searchResults.contains { $0.id == item.id } }; state.searchNextPage = result.nextPage; error = nil; state.searchCompletedQuery = requestQuery }
-        catch is CancellationError {} catch { self.error = error.localizedDescription }
     }
 }
 /// A match inside a reply opens that exact post; the label says where the match is.
 struct SearchResultRow: View {
     @Environment(AppState.self) private var app
+    @Environment(\.dynamicTypeSize) private var textSize
     let result: DiscussionSummary
     let query: String
     private var inReply: Bool { (result.targetPostNumber?.rawValue ?? 1) > 1 }
     var body: some View {
-        Button { app.navigate(.discussion(result.id, inReply ? result.targetPostNumber : nil), focus: inReply ? .search : nil) } label: {
+        Button { app.navigate(.discussion(result.id, result.targetPostNumber), focus: .search) } label: {
             VStack(alignment: .leading, spacing: 4) {
                 Text(app.categoryName(result.categoryID)).font(.footnote.weight(.semibold)).foregroundStyle(Color.fomioAccent)
-                Text(result.title).font(.body.weight(.semibold)).foregroundStyle(.primary).multilineTextAlignment(.leading)
-                if !result.excerpt.isEmpty { Text(snippet).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).lineLimit(3).multilineTextAlignment(.leading) }
+                Text(result.title).font(.body.weight(.semibold)).foregroundStyle(.primary).multilineTextAlignment(.leading).environment(\.layoutDirection, result.title.naturalDirection)
+                if !result.excerpt.isEmpty { Text(snippet).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).lineLimit(textSize.isAccessibilitySize ? nil : 3).multilineTextAlignment(.leading).environment(\.layoutDirection, result.excerpt.naturalDirection) }
                 Text(inReply ? "Reply #\(result.targetPostNumber!.rawValue)\((result.matchAuthor ?? result.author).isEmpty ? "" : " by \(result.matchAuthor ?? result.author)")" : "Opening post\(result.author.isEmpty ? "" : " by \(result.author)")")
                     .font(.footnote).foregroundStyle(Color.fomioSecondaryText)
             }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 20).padding(.vertical, 12).contentShape(.rect)

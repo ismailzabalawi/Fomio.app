@@ -1,0 +1,9 @@
+{
+  "baseCommit": "b62aef54873762b3235d6e846d4d6fe20762f6b5",
+  "workingTree": "dirty; unrelated changes retained",
+  "sha256": {
+    "Fomio/App/FomioApp.swift": "9ad903c4cb50b2a79ceb9aae788b152d602f8e148e2aa61fd2319751741d900d",
+    "Fomio/Features/Editor/NativeComposerEditor.swift": "c5e24713a564758ab1bd40af271965f45e8659fb6fac89b7229ad9c42c0a4562",
+    "FomioUITests/FomioUITests.swift": "259a489050514a39fb5b1e480c17d307a4e21ad57bdd6017e2e957f8c9c5b821"
+  }
+}

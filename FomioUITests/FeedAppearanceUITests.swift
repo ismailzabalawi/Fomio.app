@@ -8,8 +8,9 @@ import XCTest
     func testMenuSwitchesBothWaysAndPersistsAcrossRelaunch() {
         var app = launch()
         XCTAssertTrue(app.scrollViews["feed-compact"].exists, "Compact is the default")
-        XCTAssertTrue(app.buttons["Search discussions"].exists); XCTAssertTrue(app.buttons["New discussion"].exists)
+        XCTAssertTrue(app.buttons["reveal-topic-search"].exists)
         openOptions(app)
+        XCTAssertTrue(app.buttons["New discussion"].exists, "Create remains available in the constrained toolbar menu")
         XCTAssertTrue(app.buttons["Compact"].waitForExistence(timeout: 5)); XCTAssertTrue(app.buttons["Compact"].isSelected); XCTAssertFalse(app.buttons["Cards"].isSelected)
         capture(app, "Home options menu, Compact selected")
         app.buttons["Cards"].tap()
@@ -31,7 +32,7 @@ import XCTest
     func testSwitchKeepsMidFeedTopicAnchorBothDirections() {
         let app = launch()
         loadSecondPage(app)
-        let top = app.navigationBars.firstMatch.frame.maxY
+        let top = app.descendants(matching: .any).matching(identifier: "browse-header").firstMatch.frame.maxY
         let topic = app.buttons["topic-5003"]
         drag(app, topic, toY: top + 44)
         let before = topic.frame.minY
@@ -58,22 +59,22 @@ import XCTest
     func testCardsSurviveCategoryAndTopicBack() {
         let app = launch()
         choose(app, "Cards")
-        let top = app.navigationBars.firstMatch.frame.maxY
+        let top = app.descendants(matching: .any).matching(identifier: "browse-header").firstMatch.frame.maxY
         let topic = app.buttons["topic-5002"]
         drag(app, topic, toY: top + 160)
         let before = topic.frame.minY
         let category = app.buttons["topic-category-8"]
         XCTAssertTrue(category.isHittable); XCTAssertGreaterThanOrEqual(category.frame.height, 44)
         category.tap()
-        XCTAssertTrue(app.buttons["community-about"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["community-scope"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.scrollViews["feed-cards"].exists, "Category feeds use the same appearance")
         capture(app, "Category feed in Cards")
-        app.navigationBars.buttons.firstMatch.tap()
+        app.buttons["community-scope"].tap(); app.buttons["scope-all"].tap()
         XCTAssertTrue(topic.waitForExistence(timeout: 5))
-        XCTAssertLessThan(abs(topic.frame.minY - before), 3, "Category Back restores the Home reading position")
+        XCTAssertLessThan(abs(topic.frame.minY - before), 3, "Choosing All restores the Home reading position")
         topic.tap()
-        XCTAssertTrue(app.navigationBars.buttons.firstMatch.waitForExistence(timeout: 5))
-        app.navigationBars.buttons.firstMatch.tap()
+        XCTAssertTrue(app.buttons["back-to-topic-list"].waitForExistence(timeout: 5))
+        app.buttons["back-to-topic-list"].tap()
         XCTAssertTrue(topic.waitForExistence(timeout: 5))
         XCTAssertLessThan(abs(topic.frame.minY - before), 3, "Topic Back restores the Home reading position")
         XCTAssertTrue(app.scrollViews["feed-cards"].exists)
@@ -89,7 +90,7 @@ import XCTest
         scrollUntilHittable(app, failure)
         XCTAssertTrue(app.buttons["topic-5004"].exists, "Loaded first page retained")
         capture(app, "Pagination error retained in Cards")
-        app.buttons["Try again"].tap()
+        app.buttons["Retry"].tap()
         let loaded = app.buttons["topic-4182"]
         scrollUntilHittable(app, loaded)
         choose(app, "Compact")
@@ -97,7 +98,7 @@ import XCTest
         XCTAssertFalse(failure.exists)
         loaded.tap()
         XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
-        app.navigationBars.buttons.firstMatch.tap()
+        app.buttons["back-to-topic-list"].tap()
         XCTAssertTrue(loaded.waitForExistence(timeout: 5)); XCTAssertTrue(app.scrollViews["feed-compact"].exists)
     }
 
@@ -113,9 +114,11 @@ import XCTest
         XCTAssertTrue(sparse.label.contains("No replies yet"))
         let failed = app.buttons["topic-5004"]
         scrollUntilHittable(app, failed)
-        XCTAssertFalse(failed.label.contains("Has image"), "Failed media falls back to text")
+        // The image fails asynchronously after the row appears; the card then drops its media slot.
+        let fellBack = XCTNSPredicateExpectation(predicate: NSPredicate(format: "NOT (label CONTAINS %@)", "Has image"), object: failed)
+        XCTAssertEqual(XCTWaiter.wait(for: [fellBack], timeout: 10), .completed, "Failed media falls back to text")
         // Toolbar controls are system glass items; the options button matches the system Search control.
-        XCTAssertEqual(app.buttons["feed-options"].frame.height, app.buttons["Search discussions"].frame.height)
+        XCTAssertEqual(app.buttons["feed-options"].frame.height, app.buttons["reveal-topic-search"].frame.height)
         loadSecondPage(app)
         for value in ["Compact", "Cards"] {
             choose(app, value)
@@ -133,7 +136,7 @@ import XCTest
                 choose(app, value, label: arabic ? (value == "Compact" ? "مضغوط" : "بطاقات") : value)
                 XCTAssertTrue(app.buttons["topic-4190"].waitForExistence(timeout: 3))
                 capture(app, "\(name) \(value) top")
-                drag(app, app.buttons["topic-5001"], toY: app.navigationBars.firstMatch.frame.maxY + 20)
+                drag(app, app.buttons["topic-5001"], toY: app.descendants(matching: .any).matching(identifier: "browse-header").firstMatch.frame.maxY + 20)
                 capture(app, "\(name) \(value) scrolled")
                 scrollToTop(app)
             }
@@ -159,15 +162,10 @@ import XCTest
         XCTAssertTrue(item.waitForNonExistence(timeout: 5))
         Thread.sleep(forTimeInterval: 0.4)
     }
-    /// The system may move toolbar items into its More overflow (regular-width iPad with accessibility text).
+    /// Options now lives in the stable content header, outside native toolbar overflow.
     private func openOptions(_ app: XCUIApplication) {
         let options = app.buttons["feed-options"]
-        if options.exists && options.isHittable { options.tap(); return }
-        let overflow = app.buttons["OverflowBarButtonItem"]
-        XCTAssertTrue(overflow.waitForExistence(timeout: 3), "Options are neither visible nor in the overflow")
-        overflow.tap()
-        let item = app.buttons["Home options"]
-        XCTAssertTrue(item.waitForExistence(timeout: 3), "Overflowed options keep their name"); item.tap()
+        XCTAssertTrue(options.waitForExistence(timeout: 5)); options.tap()
     }
     /// Slow press-drags from mid-screen until the element's top reaches `y`, without deceleration.
     private func drag(_ app: XCUIApplication, _ element: XCUIElement, toY y: CGFloat) {
@@ -176,7 +174,8 @@ import XCTest
         let origin = window.coordinate(withNormalizedOffset: .zero)
         for _ in 0..<6 {
             let delta = y - element.frame.minY
-            if abs(delta) < 2 { break }
+            // A press-drag shorter than this lands as a tap on the card under the start point.
+            if abs(delta) < 12 { break }
             let step = max(-height * 0.35, min(height * 0.35, delta))
             let startY = step < 0 ? height * 0.7 : height * 0.3
             origin.withOffset(CGVector(dx: window.frame.width / 2, dy: startY))
@@ -186,7 +185,11 @@ import XCTest
     }
     private func scrollToTop(_ app: XCUIApplication) {
         var attempts = 0
-        while !app.staticTexts["Latest"].isHittable && attempts < 15 { app.swipeDown(velocity: .fast); attempts += 1 }
+        let first = app.buttons["topic-4190"]
+        let top = app.descendants(matching: .any).matching(identifier: "browse-header").firstMatch.frame.maxY
+        while !(first.exists && first.isHittable && first.frame.minY >= top) && attempts < 15 { app.swipeDown(velocity: .fast); attempts += 1 }
+        // Pulling at the top reveals the new search field; keep the appearance journey on the feed.
+        if app.buttons["cancel-topic-search"].exists { app.buttons["cancel-topic-search"].tap() }
         Thread.sleep(forTimeInterval: 1)
     }
     private func loadSecondPage(_ app: XCUIApplication) {

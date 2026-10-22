@@ -66,17 +66,36 @@ import XCTest
         XCTAssertEqual("".naturalDirection, .leftToRight)
     }
 
-    func testFeedGeometryPlacesPartlyHiddenAnchorThroughNextTopic() {
+    func testFeedGeometryExcludesRowsHiddenByTheMeasuredHeader() {
         let geometry = FeedGeometry()
-        geometry.viewport = .init(top: 0, height: 600)
-        geometry.frames = [TopicID(1): CGRect(x: 0, y: -50, width: 400, height: 200), TopicID(2): CGRect(x: 0, y: 150, width: 400, height: 150)]
-        let anchor = geometry.topAnchor(in: [1, 2].map { DiscussionSummary(id: .init($0), title: "", slug: "", categoryID: .init(1), excerpt: "", author: "", replyCount: 0, activity: "") })
-        XCTAssertEqual(anchor?.id, TopicID(1)); XCTAssertEqual(anchor?.offset, -50)
-        // New layout after scrolling topic 1 to the top: it is now 300 tall.
-        geometry.frames = [TopicID(1): CGRect(x: 0, y: 0, width: 400, height: 300), TopicID(2): CGRect(x: 0, y: 300, width: 400, height: 150)]
-        let placement = geometry.placement(for: anchor!, next: TopicID(2))
-        XCTAssertEqual(placement?.0, TopicID(2))
-        // Same quarter hidden: topic 1 at -75, so topic 2 at 225 = y * (600 - 150).
-        XCTAssertEqual(placement?.1.y ?? 0, 225.0 / 450.0, accuracy: 0.0001)
+        geometry.originY = 20
+        geometry.viewport = .init(top: 120, height: 600)
+        geometry.frames = [TopicID(1): CGRect(x: 0, y: 20, width: 400, height: 80), TopicID(2): CGRect(x: 0, y: 90, width: 400, height: 200)]
+        let items = [1, 2].map { DiscussionSummary(id: .init($0), title: "", slug: "", categoryID: .init(1), excerpt: "", author: "", replyCount: 0, activity: "") }
+        let anchor = geometry.topAnchor(in: items)
+        XCTAssertEqual(anchor?.id, TopicID(2))
+        XCTAssertEqual(anchor?.offset, -30)
+        geometry.originY = 40
+        XCTAssertEqual(geometry.viewport.top, 140, "Moving the scroll container moves its visible global top")
+    }
+    func testFeedGeometryCompensatesWhenScrollTopAlignsBehindTheHeader() {
+        let geometry = FeedGeometry()
+        geometry.viewport = .init(top: 118, height: 708)
+        geometry.contentOffset = 500
+        geometry.frames = [TopicID(1): CGRect(x: 0, y: 59, width: 400, height: 148)]
+        let anchor = FeedGeometry.Anchor(id: .init(1), offset: 10, height: 132)
+        let offset = geometry.restoredOffset(for: anchor)
+        XCTAssertEqual(offset ?? 0, 431, accuracy: 0.001)
+        XCTAssertEqual(59 - ((offset ?? 0) - 500), 128, accuracy: 0.001)
+    }
+    func testFeedGeometryPreservesPartlyHiddenTallCardWithoutUnitPointLimit() {
+        let geometry = FeedGeometry()
+        geometry.viewport = .init(top: 118, height: 673)
+        geometry.contentOffset = 1200
+        geometry.frames = [TopicID(1): CGRect(x: 0, y: 118, width: 400, height: 396.458333)]
+        let anchor = FeedGeometry.Anchor(id: .init(1), offset: -74, height: 180.666667)
+        let offset = geometry.restoredOffset(for: anchor)
+        XCTAssertEqual(offset ?? 0, 1362.387, accuracy: 0.01)
+        XCTAssertLessThan(118 - ((offset ?? 0) - 1200), 118)
     }
 }

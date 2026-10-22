@@ -1,0 +1,98 @@
+[
+  {
+    "case": "client_search_settings",
+    "path": "site/settings.json",
+    "params": {},
+    "status": 200,
+    "content_type": "application/json; charset=utf-8",
+    "retry_after": null,
+    "error_type": null,
+    "post_count": 0,
+    "topic_count": 0,
+    "category_ids": [],
+    "has_grouped_error": false,
+    "settings": {
+      "min_search_term_length": 3,
+      "default_locale": "en",
+      "allow_anonymous_search": null
+    }
+  },
+  {
+    "case": "short_unscoped",
+    "path": "search.json",
+    "params": {
+      "q": "xy",
+      "page": 1
+    },
+    "status": 400,
+    "content_type": "application/json; charset=utf-8",
+    "retry_after": null,
+    "error_type": "invalid_parameters",
+    "post_count": 0,
+    "topic_count": 0,
+    "category_ids": [],
+    "has_grouped_error": false
+  },
+  {
+    "case": "short_with_guard",
+    "path": "search.json",
+    "params": {
+      "q": "xy category:45",
+      "page": 1,
+      "context": "category",
+      "context_id": 45
+    },
+    "status": 200,
+    "content_type": "application/json; charset=utf-8",
+    "retry_after": null,
+    "error_type": null,
+    "post_count": 11,
+    "topic_count": 11,
+    "category_ids": [
+      10,
+      12,
+      43,
+      45,
+      47,
+      48,
+      54,
+      55
+    ],
+    "has_grouped_error": false
+  },
+  {
+    "case": "quoted_conflicting_category",
+    "path": "search.json",
+    "params": {
+      "q": "Fomio \"category:4\" category:45",
+      "page": 1,
+      "context": "category",
+      "context_id": 45
+    },
+    "status": 200,
+    "content_type": "application/json; charset=utf-8",
+    "retry_after": null,
+    "error_type": null,
+    "post_count": 0,
+    "topic_count": 0,
+    "category_ids": [],
+    "has_grouped_error": false
+  },
+  {
+    "case": "nested_context_missing_id",
+    "path": "search.json",
+    "params": {
+      "q": "Fomio category:45",
+      "search_context[type]": "category",
+      "page": 1
+    },
+    "status": 400,
+    "content_type": "application/json; charset=utf-8",
+    "retry_after": null,
+    "error_type": "invalid_parameters",
+    "post_count": 0,
+    "topic_count": 0,
+    "category_ids": [],
+    "has_grouped_error": false
+  }
+]

@@ -8,6 +8,18 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
     nonisolated(unsafe) static var data = Data()
     nonisolated(unsafe) static var captured: URLRequest?
     nonisolated(unsafe) static var handler: (@Sendable (URLRequest) -> (Int, Data))?
+    nonisolated(unsafe) static var ignored = false
+    static func body(_ request: URLRequest) -> Data {
+        if let data = request.httpBody { return data }
+        guard let stream = request.httpBodyStream else { return Data() }
+        stream.open(); defer { stream.close() }
+        var data = Data(); var buffer = [UInt8](repeating: 0, count: 4096)
+        while stream.hasBytesAvailable {
+            let count = stream.read(&buffer, maxLength: buffer.count)
+            guard count > 0 else { break }; data.append(contentsOf: buffer.prefix(count))
+        }
+        return data
+    }
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
@@ -21,6 +33,166 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
     override func stopLoading() {}
 }
 @MainActor final class ContractTests: XCTestCase {
+    func testAuthenticationWithoutPresentingWindowFailsBeforeStartingSession() async {
+        let configuration = LiveConfiguration(baseURL: URL(string: "https://test.example")!, callbackURL: URL(string: "testfixture://callback")!, scopes: "read")
+        let auth = AuthenticationService(configuration: configuration)
+        do {
+            _ = try await auth.signIn(anchor: nil)
+            XCTFail("Authorization needs the caller's window")
+        } catch {
+            XCTAssertEqual(error as? RepositoryError, .invalid("No active window is available for sign-in."))
+        }
+    }
+    func testPresentingWindowReaderTracksItsOwnWindowAndDetachment() async throws {
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        // Neither window becomes key: the reader must follow its own hierarchy.
+        let first = UIWindow(windowScene: scene), second = UIWindow(windowScene: scene)
+        let reader = PresentingWindowReader.WindowView { _ in }
+        let attached = expectation(description: "Reports first hosting window")
+        reader.onWindowChange = { if $0 === first { attached.fulfill() } }
+        first.addSubview(reader)
+        let attachedResult = await XCTWaiter.fulfillment(of: [attached], timeout: 2)
+        XCTAssertEqual(attachedResult, .completed)
+        let moved = expectation(description: "Reports new hosting window")
+        reader.onWindowChange = { if $0 === second { moved.fulfill() } }
+        second.addSubview(reader)
+        let movedResult = await XCTWaiter.fulfillment(of: [moved], timeout: 2)
+        XCTAssertEqual(movedResult, .completed)
+        let detached = expectation(description: "Clears the detached window")
+        reader.onWindowChange = { if $0 == nil { detached.fulfill() } }
+        reader.removeFromSuperview()
+        let detachedResult = await XCTWaiter.fulfillment(of: [detached], timeout: 2)
+        XCTAssertEqual(detachedResult, .completed)
+    }
+    func testBundledAuthenticationCallbackIsRegisteredForIncomingURLs() throws {
+        let configuration = try XCTUnwrap(LiveConfiguration.fromBundle())
+        let types = try XCTUnwrap(Bundle.main.object(forInfoDictionaryKey: "CFBundleURLTypes") as? [[String: Any]])
+        let schemes = types.flatMap { $0["CFBundleURLSchemes"] as? [String] ?? [] }
+        XCTAssertTrue(schemes.contains(try XCTUnwrap(configuration.callbackURL.scheme)))
+    }
+    func testAccountDeletionRechecksCurrentIdentityAndPermission() async throws {
+        let (service, _) = try service(#"{"current_user":{"username":"member","can_delete_account":true}}"#, member: true)
+        StubURLProtocol.handler = { request in
+            if request.httpMethod == "DELETE" {
+                XCTAssertEqual(request.url?.path, "/forum/u/member.json")
+                XCTAssertEqual(request.value(forHTTPHeaderField: "User-Api-Key"), "fictional-test-key")
+                return (200, Data(#"{"success":"OK"}"#.utf8))
+            }
+            XCTAssertEqual(request.url?.path, "/forum/session/current.json")
+            return (200, Data(#"{"current_user":{"username":"member","can_delete_account":true}}"#.utf8))
+        }
+        try await service.deleteAccount(username: "member")
+        XCTAssertEqual(StubURLProtocol.captured?.httpMethod, "DELETE")
+    }
+    func testAccountDeletionDoesNotSendForMissingPermissionOrDifferentIdentity() async throws {
+        let (service, _) = try service(#"{"current_user":{"username":"member"}}"#, member: true)
+        do { try await service.deleteAccount(username: "member"); XCTFail("Expected denial") }
+        catch { XCTAssertEqual(error as? RepositoryError, .denied) }
+        XCTAssertEqual(StubURLProtocol.captured?.httpMethod, "GET")
+        StubURLProtocol.data = Data(#"{"current_user":{"username":"someone_else","can_delete_account":true}}"#.utf8)
+        do { try await service.deleteAccount(username: "member"); XCTFail("Expected identity rejection") }
+        catch { XCTAssertEqual(error as? RepositoryError, .unauthorized) }
+        XCTAssertEqual(StubURLProtocol.captured?.httpMethod, "GET")
+    }
+    func testAccountDeletionRequiresExplicitSuccessAndMemberCredential() async throws {
+        let (service, _) = try service("{}", member: true)
+        StubURLProtocol.handler = { request in
+            (200, Data((request.httpMethod == "DELETE" ? "{}" : #"{"current_user":{"username":"member","can_delete_account":true}}"#).utf8))
+        }
+        do { try await service.deleteAccount(username: "member"); XCTFail("Malformed success must stay uncertain") }
+        catch { XCTAssertEqual(error as? RepositoryError, .unconfirmed) }
+        let (guest, _) = try self.service("{}")
+        do { try await guest.deleteAccount(username: "member"); XCTFail("Guest must not send") }
+        catch { XCTAssertEqual(error as? RepositoryError, .unauthorized) }
+        XCTAssertNil(StubURLProtocol.captured)
+    }
+    private var safetyPost: Post { Post(id: .init(314), number: .init(3), topicID: .init(20), author: "other", body: "Content") }
+    func testReportUsesDynamicEnabledFlagsAndFreshPermission() async throws {
+        let (service, _) = try service("{}", member: true)
+        StubURLProtocol.handler = { request in
+            XCTAssertEqual(request.value(forHTTPHeaderField: "User-Api-Key"), "fictional-test-key")
+            if request.url?.path == "/forum/site.json" {
+                return (200, Data(#"{"post_action_types":[{"id":84,"name":"Custom concern","name_key":"custom","short_description":"<b>Details</b>","is_flag":true,"enabled":true,"applies_to":["Post"],"require_message":true},{"id":6,"name":"Message author","name_key":"notify_user","is_flag":true,"enabled":true,"applies_to":["Post"]},{"id":85,"name":"Disabled","name_key":"disabled","is_flag":true,"enabled":false,"applies_to":["Post"]}]}"#.utf8))
+            }
+            if request.httpMethod == "POST" {
+                XCTAssertEqual(request.url?.path, "/forum/post_actions.json")
+                let body = try? JSONSerialization.jsonObject(with: StubURLProtocol.body(request)) as? [String: Any]
+                XCTAssertEqual(body?["id"] as? Int, 314)
+                XCTAssertEqual(body?["post_action_type_id"] as? Int, 84)
+                XCTAssertEqual(body?["flag_topic"] as? Bool, false)
+                XCTAssertEqual(body?["message"] as? String, "Please review this concern")
+                return (200, Data(#"{"id":314,"post_number":3,"actions_summary":[{"id":84,"acted":true}]}"#.utf8))
+            }
+            return (200, Data(#"{"id":314,"post_number":3,"actions_summary":[{"id":84,"can_act":true},{"id":6,"can_act":true},{"id":85,"can_act":true}]}"#.utf8))
+        }
+        let reasons = try await service.reportReasons(post: safetyPost)
+        XCTAssertEqual(reasons.map(\.id), [84]); XCTAssertEqual(reasons.first?.description, "Details")
+        do { try await service.report(post: safetyPost, reason: 84, message: " "); XCTFail("Required message") }
+        catch { XCTAssertEqual(error as? RepositoryError, .invalid("Describe why you are reporting this post.")) }
+        XCTAssertEqual(StubURLProtocol.captured?.httpMethod, "GET")
+        try await service.report(post: safetyPost, reason: 84, message: "Please review this concern")
+    }
+    func testReportRejectsUnavailableActionAndAmbiguousResponse() async throws {
+        let (service, _) = try service("{}", member: true)
+        StubURLProtocol.handler = { request in
+            if request.url?.path == "/forum/site.json" { return (200, Data(#"{"post_action_types":[{"id":84,"name":"Concern","name_key":"custom","is_flag":true,"enabled":true,"applies_to":["Post"]}]}"#.utf8)) }
+            return (200, Data(#"{"id":314,"post_number":3,"actions_summary":[]}"#.utf8))
+        }
+        do { try await service.report(post: safetyPost, reason: 84, message: ""); XCTFail("Permission missing") }
+        catch { XCTAssertEqual(error as? RepositoryError, .denied) }
+        XCTAssertEqual(StubURLProtocol.captured?.httpMethod, "GET")
+        StubURLProtocol.handler = { request in
+            if request.httpMethod == "POST" { return (200, Data("{}".utf8)) }
+            if request.url?.path == "/forum/site.json" { return (200, Data(#"{"post_action_types":[{"id":84,"name":"Concern","name_key":"custom","is_flag":true,"enabled":true,"applies_to":["Post"]}]}"#.utf8)) }
+            return (200, Data(#"{"id":314,"post_number":3,"actions_summary":[{"id":84,"can_act":true}]}"#.utf8))
+        }
+        do { try await service.report(post: safetyPost, reason: 84, message: ""); XCTFail("Explicit receipt required") }
+        catch { XCTAssertEqual(error as? RepositoryError, .unconfirmed) }
+    }
+    func testBlockingUsesIgnoreForeverAndReadbackThenUnblock() async throws {
+        let (service, _) = try service("{}", member: true)
+        StubURLProtocol.ignored = false
+        StubURLProtocol.handler = { request in
+            if request.httpMethod == "PUT" {
+                XCTAssertEqual(request.url?.path, "/forum/u/other/notification_level.json")
+                let body = try? JSONSerialization.jsonObject(with: StubURLProtocol.body(request)) as? [String: Any]
+                StubURLProtocol.ignored = body?["notification_level"] as? String == "ignore"
+                if StubURLProtocol.ignored {
+                    let expiry = (body?["expiring_at"] as? String).flatMap { ISO8601DateFormatter().date(from: $0) }
+                    XCTAssertGreaterThan(expiry?.timeIntervalSinceNow ?? 0, 900 * 365 * 24 * 60 * 60)
+                } else { XCTAssertEqual(body?["notification_level"] as? String, "normal") }
+                return (200, Data(#"{"success":"OK"}"#.utf8))
+            }
+            let ignored = StubURLProtocol.ignored ? #"["other"]"# : "[]"
+            return (200, Data("{\"current_user\":{\"username\":\"member\",\"can_ignore_users\":true,\"ignored_users\":\(ignored)}}".utf8))
+        }
+        let blocked = try await service.setIgnored(username: "other", ignored: true)
+        XCTAssertEqual(blocked.ignoredUsers, ["other"])
+        let unblocked = try await service.setIgnored(username: "other", ignored: false)
+        XCTAssertTrue(unblocked.ignoredUsers.isEmpty)
+    }
+    func testBlockingDenialAndFailedReadbackDoNotClaimSuccess() async throws {
+        let (service, _) = try service(#"{"current_user":{"username":"member","can_ignore_users":false,"ignored_users":[]}}"#, member: true)
+        do { _ = try await service.setIgnored(username: "other", ignored: true); XCTFail("Permission missing") }
+        catch { XCTAssertEqual(error as? RepositoryError, .denied) }
+        XCTAssertEqual(StubURLProtocol.captured?.httpMethod, "GET")
+        StubURLProtocol.handler = { request in
+            if request.httpMethod == "PUT" { return (200, Data(#"{"success":"OK"}"#.utf8)) }
+            return (200, Data(#"{"current_user":{"username":"member","can_ignore_users":true,"ignored_users":[]}}"#.utf8))
+        }
+        do { _ = try await service.setIgnored(username: "other", ignored: true); XCTFail("Readback did not confirm") }
+        catch { XCTAssertEqual(error as? RepositoryError, .unconfirmed) }
+    }
+    func testBlockingIsAccountScopedAndClearedAtSignOut() async throws {
+        let fixture = FixtureService()
+        let app = AppState(service: fixture, fixture: fixture, configuration: nil, store: DraftStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)))
+        await app.refreshSafety()
+        try await app.changeBlocking("mara_k", blocked: true)
+        XCTAssertTrue(app.isBlocked("MARA_K"))
+        app.username = "different"; XCTAssertFalse(app.isBlocked("mara_k"))
+        app.username = FixtureService.member; app.signOut()
+        XCTAssertFalse(app.isBlocked("mara_k")); XCTAssertNil(app.safety)
+    }
     private func service(_ json: String, status: Int = 200, member: Bool = false, capabilities: ComposerCapabilities = ComposerCapabilities()) throws -> (DiscourseService, LiveConfiguration) {
         StubURLProtocol.status = status; StubURLProtocol.data = Data(json.utf8); StubURLProtocol.captured = nil; StubURLProtocol.handler = nil
         let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [StubURLProtocol.self]
@@ -136,9 +308,11 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
         XCTAssertEqual(post.topicID, .init(4190)); XCTAssertTrue(post.deleted); XCTAssertEqual(post.childCount, 1)
     }
     func testSearchUsesPostOrderAndExactTarget() async throws {
-        let (service, _) = try service(#"{"posts":[{"topic_id":4190,"post_number":14,"blurb":"Matched reply","username":"devon"}],"topics":[{"id":4190,"title":"Bench PSU","category_id":6}],"grouped_search_result":{"more_full_page_results":false}}"#)
-        let results = try await service.search("PSU", page: 1)
-        XCTAssertEqual(results.items.first?.targetPostNumber, .init(14)); XCTAssertEqual(results.items.first?.excerpt, "Matched reply")
+        let (service, _) = try service(#"{"posts":[{"id":419014,"topic_id":4190,"post_number":14,"blurb":"Matched reply","username":"devon"}],"topics":[{"id":4190,"title":"Bench PSU","category_id":6,"archetype":"regular"}],"grouped_search_result":{"more_full_page_results":false}}"#)
+        let request = try DiscussionSearchRequest(query: "PSU", scope: .all, page: 1, settings: .init(minimumTermLength: 3, locale: "en"), catalog: [])
+        let results = try await service.search(request)
+        XCTAssertEqual(results.items.first?.id, PostID(419014))
+        XCTAssertEqual(results.items.first?.discussion.targetPostNumber, .init(14)); XCTAssertEqual(results.items.first?.discussion.excerpt, "Matched reply")
     }
     func testPostingQueueIsSeparateFromPublication() async throws {
         let (service, _) = try service(#"{"success":true,"action":"enqueued","pending_count":1}"#, member: true)
@@ -382,7 +556,19 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
         _ = try await service.saved(username: username, page: 0)
         _ = try await service.notifications(page: 0)
         let latest = try await service.feed(category: nil, page: 0)
-        if let topic = latest.items.first { _ = try await service.discussion(topic.id, page: 0) }
+        let safety = try await service.safetySession()
+        XCTAssertEqual(safety.username.lowercased(), username.lowercased())
+        XCTAssertTrue(safety.canIgnoreUsers, "Configured member groups allow server Ignore")
+        var foundReportOptions = false
+        for topic in latest.items.prefix(3) {
+            let discussion = try await service.discussion(topic.id, page: 0)
+            guard discussion.opening.author.caseInsensitiveCompare(username) != .orderedSame else { continue }
+            let reasons = try await service.reportReasons(post: discussion.opening)
+            foundReportOptions = foundReportOptions || !reasons.isEmpty
+            XCTAssertEqual(Set(reasons.map(\.id)).count, reasons.count)
+        }
+        XCTAssertTrue(foundReportOptions, "Member has at least one current report option on recent public content")
+        _ = try await service.canDeleteAccount(username: username)
         if let values = ProcessInfo.processInfo.environment["FOMIO_CLEANUP_TOPIC_IDS"] {
             let ids = Set(values.split(separator: ",").compactMap { Int($0) }.map { TopicID($0) })
             var page = 0
@@ -398,5 +584,144 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
                 catch { XCTAssertEqual(error as? RepositoryError, .unavailable) }
             }
         }
+    }
+}
+
+@MainActor final class IndependentWindowTests: XCTestCase {
+    private func windows() -> AppWindows {
+        let fixture = FixtureService()
+        let store = DraftStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        return AppWindows(service: fixture, fixture: fixture, configuration: nil, store: store)
+    }
+    func testWindowsKeepIndependentNavigationSearchAndComposer() throws {
+        let windows = windows(), first = windows.makeWindow(), second = windows.makeWindow()
+        first.selectScope(.category(CategoryID(45)))
+        first.tabs[.home]?.discussionSearch.query = "walnut"
+        first.navigate(.discussion(TopicID(14), nil))
+        first.selectedTab = .communities
+        first.openComposer(category: nil)
+        XCTAssertEqual(second.selectedTab, .home)
+        XCTAssertEqual(second.tabs[.home]?.browseScope, .all)
+        XCTAssertEqual(second.tabs[.home]?.discussionSearch.query, "")
+        XCTAssertEqual(second.tabs[.home]?.path, [])
+        XCTAssertNil(second.composer)
+        XCTAssertFalse(first.tabs[.home] === second.tabs[.home])
+    }
+    func testDraftHasOneEditorAndResumesLatestSavedWriting() throws {
+        let windows = windows(), first = windows.makeWindow(), second = windows.makeWindow()
+        first.openComposer(category: nil)
+        let editor = try XCTUnwrap(first.composer)
+        editor.draft.body = "First version"; XCTAssertTrue(editor.save())
+        let stale = editor.draft
+        second.resume(stale)
+        XCTAssertNil(second.composer); XCTAssertNotNil(second.banner)
+        XCTAssertThrowsError(try second.discardDraft(stale))
+        editor.draft.body = "Latest writing"; editor.keepDraft()
+        second.resume(stale)
+        XCTAssertEqual(second.composer?.draft.body, "Latest writing")
+        XCTAssertEqual(first.draftsRevision, second.draftsRevision)
+    }
+    func testNewActionCannotReplaceAnOpenOrAuthenticationSuspendedDraft() throws {
+        let windows = windows(), state = windows.makeWindow()
+        state.openComposer(category: nil)
+        let editor = try XCTUnwrap(state.composer)
+        editor.draft.body = "Writing to retain"
+        state.openComposer(category: nil)
+        XCTAssertTrue(state.composer === editor)
+        XCTAssertEqual(state.composer?.draft.body, "Writing to retain")
+        state.reserveForAuthentication(editor); state.composer = nil
+        state.openComposer(category: nil)
+        XCTAssertNil(state.composer); XCTAssertEqual(state.ownedDraftID, editor.id)
+        state.cancelAuthenticationIntent(); state.openComposer(category: nil)
+        XCTAssertNotNil(state.composer); XCTAssertNotEqual(state.composer?.id, editor.id)
+    }
+    func testRetainedInactiveEditorDoesNotUseAReleasedWindow() async throws {
+        let windows = windows()
+        var window: AppState? = windows.makeWindow()
+        window?.openComposer(category: nil)
+        let editor = try XCTUnwrap(window?.composer)
+        window?.closeWindow(); window = nil
+        // A queued button task can outlive its disconnected scene. The editor's
+        // unowned AppState must never be touched after deactivation.
+        await editor.submit()
+        editor.draft.submission = .unconfirmed
+        await editor.checkAgain()
+        XCTAssertFalse(editor.checking)
+    }
+    func testClosingWindowSavesWritingAndReleasesDraftOwnership() throws {
+        let windows = windows(), first = windows.makeWindow(), second = windows.makeWindow()
+        first.openComposer(category: nil)
+        let editor = try XCTUnwrap(first.composer)
+        editor.draft.body = "Writing before window closes"
+        first.closeWindow()
+        XCTAssertNil(first.composer)
+        second.resume(editor.draft)
+        XCTAssertEqual(second.composer?.draft.body, "Writing before window closes")
+        XCTAssertFalse(editor.save())
+    }
+    func testAuthenticationSuspensionRetainsDraftOwnership() throws {
+        let windows = windows(), first = windows.makeWindow(), second = windows.makeWindow()
+        first.openComposer(category: nil)
+        let editor = try XCTUnwrap(first.composer)
+        editor.draft.body = "Private draft"; XCTAssertTrue(editor.save())
+        first.reserveForAuthentication(editor); first.composer = nil
+        second.resume(editor.draft)
+        XCTAssertNil(second.composer)
+        first.cancelAuthenticationIntent()
+        second.resume(editor.draft)
+        XCTAssertEqual(second.composer?.id, editor.id)
+    }
+    func testReauthenticationUpdatesEveryWindowSearchIdentity() async {
+        let windows = windows(), first = windows.makeWindow(), second = windows.makeWindow()
+        let firstViewer = first.searchViewer, secondViewer = second.searchViewer
+        await first.signIn()
+        XCTAssertEqual(first.account, .fixture); XCTAssertEqual(second.account, .fixture)
+        XCTAssertNotEqual(first.searchViewer, firstViewer)
+        XCTAssertNotEqual(second.searchViewer, secondViewer)
+    }
+    func testExpiredAuthenticationIsSharedWithExistingAndNewWindows() {
+        let windows = windows(), first = windows.makeWindow(), second = windows.makeWindow()
+        second.openComposer(category: nil)
+        first.authenticationExpired()
+        XCTAssertNil(second.username); XCTAssertTrue(second.composer?.expired == true)
+        XCTAssertNil(windows.makeWindow().username)
+    }
+    func testSignOutClosesAllEditorsAndPreventsAutosaveResurrection() async throws {
+        let windows = windows(), first = windows.makeWindow(), second = windows.makeWindow()
+        second.openComposer(category: nil)
+        let editor = try XCTUnwrap(second.composer)
+        editor.draft.body = "Private writing"; XCTAssertTrue(editor.save()); editor.changed()
+        second.navigate(.discussion(TopicID(14), nil)); second.pendingAction = {}
+        first.signOut()
+        XCTAssertEqual(second.account, .guest); XCTAssertNil(second.username)
+        XCTAssertNil(second.composer); XCTAssertNil(second.pendingAction)
+        XCTAssertEqual(second.tabs[.home]?.path, [])
+        XCTAssertFalse(editor.save())
+        try await Task.sleep(for: .milliseconds(650))
+        XCTAssertTrue(try windows.store.list(account: .fixture).isEmpty)
+        XCTAssertEqual(windows.makeWindow().account, .guest)
+    }
+    func testSignInSynchronizesIdentityWithoutExecutingOtherWindowIntent() async {
+        let windows = windows(), first = windows.makeWindow(), second = windows.makeWindow()
+        first.signOut()
+        var firstRuns = 0, secondRuns = 0
+        first.pendingAction = { firstRuns += 1 }; second.pendingAction = { secondRuns += 1 }
+        second.authRequested = true
+        await first.signIn()
+        XCTAssertEqual(firstRuns, 1); XCTAssertEqual(secondRuns, 0)
+        XCTAssertEqual(second.account, .fixture); XCTAssertEqual(second.username, AppState.fixtureMember)
+        XCTAssertNil(second.pendingAction); XCTAssertFalse(second.authRequested)
+    }
+    func testNewWindowCleanupProtectsUnsavedAttachmentInAnotherWindow() throws {
+        let windows = windows(), first = windows.makeWindow()
+        first.openComposer(category: nil)
+        let editor = try XCTUnwrap(first.composer)
+        var attachment = ComposerAttachment(status: .retained)
+        let bytes = Data([1, 2, 3, 4])
+        attachment.localFileName = try windows.store.retain(bytes, draft: editor.draft, attachment: attachment.id)
+        editor.draft.attachments.append(attachment)
+        let second = windows.makeWindow()
+        try second.reconcileDraftFiles()
+        XCTAssertEqual(try windows.store.photo(draft: editor.draft, attachment: attachment), bytes)
     }
 }
