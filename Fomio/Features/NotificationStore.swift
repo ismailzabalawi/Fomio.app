@@ -29,6 +29,8 @@ import Observation
     var syncNote: String?
     /// Inbox scroll anchor, retained while destinations are pushed.
     var anchor: NotificationID?
+    /// Last automatic foreground refresh. Kept here so every window shares one 30-second throttle.
+    @ObservationIgnored var lastForegroundRefresh: Date?
     /// IDs this client acknowledged, so a later refresh can tell them apart from reads on another device.
     private var locallyRead: Set<NotificationID> = []
     /// Bumped whenever a feed's raw cursor is rewritten locally. A page request that started before the rewrite
@@ -50,7 +52,7 @@ import Observation
         generation += 1
         self.account = account
         items = [:]; feeds = [.all: Feed(), .unread: Feed()]; totals = nil; acknowledgments = [:]
-        refreshing = false; refreshError = nil; lastUpdated = nil; syncNote = nil; anchor = nil; locallyRead = []; filter = .all
+        refreshing = false; refreshError = nil; lastUpdated = nil; syncNote = nil; anchor = nil; locallyRead = []; filter = .all; lastForegroundRefresh = nil
         cursorEpoch = [.all: 0, .unread: 0]; revision = 0; readRevision = [:]
     }
 

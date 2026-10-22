@@ -37,6 +37,8 @@ struct Community: Identifiable, Codable, Hashable, Sendable {
     var identity = CategoryIdentity()
     var descriptionExcerpt: String? = nil
     var aboutURL: String? = nil
+    /// Discourse `topic_count`: a cached count for this category alone, excluding subcategories.
+    var topicCount: Int? = nil
 }
 struct CategoryAsset: Codable, Hashable, Sendable {
     var id: Int? = nil

@@ -1,0 +1,20 @@
+{
+  "FomioTests": {
+    "results": {
+      "Passed": 174,
+      "Skipped": 4
+    },
+    "skipped": [
+      "testAnonymousSiteDirectoryFeedsAndExactTopicContracts()",
+      "testApprovedTemporaryTopicRepliesSaveAndCleanup()",
+      "testConsolidatedCategoryHierarchyAndNativeIdentity()",
+      "testStoredMemberReadPermissionsSavedAndNotifications()"
+    ]
+  },
+  "FomioUITests": {
+    "results": {
+      "Passed": 2
+    },
+    "skipped": []
+  }
+}

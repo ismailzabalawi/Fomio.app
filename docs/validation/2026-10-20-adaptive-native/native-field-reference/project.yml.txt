@@ -1,0 +1,35 @@
+name: SearchFieldReference
+options:
+  deploymentTarget:
+    iOS: "26.0"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    CODE_SIGNING_ALLOWED: NO
+    GENERATE_INFOPLIST_FILE: YES
+targets:
+  SearchFieldReference:
+    type: application
+    platform: iOS
+    sources: [App]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.fomio.searchfieldreference
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+  SearchFieldReferenceUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: SearchFieldReference
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.fomio.searchfieldreference.uitests
+        TEST_TARGET_NAME: SearchFieldReference
+schemes:
+  SearchFieldReference:
+    build:
+      targets:
+        SearchFieldReference: all
+    test:
+      targets: [SearchFieldReferenceUITests]

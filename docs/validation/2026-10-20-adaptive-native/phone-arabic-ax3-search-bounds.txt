@@ -1,0 +1,102 @@
+Attributes: Application, 0x108e8f700, pid: 16068, label: 'Fomio'
+Element subtree:
+ →Application, 0x108e8f700, pid: 16068, label: 'Fomio'
+    Window (Main), 0x108e8c000, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108e8dcc0, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108e8e080, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108e8de00, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x108e8df40, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x108e8e1c0, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x108e8e440, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x108e8e800, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x108e8e580, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x108e8e6c0, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x108e8e940, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x108e8ea80, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x108e8ebc0, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'reading-one-pane'
+                            Other, 0x108e8ed00, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x108e8ee40, {{0.0, 0.0}, {402.0, 874.0}}
+                                Other, 0x108e8ef80, {{0.0, 0.0}, {402.0, 874.0}}
+                                  Other, 0x108e8f0c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                    Other, 0x108e8f200, {{0.0, 0.0}, {402.0, 874.0}}
+                                      Other, 0x108e8f340, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x108e8f480, {{0.0, 0.0}, {402.0, 874.0}}
+                                          Other, 0x108e8f5c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                            Other, 0x108e8f840, {{0.0, 0.0}, {402.0, 176.3}}, identifier: 'browse-header'
+                                              Button, 0x108e8f980, {{108.7, 68.0}, {277.3, 52.3}}, identifier: 'community-scope', label: 'المجتمع: ⁨كل المجتمعات⁩. تغيير المجتمع'
+                                                StaticText, 0x108e8fac0, {{108.7, 68.0}, {277.3, 52.3}}, label: 'كل المجتمعات'
+                                                Image, 0x108e8fc00, {{112.7, 86.0}, {28.3, 16.7}}, identifier: 'chevron.down', label: 'الانتقال لأسفل'
+                                              Button, 0x108e8fd40, {{68.0, 126.3}, {44.0, 44.0}}, identifier: 'reveal-topic-search', label: 'البحث في النقاشات'
+                                              Button, 0x108e8fe80, {{16.0, 126.3}, {44.0, 44.0}}, identifier: 'feed-options', label: 'خيارات الرئيسية'
+                                                Button, 0x105264c80, {{16.0, 126.3}, {44.0, 44.0}}
+                                                  Image, 0x105265400, {{16.0, 126.3}, {44.0, 44.0}}, identifier: 'ellipsis', label: 'خيارات الرئيسية'
+                                            Image, 0x105267ac0, {{335.3, 190.0}, {38.3, 38.7}}, identifier: 'magnifyingglass', label: 'بحث'
+                                            TextField, 0x105266bc0, {{142.7, 182.3}, {180.3, 54.0}}, identifier: 'topic-search-field', placeholderValue: 'البحث في النقاشات', value: Adaptive
+                                            Button, 0x105266f80, {{88.0, 186.0}, {46.7, 46.7}}, identifier: 'xmark.circle.fill', label: 'مسح البحث'
+                                            Button, 0x105267200, {{12.0, 183.3}, {68.0, 52.3}}, identifier: 'cancel-topic-search', label: 'إلغاء'
+                                            ScrollView, 0x105267340, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'scoped-search-results'
+                                              Other, 0x105267480, {{0.0, 0.0}, {402.0, 874.0}}
+                                                Other, 0x105267700, {{0.0, 0.0}, {402.0, 102.0}}
+                                                Other, 0x1052670c0, {{0.0, 741.0}, {402.0, 133.0}}
+                                              Other, 0x105267840, {{0.0, 0.0}, {402.0, 874.0}}
+                                              Other, 0x1086fbc00, {{0.0, 242.3}, {402.0, 308.0}}
+                                                Other, 0x1086f9040, {{20.0, 262.3}, {362.0, 247.3}}
+                                                  Other, 0x1086fbac0, {{20.0, 262.3}, {362.0, 247.3}}, identifier: 'search-error'
+                                                    StaticText, 0x1086fb980, {{122.7, 278.3}, {243.3, 52.3}}, label: 'البحث غير متاح'
+                                                    StaticText, 0x1086fbe80, {{111.3, 338.7}, {254.7, 94.7}}, label: 'تعذر إكمال البحث. حاول مجددًا.'
+                                                    Button, 0x1086f8780, {{151.3, 441.3}, {214.7, 52.3}}, identifier: 'retry-topic-search', label: 'إعادة المحاولة'
+                                              Other, 0x1086f8c80, {{-24.0, 242.3}, {30.0, 548.7}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                Other, 0x1086fbd40, {{3.0, 682.0}, {3.0, 106.0}}
+                                              Other, 0x1086fb200, {{-24.0, 242.3}, {30.0, 548.7}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                Other, 0x1086fb340, {{3.0, 682.0}, {3.0, 106.0}}
+                                    Toolbar, 0x1086fb5c0, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                                      Other, 0x1086fb700, {{0.0, 0.0}, {402.0, 874.0}}
+                                Toolbar, 0x1086f9180, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                                  Other, 0x1086f9400, {{0.0, 0.0}, {402.0, 874.0}}
+                            Other, 0x1086f9540, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x1086f92c0, {{0.0, 0.0}, {402.0, 874.0}}
+                          StaticText, 0x1086f9b80, {{50.7, 764.7}, {300.7, 22.3}}, identifier: 'fixture-banner', label: 'FIXTURE PREVIEW · fictional community content'
+                Other, 0x1086f9680, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1086f9cc0, {{0.0, 791.0}, {402.0, 83.0}}
+                    Other, 0x1086f9f40, {{0.0, 0.0}, {402.0, 874.0}}
+                      TabBar, 0x1086fa1c0, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                        Other, 0x1086fa300, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x1086fa080, {{282.0, 795.0}, {95.0, 54.0}}
+                            Other, 0x1086fa440, {{282.0, 795.0}, {95.0, 54.0}}
+                              Other, 0x1086fa800, {{282.0, 795.0}, {95.0, 54.0}}
+                              Other, 0x1086fa580, {{282.0, 795.0}, {95.0, 54.0}}
+                                Other, 0x1086fa6c0, {{282.0, 795.0}, {95.0, 54.0}}
+                                  Other, 0x1086faa80, {{282.0, 795.0}, {95.0, 54.0}}
+                                    Other, 0x1086fad00, {{282.0, 795.0}, {95.0, 54.0}}
+                                  Other, 0x1086fae40, {{282.0, 795.0}, {95.0, 54.0}}
+                                Other, 0x1086fabc0, {{282.0, 795.0}, {95.0, 54.0}}
+                          Other, 0x1086faf80, {{21.0, 791.0}, {95.0, 54.0}}
+                          Other, 0x1086fb840, {{21.0, 791.0}, {360.0, 62.0}}
+                            Button, 0x108e98000, {{282.0, 795.0}, {95.0, 54.0}}, identifier: 'house', label: 'الرئيسية', Selected
+                              Image, 0x108e98140, {{313.0, 801.0}, {33.3, 28.0}}, identifier: 'house.fill', label: 'home'
+                            Button, 0x108e98280, {{196.3, 795.0}, {95.0, 54.0}}, identifier: 'square.grid.2x2', label: 'المجتمعات'
+                              Image, 0x108e983c0, {{230.3, 802.3}, {27.0, 25.0}}, identifier: 'square.grid.2x2.fill', label: 'grid 2x2'
+                            Button, 0x108e98500, {{110.7, 795.0}, {95.0, 54.0}}, identifier: 'bell', label: 'الإشعارات', value: 2 items
+                              Image, 0x108e98640, {{145.0, 801.0}, {26.3, 28.0}}, identifier: 'bell.fill', label: 'notifications'
+                            Button, 0x108e98780, {{25.0, 795.0}, {95.0, 54.0}}, identifier: 'person.crop.circle', label: 'أنا'
+                              Image, 0x108e988c0, {{59.0, 801.3}, {27.3, 27.3}}, identifier: 'person.crop.circle.fill', label: 'account'
+                          Other, 0x108e98a00, {{21.0, 791.0}, {360.0, 62.0}}
+                    Other, 0x108e98b40, {{0.0, 791.0}, {402.0, 83.0}}
+                      Other, 0x108e98c80, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x108e98dc0, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x108e98f00, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x108e99040, {{0.0, 791.0}, {402.0, 83.0}}
+                              Other, 0x108e99180, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x108e992c0, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x108e99400, {{0.0, 791.0}, {402.0, 83.0}}
+              Other, 0x108e99540, {{0.0, 62.0}, {402.0, 778.0}}
+    Window, 0x108e99680, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x108e997c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x108e99900, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x108e8f700, pid: 16068, label: 'Fomio'
+Query chain:
+ →Find: Target Application 'com.fomio.mobile'
+  Output: {
+    Application, 0x108e99a40, pid: 16068, label: 'Fomio'
+  }

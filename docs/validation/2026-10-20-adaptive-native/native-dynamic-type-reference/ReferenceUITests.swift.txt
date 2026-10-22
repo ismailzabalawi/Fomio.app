@@ -1,0 +1,57 @@
+import XCTest
+
+@MainActor final class ReferenceUITests: XCTestCase {
+    func testSemanticTextAndButtonDynamicType() throws { try audit([]) }
+    func testNativeUnavailableDescriptionDynamicType() throws { try audit(["--unavailable"]) }
+    func testUnavailableDescriptionRespondsToSystemText() throws {
+        continueAfterFailure = false
+        XCUIDevice.shared.orientation = .landscapeLeft
+        let app = XCUIApplication(); app.launchArguments = ["--unavailable"]; app.launch()
+        let description = app.staticTexts["Select a topic to read it alongside the list."]
+        XCTAssertTrue(description.waitForExistence(timeout: 15))
+        let before = description.frame
+        NSLog("REFERENCE_FONT_WAIT_AX5")
+        let changed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            description.frame.height > before.height + 10
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [changed], timeout: 60), .completed)
+        let attachment = XCTAttachment(string: "Before: \(before)\nAfter: \(description.frame)\n" + app.debugDescription)
+        attachment.name = "Actual system text size description growth"; attachment.lifetime = .keepAlways; add(attachment)
+        let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); screenshot.name = "Actual AX5 native unavailable description"; screenshot.lifetime = .keepAlways; add(screenshot)
+        NSLog("REFERENCE_FONT_WAIT_LARGE")
+        let restored = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            abs(description.frame.height - before.height) < 2
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [restored], timeout: 60), .completed)
+    }
+    func testOpenNativeAccessibilitySettings() {
+        continueAfterFailure = false
+        XCUIDevice.shared.orientation = .portrait
+        let settings = XCUIApplication(bundleIdentifier: "com.apple.Preferences")
+        settings.launch()
+        let accessibility = settings.buttons["com.apple.settings.accessibility"]
+        XCTAssertTrue(accessibility.waitForExistence(timeout: 15))
+        accessibility.tap()
+        let voiceOver = settings.buttons["VOICEOVER_TITLE"].firstMatch
+        XCTAssertTrue(voiceOver.waitForExistence(timeout: 10)); voiceOver.tap()
+        XCTAssertTrue(settings.switches.firstMatch.waitForExistence(timeout: 10))
+        let attachment = XCTAttachment(string: settings.debugDescription)
+        attachment.name = "Observed native Accessibility settings"; attachment.lifetime = .keepAlways; add(attachment)
+        XCTAssertFalse(accessibility.exists, "A successful gesture must actually navigate")
+    }
+    private func audit(_ arguments: [String]) throws {
+        continueAfterFailure = false
+        XCUIDevice.shared.orientation = .landscapeLeft
+        let app = XCUIApplication(); app.launchArguments = arguments; app.launch()
+        XCTAssertTrue(app.staticTexts.firstMatch.waitForExistence(timeout: 15))
+        let hierarchy = XCTAttachment(string: app.debugDescription)
+        hierarchy.name = "Minimal semantic Dynamic Type hierarchy"; hierarchy.lifetime = .keepAlways; add(hierarchy)
+        let capture = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        capture.name = "Minimal semantic Dynamic Type view"; capture.lifetime = .keepAlways; add(capture)
+        try app.performAccessibilityAudit(for: [.dynamicType]) { issue in
+            let report = XCTAttachment(string: issue.detailedDescription + "\n" + (issue.element?.debugDescription ?? "No element"))
+            report.name = "Unfiltered semantic Dynamic Type issue"; report.lifetime = .keepAlways; self.add(report)
+            return false
+        }
+    }
+}

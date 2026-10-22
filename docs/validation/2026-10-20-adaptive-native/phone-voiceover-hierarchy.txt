@@ -1,0 +1,106 @@
+Application: (0.0, 0.0, 402.0, 874.0)
+Window: (0.0, 0.0, 402.0, 874.0)
+Active screens: 1
+Attributes: Application, 0x109f73840, pid: 61781, label: 'Fomio'
+Element subtree:
+ →Application, 0x109f73840, pid: 61781, label: 'Fomio'
+    Window (Main), 0x109f71e00, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x109f71f40, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x109f72080, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x109f721c0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x109f72300, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x109f72440, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x109f72580, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x109f726c0, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x109f72800, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x109f72940, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x109f72a80, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x109f72bc0, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x109f72d00, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'reading-one-pane'
+                            Other, 0x109f72e40, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x109f72f80, {{0.0, 0.0}, {402.0, 874.0}}
+                                Other, 0x109f730c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                  Other, 0x109f73200, {{0.0, 0.0}, {402.0, 874.0}}
+                                    Other, 0x109f73340, {{0.0, 0.0}, {402.0, 874.0}}
+                                      Other, 0x109f73480, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x109f735c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                          Other, 0x109f73980, {{0.0, 0.0}, {402.0, 874.0}}
+                                            Other, 0x109f73ac0, {{0.0, 0.0}, {402.0, 118.0}}, identifier: 'browse-header'
+                                              Button, 0x109f73c00, {{84.0, 68.0}, {145.3, 44.0}}, identifier: 'community-scope', label: 'Community: All communities. Change community'
+                                                StaticText, 0x109f73d40, {{84.0, 68.0}, {145.3, 44.0}}, label: 'All communities'
+                                                Image, 0x109f73e80, {{217.3, 87.0}, {10.7, 6.3}}, identifier: 'chevron.down', label: 'Go Down'
+                                              Button, 0x109f1f200, {{290.0, 68.0}, {44.0, 44.0}}, identifier: 'reveal-topic-search', label: 'Search discussions'
+                                              Button, 0x109f1cf00, {{342.0, 68.0}, {44.0, 44.0}}, identifier: 'feed-options', label: 'Home options'
+                                                Button, 0x109f1c000, {{342.0, 68.0}, {44.0, 44.0}}
+                                                  Image, 0x109f1c140, {{342.0, 68.0}, {44.0, 44.0}}, identifier: 'ellipsis', label: 'Home options'
+                                              Image, 0x109f1c280, {{16.0, 76.0}, {60.0, 28.0}}, label: 'Fomio'
+                                            Button, 0x109f1c3c0, {{285.3, 126.0}, {44.0, 44.0}}, identifier: 'xmark.circle.fill', label: 'Clear search'
+                                            Button, 0x109f1c500, {{337.3, 124.0}, {52.7, 48.0}}, identifier: 'cancel-topic-search', label: 'Cancel'
+                                            Image, 0x109f1c640, {{26.3, 138.3}, {19.3, 19.3}}, identifier: 'magnifyingglass', label: 'Search'
+                                            TextField, 0x109f1c780, {{56.0, 136.0}, {221.3, 24.0}}, identifier: 'topic-search-field', placeholderValue: 'Search discussions', value: Adaptive
+                                            ScrollView, 0x109f1c8c0, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'scoped-search-results'
+                                              Other, 0x109f1ca00, {{0.0, 0.0}, {402.0, 874.0}}
+                                                Other, 0x109f1cb40, {{0.0, 0.0}, {402.0, 102.0}}
+                                                Other, 0x109f1cc80, {{0.0, 741.0}, {402.0, 133.0}}
+                                              Other, 0x109f1cdc0, {{0.0, 0.0}, {402.0, 874.0}}
+                                              Other, 0x109f1d400, {{0.0, 178.0}, {402.0, 195.0}}
+                                                Other, 0x109f1d540, {{20.0, 198.0}, {362.0, 134.3}}
+                                                  Other, 0x109f1d680, {{20.0, 198.0}, {362.0, 134.3}}, identifier: 'search-error'
+                                                    StaticText, 0x109f1d7c0, {{36.0, 214.0}, {149.3, 22.3}}, label: 'Search unavailable'
+                                                    StaticText, 0x109f1d900, {{36.0, 244.3}, {280.7, 20.0}}, label: 'Search couldn’t be completed. Try again.'
+                                                    Button, 0x109f1da40, {{36.0, 272.3}, {40.7, 44.0}}, identifier: 'retry-topic-search', label: 'Retry'
+                                              Other, 0x109f1db80, {{369.0, 178.0}, {30.0, 613.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                Other, 0x109f1dcc0, {{396.0, 706.0}, {3.0, 82.0}}
+                                              Other, 0x109f1f0c0, {{369.0, 178.0}, {30.0, 613.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                Other, 0x109f90000, {{396.0, 706.0}, {3.0, 82.0}}
+                                    Toolbar, 0x109f90140, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                                      Other, 0x109f90280, {{0.0, 0.0}, {402.0, 874.0}}
+                                Toolbar, 0x109f903c0, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                                  Other, 0x109f90500, {{0.0, 0.0}, {402.0, 874.0}}
+                            Other, 0x109f90640, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x109f90780, {{0.0, 0.0}, {402.0, 874.0}}
+                          StaticText, 0x109f908c0, {{145.7, 764.7}, {111.0, 22.3}}, identifier: 'fixture-banner', label: 'Sample community content. This is a preview.'
+                Other, 0x109f90a00, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x109f90b40, {{0.0, 791.0}, {402.0, 83.0}}
+                    Other, 0x109f90c80, {{0.0, 0.0}, {402.0, 874.0}}
+                      TabBar, 0x109f90dc0, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                        Other, 0x109f90f00, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x109f91040, {{21.0, 791.0}, {95.3, 54.0}}
+                          Other, 0x109f91180, {{21.0, 791.0}, {360.0, 62.0}}
+                            Button, 0x109f912c0, {{25.0, 795.0}, {95.3, 54.0}}, identifier: 'house', label: 'Home', Selected
+                              Image, 0x109f91400, {{56.0, 801.0}, {33.3, 28.0}}, identifier: 'house.fill', label: 'home'
+                            Button, 0x109f91540, {{92.3, 795.0}, {123.5, 54.0}}, identifier: 'square.grid.2x2', label: 'Communities'
+                              Image, 0x109f91680, {{140.6, 802.3}, {27.0, 25.0}}, identifier: 'square.grid.2x2.fill', label: 'grid 2x2'
+                            Button, 0x109f917c0, {{187.8, 795.0}, {121.9, 54.0}}, identifier: 'bell', label: 'Notifications', value: 2 items
+                              Image, 0x109f91900, {{235.5, 801.0}, {26.3, 28.0}}, identifier: 'bell.fill', label: 'notifications'
+                            Button, 0x109f91a40, {{281.7, 795.0}, {95.3, 54.0}}, identifier: 'person.crop.circle', label: 'Me'
+                              Image, 0x109f91b80, {{315.7, 801.3}, {27.3, 27.3}}, identifier: 'person.crop.circle.fill', label: 'account'
+                          Other, 0x109f91cc0, {{21.0, 791.0}, {360.0, 62.0}}
+                          Other, 0x109f91e00, {{25.0, 795.0}, {95.3, 54.0}}
+                            Other, 0x109f91f40, {{25.0, 795.0}, {95.0, 54.0}}
+                              Other, 0x109f92080, {{25.0, 795.0}, {95.0, 54.0}}
+                              Other, 0x109f921c0, {{25.0, 795.0}, {95.0, 54.0}}
+                                Other, 0x109f92300, {{25.0, 795.0}, {95.0, 54.0}}
+                                  Other, 0x109f92440, {{25.0, 795.0}, {95.0, 54.0}}
+                                    Other, 0x109f92580, {{25.0, 795.0}, {95.0, 54.0}}
+                                  Other, 0x109f926c0, {{25.0, 795.0}, {95.0, 54.0}}
+                                Other, 0x109f92800, {{25.0, 795.0}, {95.0, 54.0}}
+                    Other, 0x109f92940, {{0.0, 791.0}, {402.0, 83.0}}
+                      Other, 0x109f92a80, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x109f92bc0, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x109f92d00, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x109f92e40, {{0.0, 791.0}, {402.0, 83.0}}
+                              Other, 0x109f92f80, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x109f930c0, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x109f93200, {{0.0, 791.0}, {402.0, 83.0}}
+              Other, 0x109f93340, {{0.0, 62.0}, {402.0, 778.0}}
+    Window, 0x109f93480, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x109f935c0, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x109f93700, {{0.0, 0.0}, {402.0, 874.0}}
+Path to element:
+ →Application, 0x109f73840, pid: 61781, label: 'Fomio'
+Query chain:
+ →Find: Target Application 'com.fomio.mobile'
+  Output: {
+    Application, 0x109f93840, pid: 61781, label: 'Fomio'
+  }

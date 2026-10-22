@@ -1,0 +1,28 @@
+{
+  "resultBundle": "test_sim_2026-10-20T19-39-33-522Z_pid87845_e0169484.xcresult",
+  "device": "iPad Pro 13-inch (M5)",
+  "os": "iPadOS 26.0",
+  "content": "isolated fictional fixtures",
+  "captures": [
+    {
+      "file": "ipad-wide-reading.png",
+      "sourceAttachment": "96C31200-2059-4C6D-8035-75211139A8D7.png",
+      "sha256": "c6c772e9a56e5cebfac58dfd2b756e5f8e1f19114e9338e9fc140ca11e86ed6b"
+    },
+    {
+      "file": "ipad-rtl-accessibility-chooser.png",
+      "sourceAttachment": "C3D30805-BF79-4DBB-98A3-74891745A625.png",
+      "sha256": "4db4adc85457cd2f6b3102ad8d23f3953725b499da1a8e6e3f793ed6cc4e78fd"
+    },
+    {
+      "file": "ipad-native-narrow-reading.png",
+      "sourceAttachment": "BD24B008-8796-4E1E-B709-152D8611A5AD.png",
+      "sha256": "086399b7ce99c833781378be6e38b7c609c682ef505b4d47f7b24504125bb5e0"
+    },
+    {
+      "file": "ipad-portrait-retained-reply.png",
+      "sourceAttachment": "5F84FB34-D1F2-4942-BFF0-09F574E9127A.png",
+      "sha256": "2de0d66ee962c0927627a3e077db7c6672144f9ec10623e90403e252345224c4"
+    }
+  ]
+}

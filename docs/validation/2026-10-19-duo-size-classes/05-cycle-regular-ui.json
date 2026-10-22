@@ -1,0 +1,50 @@
+{
+  "type": "runtime-snapshot",
+  "rs": "1",
+  "screenHash": "16ibrjz",
+  "seq": 19,
+  "count": 272,
+  "targets": [
+    "e38|tap|button|Open community Woodworking||",
+    "e42|tap|button|Open community Finishing||",
+    "e47|tap|button|View profile, mara_k||",
+    "e115|tap|button|Reply to Oil vs. hardwax on a walnut desk top?||discussion-reply",
+    "e176|typeText|text-field|Reply text|Trait draft|composer-body",
+    "e17|tap|button|Home||BackButton",
+    "e23|tap|button|More actions||discussion-more",
+    "e24|tap|button|||",
+    "e128|tap|tab|Home|1|house",
+    "e130|tap|tab|Communities|0|square.grid.2x2",
+    "e132|tap|tab|Notifications|0|bell",
+    "e134|tap|tab|Me|0|person.crop.circle",
+    "e159|tap|button|Cancel||composer-close",
+    "e163|tap|button|Post||composer-post",
+    "e194|tap|button|Add block||composer-insert",
+    "e195|tap|button|Turn into: Paragraph||composer-block-type",
+    "e198|tap|button|Bold||bold",
+    "e199|tap|button|Italic||italic",
+    "e200|tap|button|Link||link",
+    "e201|tap|button|More||composer-more",
+    "e202|tap|button|Hide keyboard||composer-keyboard"
+  ],
+  "scroll": [
+    "e30|swipe|scroll-view|||",
+    "e168|swipe|scroll-view|||"
+  ],
+  "text": [
+    "e40|text|text|Woodworking||",
+    "e44|text|text|Finishing||",
+    "e173|text|text|Replying to the discussion · Finishing · Woodworking, Oil vs. hardwax on a walnut desk top?||",
+    "e174|text|text|Replying to the discussion · Finishing · Woodworking||",
+    "e175|text|text|Oil vs. hardwax on a walnut desk top?||",
+    "e48|text|text|MK||",
+    "e49|text|text|Mara K.||",
+    "e51|text|text|#1||",
+    "e50|text|text|Started the discussion · 2h||",
+    "e52|text|text|Sanded to 220. It’s a daily desk: coffee mugs and a laptop. Rubbing oil looks great, but I’m worried about rings. Would hardwax oil hold up better, or should I go straight to a film finish?||",
+    "e116|text|text|Reply||",
+    "e120|text|text|FIXTURE PREVIEW · fictional community content||fixture-banner",
+    "e196|text|text|Text||"
+  ],
+  "udid": "5325EFBF-C37B-47D8-AE20-41CCB4945844"
+}

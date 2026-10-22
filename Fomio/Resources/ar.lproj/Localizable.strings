@@ -203,3 +203,119 @@
 "Checked" = "مكتملة";
 "Unchecked" = "غير مكتملة";
 "Edit task" = "تعديل المهمة";
+
+/* Adaptive browsing and scoped search */
+"Home" = "الرئيسية";
+"Communities" = "المجتمعات";
+"Notifications" = "الإشعارات";
+"Me" = "أنا";
+"All communities" = "كل المجتمعات";
+"Community unavailable" = "المجتمع غير متاح";
+"Community: %@. Change community" = "المجتمع: %@. تغيير المجتمع";
+"Loading communities" = "جارٍ تحميل المجتمعات";
+"Loading community" = "جارٍ تحميل المجتمع";
+"Community list unavailable" = "قائمة المجتمعات غير متاحة";
+"Retry" = "إعادة المحاولة";
+"Current community" = "المجتمع الحالي";
+"No communities match" = "لا توجد مجتمعات مطابقة";
+"No matches in loaded communities" = "لا توجد نتائج في المجتمعات المحملة";
+"Choose community" = "اختر مجتمعًا";
+"Find communities" = "ابحث عن مجتمعات";
+"Selected" = "محدد";
+"%@, subcommunity of %@" = "%1$@، مجتمع فرعي في %2$@";
+"Retry communities" = "إعادة تحميل المجتمعات";
+"Back to topic list" = "العودة إلى قائمة النقاشات";
+"Show topic list" = "إظهار قائمة النقاشات";
+"Focus on discussion" = "التركيز على النقاش";
+"Choose a discussion" = "اختر نقاشًا";
+"Select a topic to read it alongside the list." = "اختر نقاشًا لقراءته بجانب القائمة.";
+"Search discussions" = "البحث في النقاشات";
+"Search in %@" = "البحث في %@";
+"New discussion in %@" = "نقاش جديد في %@";
+"Search unavailable" = "البحث غير متاح";
+"More results couldn’t be loaded" = "تعذر تحميل المزيد من النتائج";
+"Search couldn’t be completed. Try again." = "تعذر إكمال البحث. حاول مجددًا.";
+"The community returned search results that couldn’t be verified. Try again." = "تعذر التحقق من نتائج البحث التي أعادها المجتمع. حاول مجددًا.";
+"Search settings couldn’t be loaded. Try again." = "تعذر تحميل إعدادات البحث. حاول مجددًا.";
+"Too many searches. Wait a moment, then retry." = "طلبات بحث كثيرة. انتظر قليلًا ثم أعد المحاولة.";
+"Access to this search couldn’t be verified. Try again." = "تعذر التحقق من صلاحية الوصول إلى هذا البحث. حاول مجددًا.";
+"Enter words to search for." = "أدخل كلمات للبحث عنها.";
+"Use words or quoted phrases. Advanced search operators aren’t supported here." = "استخدم كلمات أو عبارات بين علامتي اقتباس. أوامر البحث المتقدم غير مدعومة هنا.";
+"Enter at least %ld characters to search." = "أدخل %ld أحرف على الأقل للبحث.";
+"Refine your search to see more results." = "عدّل بحثك لرؤية المزيد من النتائج.";
+"Showing previous results" = "تُعرض النتائج السابقة";
+"No results for “%@”" = "لا توجد نتائج لـ«%@»";
+"Check the spelling or try fewer words." = "تحقق من الإملاء أو جرّب كلمات أقل.";
+"Searching" = "جارٍ البحث";
+"More results" = "المزيد من النتائج";
+"Try again in %ld seconds" = "حاول مجددًا بعد %ld ثانية";
+"Try again later" = "حاول لاحقًا";
+"No discussions yet" = "لا توجد نقاشات بعد";
+"Start the first discussion in %@." = "ابدأ أول نقاش في %@.";
+"Start a discussion in a community you can post to." = "ابدأ نقاشًا في مجتمع يمكنك النشر فيه.";
+"More discussions" = "المزيد من النقاشات";
+"Couldn’t load more" = "تعذر تحميل المزيد";
+"Discussions unavailable" = "النقاشات غير متاحة";
+"About" = "حول";
+"Refresh" = "تحديث";
+"Home options" = "خيارات الرئيسية";
+"Feed options" = "خيارات الموجز";
+"This community could not be resolved or is inaccessible." = "تعذر العثور على هذا المجتمع أو الوصول إليه.";
+"Discussion outside this community" = "النقاش خارج هذا المجتمع";
+"Choose All communities to return to this discussion. Its reading position and your draft are kept." = "اختر كل المجتمعات للعودة إلى هذا النقاش. موضع القراءة ومسودتك محفوظان.";
+"Community access changed. Reload communities to check current access." = "تغيرت صلاحيات الوصول. أعد تحميل المجتمعات للتحقق من الصلاحيات الحالية.";
+"Sign in again to continue. Your writing is kept." = "سجّل الدخول مجددًا للمتابعة. كتابتك محفوظة.";
+"You don’t have permission to access this content." = "ليست لديك صلاحية الوصول إلى هذا المحتوى.";
+"This content is no longer available." = "لم يعد هذا المحتوى متاحًا.";
+"You’re offline. Your writing is kept on this device." = "أنت غير متصل. كتابتك محفوظة على هذا الجهاز.";
+
+"New window" = "نافذة جديدة";
+
+"This draft is already open in another window." = "هذه المسودة مفتوحة بالفعل في نافذة أخرى.";
+
+"Close this draft in its window before discarding it." = "أغلق هذه المسودة في نافذتها قبل تجاهلها.";
+
+"This draft belongs to another account." = "هذه المسودة تخص حسابًا آخر.";
+
+"Opening window" = "جارٍ فتح النافذة";
+
+"Finish or close your current draft first." = "أكمل مسودتك الحالية أو أغلقها أولًا.";
+
+"Sample content" = "محتوى تجريبي";
+
+"Sample community content. This is a preview." = "محتوى مجتمعي تجريبي. هذه معاينة.";
+
+"Draft reply" = "مسودة رد";
+
+"Resume" = "متابعة";
+
+"Resume draft reply" = "متابعة مسودة الرد";
+
+"No text yet" = "لا يوجد نص بعد";
+
+"No discussions in %@ yet" = "لا توجد نقاشات في %@ بعد";
+
+"Choose another community, or All communities." = "اختر مجتمعًا آخر، أو كل المجتمعات.";
+
+
+"No topics in %@ match “%@”" = "لا توجد مواضيع في %@ تطابق «\U2068%@\U2069»";
+
+"No topics match “%@”" = "لا توجد مواضيع تطابق «\U2068%@\U2069»";
+
+"Try another word." = "جرّب كلمة أخرى.";
+
+"Try another word, or search all communities." = "جرّب كلمة أخرى، أو ابحث في كل المجتمعات.";
+
+"Hide search" = "إخفاء البحث";
+
+"Hide sidebar" = "إخفاء الشريط الجانبي";
+
+"Show sidebar" = "إظهار الشريط الجانبي";
+
+"%lld topics" = "%lld مواضيع";
+
+"1 topic" = "موضوع واحد";
+
+"%lld unread" = "%lld غير مقروءة";
+
+"1 unread" = "إشعار واحد غير مقروء";

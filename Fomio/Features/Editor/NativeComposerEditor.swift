@@ -49,7 +49,7 @@ struct NativeComposerEditor: UIViewRepresentable {
         view.delegate = context.coordinator
         view.toggleTask = { [weak coordinator = context.coordinator] offset in coordinator?.toggleTask(at: offset) }
         view.deleteAtDocumentStart = { [weak coordinator = context.coordinator] in coordinator?.removeInitialBlockPrefix() ?? false }
-        // The SwiftUI formatting bar follows the keyboard safe area. A separate
+        // The formatting bar follows the local keyboard geometry. A separate
         // UIKit accessory would add an extra row between the bar and the keys.
         view.accessibilityIdentifier = identifier
         view.accessibilityLabel = String(localized: String.LocalizationValue(label))
@@ -757,6 +757,7 @@ struct ComposerMoreMenu: UIViewRepresentable {
         button.accessibilityLabel = String(localized: "More", locale: locale)
         button.titleLabel?.font = .preferredFont(forTextStyle: .body); button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.showsMenuAsPrimaryAction = true; button.accessibilityIdentifier = "composer-more"
+        button.preferredMenuElementOrder = .fixed
         button.addAction(UIAction { [weak coordinator = context.coordinator] _ in coordinator?.parent.onOpen() }, for: .touchDown)
         updateUIView(button, context: context)
         return button

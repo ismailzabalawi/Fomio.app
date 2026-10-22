@@ -56,7 +56,7 @@ struct ScreenMessage: View {
     var body: some View {
         ContentUnavailableView {
             Label(title, systemImage: symbol)
-        } description: { Text(message) } actions: {
+        } description: { Text(message).font(.body).fixedSize(horizontal: false, vertical: true) } actions: {
             if let action { Button(actionTitle, action: action).buttonStyle(.bordered).frame(minHeight: 44) }
         }
     }
@@ -69,7 +69,7 @@ struct InfoCard<Actions: View>: View {
     @ViewBuilder var actions: Actions
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if let title { Label { Text(title).font(.headline) } icon: { if let symbol { Image(systemName: symbol) } }.labelStyle(TitleWithOptionalIcon(hasIcon: symbol != nil)) }
+            if let title { Label { Text(title).font(.headline) } icon: { if let symbol { Image(systemName: symbol) } }.labelStyle(TitleWithOptionalIcon(hasIcon: symbol != nil)).accessibilityAddTraits(.isHeader) }
             Text(message).font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
             actions
         }.frame(maxWidth: .infinity, alignment: .leading).padding(16).background(Color.fomioFill, in: .rect(cornerRadius: 16))

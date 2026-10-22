@@ -1,0 +1,13 @@
+[
+  {
+    "marker": "REFERENCE_FONT_WAIT_AX5",
+    "readback": "accessibility-extra-extra-extra-large"
+  },
+  {
+    "marker": "REFERENCE_FONT_WAIT_LARGE",
+    "readback": "large"
+  },
+  {
+    "restored": "large"
+  }
+]

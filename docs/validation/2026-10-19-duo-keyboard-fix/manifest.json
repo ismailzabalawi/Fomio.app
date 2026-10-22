@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-19",
+  "simulator": "5325EFBF-C37B-47D8-AE20-41CCB4945844",
+  "os": "iOS 27.1",
+  "sdk": "27.1",
+  "source_sha256": {
+    "Fomio/Features/ComposerView.swift": "2c5a89e7eb00c0855d30ffc6d6c6b4ab714bbece4eaa33d5bc262141ba18ba49",
+    "Fomio/Features/Editor/ComposerBar.swift": "0eb9b112e6b645a982aea51fe0dae8d4e72b6963fb5bf296b30d1865c1ce35c5",
+    "Fomio/Features/Editor/NativeComposerEditor.swift": "39f68f6d74d8358a3ef94ea1bd36c73f1fe4df6df389bdadc09a2690bd630477",
+    "FomioUITests/FomioUITests.swift": "3c804751700b9a06721bf848e16a6e7d290a94dbe04ef5013f809120149a8fc9"
+  },
+  "compact_regressions": {
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "result_bundle": "test_sim_2026-10-19T14-15-03-916Z_pid62367_b89730a9.xcresult"
+  },
+  "regular_journey": {
+    "passed": 0,
+    "failed": 1,
+    "result_bundle": "test_sim_2026-10-19T14-11-38-050Z_pid62367_42291441.xcresult",
+    "acceptance": "typing/keyboard/clearance pass in native follow-up; More-menu Undo/Redo remains unresolved"
+  },
+  "typing_cycle": {
+    "widths": [
+      466,
+      1000,
+      466
+    ],
+    "height": 678,
+    "texts": [
+      "Q",
+      "Qq",
+      "Qqq"
+    ],
+    "root_size_classes": [
+      1,
+      2,
+      1
+    ],
+    "editor": "0x110fbb000",
+    "undo_manager": "0x1146e48c0",
+    "first_responder_all": true,
+    "can_undo_all": true,
+    "keyboard_visible_and_onscreen_input_all": true,
+    "regular_capture": "regular-input.png",
+    "compact_return_capture": "compact-return-input.png"
+  },
+  "post_cycle_history_probe": {
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "result_bundle": "test_sim_2026-10-19T14-30-23-640Z_pid62367_cafe1106.xcresult",
+    "failure": "Undo not found after More; no history operation verified"
+  }
+}

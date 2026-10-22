@@ -1,0 +1,20 @@
+{
+  "capture": "Transcribed from native DigitalOcean console output; see deployment-proof.png",
+  "mode": "isolated production Rails process; synthetic exception; no database fault",
+  "results": [
+    {
+      "path": "/search.json",
+      "status": 200,
+      "error": "Search could not be completed. Please try again.",
+      "partial_results": false,
+      "database_detail_exposed": false
+    },
+    {
+      "path": "/search/query.json",
+      "status": 200,
+      "error": "Search could not be completed. Please try again.",
+      "partial_results": false,
+      "database_detail_exposed": false
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+import SwiftUI
+import UIKit
+
+@main struct ReferenceApp: App {
+    var body: some Scene { WindowGroup { ReferenceView() } }
+}
+struct ReferenceView: View {
+    @State private var query = "Adaptive"
+    @State private var submits = 0
+    @FocusState private var focused: Bool
+    private var variant: String { ProcessInfo.processInfo.environment["VARIANT"] ?? "swiftui" }
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Field variant").font(.headline)
+            switch variant {
+            case "vertical":
+                TextField("Search discussions", text: Binding(get: { query }, set: { value in
+                    if value.contains("\n") { query = value.replacingOccurrences(of: "\n", with: ""); submits += 1; focused = false } else { query = value }
+                }), axis: .vertical).lineLimit(1...4)
+                    .font(.body).focused($focused).submitLabel(.search).accessibilityIdentifier("field")
+                Text("submits \(submits)").accessibilityIdentifier("submits")
+            case "uikit":
+                UIKitField(text: $query).accessibilityIdentifier("field")
+            default:
+                TextField("Search discussions", text: $query).font(.body).accessibilityIdentifier("field")
+            }
+        }.padding()
+    }
+}
+struct UIKitField: UIViewRepresentable {
+    @Binding var text: String
+    func makeUIView(context: Context) -> UITextField {
+        let field = UITextField()
+        field.font = .preferredFont(forTextStyle: .body)
+        field.adjustsFontForContentSizeCategory = true
+        field.placeholder = "Search discussions"; field.returnKeyType = .search
+        field.text = text
+        field.setContentCompressionResistancePriority(.required, for: .vertical)
+        field.setContentHuggingPriority(.required, for: .vertical)
+        return field
+    }
+    func updateUIView(_ field: UITextField, context: Context) { if field.text != text { field.text = text } }
+}

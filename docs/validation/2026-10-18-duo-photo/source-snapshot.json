@@ -1,0 +1,11 @@
+{
+  "baseCommit": "b62aef54873762b3235d6e846d4d6fe20762f6b5",
+  "workingTree": "dirty; unrelated changes retained",
+  "sha256": {
+    "Fomio/App/FomioApp.swift": "9ad903c4cb50b2a79ceb9aae788b152d602f8e148e2aa61fd2319751741d900d",
+    "Fomio/Features/ComposerView.swift": "34bc941e7b47077abee50dfdb2a8403f64692378f42e35d4acc6c4341781e8b3",
+    "Fomio/Features/ComposerState.swift": "d7a6c67ab95f9d34a78aa4b941a96a4563bda6494c02305e31e11555a53044d2",
+    "Fomio/Data/DraftStore.swift": "8e8094b32fe393ad22f4d3837dd20c4df2a290209447140a9398a424e589508c",
+    "FomioUITests/FomioUITests.swift": "edb159856655e717b0241ff6d7308f4bbabd5eab0a289aa07b3d2e3cecf18f44"
+  }
+}

@@ -1,0 +1,66 @@
+[
+  {
+    "mode": "rich",
+    "transition": "open-to-closed",
+    "action": "Undo",
+    "before": "Duo reply: rich.qq",
+    "after": "Duo reply: ric.qq",
+    "result": "pass"
+  },
+  {
+    "mode": "rich",
+    "transition": "closed-to-open",
+    "action": "Redo",
+    "before": "Duo reply: ric.qq",
+    "after": "Duo reply: rich.qq",
+    "result": "pass"
+  },
+  {
+    "mode": "rich",
+    "transition": "closed-to-open plus inner portrait rotation",
+    "action": "Undo",
+    "before": "Duo reply: rich.qq",
+    "after": "Duo reply: ric.qq",
+    "result": "pass"
+  },
+  {
+    "mode": "rich",
+    "transition": "open-to-closed outer landscape",
+    "action": "Redo",
+    "before": "Duo reply: ric.qq",
+    "after": "Duo reply: rich.qq",
+    "result": "pass"
+  },
+  {
+    "mode": "Markdown",
+    "transition": "closed-to-open",
+    "action": "Undo",
+    "before": "**Duo** reply.\n\n- qq",
+    "after": "**Duo** reply.\n\n- q",
+    "result": "pass"
+  },
+  {
+    "mode": "Markdown",
+    "transition": "open-to-closed",
+    "action": "Redo",
+    "before": "**Duo** reply.\n\n- q",
+    "after": "**Duo** reply.\n\n- qq",
+    "result": "pass"
+  },
+  {
+    "mode": "Markdown",
+    "transition": "open-to-closed",
+    "action": "Undo",
+    "before": "**Duo** reply.\n\n- qq",
+    "after": "**Duo** reply.\n\n- q",
+    "result": "pass"
+  },
+  {
+    "mode": "Markdown",
+    "transition": "closed-to-open",
+    "action": "Redo",
+    "before": "**Duo** reply.\n\n- q",
+    "after": "**Duo** reply.\n\n- qq",
+    "result": "pass via native XCTest after inconclusive CUA action"
+  }
+]

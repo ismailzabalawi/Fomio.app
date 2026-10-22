@@ -1,0 +1,36 @@
+User will not be able to change the font size of this SwiftUI.AccessibilityNode
+Attributes: StaticText, 0x110855400, {{350.2, 502.0}, {85.5, 90.0}}, label: 'اختر نقاشًا'
+Element subtree:
+ →StaticText, 0x110855400, {{350.2, 502.0}, {85.5, 90.0}}, label: 'اختر نقاشًا'
+Path to element:
+ →Application, 0x10fe62440, pid: 92936, label: 'Fomio'
+  ↳Window (Main), 0x10fe62580, {{0.0, 0.0}, {1366.0, 1024.0}}
+   ↳Other, 0x10fe62800, {{0.0, 0.0}, {1366.0, 1024.0}}
+    ↳Other, 0x10fe62940, {{0.0, 0.0}, {1366.0, 1024.0}}
+     ↳Other, 0x10fe62a80, {{0.0, 0.0}, {1366.0, 1024.0}}
+      ↳Other, 0x10fe62bc0, {{0.0, 0.0}, {1366.0, 1024.0}}
+       ↳Other, 0x10fe62d00, {{0.0, 0.0}, {1366.0, 1024.0}}
+        ↳Other, 0x10fe62e40, {{0.0, 0.0}, {1366.0, 1024.0}}
+         ↳Other, 0x10fe62f80, {{0.0, 0.0}, {1366.0, 1024.0}}
+          ↳Other, 0x10fe630c0, {{0.0, 0.0}, {1366.0, 1024.0}}
+           ↳Other, 0x10fe63200, {{0.0, 0.0}, {1366.0, 1024.0}}
+            ↳Other, 0x10fe63340, {{0.0, 0.0}, {1366.0, 1024.0}}
+             ↳Other, 0x10fe63480, {{0.0, 0.0}, {1366.0, 1024.0}}, identifier: 'reading-three-pane'
+              ↳Other, 0x10fe635c0, {{0.0, 32.0}, {1146.0, 992.0}}
+               ↳Other, 0x10fe63700, {{0.0, 32.0}, {1146.0, 992.0}}
+                ↳Other, 0x1108548c0, {{0.0, 32.0}, {1146.0, 992.0}}
+                 ↳Other, 0x110854a00, {{0.0, 32.0}, {1146.0, 992.0}}
+                  ↳Other, 0x110854dc0, {{0.0, 32.0}, {1146.0, 992.0}}
+                   ↳Other, 0x110854f00, {{0.0, 32.0}, {1146.0, 992.0}}
+                    ↳Other, 0x110855040, {{0.0, 32.0}, {1146.0, 992.0}}
+                     ↳Other, 0x110855180, {{0.0, 32.0}, {1146.0, 992.0}}
+                      ↳StaticText, 0x110855400, {{350.2, 502.0}, {85.5, 90.0}}, label: 'اختر نقاشًا'
+Query chain:
+ →Find: Target Application 'com.fomio.mobile'
+  Output: {
+    Application, 0x110a6f340, pid: 92936, label: 'Fomio'
+  }
+  ↪︎Find: Descendant with identity binding to AX element pid: 92936, elementOrHash.elementID: 4794270656.81
+    Output: {
+      StaticText, 0x10fe62080, {{350.2, 502.0}, {85.5, 90.0}}, label: 'اختر نقاشًا'
+    }

@@ -1,0 +1,26 @@
+import XCTest
+
+final class ReferenceUITests: XCTestCase {
+    @MainActor func testVariants() throws {
+        var report: [String] = []
+        for variant in ["swiftui", "vertical", "uikit"] {
+            let app = XCUIApplication(); app.launchEnvironment["VARIANT"] = variant; app.launch()
+            XCTAssertTrue(app.descendants(matching: .any)["field"].waitForExistence(timeout: 10))
+            var issues: [String] = []
+            try app.performAccessibilityAudit(for: [.textClipped]) { issue in
+                issues.append("\(issue.auditType) | \(issue.compactDescription) | \(issue.element?.identifier ?? "-")"); return true
+            }
+            report.append("\(variant): \(issues.isEmpty ? "no textClipped issues" : issues.joined(separator: " ;; "))")
+            app.terminate()
+        }
+        let app = XCUIApplication(); app.launchEnvironment["VARIANT"] = "vertical"; app.launch()
+        let any = app.descendants(matching: .any)["field"]; XCTAssertTrue(any.waitForExistence(timeout: 10))
+        report.append("vertical elementType raw=\(any.elementType.rawValue)")
+        let asView = app.textFields["field"].exists ? app.textFields["field"] : app.textViews["field"], asField = app.textFields["field"]
+        report.append("vertical type: textViews=\(asView.exists) textFields=\(asField.exists) value=\(String(describing: asView.value))")
+        asView.tap(); asView.typeText(XCUIKeyboardKey.delete.rawValue + "\n")
+        report.append("after delete+return: value=\(String(describing: asView.value)) submits=\(app.staticTexts["submits"].label) keyboard=\(app.keyboards.firstMatch.exists)")
+        let a = XCTAttachment(string: report.joined(separator: "\n")); a.name = "variant-report"; a.lifetime = .keepAlways; add(a)
+        print("VARIANTREPORT\n" + report.joined(separator: "\n"))
+    }
+}

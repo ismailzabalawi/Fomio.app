@@ -1,0 +1,35 @@
+name: DynamicTypeReference
+options:
+  deploymentTarget:
+    iOS: "26.0"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    CODE_SIGNING_ALLOWED: NO
+    GENERATE_INFOPLIST_FILE: YES
+targets:
+  DynamicTypeReference:
+    type: application
+    platform: iOS
+    sources: [App]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.fomio.dynamictypereference
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+  DynamicTypeReferenceUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: DynamicTypeReference
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.fomio.dynamictypereference.uitests
+        TEST_TARGET_NAME: DynamicTypeReference
+schemes:
+  DynamicTypeReference:
+    build:
+      targets:
+        DynamicTypeReference: all
+    test:
+      targets: [DynamicTypeReferenceUITests]

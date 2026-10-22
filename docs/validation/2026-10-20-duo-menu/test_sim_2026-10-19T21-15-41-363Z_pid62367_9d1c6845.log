@@ -1,0 +1,16 @@
+** TEST BUILD SUCCEEDED **
+Test Suite 'Selected tests' started at 2026-10-20 00:16:15.286.
+Test Suite 'FomioUITests.xctest' started at 2026-10-20 00:16:15.289.
+Test Suite 'PreparedReplyResizeUITests' started at 2026-10-20 00:16:15.289.
+Test Case '-[FomioUITests.PreparedReplyResizeUITests testKeyboardAndHistoryAcrossManualWidths]' started.
+2026-10-20 00:17:02.855582+0300 FomioUITests-Runner[96110:6962048] KEYBOARD_WIDTH_WAIT_Regular
+2026-10-20 00:17:25.565675+0300 FomioUITests-Runner[96110:6962048] KEYBOARD_WIDTH_GEOMETRY Regular app={{0, 0}, {466, 678}} window={{-331, 273}, {1000, 678}} more={{-88.5, 362}, {44, 44}} keyboard={{0, 53}, {669, 253}} hittable=0
+/Volumes/Develop/Projects/Fomio Swift/FomioUITests/FomioUITests.swift:81: error: -[FomioUITests.PreparedReplyResizeUITests testKeyboardAndHistoryAcrossManualWidths] : XCTAssertEqual failed: ("XCTWaiterResult(rawValue: 2)") is not equal to ("XCTWaiterResult(rawValue: 1)")
+Test Case '-[FomioUITests.PreparedReplyResizeUITests testKeyboardAndHistoryAcrossManualWidths]' failed (81.054 seconds).
+Test Suite 'PreparedReplyResizeUITests' failed at 2026-10-20 00:17:36.353.
+	 Executed 1 test, with 1 failure (0 unexpected) in 81.054 (81.064) seconds
+Test Suite 'FomioUITests.xctest' failed at 2026-10-20 00:17:36.362.
+	 Executed 1 test, with 1 failure (0 unexpected) in 81.054 (81.073) seconds
+Test Suite 'Selected tests' failed at 2026-10-20 00:17:36.362.
+	 Executed 1 test, with 1 failure (0 unexpected) in 81.054 (81.076) seconds
+** TEST EXECUTE FAILED **

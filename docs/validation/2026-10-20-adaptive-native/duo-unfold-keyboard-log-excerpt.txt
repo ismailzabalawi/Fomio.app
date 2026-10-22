@@ -1,0 +1,19 @@
+Process86404 only, fixture run9b59ab12. Last keyboard messages and later snapshot failures; this is not a stack trace or proof of the source cause.
+2026-10-21 02:08:26.217 Df Fomio[86404:a521c4] [com.apple.UIKit:KeyboardArbiterClientLog] -[_UIRemoteKeyboardPlaceholderView refreshPlaceholder]  refreshPlaceholder: size={466, 0} [previous size={951, 0}]
+2026-10-21 02:08:26.217 Df Fomio[86404:a521c4] [com.apple.UIKit:KeyboardArbiterClientLog] -[_UIRemoteKeyboardPlaceholderView refreshPlaceholder]  refreshPlaceholder: size={466, 0} [previous size={951, 0}]
+2026-10-21 02:08:26.218 Df Fomio[86404:a521c4] [com.apple.UIKit:KeyboardArbiterClientLog] -[_UIRemoteKeyboardPlaceholderView refreshPlaceholder]  refreshPlaceholder: size={466, 0} [previous size={466, 0}]
+2026-10-21 02:08:26.448 Df Fomio[86404:a521c4] [com.apple.UIKit:KeyboardArbiterClientLog] -[_UIRemoteKeyboardPlaceholderView refreshPlaceholder]  refreshPlaceholder: size={466, 0} [previous size={951, 0}]
+2026-10-21 02:08:26.455 Df Fomio[86404:a521c4] [com.apple.UIKit:KeyboardArbiterClientLog] -[_UIRemoteKeyboardPlaceholderView refreshPlaceholder]  refreshPlaceholder: size={466, 0} [previous size={951, 0}]
+2026-10-21 02:08:26.555 Df Fomio[86404:a521c4] [com.apple.UIKit:KeyboardArbiterClientLog] -[_UIRemoteKeyboardPlaceholderView refreshPlaceholder]  refreshPlaceholder: size={466, 0} [previous size={951, 0}]
+2026-10-21 02:08:26.566 Df Fomio[86404:a521c4] [com.apple.UIKit:KeyboardArbiterClientLog] -[_UIRemoteKeyboardPlaceholderView refreshPlaceholder]  refreshPlaceholder: size={466, 0} [previous size={951, 0}]
+2026-10-21 02:08:26.614 Df Fomio[86404:a521c4] [com.apple.UIKit:KeyboardArbiterClientLog] -[_UIRemoteKeyboardPlaceholderView refreshPlaceholder]  refreshPlaceholder: size={466, 0} [previous size={951, 0}]
+2026-10-21 02:08:26.618 Df Fomio[86404:a521c4] [com.apple.UIKit:KeyboardArbiterClientLog] -[_UIRemoteKeyboardPlaceholderView refreshPlaceholder]  refreshPlaceholder: size={466, 0} [previous size={951, 0}]
+2026-10-21 02:08:26.628 Df Fomio[86404:a521c4] [com.apple.UIKit:KeyboardArbiterClientLog] -[_UIRemoteKeyboardPlaceholderView refreshPlaceholder]  refreshPlaceholder: size={466, 0} [previous size={951, 0}]
+2026-10-21 02:08:26.676 Df Fomio[86404:a521c4] [com.apple.UIKit:KeyboardArbiterClientLog] -[_UIRemoteKeyboardPlaceholderView refreshPlaceholder]  refreshPlaceholder: size={466, 0} [previous size={951, 0}]
+2026-10-21 02:08:27.217 Df Fomio[86404:a521c4] [com.apple.UIKit:KeyboardArbiterClientLog] -[_UIRemoteKeyboardPlaceholderView refreshPlaceholder]  refreshPlaceholder: size={466, 0} [previous size={951, 0}]
+2026-10-21 02:08:27.237 Df Fomio[86404:a521c4] [com.apple.UIKit:KeyboardArbiterClientLog] -[_UIRemoteKeyboardPlaceholderView refreshPlaceholder]  refreshPlaceholder: size={466, 0} [previous size={951, 0}]
+2026-10-21 02:08:27.251 Df Fomio[86404:a521c4] [com.apple.UIKit:KeyboardArbiterClientLog] -[_UIRemoteKeyboardPlaceholderView refreshPlaceholder]  refreshPlaceholder: size={466, 0} [previous size={951, 0}]
+2026-10-21 02:08:27.254 Df Fomio[86404:a521c4] [com.apple.UIKit:KeyboardArbiterClientLog] -[_UIRemoteKeyboardPlaceholderView refreshPlaceholder]  refreshPlaceholder: size={466, 0} [previous size={951, 0}]
+2026-10-21 02:08:27.255 Df Fomio[86404:a521c4] [com.apple.TextInputUI:KeyboardTrackingCoordinator] Posted notification didChangeFrame with {
+2026-10-21 02:08:57.277 Df Fomio[86404:a550fe] [com.apple.dt.xctest:Default] XCTPerformOnMainRunLoop[not MT]: MT did not respond in time (lost the race to the busy flag)
+2026-10-21 02:08:57.278 E  Fomio[86404:a550fe] [com.apple.dt.xctest:Default] XCTAS Error: Error Domain=com.apple.dt.xctest.automation-support.error Code=6 "Unable to perform work on main run loop, process main thread busy for 30.0s" UserInfo={NSLocalizedDescription=Unable to perform work on main run loop, process main thread busy for 30.0s}

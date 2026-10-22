@@ -1,0 +1,20 @@
+{
+  "verified_at_utc": "2026-10-20T17:40:08.955344+00:00",
+  "base_url": "https://meta.fomio.app",
+  "droplet_id": 420498845,
+  "container": "app",
+  "base_revision": "821e9e2f9f94483a3be8d1e077cde0fd94970479",
+  "image_before_and_after": "sha256:aa7849b4b9430b52ca34a33c73a0ec51c408f7f751b5aafd5febf7d9adb08c9f",
+  "runtime_patch_sha256": "c533b02d19eb484bc794ed7ae2993746d47cc5d59ca4e980de59f7640ca93147",
+  "files": {
+    "lib/search.rb": "b65e74202c51b1443393938cfeabadb3a776b67509f439dfa0feee75e91d54b6",
+    "config/locales/server.en.yml": "7450c89ce489bd56a4b8f25e91036d47809c7cb9afed5d744986bd7cd79f65e1"
+  },
+  "backup_on_host": "/root/fomio-search-error-backup-20261020",
+  "rebuild_hook": "after_code; embedded patch; forward-check/apply or already-applied reverse-check; idempotence passed",
+  "activation": "docker exec app sv -w 60 restart unicorn",
+  "service_status": "run: unicorn: (pid 354718) 78s",
+  "full_container_rebuild_tested": false,
+  "public_failure_injected": false,
+  "ios_code_changed": false
+}

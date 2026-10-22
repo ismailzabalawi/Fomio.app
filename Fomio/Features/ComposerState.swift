@@ -37,6 +37,11 @@ import Observation
     private var original: String
     private var stored: Bool
     private var positionSnapshot: String
+    private var active = true
+    func activate() { active = true }
+    func deactivate() {
+        active = false; autosave?.cancel(); stopUploads(); suggestionTask?.cancel(); previewTask?.cancel()
+    }
     private var autosave: Task<Void, Never>?
     private var uploadTask: Task<Void, Never>?
     init(draft: Draft, app: AppState, origin: AppTab, resumed: Bool = false) {
@@ -66,7 +71,7 @@ import Observation
         if photoUnfinished { return false }
         let writing = DiscourseMarkupCodec.parse(draft.body).filter { $0.kind != .quote }.map(\.text).joined().trimmingCharacters(in: .whitespacesAndNewlines)
         if writing.isEmpty { return false }
-        if draft.intent.isNew { return !draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && app.communities.contains { $0.id == draft.categoryID && $0.canCreate } }
+        if draft.intent.isNew { return !draft.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && app.browseCatalog.contains { $0.id == draft.categoryID && $0.canCreate } }
         return true
     }
     private func synchronizeAttachments() {
@@ -131,6 +136,7 @@ import Observation
         }
     }
     @discardableResult func save() -> Bool {
+        guard active else { return false }
         synchronizeAttachments()
         var value = draft
         value.attachments = draft.activeAttachments
@@ -141,7 +147,7 @@ import Observation
         autosave?.cancel(); uploadTask?.cancel()
         stopUploads()
         if save() {
-            do { try app.draftStore.reconcileFiles(account: draft.account) } catch { self.error = error.localizedDescription; return }
+            do { try app.reconcileDraftFiles() } catch { self.error = error.localizedDescription; return }
             app.composer = nil
             app.toast(String(localized: String.LocalizationValue(message ?? "Draft kept. Find it in Me › Drafts.")))
         }
@@ -218,12 +224,13 @@ import Observation
         }
     }
     func submit() async {
-        guard canPost else { return }
+        guard active, canPost else { return }
         for attachment in draft.activeAttachments { if let server = attachment.server { draft.body = draft.body.replacingOccurrences(of: attachment.localReference, with: server.shortURL) } }
         draft.submission = .submitting; rejection = nil
         guard save() else { draft.submission = .editing; return }
         do {
             let outcome = try await app.service.publish(draft)
+            guard active else { return }
             switch outcome {
             case let .published(topic, number): finish(topic: topic, number: number)
             case .pending:
@@ -234,18 +241,20 @@ import Observation
             case .unconfirmed: draft.submission = .unconfirmed; save()
             }
         } catch {
+            guard active else { return }
             if error as? RepositoryError == .unconfirmed { draft.submission = .unconfirmed }
             else { draft.submission = .editing }
             save()
             switch error as? RepositoryError {
             case let .invalid(message)?: rejection = message
-            case .unauthorized?: app.username = nil; app.pendingAction = nil; expired = true
+            case .unauthorized?: app.authenticationExpired(); expired = true
             default: self.error = error.localizedDescription
             }
         }
     }
     func suspendForAuthentication() {
         stopUploads(); guard save() else { return }
+        app.reserveForAuthentication(self)
         app.gate = draft.intent.isNew ? .create(nil) : .reply
         app.pendingAction = { [self] in
             guard app.account == draft.account else { return }
@@ -260,10 +269,12 @@ import Observation
     }
     func reauthorized() { expired = false; app.toast(String(localized: "Signed in again. Tap Post when you’re ready.")) }
     func checkAgain() async {
-        guard !checking, draft.submission == .unconfirmed else { return }
+        guard active, !checking, draft.submission == .unconfirmed else { return }
         checking = true; defer { checking = false }
         do {
-            switch try await app.service.reconcile(draft) {
+            let result = try await app.service.reconcile(draft)
+            guard active else { return }
+            switch result {
             case let .published(topic, number): finish(topic: topic, number: number); app.toast(String(localized: "Found it. Your \(noun) was posted."))
             case .unresolved: app.toast(String(localized: "Still not confirmed. Your text is kept here."))
             }

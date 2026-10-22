@@ -1,0 +1,128 @@
+Application: (0.0, 0.0, 466.0, 678.0)
+Window: (0.0, 0.0, 466.0, 678.0)
+Active screens: 2
+Attributes: Application, 0x10687cdc0, pid: 40039, label: 'Fomio'
+Element subtree:
+ →Application, 0x10687cdc0, pid: 40039, label: 'Fomio'
+    Window (Main), 0x10687e1c0, {{0.0, 0.0}, {466.0, 678.0}}
+      Other, 0x10687d180, {{0.0, 0.0}, {466.0, 678.0}}
+      Other, 0x10687d400, {{0.0, 0.0}, {466.0, 678.0}}
+        Other, 0x10687d2c0, {{0.0, 0.0}, {466.0, 678.0}}
+          Other, 0x10687cf00, {{0.0, 0.0}, {466.0, 678.0}}
+            Other, 0x10687d540, {{0.0, 0.0}, {466.0, 678.0}}
+              Other, 0x10687d7c0, {{0.0, 0.0}, {382.0, 644.0}}
+              Other, 0x10687d900, {{0.0, 0.0}, {466.0, 678.0}}
+                Other, 0x10687da40, {{0.0, 0.0}, {466.0, 678.0}}
+                  Other, 0x10687d680, {{0.0, 0.0}, {466.0, 678.0}}
+                    Other, 0x10687e080, {{0.0, 0.0}, {466.0, 678.0}}
+                      Other, 0x10687db80, {{0.0, 0.0}, {466.0, 678.0}}
+                        Other, 0x10687e300, {{0.0, 0.0}, {466.0, 678.0}}
+                          Other, 0x10687e440, {{0.0, 0.0}, {466.0, 678.0}}, identifier: 'reading-one-pane'
+                            Other, 0x10687e800, {{0.0, 0.0}, {466.0, 678.0}}
+                              Other, 0x10687e580, {{0.0, 0.0}, {466.0, 678.0}}
+                                Other, 0x10687e940, {{0.0, 0.0}, {466.0, 678.0}}
+                                  Other, 0x10687ea80, {{0.0, 0.0}, {466.0, 678.0}}
+                                    Other, 0x10687ed00, {{0.0, 0.0}, {466.0, 678.0}}
+                                      Other, 0x10687ebc0, {{0.0, 0.0}, {466.0, 678.0}}
+                                        Other, 0x10687ee40, {{0.0, 0.0}, {466.0, 678.0}}
+                                          Other, 0x10687ef80, {{0.0, 0.0}, {466.0, 678.0}}
+                                            Other, 0x10687f200, {{0.0, 0.0}, {466.0, 166.7}}, identifier: 'browse-header'
+                                              Button, 0x10687f0c0, {{49.7, 6.0}, {232.3, 104.7}}, identifier: 'community-scope', label: 'المجتمع: ⁨كل المجتمعات⁩. تغيير المجتمع'
+                                                StaticText, 0x10687f340, {{49.7, 6.0}, {232.3, 104.7}}, label: 'كل المجتمعات'
+                                                Image, 0x10687f5c0, {{53.7, 50.0}, {28.3, 16.7}}, identifier: 'chevron.down', label: 'الانتقال لأسفل'
+                                              Button, 0x10687f700, {{68.0, 116.7}, {44.0, 44.0}}, identifier: 'reveal-topic-search', label: 'البحث في النقاشات'
+                                              Button, 0x10687f480, {{16.0, 116.7}, {44.0, 44.0}}, identifier: 'feed-options', label: 'خيارات الرئيسية'
+                                                Button, 0x10687f840, {{16.0, 116.7}, {44.0, 44.0}}
+                                                  Image, 0x10687fac0, {{16.0, 116.7}, {44.0, 44.0}}, identifier: 'ellipsis', label: 'خيارات الرئيسية'
+                                            ScrollView, 0x10687fc00, {{0.0, 0.0}, {466.0, 678.0}}, identifier: 'feed-compact'
+                                              Other, 0x10687f980, {{0.0, 166.7}, {466.0, 2774.0}}
+                                                Other, 0x10687fd40, {{0.0, 170.7}, {362.0, 1373.0}}
+                                                  Button, 0x10687fe80, {{29.3, 170.7}, {332.7, 44.0}}, identifier: 'topic-category-6', label: 'Open community Repairs, in Electronics'
+                                                    StaticText, 0x10687c640, {{29.3, 170.7}, {332.7, 44.0}}, label: 'Electronics › Repairs'
+                                                    Image, 0x10687c780, {{343.8, 184.5}, {16.4, 16.4}}, identifier: 'wrench.and.screwdriver', label: 'مفتاح ربط ومفك براغي متقاطعان'
+                                                  Button, 0x103a970c0, {{20.0, 210.7}, {342.0, 400.7}}, identifier: 'topic-9101', label: 'Adaptive discussion 01, in Repairs, Electronics, started by devon, No replies yet, active 2 minutes ago'
+                                                    StaticText, 0x103a97480, {{20.0, 210.7}, {253.7, 104.7}}, label: 'Adaptive discussion 01'
+                                                    StaticText, 0x103a97700, {{20.0, 319.3}, {309.0, 142.0}}, label: 'Fictional discussion for native search recovery checks.'
+                                                    StaticText, 0x103a97840, {{117.7, 471.3}, {244.3, 44.0}}, label: 'Started by devon'
+                                                    StaticText, 0x103a97340, {{132.0, 519.3}, {226.7, 44.0}}, label: 'No replies yet'
+                                                    Image, 0x103a97c00, {{330.3, 528.0}, {28.3, 26.7}}, identifier: 'bubble.left', label: 'تعليق على اليسار'
+                                                    StaticText, 0x103a952c0, {{159.7, 567.3}, {202.3, 44.0}}, label: 'Active 2m ago'
+                                                  Button, 0x103a95400, {{29.3, 629.7}, {332.7, 44.0}}, identifier: 'topic-category-6', label: 'Open community Repairs, in Electronics'
+                                                    StaticText, 0x103a97980, {{29.3, 629.7}, {332.7, 44.0}}, label: 'Electronics › Repairs'
+                                                    Image, 0x107a20000, {{343.8, 643.5}, {16.4, 16.4}}, identifier: 'wrench.and.screwdriver', label: 'مفتاح ربط ومفك براغي متقاطعان'
+                                                  Other, 0x107a20140, {{0.0, 625.3}, {362.0, 0.3}}
+                                                  Button, 0x107a20280, {{20.0, 669.7}, {342.0, 400.7}}, identifier: 'topic-9102', label: 'Adaptive discussion 02, in Repairs, Electronics, started by devon, No replies yet, active 2 minutes ago'
+                                                    StaticText, 0x107a203c0, {{20.0, 669.7}, {258.7, 104.7}}, label: 'Adaptive discussion 02'
+                                                    StaticText, 0x107a20500, {{20.0, 778.3}, {309.0, 142.0}}, label: 'Fictional discussion for native search recovery checks.'
+                                                    StaticText, 0x107a20640, {{117.7, 930.3}, {244.3, 44.0}}, label: 'Started by devon'
+                                                    StaticText, 0x107a20780, {{132.0, 978.3}, {226.7, 44.0}}, label: 'No replies yet'
+                                                    Image, 0x107a208c0, {{330.3, 987.0}, {28.3, 26.7}}, identifier: 'bubble.left', label: 'تعليق على اليسار'
+                                                    StaticText, 0x107a20a00, {{159.7, 1026.3}, {202.3, 44.0}}, label: 'Active 2m ago'
+                                                  Button, 0x107a20b40, {{29.3, 1088.7}, {332.7, 44.0}}, identifier: 'topic-category-6', label: 'Open community Repairs, in Electronics'
+                                                    StaticText, 0x107a20c80, {{29.3, 1088.7}, {332.7, 44.0}}, label: 'Electronics › Repairs'
+                                                    Image, 0x107a20dc0, {{343.8, 1102.5}, {16.4, 16.4}}, identifier: 'wrench.and.screwdriver', label: 'مفتاح ربط ومفك براغي متقاطعان'
+                                                  Other, 0x107a20f00, {{0.0, 1084.3}, {362.0, 0.3}}
+                                                  Button, 0x107a21040, {{20.0, 1128.7}, {342.0, 400.7}}, identifier: 'topic-9103', label: 'Adaptive discussion 03, in Repairs, Electronics, started by devon, No replies yet, active 2 minutes ago'
+                                                    StaticText, 0x107a21180, {{20.0, 1128.7}, {260.0, 104.7}}, label: 'Adaptive discussion 03'
+                                                    StaticText, 0x107a212c0, {{20.0, 1237.3}, {309.0, 142.0}}, label: 'Fictional discussion for native search recovery checks.'
+                                                    StaticText, 0x107a21400, {{117.7, 1389.3}, {244.3, 44.0}}, label: 'Started by devon'
+                                                    StaticText, 0x107a21540, {{132.0, 1437.3}, {226.7, 44.0}}, label: 'No replies yet'
+                                                    Image, 0x107a21680, {{330.3, 1446.0}, {28.3, 26.7}}, identifier: 'bubble.left', label: 'تعليق على اليسار'
+                                                    StaticText, 0x107a217c0, {{159.7, 1485.3}, {202.3, 44.0}}, label: 'Active 2m ago'
+                                                  Other, 0x107a21900, {{0.0, 1543.3}, {362.0, 0.3}}
+                                              Other, 0x107a21a40, {{-24.0, 8.0}, {30.0, 662.0}}, label: 'Vertical scroll bar, 6 pages', value: 0%
+                                                Other, 0x107a21b80, {{3.0, 61.0}, {3.0, 138.0}}
+                                              Other, 0x107a21cc0, {{-24.0, 8.0}, {30.0, 662.0}}, label: 'Vertical scroll bar, 6 pages', value: 0%
+                                                Other, 0x107a21e00, {{3.0, 61.0}, {3.0, 138.0}}
+                                    Toolbar, 0x107a21f40, {{0.0, 0.0}, {466.0, 678.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                                      Other, 0x107a22080, {{0.0, 0.0}, {466.0, 678.0}}
+                                Toolbar, 0x107a221c0, {{0.0, 0.0}, {466.0, 678.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                                  Other, 0x107a22300, {{0.0, 0.0}, {466.0, 678.0}}
+                            Other, 0x107a22440, {{0.0, 0.0}, {466.0, 678.0}}
+                              Other, 0x107a22580, {{0.0, 0.0}, {466.0, 678.0}}
+                          StaticText, 0x107a226c0, {{90.3, 590.7}, {201.3, 49.3}}, identifier: 'fixture-banner', label: 'محتوى مجتمعي تجريبي. هذه معاينة.'
+                Other, 0x107a22800, {{0.0, 0.0}, {466.0, 678.0}}
+                  Toolbar, 0x107a22940, {{0.0, 0.0}, {466.0, 678.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                    Other, 0x107a22a80, {{0.0, 0.0}, {466.0, 678.0}}
+                      Other, 0x107a22bc0, {{0.0, 0.0}, {466.0, 678.0}}
+                        Other, 0x107a22d00, {{0.0, 0.0}, {466.0, 678.0}}
+                          Other, 0x107a22e40, {{0.0, 0.0}, {0.0, 0.0}}
+                            Other, 0x107a22f80, {{394.0, 442.0}, {48.0, 212.0}}
+                              Other, 0x107a230c0, {{394.0, 442.0}, {48.0, 212.0}}
+                                Other, 0x107a23200, {{394.0, 442.0}, {48.0, 212.0}}
+                                  Other, 0x107a23340, {{394.0, 442.0}, {48.0, 212.0}}
+                                    Other, 0x107a23480, {{394.0, 442.0}, {48.0, 212.0}}
+                                      Other, 0x107a235c0, {{394.0, 442.0}, {48.0, 212.0}}
+                                        Other, 0x107a23700, {{396.0, 444.0}, {44.0, 58.0}}
+                                          Other, 0x107a23840, {{396.0, 444.0}, {44.0, 58.0}}
+                                            Other, 0x107a23980, {{396.0, 444.0}, {44.0, 58.0}}
+                                            Other, 0x107a23ac0, {{396.0, 444.0}, {44.0, 58.0}}
+                                              Other, 0x107a23c00, {{396.0, 444.0}, {44.0, 58.0}}
+                                                Other, 0x107a23d40, {{396.0, 444.0}, {44.0, 58.0}}
+                                                  Other, 0x107a23e80, {{396.0, 444.0}, {44.0, 58.0}}
+                                                Other, 0x107a24000, {{396.0, 444.0}, {44.0, 58.0}}
+                                              Other, 0x107a24140, {{396.0, 444.0}, {44.0, 58.0}}
+                                        Other, 0x107a24280, {{394.0, 442.0}, {44.0, 58.0}}
+                                        Other, 0x107a243c0, {{394.0, 442.0}, {48.0, 212.0}}
+                                          Button, 0x107a24500, {{396.0, 444.0}, {44.0, 58.0}}, label: 'الرئيسية', Selected
+                                            Image, 0x107a24640, {{401.3, 459.0}, {33.3, 28.0}}, identifier: 'house.fill', label: 'home'
+                                          Button, 0x107a24780, {{396.0, 494.0}, {44.0, 58.0}}, label: 'المجتمعات'
+                                            Image, 0x107a248c0, {{404.7, 510.3}, {27.0, 25.0}}, identifier: 'square.grid.2x2.fill', label: 'grid 2x2'
+                                          Button, 0x107a24a00, {{396.0, 544.0}, {44.0, 58.0}}, label: 'الإشعارات', value: 2 items
+                                            Image, 0x107a24b40, {{405.0, 559.0}, {26.3, 28.0}}, identifier: 'bell.fill', label: 'notifications'
+                                          Button, 0x107a24c80, {{396.0, 594.0}, {44.0, 58.0}}, label: 'أنا'
+                                            Image, 0x107a24dc0, {{404.3, 609.3}, {27.3, 27.3}}, identifier: 'person.crop.circle.fill', label: 'account'
+                                        Other, 0x107a24f00, {{394.0, 442.0}, {48.0, 212.0}}
+                                        Other, 0x107a25040, {{394.0, 442.0}, {48.0, 212.0}}
+                                          Other, 0x107a25180, {{394.0, 442.0}, {48.0, 212.0}}
+                                            Other, 0x107a252c0, {{394.0, 442.0}, {48.0, 212.0}}
+                                              Other, 0x107a25400, {{394.0, 442.0}, {48.0, 212.0}}
+                                                Other, 0x107a25540, {{394.0, 442.0}, {48.0, 212.0}}
+                                              Other, 0x107a25680, {{394.0, 442.0}, {48.0, 212.0}}
+Path to element:
+ →Application, 0x10687cdc0, pid: 40039, label: 'Fomio'
+Query chain:
+ →Find: Target Application 'com.fomio.mobile'
+  Output: {
+    Application, 0x107a257c0, pid: 40039, label: 'Fomio'
+  }

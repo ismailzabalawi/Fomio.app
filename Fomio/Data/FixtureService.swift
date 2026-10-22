@@ -12,6 +12,28 @@ import Observation
     var feedDelay: Duration = .zero
     /// Development-only: the next "load more" page fails once, then succeeds on retry.
     var failNextPage = false
+    /// Fictional catalog failure; manual Retry loads the normal fixture hierarchy.
+    var failNextCommunityLoad = false
+    /// Exercise a readable C08 category that is absent from the directory snapshot.
+    var omittedCommunityIDs: Set<CategoryID> = []
+    var searchFailurePages: Set<Int> = []
+    var searchDeniedPages: Set<Int> = []
+    /// Development-only: fail page 1 once after this same query/scope has succeeded.
+    var searchRefreshFailure = false
+    private struct SearchKey: Hashable { var query: String; var scope: BrowseScope }
+    @ObservationIgnored private var successfulSearchKeys: Set<SearchKey> = []
+    func prepareAdaptiveSearchPreview() {
+        guard let template = summaries.first, let opening = posts[template.id]?.first(where: { $0.number.rawValue == 1 }) else { return }
+        var examples: [DiscussionSummary] = []
+        for index in 1...12 {
+            var summary = template; summary.id = .init(9100 + index); summary.title = String(format: "Adaptive discussion %02d", index)
+            summary.excerpt = "Fictional discussion for native search recovery checks."; summary.image = nil; summary.imageURL = nil
+            var post = opening; post.id = .init(910000 + index); post.topicID = summary.id; post.body = summary.excerpt; post.cooked = nil
+            summary.targetPostNumber = nil; summary.replyCount = 0
+            examples.append(summary); posts[summary.id] = [post]
+        }
+        summaries = examples + summaries
+    }
     var uploadStep: Duration = .milliseconds(100)
     var bookmarks: [PostID: Int] = [PostID(418201): 1, PostID(419014): 2]
     /// Fictional notification rows; see `NotificationFixture`.
@@ -175,9 +197,10 @@ import Observation
     /// Fictional topic-card edge cases (`--card-cases`): pinned with no replies, Arabic, absent author/excerpt/activity,
     /// failed media and a long title with a photo. They have no discussion posts, so opening one shows the unavailable state.
     func addCardCases() {
-        // A refused loopback HTTPS connection fails deterministically without leaving the device. A missing `file:` URL
-        // stays in AsyncImage's loading phase on iOS 27, so it no longer exercised the failure fallback.
-        let missingMedia = URL(string: "https://127.0.0.1:9/fomio-fixture/missing-thumbnail.jpg")!
+        // A broken remote image, as the live adapter would produce: https passes PublicMedia, and the
+        // reserved .invalid domain (RFC 6761) never resolves, so the load fails promptly. A file URL
+        // never reached AsyncImage's failure phase and left the card loading indefinitely.
+        let missingMedia = URL(string: "https://fomio-fixture.invalid/missing-thumbnail.jpg")!
         let cases: [DiscussionSummary] = [
             .init(id: .init(5001), title: "Read first: how photos and measurements help a repair question", slug: "card-pinned", categoryID: .init(5), excerpt: "Include the model, what changed and a clear photo of the bench setup.", author: "devon", replyCount: 0, activity: "3h", pinned: true),
             .init(id: .init(5002), title: "ما أفضل طريقة لري شجرة تين في أصيص خلال الشتاء؟", slug: "card-arabic", categoryID: .init(8), excerpt: "الكراج عندي يبقى قرابة درجتين مئويتين. هل ألف الأصيص أم أدخله إلى البيت؟", author: "ines.r", replyCount: 3, activity: "40m"),
@@ -197,13 +220,21 @@ import Observation
     func check() throws { if offline { throw RepositoryError.offline } }
     func communities() async throws -> [Community] {
         try check()
-        return Self.sampleCommunities.map { community in
+        if failNextCommunityLoad { failNextCommunityLoad = false; throw RepositoryError.unavailable }
+        return Self.sampleCommunities.filter { !omittedCommunityIDs.contains($0.id) }.map { community in
             var value = community
-            guard community.parentID == nil, !community.restricted else { return value }
+            guard !community.restricted else { return value }
+            value.topicCount = summaries.filter { $0.categoryID == community.id }.count
+            guard community.parentID == nil else { return value }
             let family = [community.id] + Self.sampleCommunities.filter { $0.parentID == community.id }.map(\.id)
             if let latest = summaries.first(where: { family.contains($0.categoryID) }) { value.latest = LatestPreview(topicID: latest.id, title: latest.title, categoryID: latest.categoryID, activity: latest.activity) }
             return value
         }
+    }
+    func community(_ id: CategoryID) async throws -> Community {
+        try check()
+        guard let category = Self.sampleCommunities.first(where: { $0.id == id }), !category.restricted else { throw RepositoryError.unavailable }
+        return category
     }
     func feed(category: Community?, page: Int) async throws -> Page<DiscussionSummary> {
         try check()
@@ -261,17 +292,30 @@ import Observation
         else { let id = (bookmarks.values.max() ?? 0) + 1; bookmarks[post.id] = id; value.bookmarkID = id }
         return value
     }
-    /// Title matches open the discussion; otherwise the first matching post is the exact target.
-    func search(_ query: String, page: Int) async throws -> Page<DiscussionSummary> {
+    func searchSettings() async throws -> SearchSettings { try check(); return try .init(minimumTermLength: 3, locale: "en") }
+    func verifySearchViewer(username: String) async throws { try check(); guard username == Self.member else { throw RepositoryError.unauthorized } }
+    /// Fictional index uses the actual fixture post ID, including opening-post matches.
+    func search(_ request: DiscussionSearchRequest) async throws -> DiscussionSearchPage {
         try check()
-        let hits: [DiscussionSummary] = summaries.compactMap { summary in
-            if summary.title.localizedCaseInsensitiveContains(query) { return summary }
-            guard let post = posts[summary.id]?.first(where: { $0.body.localizedCaseInsensitiveContains(query) }) else { return nil }
-            var hit = summary; hit.excerpt = post.body
-            if post.number.rawValue > 1 { hit.targetPostNumber = post.number; hit.matchAuthor = post.author }
-            return hit
+        if searchFailurePages.remove(request.page) != nil { throw SearchFailure.serverSearch }
+        if searchDeniedPages.remove(request.page) != nil { throw SearchFailure.accessDenied }
+        let key = SearchKey(query: request.query, scope: request.scope)
+        if request.page == 1, searchRefreshFailure, successfulSearchKeys.contains(key) {
+            searchRefreshFailure = false
+            throw SearchFailure.serverSearch
         }
-        let result = paginate(hits, page: max(0, page - 1), size: 6); return Page(items: result.items, nextPage: result.nextPage.map { $0 + 1 })
+        let terms = request.query.replacingOccurrences(of: "\"", with: "").split(whereSeparator: \.isWhitespace).map(String.init)
+        let hits: [DiscussionSearchHit] = summaries.compactMap { summary in
+            guard request.allowedCategoryIDs?.contains(summary.categoryID) != false,
+                  Self.sampleCommunities.first(where: { $0.id == summary.categoryID })?.restricted != true else { return nil }
+            let titleMatches = terms.allSatisfy { summary.title.localizedCaseInsensitiveContains($0) }
+            guard let post = posts[summary.id]?.first(where: { post in titleMatches ? post.number.rawValue == 1 : terms.allSatisfy { post.body.localizedCaseInsensitiveContains($0) } }) else { return nil }
+            var hit = summary; hit.excerpt = post.body; hit.targetPostNumber = post.number; hit.matchAuthor = post.author
+            return DiscussionSearchHit(id: post.id, discussion: hit, number: post.number)
+        }
+        let result = paginate(hits, page: request.page - 1, size: 6)
+        if request.page == 1 { successfulSearchKeys.insert(key) }
+        return DiscussionSearchPage(items: result.items, nextPage: result.nextPage.flatMap { $0 < 10 ? $0 + 1 : nil }, reachedLimit: request.page == 10 && result.nextPage != nil)
     }
     func notificationHistory(offset: Int, limit: Int, filter: NotificationFilter) async throws -> NotificationHistoryPage {
         try check()

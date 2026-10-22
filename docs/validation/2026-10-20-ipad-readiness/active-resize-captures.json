@@ -1,0 +1,13 @@
+{
+  "resultBundle": "test_sim_2026-10-20T20-25-28-224Z_pid87845_61f3c2af.xcresult",
+  "device": "iPad mini (A17 Pro)",
+  "os": "iPadOS 26.0",
+  "content": "isolated fictional fixtures",
+  "captures": [
+    {
+      "file": "ipad-resized-reply-focus.png",
+      "sourceAttachment": "3447FFD1-1080-49EF-9232-FA0AD8A2FB55.png",
+      "sha256": "992ade59fbca475f8f4edd42da918a8460da13f9cfbda9d81d8db3098db11c57"
+    }
+  ]
+}

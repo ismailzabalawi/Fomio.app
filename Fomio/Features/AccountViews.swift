@@ -259,7 +259,7 @@ struct DraftsView: View {
         }.navigationTitle("Drafts").task(id: app.draftsRevision) { reload(); await loadTitles() }
         .alert("Discard this draft?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } })) {
             Button("Cancel", role: .cancel) { deleting = nil }
-            Button("Discard", role: .destructive) { if let deleting { do { try app.draftStore.delete(deleting.id); reload(); app.toast("Draft discarded") } catch { self.error = error.localizedDescription } }; deleting = nil }
+            Button("Discard", role: .destructive) { if let deleting { do { try app.discardDraft(deleting); reload(); app.toast("Draft discarded") } catch { self.error = error.localizedDescription } }; deleting = nil }
         } message: { Text(deleting?.submission == .editing ? "This can’t be undone." : "This can’t be undone. It removes the local record only, not a post the community already received.") }
     }
     private func kind(_ draft: Draft) -> String {
@@ -312,56 +312,19 @@ struct SavedView: View {
         do { let result = try await app.service.saved(username: username, page: page); items += result.items.filter { item in !items.contains { $0.id == item.id } }; nextPage = result.nextPage; error = nil; loaded = true } catch { self.error = error.localizedDescription }
     }
 }
-struct SearchView: View {
-    @Environment(AppState.self) private var app
-    @Bindable var state: TabState
-    @FocusState private var searchFocused: Bool
-    @State private var loading = false
-    @State private var error: String?
-    var body: some View {
-        ScrollView {
-            ReadingColumn {
-                LazyVStack(alignment: .leading, spacing: 0) {
-                    if let error { ScreenMessage(title: "Search unavailable", message: error, action: { Task { await search(reset: true) } }) }
-                    else if state.searchCompletedQuery == nil && !loading {
-                        Text("Search discussion titles and posts across the communities you can see.").font(.subheadline).foregroundStyle(Color.fomioSecondaryText).padding(20)
-                    } else if let query = state.searchCompletedQuery, state.searchResults.isEmpty && !loading {
-                        InfoCard(title: "No results for “\(query)”", message: "Check the spelling or try fewer words.").padding(20)
-                    }
-                    if !state.searchResults.isEmpty { SectionLabel("Discussions").padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 4) }
-                    ForEach(state.searchResults.filter { !app.isBlocked($0.matchAuthor ?? $0.author) }) { result in SearchResultRow(result: result, query: state.searchCompletedQuery ?? "").id(result.id) }
-                    if loading { ProgressView().frame(maxWidth: .infinity).padding(30).accessibilityLabel("Searching") }
-                    if state.searchNextPage != nil && !loading { Button("More results") { Task { await search(reset: false) } }.frame(maxWidth: .infinity, minHeight: 44) }
-                }.scrollTargetLayout().padding(.bottom, 20)
-            }
-        }.scrollDismissesKeyboard(.interactively).scrollPosition(id: $state.searchAnchor).background(Color.fomioBackground).navigationTitle("Search").navigationBarTitleDisplayMode(.inline)
-        .searchable(text: $state.searchQuery, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search discussions")
-        .searchFocused($searchFocused)
-        .onSubmit(of: .search) { searchFocused = false }
-        .onDisappear { searchFocused = false }
-        .task(id: state.searchQuery) { do { try await Task.sleep(for: .milliseconds(350)); try Task.checkCancellation(); if state.searchCompletedQuery != state.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines) { await search(reset: true) } } catch {} }
-    }
-    private func search(reset: Bool) async {
-        let query = state.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        if query.count < 2 { state.searchResults = []; state.searchCompletedQuery = nil; state.searchNextPage = nil; error = nil; return }
-        let requestQuery = query
-        loading = true; defer { loading = false }
-        do { let result = try await app.service.search(query, page: reset ? 1 : state.searchNextPage ?? 1); guard !Task.isCancelled, state.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines) == requestQuery else { return }; state.searchResults = reset ? result.items : state.searchResults + result.items.filter { item in !state.searchResults.contains { $0.id == item.id } }; state.searchNextPage = result.nextPage; error = nil; state.searchCompletedQuery = requestQuery }
-        catch is CancellationError {} catch { self.error = error.localizedDescription }
-    }
-}
 /// A match inside a reply opens that exact post; the label says where the match is.
 struct SearchResultRow: View {
     @Environment(AppState.self) private var app
+    @Environment(\.dynamicTypeSize) private var textSize
     let result: DiscussionSummary
     let query: String
     private var inReply: Bool { (result.targetPostNumber?.rawValue ?? 1) > 1 }
     var body: some View {
-        Button { app.navigate(.discussion(result.id, inReply ? result.targetPostNumber : nil), focus: inReply ? .search : nil) } label: {
+        Button { app.navigate(.discussion(result.id, result.targetPostNumber), focus: .search) } label: {
             VStack(alignment: .leading, spacing: 4) {
                 Text(app.categoryName(result.categoryID)).font(.footnote.weight(.semibold)).foregroundStyle(Color.fomioAccent)
-                Text(result.title).font(.body.weight(.semibold)).foregroundStyle(.primary).multilineTextAlignment(.leading)
-                if !result.excerpt.isEmpty { Text(snippet).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).lineLimit(3).multilineTextAlignment(.leading) }
+                Text(result.title).font(.body.weight(.semibold)).foregroundStyle(.primary).multilineTextAlignment(.leading).environment(\.layoutDirection, result.title.naturalDirection)
+                if !result.excerpt.isEmpty { Text(snippet).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).lineLimit(textSize.isAccessibilitySize ? nil : 3).multilineTextAlignment(.leading).environment(\.layoutDirection, result.excerpt.naturalDirection) }
                 Text(inReply ? "Reply #\(result.targetPostNumber!.rawValue)\((result.matchAuthor ?? result.author).isEmpty ? "" : " by \(result.matchAuthor ?? result.author)")" : "Opening post\(result.author.isEmpty ? "" : " by \(result.author)")")
                     .font(.footnote).foregroundStyle(Color.fomioSecondaryText)
             }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 20).padding(.vertical, 12).contentShape(.rect)

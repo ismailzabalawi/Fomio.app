@@ -1,14 +1,28 @@
 import Foundation
 
 @MainActor protocol FeedRepository { func feed(category: Community?, page: Int) async throws -> Page<DiscussionSummary> }
-@MainActor protocol CommunityRepository { func communities() async throws -> [Community]; func siteTheme() async throws -> SiteTheme }
+@MainActor protocol CommunityRepository {
+    func communities() async throws -> [Community]
+    func community(_ id: CategoryID) async throws -> Community
+    func siteTheme() async throws -> SiteTheme
+}
+extension CommunityRepository { func community(_ id: CategoryID) async throws -> Community { throw RepositoryError.unavailable } }
 @MainActor protocol DiscussionRepository {
     func discussion(_ id: TopicID, page: Int) async throws -> DiscussionPage
     func children(topic: TopicID, parent: PostNumber, page: Int, depth: Int) async throws -> ChildPage
     func context(topic: TopicID, number: PostNumber, focused: Bool) async throws -> ThreadContext
     func like(_ post: Post) async throws -> Post
 }
-@MainActor protocol SearchRepository { func search(_ query: String, page: Int) async throws -> Page<DiscussionSummary> }
+@MainActor protocol SearchRepository {
+    func searchSettings() async throws -> SearchSettings
+    func search(_ request: DiscussionSearchRequest) async throws -> DiscussionSearchPage
+    func verifySearchViewer(username: String) async throws
+}
+extension SearchRepository {
+    func searchSettings() async throws -> SearchSettings { throw SearchFailure.settings }
+    func search(_ request: DiscussionSearchRequest) async throws -> DiscussionSearchPage { throw SearchFailure.contract }
+    func verifySearchViewer(username: String) async throws { throw RepositoryError.unauthorized }
+}
 @MainActor protocol NotificationRepository {
     /// History contract: raw `offset`/`limit` window with an optional server read filter. No type filtering.
     func notificationHistory(offset: Int, limit: Int, filter: NotificationFilter) async throws -> NotificationHistoryPage
@@ -63,7 +77,10 @@ extension SafetyRepository {
     func report(post: Post, reason: Int, message: String) async throws { throw RepositoryError.denied }
     func setIgnored(username: String, ignored: Bool) async throws -> SafetySession { throw RepositoryError.denied }
 }
-@MainActor protocol CommunityService: FeedRepository, CommunityRepository, DiscussionRepository, SearchRepository, NotificationRepository, ProfileRepository, BookmarkRepository, PostingRepository, UploadRepository, ComposerRepository, AccountRepository, SafetyRepository {}
+@MainActor protocol CommunityService: FeedRepository, CommunityRepository, DiscussionRepository, SearchRepository, NotificationRepository, ProfileRepository, BookmarkRepository, PostingRepository, UploadRepository, ComposerRepository, AccountRepository, SafetyRepository {
+    func invalidateViewerCaches()
+}
+extension CommunityService { func invalidateViewerCaches() {} }
 
 struct ComposerCapabilities: Equatable, Sendable {
     var blocks: Set<ComposerBlockKind> = [.table, .code]

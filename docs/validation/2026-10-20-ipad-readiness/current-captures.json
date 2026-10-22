@@ -1,0 +1,49 @@
+{
+  "device": "iPad mini (A17 Pro)",
+  "os": "iPadOS 26.0",
+  "content": "isolated fictional fixtures",
+  "captures": [
+    {
+      "file": "current-narrow-reading.png",
+      "sourceAttachment": "5C652F2B-D07E-4B65-97B3-143D94EC06D5.png",
+      "resultBundle": "test_sim_2026-10-21T03-44-16-328Z_pid87845_475a35a6.xcresult",
+      "sha256": "4af9a8acdcc38e1b1fcbf9ad9591af8454ea535af95635b3088e2ec8cebd97cf"
+    },
+    {
+      "file": "current-rtl-chooser.png",
+      "sourceAttachment": "263F5AE6-BDB7-429C-9744-9865BDD9E68D.png",
+      "resultBundle": "test_sim_2026-10-21T03-44-16-328Z_pid87845_475a35a6.xcresult",
+      "sha256": "1b351dd1aa6a48c7667e903b13a3a0b661b0fe93addc1d4f5bb74e2e5e24b9e7"
+    },
+    {
+      "file": "current-independent-window.png",
+      "sourceAttachment": "DABC1CAF-7BFD-46B7-BD4E-B743A44C33B1.png",
+      "resultBundle": "test_sim_2026-10-21T03-44-16-328Z_pid87845_475a35a6.xcresult",
+      "sha256": "dc16c8d87d5371cd42953409e46d14277e5085a486950ff402849a8faa8322f9"
+    },
+    {
+      "file": "current-windows-hierarchy.txt",
+      "sourceAttachment": "B140900B-2D01-47F5-924C-F82D42BDE443.txt",
+      "resultBundle": "test_sim_2026-10-21T03-44-16-328Z_pid87845_475a35a6.xcresult",
+      "sha256": "ec3125cfbb6ed0a1e822cbbb4633b71d6e35f3b89bfa0dfa84d85cdaee96bbc4"
+    },
+    {
+      "file": "current-sidebar-return.png",
+      "sourceAttachment": "A3EB9D0A-4806-4DB3-9856-44CC8B0F01A1.png",
+      "resultBundle": "test_sim_2026-10-21T03-44-16-328Z_pid87845_475a35a6.xcresult",
+      "sha256": "8e236cefc8ceb60f6cf1001d6f505975efe706ab735139f00daa58474d4e9d71"
+    },
+    {
+      "file": "current-resized-reply-focus.png",
+      "sourceAttachment": "31073756-29B7-442F-AC88-F830A61FF1F9.png",
+      "resultBundle": "test_sim_2026-10-21T03-50-51-392Z_pid87845_1572f0d8.xcresult",
+      "sha256": "244f8bb215b94a84e932b6773d1c35c516e0ea3d6c124846e008756cdcdab33a"
+    },
+    {
+      "file": "current-resized-chooser.png",
+      "sourceAttachment": "F0A72547-409E-4757-9284-CA9EF188F77C.png",
+      "resultBundle": "test_sim_2026-10-21T03-50-51-392Z_pid87845_1572f0d8.xcresult",
+      "sha256": "7044338445944ea9abc53978a6e0368591755d5e2ea2702b1d13db356dc3c617"
+    }
+  ]
+}

@@ -202,27 +202,29 @@ struct TopicMedia: View {
         switch source {
         case let .asset(name): framed(Image(name).resizable().scaledToFill())
         case let .remote(url):
-            // An explicit request instead of AsyncImage: on iOS 27 AsyncImage stayed in its loading phase for failed
-            // URLs (missing file, refused connection), so the card never fell back to text. Public media only; the
-            // shared session never carries user keys.
             Group {
                 if let loaded { framed(Image(uiImage: loaded).resizable().scaledToFill()) }
                 else { framed(Color.fomioFill).accessibilityLabel("Loading image") }
             }
-            .task(id: url) {
-                guard loaded == nil else { return }
-                do {
-                    let (data, response) = try await URLSession.shared.data(for: URLRequest(url: url, timeoutInterval: 20))
-                    if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) { failed = true; return }
-                    guard let image = UIImage(data: data) else { failed = true; return }
-                    loaded = image
-                } catch {
-                    // Scrolling a lazy card away cancels the request; only a real failure removes the slot.
-                    if Task.isCancelled || (error as? URLError)?.code == .cancelled || error is CancellationError { return }
-                    failed = true
-                }
-            }
+            .task(id: url) { await load(url) }
         }
+    }
+    /// AsyncImage stays in its empty phase when a host can't be reached, so a broken image never fell back
+    /// to text. A plain request reports errors, non-success statuses and undecodable data as failure.
+    private func load(_ url: URL) async {
+        loaded = nil
+        var request = URLRequest(url: url); request.timeoutInterval = 15
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) { throw URLError(.badServerResponse) }
+            let image = await Task.detached(priority: .utility) { UIImage(data: data)?.preparingForDisplay() }.value
+            guard let image else { throw URLError(.cannotDecodeContentData) }
+            try Task.checkCancellation()
+            loaded = image
+        } catch is CancellationError {
+            // A recycled row cancels its load; that is not a failed image.
+        } catch let error as URLError where error.code == .cancelled {
+        } catch { failed = true }
     }
     @ViewBuilder private func framed(_ content: some View) -> some View {
         switch style {
