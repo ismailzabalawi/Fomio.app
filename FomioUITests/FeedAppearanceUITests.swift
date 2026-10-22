@@ -125,6 +125,22 @@ import XCTest
         }
     }
 
+    /// Communities arriving after the first feed render must not grow rows or move the reading position.
+    func testRowsKeepHeightWhenCommunitiesArriveLate() {
+        for value in ["Compact", "Cards"] {
+            let app = launch(["--slow-communities", "--keep-preferences", "-feedAppearance", value.lowercased()])
+            XCTAssertTrue(app.scrollViews["feed-\(value.lowercased())"].exists)
+            XCTAssertFalse(app.buttons["topic-category-5"].exists, "\(value): communities are still loading")
+            let rows = ["topic-5001", "topic-4190", "topic-5002"].map { app.buttons[$0] }.filter(\.exists)
+            XCTAssertGreaterThanOrEqual(rows.count, 2)
+            let before = rows.map(\.frame.minY)
+            XCTAssertTrue(app.buttons["topic-category-5"].waitForExistence(timeout: 10), "\(value): community line appears")
+            for (row, y) in zip(rows, before) { XCTAssertLessThan(abs(row.frame.minY - y), 1, "\(value): \(row.identifier) did not move") }
+            capture(app, "\(value): communities arrived late")
+            app.terminate()
+        }
+    }
+
     func testDarkAccessibilityTextAndRightToLeftCaptures() {
         for (name, arguments) in [("Dark AX3", ["--dark", "--accessibility-text"]), ("Arabic RTL", ["--language", "ar", "-AppleLanguages", "(ar)", "-AppleLocale", "ar_JO", "--rtl"]), ("Teal dark", ["--dark", "--teal-theme"])] {
             let app = launch(arguments)

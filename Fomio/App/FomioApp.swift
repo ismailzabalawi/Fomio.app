@@ -39,6 +39,7 @@ import SwiftUI
             fixture.failNextPage = arguments.contains("--feed-more-fails")
             if arguments.contains("--card-cases") { fixture.addCardCases() }
             fixture.failFirstFeed = arguments.contains("--feed-fails-once")
+            if arguments.contains("--slow-communities") { fixture.communitiesDelay = .seconds(4) }
             if arguments.contains("--media-recovery"), let photo = Bundle.main.url(forResource: "fixture-photo", withExtension: "jpg") {
                 URLProtocol.registerClass(FixtureMediaURLProtocol.self)
                 fixture.enableMediaRecovery(photo: photo)
