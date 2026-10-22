@@ -10,6 +10,8 @@ import Observation
     var nestedEnabled = true
     /// Development-only latency for showing the loading state.
     var feedDelay: Duration = .zero
+    /// Development-only (`--slow-communities`): communities arrive this long after the first feed request, as on a slow cold start.
+    var communitiesDelay: Duration = .zero
     /// Development-only: the next "load more" page fails once, then succeeds on retry.
     var failNextPage = false
     /// Development-only (`--feed-fails-once`): the first feed request fails with an app-authored error.
@@ -177,6 +179,10 @@ import Observation
     func check() throws { if offline { throw RepositoryError.offline } }
     func communities() async throws -> [Community] {
         try check()
+        if communitiesDelay > .zero {
+            while feedRequests == 0 { try await Task.sleep(for: .milliseconds(50)) }
+            try await Task.sleep(for: communitiesDelay)
+        }
         return Self.sampleCommunities.map { community in
             var value = community
             guard community.parentID == nil, !community.restricted else { return value }

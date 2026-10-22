@@ -94,10 +94,13 @@ struct TopicCard: View {
 
     @ViewBuilder private var header: some View {
         let label = showCategory ? category : nil
-        if label != nil || topic.pinned {
+        // Until communities first load, the category line keeps its height so rows do not grow when they arrive.
+        let reserved = showCategory && label == nil && !app.communitiesLoaded && app.communityError == nil
+        if label != nil || reserved || topic.pinned {
             let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4)) : AnyLayout(HStackLayout(alignment: .center, spacing: 8))
             layout {
                 if let label { TopicCategoryLabel(category: label, parent: label.parentID.flatMap(app.category)) { onCategory(label.id) } }
+                else if reserved { TopicCategoryPlaceholder() }
                 if !stacked { Spacer(minLength: 0) }
                 if topic.pinned {
                     Label(L("topic.pinned"), systemImage: "pin.fill").labelStyle(CompactIconLabel())
@@ -179,6 +182,18 @@ struct TopicCategoryLabel: View {
         .buttonStyle(.plain).padding(.vertical, -10)
         .accessibilityLabel(parent.map { L("community.open_in", ["name": category.name, "parent": $0.name]) } ?? L("community.open", ["name": category.name]))
         .accessibilityIdentifier("topic-category-\(category.id.rawValue)")
+    }
+}
+
+/// Invisible stand-in with `TopicCategoryLabel`'s single-line metrics, shown while communities load.
+private struct TopicCategoryPlaceholder: View {
+    var body: some View {
+        HStack(alignment: .center, spacing: 6) {
+            Color.clear.frame(width: 20, height: 20)
+            Text(verbatim: " ").font(.footnote.weight(.semibold))
+        }
+        .frame(minHeight: 44, alignment: .leading).padding(.vertical, -10)
+        .hidden().accessibilityHidden(true)
     }
 }
 
