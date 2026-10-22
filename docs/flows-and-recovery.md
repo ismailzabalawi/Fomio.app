@@ -11,7 +11,7 @@ This records current native behavior and its limits as of 2026-10-03. Discourse 
 | Community | Shared parent/child feed screen; Create inherits the permitted category |
 | Discussion | Opening post, nested replies, contextual Reply/Quote/Like/Save/Share; independent roots and child pagination |
 | Search | Discussion search inside originating tab; query/results/pagination/anchor retained in that tab’s memory |
-| Notifications | Server history inbox (All/Unread read filter) retaining every type; exact, grouped and unsupported destinations; acknowledgment only after the destination is displayed. See “Notifications — 2026-10-18” below. |
+| Notifications | Server history inbox (All/Unread read filter) retaining every type; exact, grouped and unsupported destinations; acknowledgment only after the destination is displayed. With several iPad windows, the inbox and badge are shared and a tap opens in the most recently used window only; sign-out or a rejected key ends the session in every window. See “Notifications — 2026-10-18” below. |
 | Me/profile | Basic own/other-member profile and recent discussions; Saved, Drafts and sign-out |
 | Composer | New discussion, reply, quote or resume using a native rich projection, authoritative raw text, inline photos and block forms |
 

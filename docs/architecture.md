@@ -16,7 +16,7 @@ Search requests bypass HTTP cache reuse, and the URLSession delegate refuses the
 
 ```mermaid
 flowchart TD
-  App[FomioApp: select environment] --> Shared[AppWindows: identity, services, draft ownership]
+  App[FomioApp: select environment] --> Shared[AppWindows: identity, services, draft ownership, notifications]
   Shared --> State[AppState per window: navigation, composer]
   State --> Views[SwiftUI feature views]
   Views --> Feature[Observable feature state]
@@ -109,6 +109,21 @@ _Historical: build 0.8.0 (7) replaced this build 6 implementation; the sources n
 
 `Domain/Notifications.swift` defines `NotificationID` (distinct from topic/post IDs and post numbers), `NotificationKind` (known Discourse types plus `unknown(raw)`), the generic `NotificationItem` envelope, `NotificationResolver` (exact post, topic, grouped bucket, same-site website, unsupported), `NotificationCopy`, `NotificationHistoryPage` (raw-window `nextOffset`), `NotificationTotals` (server scope, 99 cap) and the typed `NotificationIntent`. `NotificationRepository` now exposes history, exact-ID mark-read and totals only; there is no bulk API.
 
-`Features/NotificationStore.swift` is an `@Observable` account-scoped store owned by `AppState`: per-filter feeds (ids, raw next offset, page error, empty-batch flag), rows by ID, acknowledgment states, totals, refresh status and the inbox anchor. A generation token discards results from a previous account; `reset(account:)` runs on sign-in changes and sign-out. `AppState.open(notification:)` resolves the destination, clears any cached state for that route and records the pending acknowledgment in the tab; `DiscussionView` calls `AppState.displayed(_:state:)` after a successful load, which acknowledges only when the exact target is present. Grouped focus (`FocusReason.groupedReplies`) makes `DiscussionState` expand the parent's replies.
+`Features/NotificationStore.swift` is an `@Observable` account-scoped store owned by `AppWindows` and shared by every window (a stand-alone `AppState` in unit tests owns its own): per-filter feeds (ids, raw next offset, page error, empty-batch flag), rows by ID, acknowledgment states, totals, refresh status and the inbox anchor. A generation token discards results from a previous account; `reset(account:)` runs on sign-in changes and sign-out. `AppState.open(notification:)` resolves the destination, clears any cached state for that route and records the pending acknowledgment in the tab; `DiscussionView` calls `AppState.displayed(_:state:)` after a successful load, which acknowledges only when the exact target is present. Grouped focus (`FocusReason.groupedReplies`) makes `DiscussionState` expand the parent's replies.
 
-`App/NotificationDevice.swift` separates `AlertPermissionProvider` (system or simulated) from `AlertEnrollmentService` (live: `UnavailableAlertEnrollment`; fixtures: simulated). `FomioAppDelegate` is the `UNUserNotificationCenterDelegate`; taps are parsed into intents and queued in `IncomingNotifications` until `AppState.receive(_:)` is attached after account restoration. Foreground delivery only triggers a refresh. No APNs registration, entitlement or relay client exists.
+`App/NotificationDevice.swift` separates `AlertPermissionProvider` (system or simulated) from `AlertEnrollmentService` (live: `UnavailableAlertEnrollment`; fixtures: simulated). `FomioAppDelegate` is the `UNUserNotificationCenterDelegate`; taps are parsed into intents and queued in `IncomingNotifications`. `AppWindows` installs the handler once and routes each tap to the window used most recently (the last to become key or active) that has finished restoring its account; a tap that arrives before any window is ready is held for the first one. Foreground delivery only triggers a refresh. No APNs registration, entitlement or relay client exists.
+
+### Notifications with several windows — 2026-10-22
+
+Merged with the iPad/Duo window model in `264c228`. One `NotificationStore`, one `NotificationDevice` and one duplicate-tap filter (`TapFilter`, ten seconds) live in `AppWindows`, so a read confirmed in one window updates rows, the Unread cursor and the badge in every window. Per window (`AppState`): the pending tap waiting for sign-in or the composer decision, read-on-display bookkeeping (`TabState.acknowledgments`), the composer guard and the website sheet.
+
+| Event | Shared (once) | Each window |
+|---|---|---|
+| Tap | Duplicate filter; target is the most recently used ready window | Site/account/key checks, composer guard, navigation |
+| Read on display | Exact-ID acknowledgment, rows, cursor, totals | Which route is waiting to acknowledge |
+| Sign-out | Store reset to guest, device alerts detached, duplicate filter and held taps cleared | Pending tap, composer decision, tabs (and their acknowledgments) reset |
+| Sign-in | Store rebound on an account change | Only the window that signed in opens the tap it held |
+| Rejected key on a tap | `expireAuthentication()` marks every window signed out | Only the tapped window asks to sign in |
+| Foreground / reconnect | 30-second throttle on the store; concurrent refreshes coalesce | — |
+
+Single-window behaviour is unchanged. A window that closes (`closeWindow`) stops receiving taps.
