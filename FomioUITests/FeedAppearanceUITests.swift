@@ -12,7 +12,7 @@ import XCTest
         openOptions(app)
         XCTAssertTrue(app.buttons["Compact"].waitForExistence(timeout: 5)); XCTAssertTrue(app.buttons["Compact"].isSelected); XCTAssertFalse(app.buttons["Cards"].isSelected)
         capture(app, "Home options menu, Compact selected")
-        app.buttons["Cards"].tap()
+        chooseAppearance(app, "Cards", open: { openOptions(app) })
         XCTAssertTrue(app.scrollViews["feed-cards"].waitForExistence(timeout: 5))
         capture(app, "Cards appearance")
         app.terminate()
@@ -21,7 +21,7 @@ import XCTest
         openOptions(app)
         XCTAssertTrue(app.buttons["Cards"].waitForExistence(timeout: 5)); XCTAssertTrue(app.buttons["Cards"].isSelected)
         capture(app, "Relaunched, Cards selected")
-        app.buttons["Compact"].tap()
+        chooseAppearance(app, "Compact", open: { openOptions(app) })
         XCTAssertTrue(app.scrollViews["feed-compact"].waitForExistence(timeout: 5))
         app.terminate()
         app = launch(keepPreferences: true)
@@ -154,8 +154,7 @@ import XCTest
     private func choose(_ app: XCUIApplication, _ title: String, label: String? = nil) {
         openOptions(app)
         let item = app.buttons[label ?? title]
-        XCTAssertTrue(item.waitForExistence(timeout: 5)); item.tap()
-        XCTAssertTrue(app.scrollViews["feed-\(title.lowercased())"].waitForExistence(timeout: 5))
+        chooseAppearance(app, title, label: label, open: { openOptions(app) })
         XCTAssertTrue(item.waitForNonExistence(timeout: 5))
         Thread.sleep(forTimeInterval: 0.4)
     }

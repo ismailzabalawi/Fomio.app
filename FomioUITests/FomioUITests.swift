@@ -6,7 +6,7 @@ import UIKit
         guard ProcessInfo.processInfo.environment["FOMIO_LIVE_UI_TESTS"] == "1" else { throw XCTSkip("Live UI reads require explicit opt-in") }
         let app = launch(["--live"])
         let communities = app.buttons["Communities"].firstMatch
-        XCTAssertTrue(communities.waitForExistence(timeout: 20)); communities.tap()
+        XCTAssertTrue(communities.waitForExistence(timeout: 20)); select(app, tab: "Communities")
         XCTAssertTrue(app.buttons["community-42"].waitForExistence(timeout: 20))
         XCTAssertTrue(app.buttons["community-11"].exists)
         for id in [34, 49, 50, 51, 52, 53] { XCTAssertFalse(app.buttons["community-\(id)"].exists) }
@@ -449,4 +449,33 @@ import UIKit
         if outcome == "expired" { XCTAssertFalse(app.buttons["composer-post"].isEnabled) }
     }
 
+}
+
+/// Taps on system Liquid Glass controls. iPad on iOS 26.0 (2026-10-22): a synthesized tap on the floating tab bar
+/// selected the tab and then snapped back to the previous one, and a tap on an open menu item left the menu open
+/// with nothing chosen; both at the controls' correct coordinates, with no app code involved.
+@MainActor extension XCTestCase {
+    func tab(_ app: XCUIApplication, _ label: String) -> XCUIElement { app.buttons.matching(identifier: label).firstMatch }
+    /// Taps a tab, then again while it is not selected. The first tap always happens, so tapping the current tab
+    /// still returns its stack to the root.
+    func select(_ app: XCUIApplication, tab label: String, file: StaticString = #filePath, line: UInt = #line) {
+        let item = tab(app, label)
+        for attempt in 0..<3 where attempt == 0 || !item.isSelected {
+            item.tap()
+            _ = XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "isSelected == true"), object: item)], timeout: 3)
+        }
+        XCTAssertTrue(item.isSelected, "\(label) tab selected", file: file, line: line)
+    }
+    /// Chooses a feed appearance, then again while it has not applied, reopening the options menu with `open` if
+    /// it closed. The first tap always happens, so choosing the current appearance still closes the menu.
+    /// `label` is the menu item's name when it differs from the appearance title.
+    func chooseAppearance(_ app: XCUIApplication, _ title: String, label: String? = nil, open: () -> Void, file: StaticString = #filePath, line: UInt = #line) {
+        let feed = app.scrollViews["feed-\(title.lowercased())"], item = app.buttons[label ?? title]
+        for attempt in 0..<3 where attempt == 0 || !feed.exists {
+            if !item.exists { open() }
+            XCTAssertTrue(item.waitForExistence(timeout: 5), file: file, line: line); item.tap()
+            _ = feed.waitForExistence(timeout: 5)
+        }
+        XCTAssertTrue(feed.waitForExistence(timeout: 5), "\(title) appearance applied", file: file, line: line)
+    }
 }

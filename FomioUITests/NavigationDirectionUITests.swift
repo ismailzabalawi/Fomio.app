@@ -18,10 +18,9 @@ import UIKit
     private func capture(_ app: XCUIApplication, _ name: String) {
         let shot = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); shot.name = name; shot.lifetime = .keepAlways; add(shot)
     }
-    private func tab(_ app: XCUIApplication, _ label: String) -> XCUIElement { app.buttons.matching(identifier: label).firstMatch }
     /// Me keeps its stack, so the Language screen may already be open from an earlier switch.
     private func chooseLanguage(_ app: XCUIApplication, me: String, code: String) {
-        tab(app, me).tap()
+        select(app, tab: me)
         let row = app.buttons["language-\(code)"]
         if !row.waitForExistence(timeout: 2) { app.buttons["me-language"].tap() }
         XCTAssertTrue(row.waitForExistence(timeout: 5)); row.tap()
@@ -98,7 +97,7 @@ import UIKit
         XCTAssertTrue(tab(switching, "الصفحة الرئيسية").waitForExistence(timeout: 10))
         verifyBack(switching, rightToLeft: true, homeTitle: "الصفحة الرئيسية", label: "Arabic iOS, Arabic")
         chooseLanguage(switching, me: "أنا", code: "en")
-        XCTAssertTrue(tab(switching, "Home").waitForExistence(timeout: 10)); tab(switching, "Home").tap()
+        XCTAssertTrue(tab(switching, "Home").waitForExistence(timeout: 10)); select(switching, tab: "Home")
         verifyBack(switching, rightToLeft: false, homeTitle: "Home", label: "Arabic iOS, after Arabic → English")
     }
 
@@ -113,10 +112,10 @@ import UIKit
         verifyBack(app, rightToLeft: true, homeTitle: "الصفحة الرئيسية", label: "English iOS, Arabic (cached cold launch)")
         // Switching to English (matched) and back to Arabic in the same session.
         chooseLanguage(app, me: "أنا", code: "en")
-        XCTAssertTrue(tab(app, "Home").waitForExistence(timeout: 10)); tab(app, "Home").tap()
+        XCTAssertTrue(tab(app, "Home").waitForExistence(timeout: 10)); select(app, tab: "Home")
         verifyBack(app, rightToLeft: false, homeTitle: "Home", label: "English iOS, English")
         chooseLanguage(app, me: "Me", code: "ar")
-        XCTAssertTrue(tab(app, "الصفحة الرئيسية").waitForExistence(timeout: 10)); tab(app, "الصفحة الرئيسية").tap()
+        XCTAssertTrue(tab(app, "الصفحة الرئيسية").waitForExistence(timeout: 10)); select(app, tab: "الصفحة الرئيسية")
         verifyBack(app, rightToLeft: true, homeTitle: "الصفحة الرئيسية", label: "English iOS, after English → Arabic")
     }
 }

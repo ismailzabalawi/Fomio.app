@@ -16,7 +16,6 @@ import XCTest
     private func capture(_ app: XCUIApplication, _ name: String) {
         let shot = XCTAttachment(screenshot: app.screenshot()); shot.name = name; shot.lifetime = .keepAlways; add(shot)
     }
-    private func tab(_ app: XCUIApplication, _ label: String) -> XCUIElement { app.buttons.matching(identifier: label).firstMatch }
     private func waitForArabic(_ app: XCUIApplication, timeout: TimeInterval = 10) {
         // Home is always on the first tab-bar page (large text paginates the iPad top tab bar).
         XCTAssertTrue(tab(app, "الصفحة الرئيسية").waitForExistence(timeout: timeout), "Arabic catalog did not activate")
@@ -44,14 +43,14 @@ import XCTest
         let home = tab(app, "Home"), me = tab(app, "Me")
         XCTAssertGreaterThan(me.frame.midX, home.frame.midX, "English tabs run left to right")
         // Leave state behind in two tabs: a pushed community and a pushed discussion with a kept reply draft.
-        tab(app, "Communities").tap(); app.buttons["community-4"].tap()
+        select(app, tab: "Communities"); app.buttons["community-4"].tap()
         XCTAssertTrue(app.buttons["community-about"].waitForExistence(timeout: 5))
-        home.tap(); app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
+        select(app, tab: "Home"); app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
         let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("Kept across languages")
         app.buttons["composer-close"].tap(); app.buttons["Keep draft"].tap()
         XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
 
-        me.tap(); app.buttons["me-language"].tap()
+        select(app, tab: "Me"); app.buttons["me-language"].tap()
         let arabic = app.buttons["language-ar"]; XCTAssertTrue(arabic.waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["language-en"].isSelected, "English is the default choice")
         XCTAssertFalse(app.buttons["language-system"].exists, "no implicit device-language row")
@@ -62,16 +61,16 @@ import XCTest
         assertRightToLeftTabs(app)
         capture(app, "Language screen after switching to Arabic")
 
-        tab(app, "المجتمعات").tap()
+        select(app, tab: "المجتمعات")
         XCTAssertTrue(app.buttons["community-about"].waitForExistence(timeout: 5), "community stack kept")
         XCTAssertTrue(app.buttons["community-about"].label.contains("نبذة"))
         capture(app, "Community feed kept after language change, Arabic")
-        tab(app, "الصفحة الرئيسية").tap()
+        select(app, tab: "الصفحة الرئيسية")
         XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5), "discussion stack kept")
         XCTAssertEqual(app.buttons["discussion-reply"].label.contains("الرد على"), true)
         capture(app, "Discussion kept after language change, Arabic RTL")
 
-        tab(app, "أنا").tap(); back(app)
+        select(app, tab: "أنا"); back(app)
         XCTAssertTrue(app.buttons["me-drafts"].waitForExistence(timeout: 5)); app.buttons["me-drafts"].tap()
         XCTAssertTrue(app.staticTexts["Kept across languages"].waitForExistence(timeout: 5), "draft survives the switch")
         capture(app, "Drafts, Arabic")
@@ -97,7 +96,7 @@ import XCTest
         XCTAssertTrue(tab(app, "Me").waitForExistence(timeout: 10))
         XCTAssertFalse(tab(app, "أنا").waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["Latest"].exists)
-        tab(app, "Me").tap(); app.buttons["me-language"].tap()
+        select(app, tab: "Me"); app.buttons["me-language"].tap()
         XCTAssertTrue(app.otherElements["language-pending"].waitForExistence(timeout: 5) || app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "hasn’t downloaded yet")).firstMatch.exists)
         capture(app, "Cold offline launch: English with Arabic pending")
     }
@@ -114,7 +113,7 @@ import XCTest
         app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", value)).firstMatch
     }
     private func openLanguage(_ app: XCUIApplication, me: String) {
-        tab(app, me).tap()
+        select(app, tab: me)
         let row = app.buttons["language-en"]
         if !row.waitForExistence(timeout: 2) { app.buttons["me-language"].tap() }
         XCTAssertTrue(row.waitForExistence(timeout: 5))
@@ -222,7 +221,7 @@ import XCTest
         XCTAssertGreaterThan(home.frame.midX, me.frame.midX, "right to left: Home on the right")
         XCTAssertTrue(app.buttons["language-he"].isSelected)
         capture(app, "Hebrew Language screen, mixed Hebrew and English")
-        home.tap()
+        select(app, tab: "בית")
         let topic = app.buttons["topic-5002"]
         XCTAssertTrue(topic.waitForExistence(timeout: 10))
         capture(app, "Hebrew Home feed with English fallback")
@@ -247,7 +246,7 @@ import XCTest
         XCTAssertTrue(home.waitForExistence(timeout: 10), "Russian Home (Discourse js.home)")
         XCTAssertTrue(tab(app, "Communities").exists, "English fallback, no isolates in a left-to-right catalog")
         XCTAssertLessThan(home.frame.midX, tab(app, "Me").frame.midX, "left to right")
-        home.tap()
+        select(app, tab: "Главная")
         // Discourse's Russian plural forms (js.review.replies): 3 → "ответа" (few), 1 → "ответ" (one).
         let three = app.buttons["topic-5002"], one = app.buttons["topic-5004"]
         XCTAssertTrue(three.waitForExistence(timeout: 10))
@@ -275,14 +274,14 @@ import XCTest
         XCTAssertTrue(topic.label.contains("بدأه"), topic.label)
         capture(app, "Home further down, Arabic")
 
-        tab(app, "المجتمعات").tap(); XCTAssertTrue(app.buttons["community-4"].waitForExistence(timeout: 5))
+        select(app, tab: "المجتمعات"); XCTAssertTrue(app.buttons["community-4"].waitForExistence(timeout: 5))
         capture(app, "Communities, Arabic")
         app.buttons["community-4"].tap(); XCTAssertTrue(app.buttons["community-about"].waitForExistence(timeout: 5))
         capture(app, "Community feed, Arabic")
         app.buttons["community-about"].tap(); XCTAssertTrue(app.buttons["تم"].waitForExistence(timeout: 5))
         capture(app, "Community About, Arabic"); app.buttons["تم"].tap()
 
-        tab(app, "الصفحة الرئيسية").tap(); reveal(app, "topic-4190").tap()
+        select(app, tab: "الصفحة الرئيسية"); reveal(app, "topic-4190").tap()
         XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
         capture(app, "Discussion, Arabic")
         app.buttons["discussion-reply"].tap()
@@ -301,13 +300,13 @@ import XCTest
         XCTAssertTrue(app.staticTexts["النقاشات"].waitForExistence(timeout: 5))
         capture(app, "Search results, Arabic")
 
-        tab(app, "الإشعارات").tap(); XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "ردّ عليك")).firstMatch.waitForExistence(timeout: 5))
+        select(app, tab: "الإشعارات"); XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "ردّ عليك")).firstMatch.waitForExistence(timeout: 5))
         capture(app, "Notifications, Arabic")
-        tab(app, "أنا").tap(); XCTAssertTrue(app.buttons["me-drafts"].waitForExistence(timeout: 5))
+        select(app, tab: "أنا"); XCTAssertTrue(app.buttons["me-drafts"].waitForExistence(timeout: 5))
         capture(app, "Me, Arabic")
 
         // Re-selecting the tab returns its stack to the root (search is still active there).
-        tab(app, "الصفحة الرئيسية").tap(); tab(app, "الصفحة الرئيسية").tap()
+        select(app, tab: "الصفحة الرئيسية"); tab(app, "الصفحة الرئيسية").tap()
         let create = app.buttons["نقاش جديد"].firstMatch; XCTAssertTrue(create.waitForExistence(timeout: 5)); create.tap()
         XCTAssertTrue(app.buttons["composer-destination"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.textViews["composer-title"].label, "العنوان")

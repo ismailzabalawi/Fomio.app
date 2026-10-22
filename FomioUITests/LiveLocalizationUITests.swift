@@ -22,7 +22,6 @@ import XCTest
     private func capture(_ app: XCUIApplication, _ name: String) {
         let shot = XCTAttachment(screenshot: app.screenshot()); shot.name = name; shot.lifetime = .keepAlways; add(shot)
     }
-    private func tab(_ app: XCUIApplication, _ label: String) -> XCUIElement { app.buttons.matching(identifier: label).firstMatch }
     private func firstTopic(_ app: XCUIApplication) -> XCUIElement {
         app.buttons.matching(NSPredicate(format: "identifier MATCHES %@", "topic-[0-9]+")).firstMatch
     }
@@ -32,27 +31,6 @@ import XCTest
         XCTAssertTrue(tab(app, "Me").exists, file: file, line: line)
         XCTAssertFalse(tab(app, "الصفحة الرئيسية").exists, "no Arabic interface", file: file, line: line)
         XCTAssertLessThan(tab(app, "Home").frame.midX, tab(app, "Me").frame.midX, "tabs run left to right", file: file, line: line)
-    }
-    /// Taps a tab until it is selected. iPad on iOS 26.0: a synthesized tap on the floating tab bar was seen to
-    /// select the tab and then snap back to the previous one, with no app code writing the selection (2026-10-22).
-    private func select(_ app: XCUIApplication, tab label: String, file: StaticString = #filePath, line: UInt = #line) {
-        let item = tab(app, label)
-        for _ in 0..<3 where !item.isSelected {
-            item.tap()
-            _ = XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "isSelected == true"), object: item)], timeout: 3)
-        }
-        XCTAssertTrue(item.isSelected, "\(label) tab selected", file: file, line: line)
-    }
-    /// Chooses a feed appearance from the options menu. iPad on iOS 26.0: a synthesized tap on an open menu item
-    /// was seen to leave the menu open with nothing chosen (2026-10-22); the menu is reopened if it closed.
-    private func choose(_ app: XCUIApplication, appearance title: String, file: StaticString = #filePath, line: UInt = #line) {
-        let feed = app.scrollViews["feed-\(title.lowercased())"], item = app.buttons[title]
-        for _ in 0..<3 where !feed.exists {
-            if !item.exists { app.buttons["feed-options"].tap() }
-            XCTAssertTrue(item.waitForExistence(timeout: 5), file: file, line: line); item.tap()
-            _ = feed.waitForExistence(timeout: 5)
-        }
-        XCTAssertTrue(feed.waitForExistence(timeout: 5), "\(title) appearance applied", file: file, line: line)
     }
     /// Opens Me › Language and waits for the live list (English always; other rows only if the site offers them).
     private func openLanguage(_ app: XCUIApplication) {
@@ -135,11 +113,11 @@ import XCTest
         XCTAssertLessThan(abs(same.frame.minY - anchor), 4, "swipe Back returns to the same position")
 
         // Cards, then relaunch: the appearance persists.
-        choose(app, appearance: "Cards")
+        chooseAppearance(app, "Cards", open: { app.buttons["feed-options"].tap() })
         capture(app, "Live 6 Live feed in Cards")
         app.terminate()
         let again = launch([], namespace: namespace, keepPreferences: true)
         XCTAssertTrue(again.scrollViews["feed-cards"].waitForExistence(timeout: 20), "Cards persisted across relaunch")
-        choose(again, appearance: "Compact")
+        chooseAppearance(again, "Compact", open: { again.buttons["feed-options"].tap() })
     }
 }

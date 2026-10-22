@@ -15,7 +15,6 @@ import XCTest
     private func capture(_ app: XCUIApplication, _ name: String) {
         let shot = XCTAttachment(screenshot: app.screenshot()); shot.name = name; shot.lifetime = .keepAlways; add(shot)
     }
-    private func tab(_ app: XCUIApplication, _ label: String) -> XCUIElement { app.buttons.matching(identifier: label).firstMatch }
     private func wait(_ element: XCUIElement, label predicate: String, _ value: String, timeout: TimeInterval = 8, file: StaticString = #filePath, line: UInt = #line) {
         let expectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label \(predicate) %@", value), object: element)
         XCTAssertEqual(XCTWaiter().wait(for: [expectation], timeout: timeout), .completed, "\(element.identifier): label \(predicate) \(value) — \(element.label)", file: file, line: line)
@@ -30,7 +29,7 @@ import XCTest
         start.press(forDuration: 0.1, thenDragTo: window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85)), withVelocity: .slow, thenHoldForDuration: 0.5)
     }
     private func selectLanguage(_ app: XCUIApplication, me: String, code: String) {
-        tab(app, me).tap(); app.buttons["me-language"].tap()
+        select(app, tab: me); app.buttons["me-language"].tap()
         let row = app.buttons["language-\(code)"]; XCTAssertTrue(row.waitForExistence(timeout: 5)); row.tap()
     }
     /// Large text can move the options item into the system overflow menu (regular-width iPad).
@@ -73,7 +72,7 @@ import XCTest
         capture(app, "1a English feed failure")
         selectLanguage(app, me: "Me", code: "ar")
         XCTAssertTrue(tab(app, "الصفحة الرئيسية").waitForExistence(timeout: 10))
-        tab(app, "الصفحة الرئيسية").tap()
+        select(app, tab: "الصفحة الرئيسية")
         XCTAssertTrue(app.staticTexts["النقاشات غير متاحة"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["أنت غير متصل. كتابتك محفوظة على هذا الجهاز."].exists, "retained app error renders in Arabic")
         XCTAssertFalse(app.staticTexts["You’re offline. Your writing is kept on this device."].exists)
@@ -114,7 +113,7 @@ import XCTest
         selectLanguage(app, me: "أنا", code: "en")
         XCTAssertTrue(tab(app, "Home").waitForExistence(timeout: 10))
         XCTAssertLessThan(tab(app, "Home").frame.midX, tab(app, "Me").frame.midX, "English restores left-to-right on an Arabic device")
-        tab(app, "Home").tap()
+        select(app, tab: "Home")
         openQuoteComposer(app, quoteLabel: "Quote ")
         assertCardDirection(app, remove: "Remove", rightToLeft: false)
         app.buttons["composer-more"].tap(); Thread.sleep(forTimeInterval: 0.8)
@@ -166,7 +165,7 @@ import XCTest
         XCTAssertTrue(restored.label.contains("Has image") && replaced.label.contains("Has image"))
         capture(app, "3b2 Compact: second refresh, no reload")
         // Cards use a different (wide) media view; it may load each image at most once for the new layout.
-        openOptions(app, overflowLabel: "Home options"); app.buttons["Cards"].tap()
+        chooseAppearance(app, "Cards", open: { openOptions(app, overflowLabel: "Home options") })
         XCTAssertTrue(app.scrollViews["feed-cards"].waitForExistence(timeout: 5))
         Thread.sleep(forTimeInterval: 2)
         let switched = mediaRequests(app)
