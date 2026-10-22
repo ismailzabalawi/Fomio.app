@@ -318,7 +318,7 @@ import Observation
         return DiscussionSearchPage(items: result.items, nextPage: result.nextPage.flatMap { $0 < 10 ? $0 + 1 : nil }, reachedLimit: request.page == 10 && result.nextPage != nil)
     }
     func notificationHistory(offset: Int, limit: Int, filter: NotificationFilter) async throws -> NotificationHistoryPage {
-        try check()
+        try check(); historyRequests += 1
         if notices.delay > .zero { try await Task.sleep(for: notices.delay) }
         if offset > 0 && notices.failNextPage { notices.failNextPage = false; throw RepositoryError.server(503) }
         if offset == 0 && notices.failNextRefresh { notices.failNextRefresh = false; throw RepositoryError.server(502) }
@@ -331,6 +331,9 @@ import Observation
         }
         return page
     }
+    /// Tests: requests made, so shared-window refreshes can be counted.
+    private(set) var historyRequests = 0
+    private(set) var totalsRequests = 0
     var suspendNextHistory = false
     private(set) var historySuspended = false
     @ObservationIgnored private var historyResume: CheckedContinuation<Void, Never>?
@@ -345,7 +348,7 @@ import Observation
         case .succeed: notices.markRead(id)
         }
     }
-    func notificationTotals() async throws -> NotificationTotals { try check(); if credentialExpired { throw RepositoryError.denied }; return NotificationTotals(unread: notices.unseenUnread) }
+    func notificationTotals() async throws -> NotificationTotals { try check(); totalsRequests += 1; if credentialExpired { throw RepositoryError.denied }; return NotificationTotals(unread: notices.unseenUnread) }
     /// Development/tests: the stored key was revoked or expired (Discourse answers 403 `invalid_access`).
     var credentialExpired = false
     func credentialIsValid(username: String) async throws -> Bool { try check(); return !credentialExpired }

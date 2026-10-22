@@ -96,6 +96,11 @@ private struct FomioWindow: View {
         .background(PresentingWindowReader { window in
             if let identifier = window?.windowScene?.session.persistentIdentifier { sceneSessionID = identifier }
         })
+        // Side-by-side windows are all `.active`; the key window is the one used most recently, so taps open there.
+        .onReceive(NotificationCenter.default.publisher(for: UIWindow.didBecomeKeyNotification)) { notification in
+            guard let window = notification.object as? UIWindow, window.windowScene?.session.persistentIdentifier == sceneSessionID else { return }
+            state?.becameActive()
+        }
         .onReceive(NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)) { notification in
             guard let scene = notification.object as? UIScene, scene.session.persistentIdentifier == sceneSessionID else { return }
             state?.closeWindow()
@@ -116,6 +121,9 @@ struct AppShell: View {
                             .badge(tab == .notifications ? app.notificationBadge.map { Text($0) } : nil)
                     }
                 }.tabViewStyle(.tabBarOnly)
+                #if DEBUG
+                .overlay(alignment: .bottomTrailing) { SimulatedPushControl() }
+                #endif
                 .modifier(ToastHost(message: app.composer == nil ? app.toastMessage : nil))
                 .sheet(item: $app.composer, onDismiss: { app.composerClosed() }) { composer in
                     ComposerView(state: composer)
@@ -417,3 +425,16 @@ struct DevelopmentDisplaySettings: ViewModifier {
 }
 
 struct IdentifiedURL: Identifiable { let url: URL; var id: String { url.absoluteString } }
+
+#if DEBUG
+/// UI tests (`--push-control`): sends a fictional alert tap through the real handler from inside this window.
+private struct SimulatedPushControl: View {
+    var body: some View {
+        if ProcessInfo.processInfo.arguments.contains("--push-control") {
+            Button("Simulate notification tap") {
+                IncomingNotifications.shared.deliver(NotificationIntent(site: NotificationFixture.site, username: AppState.fixtureMember, notificationID: .init(5011), topicID: .init(4190), postNumber: .init(14), kind: .replied, title: "Bench PSU hums after a fuse swap"))
+            }.font(.caption).buttonStyle(.bordered).padding(.trailing, 12).padding(.bottom, 64).accessibilityIdentifier("simulate-push")
+        }
+    }
+}
+#endif
