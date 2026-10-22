@@ -286,7 +286,7 @@ struct FeedView: View {
                 // A vertical field sizes with Dynamic Type and lets a long query wrap at large text; the
                 // single-line field's UIKit backing fails the text-clipping audit. Return still means Search.
                 TextField(category.map { BrowseLocalization.format("Search in %@", locale: locale, $0.name) } ?? localized("Search discussions"), text: Binding(get: { search.query }, set: { value in
-                    if value.contains("\n") { search.query = value.replacingOccurrences(of: "\n", with: ""); searchFocused = false }
+                    if value.contains("\n") { search.query = value.replacingOccurrences(of: "\n", with: ""); Task { @MainActor in searchFocused = false } }
                     else { search.query = value }
                 }), axis: .vertical)
                     .lineLimit(1...3).font(.body).frame(minHeight: 44)
