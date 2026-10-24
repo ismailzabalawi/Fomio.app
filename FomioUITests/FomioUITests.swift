@@ -474,7 +474,15 @@ import UIKit
         // At this size the wrapped destination and title push the body's centre below the screen (iOS 27: y 788–988
         // on an 874-pt window), so a centre tap misses. Tap its visible top edge; focus then scrolls it into view.
         let visibleTop = min(0.5, max(0.02, (app.frame.maxY - body.frame.minY - 24) / max(body.frame.height, 1)))
-        body.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: visibleTop)).tap()
+        if UIDevice.current.userInterfaceIdiom == .phone { body.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: visibleTop)).tap() }
+        else {
+            // iPad form sheet: an edge tap can land outside the sheet. The body starts under the floating bar, so
+            // scroll the composer (not the feed behind the sheet) until its first line clears the bar, then tap it.
+            let composer = app.scrollViews.containing(.textView, identifier: "composer-body").firstMatch
+            let bar = app.buttons["composer-insert"]
+            for _ in 0..<4 where body.frame.minY + 44 > bar.frame.minY { composer.swipeUp(velocity: .slow) }
+            body.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0)).withOffset(CGVector(dx: 0, dy: 22)).tap()
+        }
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5)); body.typeText("Audit paragraph")
         body.press(forDuration: 1.1)
         let selectAll = app.menuItems["Select All"]

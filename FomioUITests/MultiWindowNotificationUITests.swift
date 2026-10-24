@@ -17,13 +17,16 @@ import XCTest
         let action = app.buttons["new-browsing-window"]
         XCTAssertTrue(action.waitForExistence(timeout: 5)); action.tap()
         let controls = app.buttons.matching(identifier: "simulate-push")
-        let both = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in controls.count >= 2 && controls.allElementsBoundByIndex.allSatisfy(\.isHittable) }, object: nil)
-        guard XCTWaiter.wait(for: [both], timeout: 10) == .completed else {
-            let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Second window not side by side"; capture.lifetime = .keepAlways; add(capture)
-            throw XCTSkip("Both windows must be on screen together (windowed multitasking or Split View)")
-        }
+        // Frames, not `isHittable`: XCTest fails outright when asked about an element of a window that is off screen.
+        let opened = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in controls.count >= 2 }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [opened], timeout: 10), .completed, "New window opens a second browsing window")
         let windows = app.windows.allElementsBoundByIndex.filter { $0.buttons["simulate-push"].exists }.sorted { $0.frame.minX < $1.frame.minX }
         XCTAssertEqual(windows.count, 2)
+        // Full-screen app mode stacks the new window over the old one (both cover the screen); only one is visible.
+        guard !windows[0].frame.intersects(windows[1].frame) else {
+            let hierarchy = XCTAttachment(string: app.debugDescription); hierarchy.name = "Stacked windows"; hierarchy.lifetime = .keepAlways; add(hierarchy)
+            throw XCTSkip("Both windows must be side by side (Split View or Stage Manager); this simulator stacks them full screen")
+        }
         return (windows[0], windows[1])
     }
     private func tab(_ window: XCUIElement, _ name: String) {
