@@ -99,7 +99,8 @@ struct CommunityScopePicker: View {
                         // Vertical like the topic search field: it sizes with Dynamic Type, where the
                         // single-line field's UIKit backing fails the text-clipping audit. Return still means Done.
                         TextField("Find communities", text: Binding(get: { query }, set: { value in
-                            if value.contains("\n") { query = value.replacingOccurrences(of: "\n", with: ""); focused = false }
+                            // Ending focus inside the text change is ignored in an iPad popover; defer it a turn.
+                            if value.contains("\n") { query = value.replacingOccurrences(of: "\n", with: ""); Task { @MainActor in focused = false } }
                             else { query = value }
                         }), axis: .vertical).focused($focused)
                             .lineLimit(1...3).font(.body).frame(minHeight: 44)
