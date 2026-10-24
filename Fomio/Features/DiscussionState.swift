@@ -21,6 +21,11 @@ import Observation
     var anchor: PostID?
     var truncated = false
     var mutating: Set<PostID> = []
+    /// Action-row frames and the scroll view's frame, both global. The floating Reply's inset shortens
+    /// the scroll view, so its height is added back: the bar must not count as hiding its own target row.
+    var actionFrames: [PostID: CGRect] = [:]
+    var viewport: CGRect = .null
+    var floatingBarHeight: CGFloat = 0
     private var generation = 0
     var topicID: TopicID { switch route { case let .discussion(id, _), let .thread(id, _): id; default: .init(0) } }
     init(route: Route, service: any CommunityService) { self.route = route; self.service = service }
@@ -92,6 +97,15 @@ import Observation
     }
     var opening: Post? { page.flatMap { nodes[$0.opening.id] } }
     var highlighted: Post? { highlight.flatMap { nodes[$0] } }
+    /// What the screen-level Reply answers: the notified post, otherwise the opening post.
+    var replyTarget: Post? { focus == .notification ? highlighted ?? opening : opening }
+    /// The floating Reply shows only while its target's own action row is off screen.
+    var floatingReply: Bool {
+        guard let target = replyTarget else { return false }
+        guard let frame = actionFrames[target.id] else { return true }
+        var full = viewport; full.size.height += floatingBarHeight
+        return !frame.intersects(full)
+    }
     func moreRoots() async {
         guard !loading, let next = page?.nextPage else { return }
         loading = true; defer { loading = false }

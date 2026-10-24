@@ -235,6 +235,22 @@ struct FeedView: View {
             // Home shows the wordmark above its title unless the sidebar already carries it.
             // A hidden sidebar is restored from this top-leading corner, as in the reviewed layout.
             let showsLogo = originTab == .home && !sidebarVisible && !needsNativeBack
+            // With a top row to share, the controls move up beside the wordmark so the title gets
+            // the column's full width; beside it, a narrow column broke the title mid-word.
+            let controlsInTopRow = (showsLogo || showSidebar != nil) && !textSize.isAccessibilitySize
+            let controls = HStack(spacing: 8) {
+                if textSize.isAccessibilitySize { Spacer(minLength: 0) }
+                // Reveals and focuses search; with search open and empty it hides it again.
+                Button { toggleSearch(hiding: hidesSearch) } label: {
+                    Image(systemName: "magnifyingglass").font(.system(size: min(controlSymbolSize, 28)))
+                        .foregroundStyle(searchShown ? Color.fomioAccent : Color.fomioText).frame(width: 44, height: 44)
+                        .contentShape(.circle)
+                        .glassEffect(searchShown ? .regular.tint(Color.fomioAccent.opacity(0.14)).interactive() : .regular.interactive(), in: .circle)
+                }.buttonStyle(.plain)
+                    .accessibilityLabel(LocalizedStringKey(hidesSearch ? "Hide search" : "Search discussions"))
+                    .accessibilityIdentifier("reveal-topic-search")
+                optionsMenu.labelStyle(.iconOnly).buttonStyle(.plain)
+            }
             if showsLogo || showSidebar != nil {
                 HStack(spacing: 12) {
                     if let showSidebar {
@@ -244,6 +260,7 @@ struct FeedView: View {
                         }.buttonStyle(.plain).accessibilityLabel("Show sidebar").accessibilityIdentifier("show-sidebar")
                     }
                     if showsLogo { FomioWordmark() }
+                    if controlsInTopRow { Spacer(minLength: 8); controls }
                 }.frame(minHeight: 44, alignment: .leading)
             }
             layout {
@@ -251,19 +268,7 @@ struct FeedView: View {
                 // toolbar title slots can silently clip or drop long/large scope labels.
                 CommunityScopePicker(scope: browse.browseScope, request: chooserRequest) { app.selectScope($0, in: originTab) }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                HStack(spacing: 8) {
-                    if textSize.isAccessibilitySize { Spacer(minLength: 0) }
-                    // Reveals and focuses search; with search open and empty it hides it again.
-                    Button { toggleSearch(hiding: hidesSearch) } label: {
-                        Image(systemName: "magnifyingglass").font(.system(size: min(controlSymbolSize, 28)))
-                            .foregroundStyle(searchShown ? Color.fomioAccent : Color.fomioText).frame(width: 44, height: 44)
-                            .contentShape(.circle)
-                            .glassEffect(searchShown ? .regular.tint(Color.fomioAccent.opacity(0.14)).interactive() : .regular.interactive(), in: .circle)
-                    }.buttonStyle(.plain)
-                        .accessibilityLabel(LocalizedStringKey(hidesSearch ? "Hide search" : "Search discussions"))
-                        .accessibilityIdentifier("reveal-topic-search")
-                    optionsMenu.labelStyle(.iconOnly).buttonStyle(.plain)
-                }
+                if !controlsInTopRow { controls }
             }
         }.padding(.horizontal, 16).padding(.vertical, 6)
             // Padding participates in multiline measurement and hit testing.

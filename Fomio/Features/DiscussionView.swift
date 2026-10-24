@@ -46,6 +46,7 @@ struct DiscussionView: View {
                 }
             }.accessibilityIdentifier("discussion-content")
             .scrollPosition(id: $state.anchor, anchor: .top)
+            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { state.viewport = $0 }
             // A reply branch can be taller than a short window. Centering that
             // branch can put its target header behind floating navigation controls.
             .task(id: state.highlight) {
@@ -58,14 +59,15 @@ struct DiscussionView: View {
                 proxy.scrollTo(target, anchor: .top)
             }
             .safeAreaInset(edge: .bottom) {
-                if let page = state.page, let opening = state.opening, page.canReply || app.username == nil {
-                    let target = state.focus == .notification ? state.highlighted ?? opening : opening
+                if let page = state.page, let target = state.replyTarget, page.canReply || app.username == nil, state.floatingReply {
                     ReadingColumn {
                         Button { app.reply(to: target) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left").font(.body.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44) }
                             .buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).accessibilityIdentifier("discussion-reply")
                             .accessibilityLabel(target.number.rawValue > 1 ? "Reply to \(target.author) · #\(target.number.rawValue)" : "Reply to \(page.summary.title)")
                             .padding(.horizontal, 20).padding(.vertical, 8)
                     }
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { state.floatingBarHeight = $0 }
+                    .onDisappear { state.floatingBarHeight = 0 }
                 }
             }
         }.background(Color.fomioBackground).navigationTitle("Discussion").navigationBarTitleDisplayMode(.inline)
@@ -231,6 +233,7 @@ struct PostCard: View {
                 else { Text(.init(post.body)).font(post.number.rawValue == 1 ? .body : .callout).textSelection(.enabled) }
                 if let image = post.image { SamplePhoto(name: image) }
                 FlowLayout(spacing: 10) { actions }
+                    .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { state.actionFrames[post.id] = $0 }
                 if !own, app.username != nil {
                     Menu {
                         Button { reporting = true } label: { Label("Report post", systemImage: "flag") }
@@ -270,10 +273,14 @@ struct PostCard: View {
                 .font(.subheadline.weight(.medium)).padding(.horizontal, 12).frame(minHeight: 44).background(Color.fomioFill, in: .capsule)
         }.buttonStyle(.plain).accessibilityLabel(post.bookmarkID == nil ? "Save post by \(post.author)" : "Remove post by \(post.author) from Saved")
         if post.canReply || app.username == nil {
-            if post.number.rawValue > 1 {
-                Button { app.reply(to: post) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left").labelStyle(CompactIconLabel()).frame(minHeight: 44) }
-                    .font(.subheadline.weight(.medium)).buttonStyle(.plain).accessibilityLabel("Reply to \(post.author), post \(post.number.rawValue)")
-            }
+            // The opening post's row carries Reply too: the floating Reply hides while this row is on screen.
+            // While it stands in for the floating Reply it takes that button's identifier and label.
+            let standsIn = state.replyTarget?.id == post.id && !state.floatingReply
+            Button { app.reply(to: post) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left").labelStyle(CompactIconLabel()).frame(minHeight: 44) }
+                .font(.subheadline.weight(.medium)).buttonStyle(.plain)
+                .accessibilityLabel(!standsIn ? "Reply to \(post.author), post \(post.number.rawValue)"
+                    : post.number.rawValue > 1 ? "Reply to \(post.author) · #\(post.number.rawValue)" : "Reply to \(state.page?.summary.title ?? post.author)")
+                .accessibilityIdentifier(standsIn ? "discussion-reply" : "post-reply-\(post.number.rawValue)")
             Button { app.reply(to: post, quote: true) } label: { Label("Quote", systemImage: "quote.opening").labelStyle(CompactIconLabel()).foregroundStyle(Color.fomioSecondaryText).frame(minHeight: 44) }
                 .font(.subheadline.weight(.medium)).frame(minHeight: 44).buttonStyle(.plain).accessibilityLabel("Quote \(post.author)’s post")
         }

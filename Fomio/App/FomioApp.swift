@@ -151,6 +151,9 @@ struct TabRoot: View {
     @State private var visibility: NavigationSplitViewVisibility = .all
     @State private var compactColumn: NavigationSplitViewColumn = .sidebar
     @State private var focusedReading = false
+    /// A discussion opened only because two panes appeared with nothing selected.
+    /// It is withdrawn again if the window narrows before the reader chooses anything.
+    @State private var autoSelected: Route?
     private var readingIndex: Int? {
         state.path.firstIndex { if case .discussion = $0 { true } else if case .thread = $0 { true } else { false } }
     }
@@ -168,6 +171,20 @@ struct TabRoot: View {
         })
     }
     var body: some View {
+        // A row of its own: the split's columns ignore container insets, so an inset banner floated over content.
+        VStack(spacing: 0) {
+            if showsFixtureBanner {
+                Text("Sample content")
+                    .font(.caption.weight(.medium)).foregroundStyle(Color.fomioSecondaryText)
+                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity).padding(.vertical, 2).background(Color.fomioBackground)
+                    .accessibilityLabel("Sample community content. This is a preview.")
+                    .accessibilityIdentifier("fixture-banner")
+            }
+            reading
+        }
+    }
+    private var reading: some View {
         GeometryReader { geometry in
             let layout = ReadingLayout(width: geometry.size.width, scale: ReadingLayout.scale(for: textSize))
             let showsSidebar = layout.sidebar && !focusedReading && !app.sidebarHidden
@@ -211,29 +228,34 @@ struct TabRoot: View {
                 .environment(\.readingShowSidebar, layout.sidebar && app.sidebarHidden && !focusedReading ? { app.sidebarHidden = false } : nil)
             }
             .toolbar(showsSidebar ? .hidden : .visible, for: .tabBar)
-            .onChange(of: readingRoute, initial: true) { _, route in compactColumn = route == nil ? .sidebar : .detail }
+            .onChange(of: readingRoute, initial: true) { _, route in
+                compactColumn = route == nil ? .sidebar : .detail
+                if route != autoSelected { autoSelected = nil }
+            }
+            .onChange(of: AutoSelectKey(twoPanes: layout.twoPanes, path: state.path, first: firstFeedTopic), initial: true) { _, key in
+                guard key.twoPanes, key.path.isEmpty, let topic = key.first else { return }
+                let route = Route.discussion(topic, nil)
+                autoSelected = route; state.path = [route]
+            }
             .onChange(of: state.readingSelectionRevision) { _, _ in compactColumn = .detail }
             .onChange(of: state.discussionSearch.failure) { _, failure in
                 if failure != nil { app.invalidateSearchAccess(in: tab) }
             }
             .onChange(of: layout.twoPanes) { _, two in
                 visibility = two && focusedReading ? .detailOnly : .all
+                // Folding returns to the list, not to a discussion the reader never chose.
+                if !two, let auto = autoSelected, state.path == [auto] { state.path = []; autoSelected = nil }
             }
             // A containing element keeps this identifier from replacing the sidebar header controls' own.
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier(focusedReading && layout.twoPanes ? "reading-focused" : showsSidebar ? "reading-three-pane" : layout.twoPanes ? "reading-two-pane" : "reading-one-pane")
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if showsFixtureBanner {
-                Text("Sample content")
-                    .font(.caption.weight(.medium)).foregroundStyle(Color.fomioText)
-                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 10).padding(.vertical, 3)
-                    .background(Color.fomioBackground, in: .capsule).padding(.bottom, 4)
-                    .allowsHitTesting(false).accessibilityLabel("Sample community content. This is a preview.")
-                    .accessibilityIdentifier("fixture-banner")
-            }
-        }
+    }
+    private struct AutoSelectKey: Equatable { var twoPanes: Bool; var path: [Route]; var first: TopicID? }
+    /// The Home feed's first readable topic, while it is the list on screen and no search is open.
+    private var firstFeedTopic: TopicID? {
+        guard tab == .home, !state.discussionSearch.active else { return nil }
+        return state.feed(key: state.browseScope.feedKey).items.first { !app.isBlocked($0.author) }?.id
     }
     @ViewBuilder private var root: some View {
         switch tab {
