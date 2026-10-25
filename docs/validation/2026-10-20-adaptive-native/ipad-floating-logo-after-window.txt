@@ -1,0 +1,174 @@
+Application: (0.0, 0.0, 1187.0, 934.5)
+Window: (90.0, 0.0, 1187.0, 934.5)
+Active screens: 1
+Attributes: Application, 0x103bda080, pid: 76772, label: 'Fomio'
+Element subtree:
+ →Application, 0x103bda080, pid: 76772, label: 'Fomio'
+    Window (Main), 0x103bd9a40, {{90.0, 0.0}, {1187.0, 934.5}}
+      Other, 0x103bd9b80, {{90.0, 0.0}, {1187.0, 934.5}}
+      Other, 0x103bd9900, {{90.0, 0.0}, {1187.0, 934.5}}
+        Other, 0x103bd97c0, {{90.0, 0.0}, {1187.0, 934.5}}
+          Other, 0x103bd8dc0, {{90.0, 0.0}, {1187.0, 934.5}}
+            Other, 0x103bd9180, {{90.0, 0.0}, {1187.0, 934.5}}
+              Other, 0x103bd92c0, {{90.0, 0.0}, {1187.0, 934.5}}
+                Other, 0x103bd9680, {{90.0, 0.0}, {1187.0, 934.5}}
+                  Other, 0x103bd9f40, {{90.0, 0.0}, {1187.0, 934.5}}
+                    Other, 0x103bda1c0, {{90.0, 0.0}, {1187.0, 934.5}}
+                      Other, 0x103bd9cc0, {{90.0, 0.0}, {1187.0, 934.5}}
+                        Other, 0x103bda300, {{90.0, 0.0}, {1187.0, 934.5}}
+                          Other, 0x103bda580, {{310.0, 32.0}, {967.0, 902.5}}, identifier: 'reading-three-pane'
+                            Other, 0x103bda6c0, {{310.0, 32.0}, {967.0, 902.5}}
+                              Other, 0x103bda440, {{310.0, 32.0}, {967.0, 902.5}}
+                                Other, 0x103bda940, {{310.0, 32.0}, {360.0, 902.5}}
+                                  Other, 0x103bdabc0, {{310.0, 32.0}, {360.0, 902.5}}
+                                    Other, 0x103bda800, {{310.0, 32.0}, {360.0, 902.5}}
+                                      Other, 0x103bdaa80, {{310.0, 32.0}, {360.0, 902.5}}
+                                        Other, 0x103bdae40, {{310.0, 32.0}, {360.0, 902.5}}
+                                          Other, 0x103bdb0c0, {{310.0, 32.0}, {360.0, 902.5}}
+                                            Other, 0x103bdb200, {{310.0, 32.0}, {360.0, 56.0}}, identifier: 'browse-header'
+                                              Button, 0x103bdaf80, {{326.0, 38.0}, {146.0, 44.0}}, identifier: 'community-scope', label: 'Community: All communities. Change community'
+                                                StaticText, 0x103bdb340, {{326.0, 38.0}, {146.0, 44.0}}, label: 'All communities'
+                                                Image, 0x103bdb5c0, {{459.5, 57.0}, {11.0, 6.5}}, identifier: 'chevron.down', label: 'Go Down'
+                                              Button, 0x103bdb700, {{558.0, 38.0}, {44.0, 44.0}}, identifier: 'reveal-topic-search', label: 'Search discussions'
+                                              Button, 0x103bdb480, {{610.0, 38.0}, {44.0, 44.0}}, identifier: 'feed-options', label: 'Home options'
+                                                Button, 0x103bdb840, {{610.0, 38.0}, {44.0, 44.0}}
+                                                  Image, 0x103bdb980, {{610.0, 38.0}, {44.0, 44.0}}, identifier: 'ellipsis', label: 'Home options'
+                                            ScrollView, 0x103bdbac0, {{310.0, 32.0}, {360.0, 902.5}}, identifier: 'feed-compact'
+                                              Other, 0x103bdbd40, {{310.0, 88.0}, {360.0, 991.0}}
+                                                Other, 0x103bdbe80, {{330.0, 92.0}, {340.0, 939.5}}
+                                                  Button, 0x103bdbc00, {{330.0, 92.0}, {156.5, 44.0}}, identifier: 'topic-category-6', label: 'Open community Repairs, in Electronics'
+                                                    StaticText, 0x103bd8140, {{330.0, 92.0}, {156.5, 44.0}}, label: 'Electronics › Repairs'
+                                                    Image, 0x103bd8640, {{331.8, 105.8}, {16.4, 16.4}}, identifier: 'wrench.and.screwdriver', label: 'Wrench And Screwdriver Crossed'
+                                                  Button, 0x103a47480, {{330.0, 132.0}, {320.0, 120.5}}, identifier: 'topic-9101', label: 'Adaptive discussion 01, in Repairs, Electronics, started by devon, No replies yet, active 2 minutes ago'
+                                                    StaticText, 0x103a475c0, {{330.0, 132.0}, {187.0, 22.5}}, label: 'Adaptive discussion 01'
+                                                    StaticText, 0x103a47840, {{330.0, 158.5}, {256.5, 42.0}}, label: 'Fictional discussion for native search recovery checks.'
+                                                    StaticText, 0x103a47980, {{330.0, 210.5}, {20.0, 20.0}}, label: 'D'
+                                                    StaticText, 0x103a47700, {{356.0, 211.5}, {105.0, 18.0}}, label: 'Started by devon'
+                                                    StaticText, 0x103a448c0, {{331.5, 234.5}, {99.5, 18.0}}, label: 'No replies yet'
+                                                    Image, 0x103a45040, {{331.5, 238.5}, {11.5, 10.5}}, identifier: 'bubble.left', label: 'Comment Left'
+                                                    StaticText, 0x110274000, {{437.0, 234.5}, {4.0, 18.0}}, label: '·'
+                                                    StaticText, 0x110274140, {{447.0, 234.5}, {86.5, 18.0}}, label: 'Active 2m ago'
+                                                  Other, 0x110274280, {{330.0, 266.5}, {340.0, 0.5}}
+                                                  Button, 0x1102743c0, {{330.0, 271.0}, {156.5, 44.0}}, identifier: 'topic-category-6', label: 'Open community Repairs, in Electronics'
+                                                    StaticText, 0x110274500, {{330.0, 271.0}, {156.5, 44.0}}, label: 'Electronics › Repairs'
+                                                    Image, 0x110274640, {{331.8, 284.8}, {16.4, 16.4}}, identifier: 'wrench.and.screwdriver', label: 'Wrench And Screwdriver Crossed'
+                                                  Button, 0x110274780, {{330.0, 311.0}, {320.0, 120.5}}, identifier: 'topic-9102', label: 'Adaptive discussion 02, in Repairs, Electronics, started by devon, No replies yet, active 2 minutes ago'
+                                                    StaticText, 0x1102748c0, {{330.0, 310.8}, {189.0, 22.5}}, label: 'Adaptive discussion 02'
+                                                    StaticText, 0x110274a00, {{330.0, 337.3}, {256.5, 42.0}}, label: 'Fictional discussion for native search recovery checks.'
+                                                    StaticText, 0x110274b40, {{330.0, 389.5}, {20.0, 20.0}}, label: 'D'
+                                                    StaticText, 0x110274c80, {{356.0, 390.3}, {105.0, 18.0}}, label: 'Started by devon'
+                                                    StaticText, 0x110274dc0, {{331.5, 413.3}, {99.5, 18.0}}, label: 'No replies yet'
+                                                    Image, 0x110274f00, {{331.5, 417.0}, {11.5, 10.5}}, identifier: 'bubble.left', label: 'Comment Left'
+                                                    StaticText, 0x110275040, {{437.0, 413.3}, {4.0, 18.0}}, label: '·'
+                                                    StaticText, 0x110275180, {{447.0, 413.3}, {86.5, 18.0}}, label: 'Active 2m ago'
+                                                  Button, 0x1102752c0, {{330.0, 449.5}, {156.5, 44.0}}, identifier: 'topic-category-6', label: 'Open community Repairs, in Electronics'
+                                                    StaticText, 0x110275400, {{330.0, 449.5}, {156.5, 44.0}}, label: 'Electronics › Repairs'
+                                                    Image, 0x110275540, {{331.8, 463.3}, {16.4, 16.4}}, identifier: 'wrench.and.screwdriver', label: 'Wrench And Screwdriver Crossed'
+                                                  Button, 0x110275680, {{330.0, 489.5}, {320.0, 120.5}}, identifier: 'topic-9103', label: 'Adaptive discussion 03, in Repairs, Electronics, started by devon, No replies yet, active 2 minutes ago'
+                                                    StaticText, 0x1102757c0, {{330.0, 489.7}, {189.5, 22.5}}, label: 'Adaptive discussion 03'
+                                                    StaticText, 0x110275900, {{330.0, 516.2}, {256.5, 42.0}}, label: 'Fictional discussion for native search recovery checks.'
+                                                    StaticText, 0x110275a40, {{330.0, 568.0}, {20.0, 20.0}}, label: 'D'
+                                                    StaticText, 0x110275b80, {{356.0, 569.2}, {105.0, 18.0}}, label: 'Started by devon'
+                                                    StaticText, 0x110275cc0, {{331.5, 592.2}, {99.5, 18.0}}, label: 'No replies yet'
+                                                    Image, 0x110275e00, {{331.5, 596.0}, {11.5, 10.5}}, identifier: 'bubble.left', label: 'Comment Left'
+                                                    StaticText, 0x110275f40, {{437.0, 592.2}, {4.0, 18.0}}, label: '·'
+                                                    StaticText, 0x110276080, {{447.0, 592.2}, {86.5, 18.0}}, label: 'Active 2m ago'
+                                                  Other, 0x1102761c0, {{330.0, 624.0}, {340.0, 0.5}}
+                                                  Button, 0x110276300, {{330.0, 628.5}, {156.5, 44.0}}, identifier: 'topic-category-6', label: 'Open community Repairs, in Electronics'
+                                                    StaticText, 0x110276440, {{330.0, 628.5}, {156.5, 44.0}}, label: 'Electronics › Repairs'
+                                                    Image, 0x110276580, {{331.8, 642.3}, {16.4, 16.4}}, identifier: 'wrench.and.screwdriver', label: 'Wrench And Screwdriver Crossed'
+                                                  Button, 0x1102766c0, {{330.0, 668.5}, {320.0, 120.5}}, identifier: 'topic-9104', label: 'Adaptive discussion 04, in Repairs, Electronics, started by devon, No replies yet, active 2 minutes ago'
+                                                    StaticText, 0x110276800, {{330.0, 668.5}, {190.0, 22.5}}, label: 'Adaptive discussion 04'
+                                                    StaticText, 0x110276940, {{330.0, 695.0}, {256.5, 42.0}}, label: 'Fictional discussion for native search recovery checks.'
+                                                    StaticText, 0x110276a80, {{330.0, 747.0}, {20.0, 20.0}}, label: 'D'
+                                                    StaticText, 0x110276bc0, {{356.0, 748.0}, {105.0, 18.0}}, label: 'Started by devon'
+                                                    StaticText, 0x110276d00, {{331.5, 771.0}, {99.5, 18.0}}, label: 'No replies yet'
+                                                    Image, 0x110276e40, {{331.5, 775.0}, {11.5, 10.5}}, identifier: 'bubble.left', label: 'Comment Left'
+                                                    StaticText, 0x110276f80, {{437.0, 771.0}, {4.0, 18.0}}, label: '·'
+                                                    StaticText, 0x1102770c0, {{447.0, 771.0}, {86.5, 18.0}}, label: 'Active 2m ago'
+                                                  Other, 0x110277200, {{330.0, 803.0}, {340.0, 0.5}}
+                                                  Button, 0x110277340, {{330.0, 807.5}, {156.5, 44.0}}, identifier: 'topic-category-6', label: 'Open community Repairs, in Electronics'
+                                                    StaticText, 0x110277480, {{330.0, 807.5}, {156.5, 44.0}}, label: 'Electronics › Repairs'
+                                                    Image, 0x1102775c0, {{331.8, 821.3}, {16.4, 16.4}}, identifier: 'wrench.and.screwdriver', label: 'Wrench And Screwdriver Crossed'
+                                                  Button, 0x110277700, {{330.0, 847.5}, {320.0, 120.5}}, identifier: 'topic-9105', label: 'Adaptive discussion 05, in Repairs, Electronics, started by devon, No replies yet, active 2 minutes ago'
+                                                    StaticText, 0x110277840, {{330.0, 847.3}, {189.5, 22.5}}, label: 'Adaptive discussion 05'
+                                                    StaticText, 0x110277980, {{330.0, 873.8}, {256.5, 42.0}}, label: 'Fictional discussion for native search recovery checks.'
+                                                    StaticText, 0x110277ac0, {{330.0, 926.0}, {20.0, 20.0}}, label: 'D'
+                                                    StaticText, 0x110277c00, {{356.0, 926.8}, {105.0, 18.0}}, label: 'Started by devon'
+                                                    StaticText, 0x110277d40, {{331.5, 949.8}, {99.5, 18.0}}, label: 'No replies yet'
+                                                    Image, 0x110277e80, {{331.5, 953.5}, {11.5, 10.5}}, identifier: 'bubble.left', label: 'Comment Left'
+                                                    StaticText, 0x11027c000, {{437.0, 949.8}, {4.0, 18.0}}, label: '·'
+                                                    StaticText, 0x11027c140, {{447.0, 949.8}, {86.5, 18.0}}, label: 'Active 2m ago'
+                                                  Button, 0x11027c280, {{424.0, 1009.0}, {132.5, 22.5}}, label: 'More discussions'
+                                                  Other, 0x11027c3c0, {{0.0, 0.0}, {0.0, 0.0}}
+                                                  Other, 0x11027c500, {{0.0, 0.0}, {0.0, 0.0}}
+                                              Other, 0x11027c640, {{637.0, 88.0}, {30.0, 846.5}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                                                Other, 0x11027c780, {{664.0, 91.0}, {3.0, 782.5}}
+                                              Other, 0x11027c8c0, {{637.0, 88.0}, {30.0, 846.5}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                                                Other, 0x11027ca00, {{664.0, 91.0}, {3.0, 782.5}}
+                                    Toolbar, 0x11027cb40, {{310.0, 32.0}, {360.0, 902.5}}, identifier: 'Toolbar', label: 'Toolbar'
+                                      Other, 0x11027cc80, {{310.0, 32.0}, {360.0, 902.5}}
+                                  Other, 0x11027cdc0, {{310.0, 32.0}, {360.0, 902.5}}
+                                    Other, 0x11027cf00, {{310.0, 32.0}, {360.0, 902.5}}
+                                      Other, 0x11027d040, {{310.0, 32.0}, {360.0, 902.5}}
+                                        Other, 0x11027d180, {{310.0, 32.0}, {360.0, 902.5}}
+                                          Other, 0x11027d2c0, {{310.0, 32.0}, {360.0, 902.5}}
+                                            Other, 0x11027d400, {{310.0, 32.0}, {360.0, 928.0}}
+                                        Other, 0x11027d540, {{310.0, 32.0}, {360.0, 902.5}}
+                                          Other, 0x11027d680, {{310.0, 32.0}, {360.0, 928.0}}
+                                Other, 0x11027d7c0, {{310.0, 32.0}, {967.0, 902.5}}
+                                  Other, 0x11027d900, {{310.0, 32.0}, {967.0, 902.5}}
+                                    NavigationBar, 0x11027da40, {{310.0, 42.0}, {967.0, 54.0}}, identifier: '_TtGC7SwiftUI32NavigationStackHosting'
+                                      Button, 0x11027db80, {{684.0, 46.0}, {36.0, 36.0}}, identifier: 'toggle-topic-list', label: 'Focus on discussion'
+                                    Other, 0x11027dcc0, {{310.0, 32.0}, {967.0, 902.5}}
+                                      Other, 0x11027de00, {{310.0, 32.0}, {967.0, 902.5}}
+                                        Other, 0x11027df40, {{310.0, 32.0}, {967.0, 902.5}}
+                                          Other, 0x11027e080, {{310.0, 32.0}, {967.0, 902.5}}
+                                            StaticText, 0x11027e1c0, {{877.2, 439.5}, {192.5, 89.8}}, label: 'Choose a discussion'
+                                            Image, 0x11027e300, {{952.0, 439.5}, {43.5, 40.5}}, identifier: 'text.bubble', label: 'Comment Lines'
+                                            StaticText, 0x11027e440, {{817.0, 532.2}, {313.0, 22.5}}, label: 'Select a topic to read it alongside the list.'
+                                    Toolbar, 0x11027e580, {{310.0, 32.0}, {967.0, 902.5}}, identifier: 'Toolbar', label: 'Toolbar'
+                                      Other, 0x11027e6c0, {{310.0, 32.0}, {967.0, 902.5}}
+                                Toolbar, 0x11027e800, {{310.0, 32.0}, {967.0, 902.5}}, identifier: 'Toolbar', label: 'Toolbar'
+                                  Other, 0x11027e940, {{310.0, 32.0}, {967.0, 902.5}}
+                            Other, 0x11027ea80, {{310.0, 32.0}, {967.0, 902.5}}
+                              Other, 0x11027ebc0, {{310.0, 32.0}, {967.0, 902.5}}
+                          Image, 0x11027ed00, {{180.0, 52.0}, {60.0, 28.0}}, identifier: 'reading-three-pane', label: 'Fomio'
+                          ScrollView, 0x11027ee40, {{90.0, 0.0}, {220.0, 934.5}}, identifier: 'reading-three-pane'
+                            Other, 0x11027ef80, {{90.0, 0.0}, {220.0, 934.5}}
+                              Other, 0x11027f0c0, {{90.0, 0.0}, {220.0, 72.0}}
+                            Other, 0x11027f200, {{90.0, 0.0}, {220.0, 934.5}}
+                            Other, 0x11027f340, {{90.0, 88.0}, {220.0, 468.5}}
+                              Button, 0x11027f480, {{100.0, 98.0}, {200.0, 44.0}}, label: 'Home', Selected
+                                StaticText, 0x11027f5c0, {{114.0, 108.8}, {75.5, 22.5}}, label: 'Home'
+                                Image, 0x11027f700, {{114.0, 111.0}, {20.0, 17.5}}, identifier: 'house', label: 'Home'
+                              Button, 0x11027f840, {{114.0, 160.8}, {126.0, 22.5}}, label: 'Communities'
+                                StaticText, 0x11027f980, {{114.0, 160.8}, {126.0, 22.5}}, label: 'Communities'
+                                Image, 0x11027fac0, {{114.0, 164.0}, {15.5, 15.5}}, identifier: 'square.grid.2x2', label: 'Grid View'
+                              Button, 0x11027fc00, {{114.0, 212.8}, {122.0, 22.5}}, label: 'Notifications'
+                                StaticText, 0x11027fd40, {{114.0, 212.8}, {122.0, 22.5}}, label: 'Notifications'
+                                Image, 0x11027fe80, {{114.0, 215.0}, {16.0, 17.5}}, identifier: 'bell', label: 'Notifications'
+                              Button, 0x110290000, {{113.5, 264.8}, {50.5, 22.5}}, label: 'Me'
+                                StaticText, 0x110290140, {{113.5, 264.8}, {50.5, 22.5}}, label: 'Me'
+                                Image, 0x110290280, {{113.5, 267.5}, {17.0, 17.0}}, identifier: 'person.crop.circle', label: 'Account'
+                              StaticText, 0x1102903c0, {{112.0, 322.0}, {78.0, 16.5}}, label: 'Communities'
+                              Button, 0x110290500, {{100.0, 346.5}, {200.0, 44.0}}, identifier: 'sidebar-all', label: 'All communities, Selected', Selected
+                                StaticText, 0x110290640, {{112.0, 358.5}, {114.5, 20.0}}, label: 'All communities'
+                                Image, 0x110290780, {{272.5, 362.0}, {13.5, 13.0}}, identifier: 'checkmark', label: 'Selected', Selected
+                              Button, 0x1102908c0, {{100.0, 398.5}, {200.0, 44.0}}, identifier: 'sidebar-1', label: 'Woodworking'
+                              Button, 0x110290a00, {{100.0, 450.5}, {200.0, 44.0}}, identifier: 'sidebar-5', label: 'Electronics'
+                              Button, 0x110290b40, {{100.0, 502.5}, {200.0, 44.0}}, identifier: 'sidebar-8', label: 'Gardening'
+                            Other, 0x110290c80, {{277.0, 88.0}, {30.0, 810.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                              Other, 0x110290dc0, {{304.0, 471.0}, {3.0, 462.5}}
+                            Other, 0x110290f00, {{277.0, 88.0}, {30.0, 810.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                              Other, 0x110291040, {{304.0, 471.0}, {3.0, 462.5}}
+                          StaticText, 0x110291180, {{628.0, 898.0}, {111.0, 22.5}}, identifier: 'fixture-banner', label: 'Sample community content. This is a preview.'
+                Other, 0x1102912c0, {{90.0, 0.0}, {1187.0, 934.5}}
+              Other, 0x110291400, {{90.0, 32.0}, {1187.0, 892.5}}
+Path to element:
+ →Application, 0x103bda080, pid: 76772, label: 'Fomio'
+Query chain:
+ →Find: Target Application 'com.fomio.mobile'
+  Output: {
+    Application, 0x110291540, pid: 76772, label: 'Fomio'
+  }

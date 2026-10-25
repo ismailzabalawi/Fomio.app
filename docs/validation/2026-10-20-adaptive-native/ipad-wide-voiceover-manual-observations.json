@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-21",
+  "layer": "native Device Hub accessibility actions with VoiceOver on; not a replacement XCTest pass",
+  "device": "root Air13 iPadOS27",
+  "prior_evidence": "572bbb10 already verified actual1366x1024 chooser Finishing+parent; interrupted run stays failed",
+  "observations": [
+    "Original VoiceOver off restored and independently read back before review",
+    "Chooser native accessibility activation opens scope chooser; Cancel returns All communities",
+    "Reveal search activates topic-search-field",
+    "Native setValue Adaptive produces Search unavailable, Search couldn\u2019t be completed. Try again., Retry and Cancel",
+    "Explicit native Retry restores topic-9101 through9106; exact query remains Adaptive",
+    "Search Cancel removes search field and restores scoped feed",
+    "VoiceOver remains on during actions; inspector off independently read back after review"
+  ],
+  "speech": "Human confirms failure announced once during VoiceOver runs",
+  "limitations": [
+    "Native accessibility actions establish semantics; full touch/rotor traversal not established by this review"
+  ]
+}

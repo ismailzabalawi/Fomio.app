@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-21",
+  "result": "b3368447",
+  "xcresult": "test_sim_2026-10-21T04-49-23-281Z_pid92313_b3368447.xcresult",
+  "counts": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0
+  },
+  "method": "testNativeVoiceOverExternalAccessibilityActions",
+  "layer": "Native external accessibility actions with real VoiceOver; XCTest observes exact states and restoration; not a touch/rotor gesture test",
+  "window": {
+    "width": 375,
+    "height": 508
+  },
+  "configuration": "Arabic RTL, AX3, dark",
+  "verified": [
+    "VoiceOver on",
+    "Chooser Finishing filter plus Woodworking ancestor and Finishing child",
+    "Chooser Cancel retains initial scope",
+    "Exact Adaptive query with inline failure and Retry/Cancel",
+    "Manual Retry removes failure and restores topic9101 retaining query",
+    "Search Cancel removes field and retains scope",
+    "VoiceOver off before native Zoom/orientation cleanup"
+  ],
+  "observed_limitation": "At AX3 in375x508, error body/Retry and chooser child extend below initial viewport. Native accessibility actions can address them; this does not prove complete rotor/swipe traversal or simultaneous visible fit. Earlier visual/touch scroll checks are separate."
+}

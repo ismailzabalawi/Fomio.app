@@ -1,0 +1,50 @@
+KEYBOARD_WIDTH_GEOMETRY Regular more=Attributes: Button, 0x10e709cc0, {{236.6, 115.0}, {15.9, 14.8}}, identifier: 'composer-more', label: 'More'
+Element subtree:
+ →Button, 0x10e709cc0, {{236.6, 115.0}, {15.9, 14.8}}, identifier: 'composer-more', label: 'More'
+Path to element:
+ →Application, 0x102bd3200, pid: 49091, label: 'Fomio'
+  ↳Window (Main), 0x102bd3340, {{0.0, 0.0}, {333.3, 226.0}}
+   ↳Other, 0x10e701e00, {{0.0, 0.0}, {333.3, 226.0}}
+    ↳Other, 0x10e702080, {{57.8, 6.7}, {217.7, 219.3}}
+     ↳Other, 0x10e7021c0, {{57.8, 6.7}, {217.7, 219.3}}
+      ↳Other, 0x10e702300, {{57.8, 6.7}, {217.7, 219.3}}
+       ↳Other, 0x10e702440, {{57.8, 6.7}, {217.7, 219.3}}
+        ↳Other, 0x10e702580, {{57.8, 6.7}, {217.7, 219.3}}
+         ↳Other, 0x10e702e40, {{57.8, 6.7}, {217.7, 219.3}}
+          ↳Other, 0x10e702f80, {{57.8, 6.7}, {217.7, 219.3}}
+           ↳Other, 0x10e7030c0, {{57.8, 6.7}, {217.7, 219.3}}
+            ↳Other, 0x10e703200, {{57.8, 6.7}, {217.7, 219.3}}
+             ↳Other
+    t =    66.32s Find the Target Application 'com.fomio.mobile'
+    t =    66.65s Added attachment named 'Regular keyboard geometry'
+    t =    66.65s Requesting snapshot of accessibility hierarchy for app with pid 49091
+    t =    67.56s Requesting snapshot of accessibility hierarchy for app with pid 49091
+2026-10-19 17:13:10.684662+0300 FomioUITests-Runner[48889:6043043] KEYBOARD_WIDTH_INSPECT Attributes: Application, 0x111c25e00, pid: 49091, label: 'Fomio'
+Element subtree:
+ →Application, 0x111c25e00, pid: 49091, label: 'Fomio'
+    Window (Main), 0x111c261c0, {{0.0, 0.0}, {333.3, 226.0}}
+      Other, 0x111c26300, {{0.0, 0.0}, {333.3, 226.0}}
+      Other, 0x111c26580, {{0.0, 0.0}, {333.3, 226.0}}
+        Other, 0x111c266c0, {{0.0, 0.0}, {333.3, 226.0}}
+          Other, 0x111c26800, {{-1000.0, -678.0}, {3000.0, 2034.0}}
+          Other, 0x111c26940, {{0.0, 0.0}, {333.3, 226.0}}
+            Other, 0x111c26a80, {{0.0, 0.0}, {333.3, 226.0}}
+              Other, 0x111c26bc0, {{0.0, 0.0}, {333.3, 226.0}}
+                Other, 0x111c26d00, {{0.0, 0.0}, {333.3, 226.0}}
+                  Other, 0x111c26e40, {{0.0, 0.0}, {333.3, 226.0}}
+                    Other, 0x111c26f80, {{0.0, 0.0}, {333.3, 226.0}}
+                      Other, 0x111c27d40, {{0.0, 0.0}, {333.3, 226.0}}
+                        Other, 0x111c27e80, {{0.0, 0.0}, {333.3, 226.0}}
+                          Other, 0x11
+    t =   128.91s Find the "composer-more" Button
+    t =   129.94s Find the "composer-more" Button
+    t =   130.89s Find the "composer-more" Button
+    t =   131.96s Find the "composer-more" Button
+    t =   132.92s Find the "composer-more" Button
+    t =   133.92s Find the "composer-more" Button
+    t =   134.92s Find the "composer-more" Button
+    t =   135.93s Find the "composer-more" Button
+    t =   136.94s Find the "composer-more" Button
+    t =   137.89s Find the "composer-more" Button
+/Volumes/Develop/Projects/Fomio Swift/FomioUITests/FomioUITests.swift:54: error: -[FomioUITests.PreparedReplyResizeUITests testKeyboardAndHistoryAcrossManualWidths] : XCTAssertEqual failed: ("XCTWaiterResult(rawValue: 2)") is not equal to ("XCTWaiterResult(rawValue: 1)")
+    t =   140.28s Tear Down

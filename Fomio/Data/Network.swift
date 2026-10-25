@@ -27,16 +27,28 @@ struct LiveConfiguration: Sendable {
     func topicURL(_ id: TopicID, number: PostNumber?) -> URL { url("t/\(id.rawValue)" + (number.map { "/\($0.rawValue)" } ?? "")) }
 }
 struct Credential: Codable, Sendable { let key: String; let clientID: String; let site: String }
-class SameOriginDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+class SameOriginDelegate: NSObject, URLSessionTaskDelegate, URLSessionDataDelegate, @unchecked Sendable {
+    let baseURL: URL?
+    init(baseURL: URL? = nil) { self.baseURL = baseURL; super.init() }
+    func permitsRedirect(from original: URL, to target: URL) -> Bool {
+        guard target.user == nil, target.password == nil,
+              original.host == target.host, original.scheme == target.scheme, original.port == target.port else { return false }
+        guard let baseURL else { return true }
+        return target.standardized.path.split(separator: "/").starts(with: baseURL.standardized.path.split(separator: "/"))
+    }
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: @escaping @Sendable (CachedURLResponse?) -> Void) {
+        let path = dataTask.originalRequest?.url?.path ?? ""
+        completionHandler(path.hasSuffix("/search.json") || path.hasSuffix("/search/query.json") ? nil : proposedResponse)
+    }
     func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void) {
         guard let original = task.originalRequest?.url, let target = request.url,
-              original.host == target.host, original.scheme == target.scheme, original.port == target.port else { completionHandler(nil); return }
+              permitsRedirect(from: original, to: target) else { completionHandler(nil); return }
         completionHandler(request)
     }
 }
 final class UploadProgressDelegate: SameOriginDelegate, @unchecked Sendable {
     let progress: @MainActor @Sendable (Double) -> Void
-    init(progress: @escaping @MainActor @Sendable (Double) -> Void) { self.progress = progress }
+    init(baseURL: URL?, progress: @escaping @MainActor @Sendable (Double) -> Void) { self.progress = progress; super.init(baseURL: baseURL) }
     func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
         guard totalBytesExpectedToSend > 0 else { return }
         let fraction = Double(totalBytesSent) / Double(totalBytesExpectedToSend)
@@ -51,12 +63,13 @@ final class UploadProgressDelegate: SameOriginDelegate, @unchecked Sendable {
         self.configuration = configuration; self.credentials = credentials
         let config = URLSessionConfiguration.ephemeral
         config.timeoutIntervalForRequest = 30
-        self.session = session ?? URLSession(configuration: config, delegate: SameOriginDelegate(), delegateQueue: nil)
+        self.session = session ?? URLSession(configuration: config, delegate: SameOriginDelegate(baseURL: configuration?.baseURL), delegateQueue: nil)
     }
-    func request(_ path: String, method: String = "GET", query: [URLQueryItem] = [], body: Data? = nil, contentType: String? = nil, member: Bool = false, uploadProgress: (@MainActor @Sendable (Double) -> Void)? = nil) async throws -> Data {
+    func request(_ path: String, method: String = "GET", query: [URLQueryItem] = [], body: Data? = nil, contentType: String? = nil, member: Bool = false, searchResponse: Bool = false, uploadProgress: (@MainActor @Sendable (Double) -> Void)? = nil) async throws -> Data {
         guard let configuration else { throw RepositoryError.configuration }
         var request = URLRequest(url: configuration.url(path, query: query))
         request.httpMethod = method; request.httpBody = body
+        if searchResponse { request.cachePolicy = .reloadIgnoringLocalCacheData }
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         if let contentType { request.setValue(contentType, forHTTPHeaderField: "Content-Type") }
         let credential = try credentials(configuration.baseURL.absoluteString)
@@ -70,21 +83,30 @@ final class UploadProgressDelegate: SameOriginDelegate, @unchecked Sendable {
         do {
             if let body, let uploadProgress {
                 request.httpBody = nil
-                (data, response) = try await session.upload(for: request, from: body, delegate: UploadProgressDelegate(progress: uploadProgress))
+                (data, response) = try await session.upload(for: request, from: body, delegate: UploadProgressDelegate(baseURL: configuration.baseURL, progress: uploadProgress))
             } else { (data, response) = try await session.data(for: request) }
         }
         catch is CancellationError { throw CancellationError() }
+        catch let error as URLError where error.code == .cancelled { throw CancellationError() }
         catch { if method != "GET" && method != "HEAD" { throw RepositoryError.unconfirmed }; throw RepositoryError.offline }
         guard let http = response as? HTTPURLResponse else { throw RepositoryError.unconfirmed }
         switch http.statusCode {
         case 200..<300: return data
         case 401: throw RepositoryError.unauthorized
-        case 403: throw RepositoryError.denied
+        case 403:
+            if searchResponse {
+                let error = try? JSONDecoder().decode(ErrorEnvelope.self, from: data)
+                if error?.error_type == "not_logged_in" { throw RepositoryError.unauthorized }
+                throw SearchFailure.accessDenied
+            }
+            throw RepositoryError.denied
         case 404: throw RepositoryError.unavailable
         case 400, 409, 422:
             let error = try? JSONDecoder().decode(ErrorEnvelope.self, from: data)
             throw RepositoryError.invalid(error?.errors?.joined(separator: "\n") ?? error?.message ?? "The community could not accept the request.")
-        case 429: throw RepositoryError.rateLimited
+        case 429:
+            if searchResponse { throw SearchFailure.rateLimited(Self.retryDate(http.value(forHTTPHeaderField: "Retry-After"))) }
+            throw RepositoryError.rateLimited
         default: if method == "POST" { throw RepositoryError.unconfirmed }; throw RepositoryError.server(http.statusCode)
         }
     }
@@ -98,11 +120,24 @@ final class UploadProgressDelegate: SameOriginDelegate, @unchecked Sendable {
     func json(_ path: String, method: String = "POST", payload: [String: Any]) async throws -> Data {
         try await request(path, method: method, body: JSONSerialization.data(withJSONObject: payload), contentType: "application/json", member: true)
     }
-    private struct ErrorEnvelope: Decodable { var errors: [String]?; var message: String? }
+    private struct ErrorEnvelope: Decodable { var errors: [String]?; var message: String?; var error_type: String? }
+    static func retryDate(_ value: String?, now: Date = Date()) -> Date? {
+        guard let value else { return nil }
+        if let seconds = Double(value), seconds.isFinite, seconds >= 0 { return now.addingTimeInterval(seconds) }
+        let formatter = DateFormatter(); formatter.locale = Locale(identifier: "en_US_POSIX"); formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss zzz"
+        return formatter.date(from: value)
+    }
 }
 struct LinkRouter {
+    static func communityIntroductionURL(_ value: String, baseURL: URL) -> URL? {
+        guard let url = URL(string: value, relativeTo: baseURL)?.absoluteURL,
+              url.scheme == "https", url.user == nil, url.password == nil,
+              url.query == nil, case .discussion = route(url, baseURL: baseURL) else { return nil }
+        return url
+    }
     static func route(_ url: URL, baseURL: URL) -> Route? {
-        guard url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port else { return nil }
+        guard url.user == nil, url.password == nil, url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port else { return nil }
         let base = baseURL.path.split(separator: "/").map(String.init)
         let all = url.path.split(separator: "/").map(String.init)
         guard all.starts(with: base) else { return nil }
@@ -112,8 +147,10 @@ struct LinkRouter {
             let idIndex = parts.count > 1 && Int(parts[1]) != nil ? 1 : 2
             guard parts.indices.contains(idIndex), let id = Int(parts[idIndex]), id > 0 else { return nil }
             var number: PostNumber?
-            if parts.indices.contains(idIndex + 1), let value = Int(parts[idIndex + 1]), value > 0 { number = .init(value) }
-            else if parts.count > idIndex + 2, parts[idIndex + 1] == "context", let value = Int(parts[idIndex + 2]), value > 0 { number = .init(value) }
+            let suffix = Array(parts.dropFirst(idIndex + 1))
+            if suffix.count == 1, let value = Int(suffix[0]), value > 0 { number = .init(value) }
+            else if kind == "n", suffix.count == 2, suffix[0] == "context", let value = Int(suffix[1]), value > 0 { number = .init(value) }
+            else if !suffix.isEmpty { return nil } // Branch/filter endpoints are not public exact-post links.
             return .discussion(.init(id), number)
         }
         if kind == "c", let value = parts.last.flatMap(Int.init), value > 0 { return .community(.init(value)) }

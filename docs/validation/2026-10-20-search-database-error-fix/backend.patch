@@ -1,0 +1,106 @@
+diff --git a/config/locales/server.en.yml b/config/locales/server.en.yml
+index 32e79ede986..76da43ac68b 100644
+--- a/config/locales/server.en.yml
++++ b/config/locales/server.en.yml
+@@ -3297,6 +3297,7 @@ en:
+         value: "DiscourseConnect secret"
+ 
+   search:
++    query_error: "Search could not be completed. Please try again."
+     extreme_load_error: "Site is under extreme load, search is disabled, try again later"
+     within_post: "#%{post_number} by %{username}"
+     types:
+diff --git a/lib/search.rb b/lib/search.rb
+index d9880b29c19..89817c50dbd 100644
+--- a/lib/search.rb
++++ b/lib/search.rb
+@@ -367,6 +367,7 @@ class Search
+     end
+ 
+     find_grouped_results if @results.posts.blank?
++    return @results if @results.error.present?
+ 
+     if preloaded_topic_custom_fields.present? && @results.posts.present?
+       topics = @results.posts.map(&:topic)
+@@ -1082,9 +1083,16 @@ class Search
+     end
+ 
+     @results
+-  rescue ActiveRecord::StatementInvalid
+-    # In the event of a PG:Error return nothing, it is likely they used a foreign language whose
+-    # locale is not supported by postgres
++  rescue ActiveRecord::StatementInvalid => error
++    Discourse.warn_exception(error)
++    @results =
++      GroupedSearchResults.new(
++        type_filter: @results.type_filter,
++        term: @results.term,
++        search_context: @results.search_context,
++      )
++    @results.error = I18n.t("search.query_error")
++    @results
+   end
+ 
+   # If we're searching for a single topic
+diff --git a/spec/lib/search_spec.rb b/spec/lib/search_spec.rb
+index 13e4910bdb6..061d1350d1a 100644
+--- a/spec/lib/search_spec.rb
++++ b/spec/lib/search_spec.rb
+@@ -135,6 +135,24 @@ RSpec.describe Search do
+   describe "#execute" do
+     before { SiteSetting.tagging_enabled = true }
+ 
++    it "discards partial results and returns an error when a later search facet fails" do
++      user = Fabricate(:user, username: "searchfailureuser")
++      SearchIndexer.index(user, force: true)
++      expect(Search.execute(user.username).users).to contain_exactly(user)
++      search = Search.new(user.username)
++      search.stubs(:posts_query).raises(ActiveRecord::StatementInvalid.new("database failure"))
++
++      result = search.execute
++
++      expect(result.error).to eq(I18n.t("search.query_error"))
++      expect(result.posts).to eq([])
++      expect(result.users).to eq([])
++      expect(result.categories).to eq([])
++      expect(result.tags).to eq([])
++      expect(result.groups).to eq([])
++      expect(result.more_full_page_results).to be_nil
++    end
++
+     context "with staff tags" do
+       fab!(:hidden_tag, :tag)
+       let!(:staff_tag_group) do
+diff --git a/spec/requests/search_controller_spec.rb b/spec/requests/search_controller_spec.rb
+index 601f4aaf1b2..78cf64a53ab 100644
+--- a/spec/requests/search_controller_spec.rb
++++ b/spec/requests/search_controller_spec.rb
+@@ -421,6 +421,28 @@ RSpec.describe SearchController do
+     end
+   end
+ 
++  describe "database search failures" do
++    %w[/search.json /search/query.json].each do |path|
++      it "returns an explicit error without partial results from #{path}" do
++        database_error = ActiveRecord::StatementInvalid.new("private database details")
++        Search.any_instance.stubs(:posts_query).raises(database_error)
++        params = path == "/search.json" ? { q: "awesome" } : { term: "awesome" }
++
++        get path, params: params
++
++        expect(response.status).to eq(200)
++        data = response.parsed_body
++        expect(data["grouped_search_result"]["error"]).to eq(I18n.t("search.query_error"))
++        expect(data["posts"]).to eq([])
++        expect(data["topics"]).to be_nil
++        expect(data["users"]).to eq([])
++        expect(data["categories"]).to eq([])
++        expect(data["grouped_search_result"]["more_full_page_results"]).to be_nil
++        expect(response.body).not_to include(database_error.message)
++      end
++    end
++  end
++
+   describe "#show" do
+     context "when an anonymous user cannot search" do
+       before { SiteSetting.allow_anonymous_search = false }

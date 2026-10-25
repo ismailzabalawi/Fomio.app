@@ -28,6 +28,7 @@ struct ComposerView: View {
     @State private var turningInto = false
     /// The body has held the caret at least once, so the bar keeps its block context with the keyboard down.
     @State private var bodyEngaged = false
+    @State private var floatingKeyboardInset: CGFloat = 0
     /// Where + puts the next block, captured when the inserter opens.
     @State private var insertion: (location: Int, leading: String, trailing: String) = (0, "", "")
     @State private var pendingInsert: ComposerInserter.Choice?
@@ -74,11 +75,14 @@ struct ComposerView: View {
                     }
                 }.background(Color.fomioBackground).scrollDismissesKeyboard(.interactively)
                 .safeAreaInset(edge: .bottom, spacing: 12) {
-                    // The bar floats above the keyboard, or above the safe area once the keyboard is hidden.
-                    // It stays mounted while the community list is open: rebuilding the native More menu then
-                    // left the next text input without a software keyboard.
-                    if !state.locked { composerBar.opacity(choosingCommunity ? 0 : 1).allowsHitTesting(!choosingCommunity).accessibilityHidden(choosingCommunity) }
+                    // Keep the bar/menu mounted through geometry and community-list changes;
+                    // rebuilding the native menu can interrupt keyboard presentation.
+                    if !state.locked {
+                        composerBar.opacity(choosingCommunity ? 0 : 1).allowsHitTesting(!choosingCommunity).accessibilityHidden(choosingCommunity)
+                            .padding(.bottom, floatingKeyboardInset)
+                    }
                 }
+                .background(ComposerKeyboardAvoidance { floatingKeyboardInset = $0 })
                 .task(id: recoveryTarget) {
                     guard let target = recoveryTarget else { return }
                     focusedField = nil; titleEditor.blur(); bodyEditor.blur()
@@ -448,6 +452,10 @@ struct ComposerView: View {
     private func editorMenu(labelled: Bool) -> ComposerMoreMenu {
         let canFormatInline = DiscourseMarkupCodec.supportsInlineFormatting(state.draft.body, range: bodyEditor.selection.range)
         var actions: [ComposerMenuAction] = [
+            // Keep history at the visible start of a scrollable menu when the
+            // keyboard leaves too little height to show every action.
+            .init("Undo", "arrow.uturn.backward", enabled: bodyEditor.canUndo) { bodyEditor.send(.undo) },
+            .init("Redo", "arrow.uturn.forward", enabled: bodyEditor.canRedo) { bodyEditor.send(.redo) },
             .init("Bold", "bold", enabled: canFormatInline, group: "Format") { bodyEditor.send(.bold); bodyEditor.focus() },
             .init("Italic", "italic", enabled: canFormatInline, group: "Format") { bodyEditor.send(.italic); bodyEditor.focus() },
             .init("Link", "link", enabled: canFormatInline, group: "Format") { openLink() }
@@ -467,8 +475,6 @@ struct ComposerView: View {
         }
         actions.append(.init("Preview", "eye") { suspendEditingFocus(); presentation = .preview })
         actions.append(.init(bodyEditor.markdown ? "Rich text" : "Edit in Markdown", "textformat") { bodyEditor.send(.markdown); bodyEditor.focus() })
-        actions.append(.init("Undo", "arrow.uturn.backward", enabled: bodyEditor.canUndo) { bodyEditor.send(.undo) })
-        actions.append(.init("Redo", "arrow.uturn.forward", enabled: bodyEditor.canRedo) { bodyEditor.send(.redo) })
         return ComposerMoreMenu(actions: actions, labelled: labelled, onOpen: { restoreTask?.cancel(); turningInto = false })
     }
     private func photoPicker(_ title: String, symbol: String?) -> some View {
@@ -633,8 +639,8 @@ struct CommunityField: View {
     private var trimmedQuery: String { query.trimmingCharacters(in: .whitespacesAndNewlines) }
     /// Only communities the account can post in; a parent it can't post in is a heading only.
     private var groups: [OptionGroup] {
-        app.communities.filter { $0.parentID == nil }.compactMap { root in
-            let children = app.communities.filter { $0.parentID == root.id && $0.canCreate }.map { Option(community: $0, parent: root) }
+        app.browseCatalog.filter { $0.parentID == nil }.compactMap { root in
+            let children = app.browseCatalog.filter { $0.parentID == root.id && $0.canCreate }.map { Option(community: $0, parent: root) }
             let options = (root.canCreate ? [Option(community: root, parent: nil)] : []) + children
             return options.isEmpty ? nil : OptionGroup(heading: root.canCreate ? nil : root, options: options)
         }

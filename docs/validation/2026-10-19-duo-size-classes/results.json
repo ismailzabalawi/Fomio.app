@@ -1,0 +1,104 @@
+[
+  {
+    "log": "01-compact-state.log",
+    "detached": true,
+    "state": {
+      "canRedo": "0",
+      "canUndo": "1",
+      "editorSizeClass": "1",
+      "firstResponder": "1",
+      "rootSizeClass": "1",
+      "scene": "2F51C9BE-58F0-43BF-82E6-A39177D6C8BF",
+      "selection": "{12, 0}",
+      "text": "Trait draft.",
+      "undoManager": "0x117c4abc0",
+      "view": "0x10f4c3000",
+      "window": "{{0, 0}, {466, 678}}"
+    }
+  },
+  {
+    "log": "02-expanded-state.log",
+    "detached": true,
+    "state": {
+      "canRedo": "1",
+      "canUndo": "1",
+      "editorSizeClass": "1",
+      "firstResponder": "1",
+      "rootSizeClass": "2",
+      "scene": "2F51C9BE-58F0-43BF-82E6-A39177D6C8BF",
+      "selection": "{11, 0}",
+      "text": "Trait draft",
+      "undoManager": "0x117c4abc0",
+      "view": "0x10f4c3000",
+      "window": "{{0, 0}, {1000, 678}}"
+    }
+  },
+  {
+    "log": "03-compact-after-probe-state.log",
+    "detached": true,
+    "state": {
+      "canRedo": "1",
+      "canUndo": "1",
+      "editorSizeClass": "1",
+      "firstResponder": "1",
+      "rootSizeClass": "1",
+      "scene": "2F51C9BE-58F0-43BF-82E6-A39177D6C8BF",
+      "selection": "{0, 0}",
+      "text": "Trait draft",
+      "undoManager": "0x117c4abc0",
+      "view": "0x10f4c3000",
+      "window": "{{0, 0}, {466, 678}}"
+    }
+  },
+  {
+    "log": "04-cycle-compact-state.log",
+    "detached": true,
+    "state": {
+      "canRedo": "1",
+      "canUndo": "1",
+      "editorSizeClass": "1",
+      "firstResponder": "1",
+      "rootSizeClass": "1",
+      "scene": "2F51C9BE-58F0-43BF-82E6-A39177D6C8BF",
+      "selection": "{0, 0}",
+      "text": "Trait draft",
+      "undoManager": "0x117c4abc0",
+      "view": "0x10f4c3000",
+      "window": "{{0, 0}, {466, 678}}"
+    }
+  },
+  {
+    "log": "05-cycle-regular-state.log",
+    "detached": true,
+    "state": {
+      "canRedo": "1",
+      "canUndo": "1",
+      "editorSizeClass": "1",
+      "firstResponder": "1",
+      "rootSizeClass": "2",
+      "scene": "2F51C9BE-58F0-43BF-82E6-A39177D6C8BF",
+      "selection": "{0, 0}",
+      "text": "Trait draft",
+      "undoManager": "0x117c4abc0",
+      "view": "0x10f4c3000",
+      "window": "{{0, 0}, {1000, 678}}"
+    }
+  },
+  {
+    "log": "06-cycle-compact-return-state.log",
+    "detached": true,
+    "state": {
+      "canRedo": "1",
+      "canUndo": "1",
+      "editorSizeClass": "1",
+      "firstResponder": "1",
+      "rootSizeClass": "1",
+      "scene": "2F51C9BE-58F0-43BF-82E6-A39177D6C8BF",
+      "selection": "{0, 0}",
+      "text": "Trait draft",
+      "undoManager": "0x117c4abc0",
+      "view": "0x10f4c3000",
+      "window": "{{0, 0}, {466, 678}}"
+    }
+  }
+]

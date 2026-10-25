@@ -31,6 +31,10 @@ import Foundation
         case "findnone": app.selectedTab = .communities; app.tabs[.communities]?.communityQuery = "pottery"
         case "community": app.selectedTab = .communities; app.navigate(.community(woodworking), in: .communities)
         case "subcommunity": app.selectedTab = .communities; app.navigate(.community(woodworking), in: .communities); app.navigate(.community(finishing), in: .communities)
+        case "partial-community": app.navigate(.community(.init(9)))
+        case "public-link":
+            app.selectScope(.category(.init(9)))
+            if let url = app.configuration?.topicURL(.init(4190), number: .init(14)) { app.handleLink(url) }
         case "empty": app.selectedTab = .communities; app.navigate(.community(woodworking), in: .communities); app.navigate(.community(.init(9)), in: .communities)
         case "denied": app.selectedTab = .communities; app.navigate(.denied(.init(10)), in: .communities)
         case "discussion": app.navigate(.discussion(walnut, nil))
@@ -53,7 +57,7 @@ import Foundation
             IncomingNotifications.shared.deliver(intent)
             if preset == "notif-push-duplicate" { IncomingNotifications.shared.deliver(intent) }
         case "unavailable": app.selectedTab = .notifications; app.navigate(.unavailable, in: .notifications)
-        case "search": app.tabs[.home]?.searchQuery = "walnut"; app.navigate(.search)
+        case "search": app.tabs[.home]?.discussionSearch.query = "walnut"; app.tabs[.home]?.discussionSearch.revealed = true; app.navigate(.search)
         case "notifications": app.selectedTab = .notifications
         case "me": app.selectedTab = .me
         case "profile": app.navigate(.discussion(walnut, nil)); app.navigate(.profile("mara_k"))

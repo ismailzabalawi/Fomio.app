@@ -1,0 +1,39 @@
+User will not be able to change the font size of this SwiftUI.AccessibilityNode
+Attributes: StaticText, 0x110855040, {{256.0, 188.0}, {149.5, 22.5}}, label: 'No discussions yet'
+Element subtree:
+ →StaticText, 0x110855040, {{256.0, 188.0}, {149.5, 22.5}}, label: 'No discussions yet'
+Path to element:
+ →Application, 0x10fe60a00, pid: 93840, label: 'Fomio'
+  ↳Window (Main), 0x10fe62bc0, {{0.0, 0.0}, {1366.0, 1024.0}}
+   ↳Other, 0x10fe608c0, {{0.0, 0.0}, {1366.0, 1024.0}}
+    ↳Other, 0x10fe61400, {{0.0, 0.0}, {1366.0, 1024.0}}
+     ↳Other, 0x10fe60500, {{0.0, 0.0}, {1366.0, 1024.0}}
+      ↳Other, 0x10fe61680, {{0.0, 0.0}, {1366.0, 1024.0}}
+       ↳Other, 0x10fe60c80, {{0.0, 0.0}, {1366.0, 1024.0}}
+        ↳Other, 0x10fe60dc0, {{0.0, 0.0}, {1366.0, 1024.0}}
+         ↳Other, 0x10fe63d40, {{0.0, 0.0}, {1366.0, 1024.0}}
+          ↳Other, 0x10fe63e80, {{0.0, 0.0}, {1366.0, 1024.0}}
+           ↳Other, 0x10fe626c0, {{0.0, 0.0}, {1366.0, 1024.0}}
+            ↳Other, 0x102e49180, {{0.0, 0.0}, {1366.0, 1024.0}}
+             ↳Other, 0x102e4bac0, {{0.0, 0.0}, {1366.0, 1024.0}}, identifier: 'reading-three-pane'
+              ↳Other, 0x102e4b840, {{220.0, 32.0}, {1146.0, 992.0}}
+               ↳Other, 0x102e4b700, {{220.0, 32.0}, {1146.0, 992.0}}
+                ↳Other, 0x102e4b980, {{220.0, 32.0}, {360.0, 992.0}}
+                 ↳Other, 0x102e4a580, {{220.0, 32.0}, {360.0, 992.0}}
+                  ↳Other, 0x102e48a00, {{220.0, 32.0}, {360.0, 992.0}}
+                   ↳Other, 0x110854000, {{220.0, 32.0}, {360.0, 992.0}}
+                    ↳Other, 0x110854140, {{220.0, 32.0}, {360.0, 992.0}}
+                     ↳Other, 0x110854280, {{220.0, 32.0}, {360.0, 992.0}}
+                      ↳ScrollView, 0x110854c80, {{220.0, 32.0}, {360.0, 992.0}}, identifier: 'feed-compact'
+                       ↳Other, 0x110854dc0, {{220.0, 152.0}, {360.0, 143.0}}
+                        ↳Other, 0x110854f00, {{256.0, 188.0}, {243.0, 50.5}}
+                         ↳StaticText, 0x110855040, {{256.0, 188.0}, {149.5, 22.5}}, label: 'No discussions yet'
+Query chain:
+ →Find: Target Application 'com.fomio.mobile'
+  Output: {
+    Application, 0x110a848c0, pid: 93840, label: 'Fomio'
+  }
+  ↪︎Find: Descendant with identity binding to AX element pid: 93840, elementOrHash.elementID: 4600218720.393
+    Output: {
+      StaticText, 0x102fd2080, {{256.0, 188.0}, {149.5, 22.5}}, label: 'No discussions yet'
+    }

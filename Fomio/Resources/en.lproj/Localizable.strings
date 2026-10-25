@@ -170,3 +170,121 @@
 "Checked" = "Checked";
 "Unchecked" = "Unchecked";
 "Edit task" = "Edit task";
+
+/* Adaptive browsing and scoped search */
+"Home" = "Home";
+"Communities" = "Communities";
+"Notifications" = "Notifications";
+"Me" = "Me";
+"All communities" = "All communities";
+"Community unavailable" = "Community unavailable";
+"Community: %@. Change community" = "Community: %@. Change community";
+"Loading communities" = "Loading communities";
+"Loading community" = "Loading community";
+"Community list unavailable" = "Community list unavailable";
+"Retry" = "Retry";
+"Current community" = "Current community";
+"No communities match" = "No communities match";
+"No matches in loaded communities" = "No matches in loaded communities";
+"Choose community" = "Choose community";
+"Find communities" = "Find communities";
+"Selected" = "Selected";
+"%@, subcommunity of %@" = "%@, subcommunity of %@";
+"Retry communities" = "Retry communities";
+"Back to topic list" = "Back to topic list";
+"Show topic list" = "Show topic list";
+"Focus on discussion" = "Focus on discussion";
+"Choose a discussion" = "Choose a discussion";
+"Select a topic to read it alongside the list." = "Select a topic to read it alongside the list.";
+"Search discussions" = "Search discussions";
+"Search in %@" = "Search in %@";
+"New discussion in %@" = "New discussion in %@";
+"Search unavailable" = "Search unavailable";
+"More results couldn’t be loaded" = "More results couldn’t be loaded";
+"Search couldn’t be completed. Try again." = "Search couldn’t be completed. Try again.";
+"The community returned search results that couldn’t be verified. Try again." = "The community returned search results that couldn’t be verified. Try again.";
+"Search settings couldn’t be loaded. Try again." = "Search settings couldn’t be loaded. Try again.";
+"Too many searches. Wait a moment, then retry." = "Too many searches. Wait a moment, then retry.";
+"Access to this search couldn’t be verified. Try again." = "Access to this search couldn’t be verified. Try again.";
+"Enter words to search for." = "Enter words to search for.";
+"Use words or quoted phrases. Advanced search operators aren’t supported here." = "Use words or quoted phrases. Advanced search operators aren’t supported here.";
+"Enter at least %ld characters to search." = "Enter at least %ld characters to search.";
+"Refine your search to see more results." = "Refine your search to see more results.";
+"Showing previous results" = "Showing previous results";
+"No results for “%@”" = "No results for “%@”";
+"Check the spelling or try fewer words." = "Check the spelling or try fewer words.";
+"Searching" = "Searching";
+"More results" = "More results";
+"Try again in %ld seconds" = "Try again in %ld seconds";
+"Try again later" = "Try again later";
+"No discussions yet" = "No discussions yet";
+"Start the first discussion in %@." = "Start the first discussion in %@.";
+"Start a discussion in a community you can post to." = "Start a discussion in a community you can post to.";
+"More discussions" = "More discussions";
+"Couldn’t load more" = "Couldn’t load more";
+"Discussions unavailable" = "Discussions unavailable";
+"About" = "About";
+"Refresh" = "Refresh";
+"Home options" = "Home options";
+"Feed options" = "Feed options";
+"This community could not be resolved or is inaccessible." = "This community could not be resolved or is inaccessible.";
+"Discussion outside this community" = "Discussion outside this community";
+"Choose All communities to return to this discussion. Its reading position and your draft are kept." = "Choose All communities to return to this discussion. Its reading position and your draft are kept.";
+"Community access changed. Reload communities to check current access." = "Community access changed. Reload communities to check current access.";
+"Sign in again to continue. Your writing is kept." = "Sign in again to continue. Your writing is kept.";
+"You don’t have permission to access this content." = "You don’t have permission to access this content.";
+"This content is no longer available." = "This content is no longer available.";
+"You’re offline. Your writing is kept on this device." = "You’re offline. Your writing is kept on this device.";
+
+"New window" = "New window";
+
+"This draft is already open in another window." = "This draft is already open in another window.";
+
+"Close this draft in its window before discarding it." = "Close this draft in its window before discarding it.";
+
+"This draft belongs to another account." = "This draft belongs to another account.";
+
+"Opening window" = "Opening window";
+
+"Finish or close your current draft first." = "Finish or close your current draft first.";
+
+"Sample content" = "Sample content";
+
+"Sample community content. This is a preview." = "Sample community content. This is a preview.";
+
+"Draft reply" = "Draft reply";
+
+"Resume" = "Resume";
+
+"Resume draft reply" = "Resume draft reply";
+
+"No text yet" = "No text yet";
+
+"No discussions in %@ yet" = "No discussions in %@ yet";
+
+"Choose another community, or All communities." = "Choose another community, or All communities.";
+
+
+"No topics in %@ match “%@”" = "No topics in %@ match “%@”";
+
+"No topics match “%@”" = "No topics match “%@”";
+
+"Try another word." = "Try another word.";
+
+"Try another word, or search all communities." = "Try another word, or search all communities.";
+
+"Clear search" = "Clear search";
+
+"Hide search" = "Hide search";
+
+"Hide sidebar" = "Hide sidebar";
+
+"Show sidebar" = "Show sidebar";
+
+"%lld topics" = "%lld topics";
+
+"1 topic" = "1 topic";
+
+"%lld unread" = "%lld unread";
+
+"1 unread" = "1 unread";

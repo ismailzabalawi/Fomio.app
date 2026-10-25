@@ -1,0 +1,308 @@
+Attributes: Application, 0x10443f4f0, pid: 68398, label: 'Fomio'
+Element subtree:
+ →Application, 0x10443f4f0, pid: 68398, label: 'Fomio'
+    Window (Main), 0x104f0a4c0, {{0.0, 0.0}, {1133.0, 744.0}}
+      Other, 0x104f08b40, {{0.0, 0.0}, {1133.0, 744.0}}
+        Other, 0x104f05970, {{0.0, 0.0}, {1133.0, 744.0}}
+          Other, 0x104f05a90, {{0.0, 0.0}, {1133.0, 744.0}}
+            Other, 0x10b20c6b0, {{0.0, 0.0}, {1133.0, 744.0}}
+              Other, 0x10b305e20, {{0.0, 0.0}, {1133.0, 744.0}}
+                Other, 0x10b30a430, {{0.0, 32.0}, {1133.0, 692.0}}
+                Other, 0x10b304ae0, {{0.0, 0.0}, {1133.0, 744.0}}
+                  Other, 0x10b305aa0, {{0.0, 0.0}, {1133.0, 744.0}}
+                    Other, 0x10b30d1a0, {{0.0, 680.0}, {1133.0, 64.0}}
+                      Other, 0x10b109780, {{0.0, 0.0}, {1133.0, 744.0}}
+                      Other, 0x10b104e50, {{0.0, 680.0}, {1133.0, 64.0}}
+                  Other, 0x10b107d40, {{0.0, 0.0}, {1133.0, 744.0}}
+                    Other, 0x10b109410, {{0.0, 0.0}, {1133.0, 744.0}}
+                      Other, 0x10b108f70, {{0.0, 0.0}, {1133.0, 744.0}}
+                        Other, 0x10b10b0c0, {{0.0, 0.0}, {1133.0, 744.0}}
+                          Other, 0x10b10d040, {{0.0, 0.0}, {1133.0, 744.0}}
+                            ScrollView, 0x104f060b0, {{0.0, 0.0}, {220.0, 744.0}}, identifier: 'reading-three-pane'
+                              Other, 0x104f0a820, {{0.0, 32.0}, {220.0, 524.5}}
+                                Image, 0x10b10d460, {{24.0, 52.0}, {60.0, 28.0}}, label: 'Fomio'
+                                Button, 0x10b10cc20, {{10.0, 98.0}, {200.0, 44.0}}, label: 'Home', Selected
+                                  Image, 0x10b10d880, {{24.0, 111.0}, {20.0, 17.5}}, identifier: 'house', label: 'Home'
+                                  StaticText, 0x10b10b4e0, {{24.0, 108.8}, {75.5, 22.5}}, label: 'Home'
+                                Button, 0x10b10a0e0, {{24.0, 160.8}, {126.0, 22.5}}, label: 'Communities'
+                                  Image, 0x10b10e520, {{24.0, 164.0}, {15.5, 15.5}}, identifier: 'square.grid.2x2', label: 'Grid View'
+                                  StaticText, 0x10b10e640, {{24.0, 160.8}, {126.0, 22.5}}, label: 'Communities'
+                                Button, 0x10b10e760, {{24.0, 212.8}, {122.0, 22.5}}, label: 'Notifications'
+                                  Image, 0x10b10e880, {{24.0, 215.0}, {16.0, 17.5}}, identifier: 'bell', label: 'Notifications'
+                                  StaticText, 0x10b10e9a0, {{24.0, 212.8}, {122.0, 22.5}}, label: 'Notifications'
+                                Button, 0x104f0be60, {{23.5, 264.8}, {50.5, 22.5}}, label: 'Me'
+                                  Image, 0x104f0bf80, {{23.5, 267.5}, {17.0, 17.0}}, identifier: 'person.crop.circle', label: 'Account'
+                                  StaticText, 0x10b20ba50, {{23.5, 264.8}, {50.5, 22.5}}, label: 'Me'
+                                StaticText, 0x10b20c290, {{22.0, 322.0}, {78.0, 16.5}}, label: 'Communities'
+                                Button, 0x10b20b630, {{10.0, 346.5}, {200.0, 44.0}}, identifier: 'sidebar-all', label: 'All communities, Selected', Selected
+                                  StaticText, 0x10b20cc10, {{22.0, 358.5}, {114.5, 20.0}}, label: 'All communities'
+                                  Image, 0x10b20cd30, {{182.5, 362.0}, {13.5, 13.0}}, identifier: 'checkmark', label: 'Selected', Selected
+                                Button, 0x10b20dbd0, {{10.0, 398.5}, {200.0, 44.0}}, identifier: 'sidebar-1', label: 'Woodworking'
+                                Button, 0x10b20dcf0, {{10.0, 450.5}, {200.0, 44.0}}, identifier: 'sidebar-5', label: 'Electronics'
+                                Button, 0x10b20de10, {{10.0, 502.5}, {200.0, 44.0}}, identifier: 'sidebar-8', label: 'Gardening'
+                              Other, 0x10b20df30, {{187.0, 0.0}, {30.0, 698.5}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                Other, 0x10b20e050, {{214.0, 273.0}, {3.0, 422.5}}
+                              Other, 0x10b10eac0, {{187.0, 0.0}, {30.0, 698.5}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                Other, 0x10b10ebe0, {{214.0, 273.0}, {3.0, 422.5}}
+                            Other, 0x10b20e170, {{220.0, 32.0}, {913.0, 712.0}}, identifier: 'reading-three-pane'
+                              Other, 0x10b20e290, {{220.0, 32.0}, {913.0, 712.0}}
+                                Other, 0x10b20e3b0, {{230.0, 106.0}, {360.0, 628.0}}
+                                  Other, 0x10b20e4d0, {{230.0, 106.0}, {360.0, 628.0}}
+                                    Other, 0x10b20e6b0, {{230.0, 106.0}, {360.0, 628.0}}
+                                      Other, 0x10b20e7d0, {{230.0, 106.0}, {360.0, 628.0}}
+                                        Other, 0x10b20e8f0, {{230.0, 106.0}, {360.0, 628.0}}
+                                          Other, 0x10b20ea10, {{230.0, 106.0}, {360.0, 628.0}}
+                                            Other, 0x10b20eb30, {{230.0, 106.0}, {360.0, 628.0}}
+                                              ScrollView, 0x10b20ec50, {{230.0, 106.0}, {360.0, 628.0}}, identifier: 'feed-compact'
+                                                Other, 0x10b20ed70, {{230.0, 162.0}, {360.0, 1091.0}}
+                                                  Other, 0x10b20ee90, {{250.0, 166.0}, {340.0, 1039.5}}
+                                                    Button, 0x10b20efb0, {{250.0, 166.0}, {156.5, 44.0}}, identifier: 'topic-category-6', label: 'Open community Repairs, in Electronics'
+                                                      Image, 0x104740950, {{251.8, 179.8}, {16.4, 16.4}}, identifier: 'wrench.and.screwdriver', label: 'wrench.and.screwdriver'
+                                                      StaticText, 0x10473fbf0, {{250.0, 166.0}, {156.5, 44.0}}, label: 'Electronics › Repairs'
+                                                    Button, 0x104740d70, {{250.0, 206.0}, {320.0, 120.5}}, identifier: 'topic-4190', label: 'Bench PSU hums after a fuse swap, in Repairs, Electronics, started by devon, 14 replies, active 2 minutes ago'
+                                                      StaticText, 0x104740e90, {{250.0, 206.0}, {282.5, 22.5}}, label: 'Bench PSU hums after a fuse swap'
+                                                      StaticText, 0x104740fb0, {{250.0, 232.5}, {317.0, 42.0}}, label: 'Replaced the 2A fuse with the same rating, and now there’s a 50 Hz hum from the transformer side. Output voltage looks normal on the meter. Anything I should check before I open it up again?'
+                                                      StaticText, 0x1047413b0, {{250.0, 284.5}, {20.0, 20.0}}, label: 'D'
+                                                      StaticText, 0x1047414d0, {{276.0, 285.5}, {105.0, 18.0}}, label: 'Started by devon'
+                                                      Image, 0x1047415f0, {{251.5, 312.5}, {11.5, 10.5}}, identifier: 'bubble.left', label: 'Comment Left'
+                                                      StaticText, 0x104741710, {{251.5, 308.5}, {74.5, 18.0}}, label: '14 replies'
+                                                      StaticText, 0x104741830, {{332.0, 308.5}, {4.0, 18.0}}, label: '·'
+                                                      StaticText, 0x104741950, {{342.0, 308.5}, {86.5, 18.0}}, label: 'Active 2m ago'
+                                                    Other, 0x104741a70, {{250.0, 340.5}, {340.0, 0.5}}
+                                                    Button, 0x104741b90, {{250.0, 345.0}, {182.0, 44.0}}, identifier: 'topic-category-2', label: 'Open community Finishing, in Woodworking'
+                                                      Image, 0x104741cb0, {{251.8, 358.8}, {16.4, 16.4}}, identifier: 'paintbrush', label: 'Format'
+                                                      StaticText, 0x104741dd0, {{250.0, 345.0}, {182.0, 44.0}}, label: 'Woodworking › Finishing'
+                                                    Button, 0x104741ef0, {{250.0, 385.0}, {320.0, 144.5}}, identifier: 'topic-4182', label: 'Oil vs. hardwax on a walnut desk top?, in Finishing, Woodworking, started by mara_k, 4 replies, active 10 minutes ago, Photo: Close-up of a solid walnut table top'
+                                                      StaticText, 0x104742010, {{250.0, 384.8}, {224.5, 46.5}}, label: 'Oil vs. hardwax on a walnut desk top?'
+                                                      StaticText, 0x10b30cb60, {{250.0, 435.3}, {233.5, 42.0}}, label: 'Sanded to 220. It’s a daily desk: coffee mugs and a laptop. Rubbing oil looks great, but I’m worried about rings. Would hardwax oil hold up better, or should I go straight to a film finish?'
+                                                      Image, 0x10b20f270, {{480.0, 385.0}, {108.0, 72.0}}, label: 'ph-walnut'
+                                                      StaticText, 0x10b20f390, {{250.0, 487.5}, {20.0, 20.0}}, label: 'MK'
+                                                      StaticText, 0x10b20f4b0, {{276.0, 488.3}, {114.0, 18.0}}, label: 'Started by mara_k'
+                                                      Image, 0x10b20f5d0, {{251.5, 515.0}, {11.5, 10.5}}, identifier: 'bubble.left', label: 'Comment Left'
+                                                      StaticText, 0x10b20f6f0, {{251.5, 511.3}, {68.5, 18.0}}, label: '4 replies'
+                                                      StaticText, 0x10b20f810, {{326.0, 511.3}, {4.0, 18.0}}, label: '·'
+                                                      StaticText, 0x10b20f930, {{336.0, 511.3}, {92.5, 18.0}}, label: 'Active 10m ago'
+                                                    Other, 0x10b20fa50, {{0.0, 0.0}, {0.0, 0.0}}
+                                                    Button, 0x10b20fb70, {{250.0, 547.5}, {112.5, 44.0}}, identifier: 'topic-category-1', label: 'Open community Woodworking'
+                                                      Image, 0x10b20fc90, {{251.8, 561.3}, {16.4, 16.4}}, identifier: 'hammer', label: 'Build'
+                                                      StaticText, 0x10b20fdb0, {{250.0, 547.5}, {112.5, 44.0}}, label: 'Woodworking'
+                                                    Button, 0x10b20fed0, {{250.0, 587.5}, {320.0, 216.5}}, identifier: 'topic-4199', label: 'Built a standing desk from reclaimed oak flooring and the top has cupped about 3 mm across the width since spring. Can I still flatten it without taking it apart?, in Woodworking, started by margaux.delacroix-whitfield, 2 replies, active 25 minutes ago'
+                                                      StaticText, 0x104f0c1b0, {{250.0, 587.7}, {301.0, 118.5}}, label: 'Built a standing desk from reclaimed oak flooring and the top has cupped about 3 mm across the width since spring. Can I still flatten it without taking it apart?'
+                                                      StaticText, 0x104f0c2d0, {{250.0, 710.2}, {315.5, 42.0}}, label: 'The boards were glued edge to edge with the growth rings all facing the same way, which I now realise was a mistake. The cup is worst on the window side. Finish is two coats of water-based poly on the top only, nothing underneath.'
+                                                      StaticText, 0x104f0c3f0, {{250.0, 762.0}, {20.0, 20.0}}, label: 'MD'
+                                                      StaticText, 0x10b20fff0, {{276.0, 763.2}, {244.0, 18.0}}, label: 'Started by margaux.delacroix-whitfield'
+                                                      Image, 0x10b210110, {{251.5, 790.0}, {11.5, 10.5}}, identifier: 'bubble.left', label: 'Comment Left'
+                                                      StaticText, 0x10b210230, {{251.5, 786.2}, {68.0, 18.0}}, label: '2 replies'
+                                                      StaticText, 0x10b30a830, {{325.5, 786.2}, {4.0, 18.0}}, label: '·'
+                                                      StaticText, 0x10b30b860, {{335.5, 786.2}, {94.5, 18.0}}, label: 'Active 25m ago'
+                                                    Other, 0x10b30d7e0, {{250.0, 818.0}, {340.0, 0.5}}
+                                                    Button, 0x10b30d900, {{250.0, 822.5}, {213.0, 44.0}}, identifier: 'topic-category-7', label: 'Open community Microcontrollers, in Electronics'
+                                                      Other, 0x104f0c510, {{251.8, 836.3}, {16.4, 16.4}}
+                                                      StaticText, 0x104f0c630, {{250.0, 822.5}, {213.0, 44.0}}, label: 'Electronics › Microcontrollers'
+                                                    Button, 0x104f0c750, {{250.0, 862.5}, {320.0, 122.5}}, identifier: 'topic-4201', label: 'Deep sleep current on a dev board: 40 mA?, in Microcontrollers, Electronics, started by priya, 5 replies, active 1 hour ago'
+                                                      StaticText, 0x104f0c870, {{250.0, 862.5}, {287.0, 46.5}}, label: 'Deep sleep current on a dev board: 40 mA?'
+                                                      StaticText, 0x104f0c990, {{250.0, 913.0}, {317.5, 42.0}}, label: 'My board draws 40 mA in deep sleep. The datasheet says microamps. Is the USB-serial chip the culprit, or am I measuring wrong?'
+                                                      StaticText, 0x104f0cab0, {{250.0, 965.0}, {20.0, 20.0}}, label: 'P'
+                                                      StaticText, 0x104f0cbd0, {{276.0, 966.0}, {98.5, 18.0}}, label: 'Started by priya'
+                                                      StaticText, 0x104f0ccf0, {{380.5, 966.0}, {4.0, 18.0}}, label: '·'
+                                                      Image, 0x104f0ce10, {{392.0, 970.0}, {11.5, 10.5}}, identifier: 'bubble.left', label: 'Comment Left'
+                                                      StaticText, 0x104f0cf30, {{392.0, 966.0}, {68.0, 18.0}}, label: '5 replies'
+                                                      StaticText, 0x104f0d050, {{466.0, 966.0}, {4.0, 18.0}}, label: '·'
+                                                      StaticText, 0x104f0d170, {{476.0, 966.0}, {81.0, 18.0}}, label: 'Active 1h ago'
+                                                    Other, 0x10b30da20, {{250.0, 999.0}, {340.0, 0.5}}
+                                                    Button, 0x10b30db40, {{250.0, 1003.5}, {172.0, 44.0}}, identifier: 'topic-category-3', label: 'Open community Joinery, in Woodworking'
+                                                      Other, 0x10b210350, {{251.8, 1017.3}, {16.4, 16.4}}
+                                                      StaticText, 0x10b210470, {{250.0, 1003.5}, {172.0, 44.0}}, label: 'Woodworking › Joinery'
+                                                    Button, 0x10b210590, {{250.0, 1043.5}, {320.0, 98.5}}, identifier: 'topic-4195', label: 'First drawbored mortise and tenon, in Joinery, Woodworking, started by alex.h, 2 replies, active 4 hours ago'
+                                                      StaticText, 0x10b2106b0, {{250.0, 1043.3}, {281.5, 22.5}}, label: 'First drawbored mortise and tenon'
+                                                      StaticText, 0x10b2107d0, {{250.0, 1069.8}, {315.0, 42.0}}, label: 'Offset the peg hole by about 1.5 mm and it pulled the shoulder tight without clamps. Oak peg, riven, not dowel stock.'
+                                                      StaticText, 0x10b2108f0, {{250.0, 1122.0}, {20.0, 20.0}}, label: 'AH'
+                                                      StaticText, 0x104f0d290, {{276.0, 1122.8}, {104.5, 18.0}}, label: 'Started by alex.h'
+                                                      StaticText, 0x104f0d3b0, {{386.5, 1122.8}, {4.0, 18.0}}, label: '·'
+                                                      Image, 0x104f0d4d0, {{398.0, 1126.5}, {11.5, 10.5}}, identifier: 'bubble.left', label: 'Comment Left'
+                                                      StaticText, 0x10b30dc60, {{398.0, 1122.8}, {68.0, 18.0}}, label: '2 replies'
+                                                      StaticText, 0x104f0d5f0, {{472.0, 1122.8}, {4.0, 18.0}}, label: '·'
+                                                      StaticText, 0x10b10ed00, {{482.0, 1122.8}, {83.5, 18.0}}, label: 'Active 4h ago'
+                                                    Other, 0x10b10ee20, {{0.0, 0.0}, {0.0, 0.0}}
+                                                    Button, 0x10b10ef40, {{344.0, 1183.0}, {132.5, 22.5}}, label: 'More discussions'
+                                                Other, 0x10b10f060, {{557.0, 162.0}, {30.0, 550.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                                                  Other, 0x10b10f180, {{584.0, 702.0}, {3.0, 7.0}}
+                                                Other, 0x10b10f2a0, {{557.0, 162.0}, {30.0, 550.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                                                  Other, 0x10b10f3c0, {{584.0, 702.0}, {3.0, 7.0}}
+                                              Other, 0x10b10f4e0, {{230.0, 106.0}, {360.0, 56.0}}, identifier: 'browse-header'
+                                                Button, 0x10b10f600, {{246.0, 112.0}, {146.0, 44.0}}, identifier: 'community-scope', label: 'Community: All communities. Change community'
+                                                  StaticText, 0x10b10f720, {{246.0, 112.0}, {146.0, 44.0}}, label: 'All communities'
+                                                  Image, 0x10b10f840, {{379.5, 131.0}, {11.0, 6.5}}, identifier: 'chevron.down', label: 'Go Down'
+                                                Button, 0x10b10f960, {{478.0, 112.0}, {44.0, 44.0}}, identifier: 'reveal-topic-search', label: 'Search discussions'
+                                                Button, 0x10b210a10, {{530.0, 112.0}, {44.0, 44.0}}, identifier: 'feed-options', label: 'Home options'
+                                                  Button, 0x10b210b30, {{530.0, 112.0}, {44.0, 44.0}}
+                                                    Image, 0x10b210c50, {{530.0, 112.0}, {44.0, 44.0}}, identifier: 'ellipsis', label: 'Home options'
+                                      Other, 0x10b210d70, {{230.0, 106.0}, {360.0, 628.0}}
+                                        Other, 0x104f0d710, {{230.0, 106.0}, {360.0, 628.0}}
+                                  Other, 0x104f0d830, {{230.0, 106.0}, {360.0, 628.0}}
+                                    Other, 0x10b210e90, {{230.0, 106.0}, {360.0, 628.0}}
+                                      Other, 0x10b210fb0, {{230.0, 106.0}, {360.0, 628.0}}
+                                        Other, 0x10b30dd80, {{230.0, 106.0}, {360.0, 628.0}}
+                                          Other, 0x10b30dea0, {{230.0, 106.0}, {360.0, 628.0}}
+                                            Other, 0x10b2110d0, {{230.0, 106.0}, {360.0, 628.0}}
+                                        Other, 0x10b2111f0, {{230.0, 106.0}, {360.0, 628.0}}
+                                          Other, 0x104f0d950, {{230.0, 106.0}, {360.0, 628.0}}
+                                Other, 0x104f0da70, {{220.0, 32.0}, {913.0, 712.0}}
+                                  Other, 0x104f0db90, {{220.0, 32.0}, {913.0, 712.0}}
+                                    NavigationBar, 0x104f0dcb0, {{220.0, 88.0}, {913.0, 54.0}}, identifier: '_TtGC7SwiftUI32NavigationStackHosting'
+                                      Button, 0x104f0ddd0, {{614.0, 92.0}, {36.0, 36.0}}, identifier: 'toggle-topic-list', label: 'Focus on discussion'
+                                    Other, 0x104f0def0, {{220.0, 32.0}, {913.0, 712.0}}
+                                      Other, 0x104f0e010, {{220.0, 32.0}, {913.0, 712.0}}
+                                        Other, 0x104f0e130, {{220.0, 32.0}, {913.0, 712.0}}
+                                          Other, 0x104f0e250, {{220.0, 32.0}, {913.0, 712.0}}
+                                            Image, 0x104f0e370, {{835.5, 365.5}, {52.0, 48.5}}, identifier: 'text.bubble', label: 'Comment Lines'
+                                            StaticText, 0x104f0e490, {{756.2, 365.5}, {210.5, 95.5}}, label: 'Choose a discussion'
+                                            StaticText, 0x104f0e5b0, {{720.0, 464.0}, {283.0, 20.0}}, label: 'Select a topic to read it alongside the list.'
+                                    Other, 0x104f0e6d0, {{220.0, 32.0}, {913.0, 712.0}}
+                                      Other, 0x104f0e7f0, {{220.0, 32.0}, {913.0, 712.0}}
+                              Other, 0x104f0e910, {{220.0, 32.0}, {913.0, 712.0}}
+                                Other, 0x104f0ea30, {{220.0, 32.0}, {913.0, 712.0}}
+                            StaticText, 0x104f0eb50, {{429.5, 698.5}, {274.0, 21.5}}, identifier: 'fixture-banner', label: 'FIXTURE PREVIEW · fictional community content'
+    Window, 0x104f0ec70, {{0.0, 0.0}, {1133.0, 744.0}}
+      Other, 0x104f0ed90, {{0.0, 0.0}, {1133.0, 744.0}}
+        Other, 0x104f0eeb0, {{0.0, 0.0}, {1133.0, 744.0}}
+          Other, 0x104f0efd0, {{0.0, 0.0}, {1133.0, 744.0}}
+            Other, 0x104f0f0f0, {{0.0, 0.0}, {1133.0, 744.0}}
+              Other, 0x10b211310, {{0.0, 0.0}, {1133.0, 744.0}}
+                Other, 0x10b211430, {{0.0, 32.0}, {1133.0, 692.0}}
+                Other, 0x10b211550, {{0.0, 0.0}, {1133.0, 744.0}}
+                  Other, 0x10b211670, {{0.0, 0.0}, {1133.0, 744.0}}
+                    Other, 0x104f0f210, {{0.0, 672.0}, {1133.0, 72.0}}
+                      Other, 0x10b30dfc0, {{0.0, 0.0}, {1133.0, 744.0}}
+                      Other, 0x10b30e0e0, {{0.0, 672.0}, {1133.0, 72.0}}
+                  Other, 0x104f0f330, {{0.0, 0.0}, {1133.0, 744.0}}
+                    Other, 0x104f0f450, {{0.0, 0.0}, {1133.0, 744.0}}
+                      Other, 0x104f0f570, {{0.0, 0.0}, {1133.0, 744.0}}
+                        Other, 0x104f0f690, {{0.0, 0.0}, {1133.0, 744.0}}
+                          Other, 0x104f0f7b0, {{0.0, 0.0}, {1133.0, 744.0}}
+                            ScrollView, 0x104f0f8d0, {{0.0, 0.0}, {220.0, 744.0}}, identifier: 'reading-three-pane'
+                              Other, 0x104f0f9f0, {{0.0, 32.0}, {220.0, 732.5}}
+                                Image, 0x104f0fb10, {{24.0, 52.0}, {60.0, 28.0}}, label: 'Fomio'
+                                Button, 0x104f0fc30, {{10.0, 98.0}, {200.0, 44.0}}, label: 'Home', Selected
+                                  Image, 0x104f0fd50, {{24.0, 111.0}, {20.0, 17.5}}, identifier: 'house', label: 'Home'
+                                  StaticText, 0x104f0fe70, {{24.0, 108.8}, {75.5, 22.5}}, label: 'Home'
+                                Button, 0x1045525d0, {{24.0, 160.8}, {126.0, 22.5}}, label: 'Communities'
+                                  Image, 0x1045526f0, {{24.0, 164.0}, {15.5, 15.5}}, identifier: 'square.grid.2x2', label: 'Grid View'
+                                  StaticText, 0x104552810, {{24.0, 160.8}, {126.0, 22.5}}, label: 'Communities'
+                                Button, 0x104552930, {{24.0, 212.8}, {122.0, 22.5}}, label: 'Notifications'
+                                  Image, 0x104552a50, {{24.0, 215.0}, {16.0, 17.5}}, identifier: 'bell', label: 'Notifications'
+                                  StaticText, 0x104552b70, {{24.0, 212.8}, {122.0, 22.5}}, label: 'Notifications'
+                                Button, 0x1045531b0, {{23.5, 264.8}, {50.5, 22.5}}, label: 'Me'
+                                  Image, 0x1045532d0, {{23.5, 267.5}, {17.0, 17.0}}, identifier: 'person.crop.circle', label: 'Account'
+                                  StaticText, 0x1045533f0, {{23.5, 264.8}, {50.5, 22.5}}, label: 'Me'
+                                StaticText, 0x1045574a0, {{22.0, 322.0}, {78.0, 16.5}}, label: 'Communities'
+                                Button, 0x1045575c0, {{10.0, 346.5}, {200.0, 44.0}}, identifier: 'sidebar-all', label: 'All communities'
+                                Button, 0x1045576e0, {{10.0, 398.5}, {200.0, 44.0}}, identifier: 'sidebar-1', label: 'Woodworking'
+                                Button, 0x104557800, {{10.0, 450.5}, {200.0, 44.0}}, identifier: 'sidebar-4', label: 'Hand Tools'
+                                Button, 0x104742130, {{10.0, 502.5}, {200.0, 44.0}}, identifier: 'sidebar-2', label: 'Finishing, Selected', Selected
+                                  StaticText, 0x10b30e200, {{34.0, 514.5}, {64.5, 20.0}}, label: 'Finishing'
+                                  Image, 0x10b30e320, {{182.5, 518.0}, {13.5, 13.0}}, identifier: 'checkmark', label: 'Selected', Selected
+                                Button, 0x10b10fa80, {{10.0, 554.5}, {200.0, 44.0}}, identifier: 'sidebar-3', label: 'Joinery'
+                                Button, 0x10b211790, {{10.0, 606.5}, {200.0, 44.0}}, identifier: 'sidebar-9', label: 'Turning'
+                                Button, 0x10b30e440, {{10.0, 658.5}, {200.0, 44.0}}, identifier: 'sidebar-5', label: 'Electronics'
+                                Button, 0x10b30e560, {{10.0, 710.5}, {200.0, 44.0}}, identifier: 'sidebar-8', label: 'Gardening'
+                              Other, 0x10b30e680, {{187.0, 0.0}, {30.0, 698.5}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                                Other, 0x10b30e7a0, {{214.0, 3.0}, {3.0, 636.0}}
+                              Other, 0x104557920, {{187.0, 0.0}, {30.0, 698.5}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                                Other, 0x104557a40, {{214.0, 3.0}, {3.0, 636.0}}
+                            Other, 0x104557b60, {{0.0, 0.0}, {1133.0, 744.0}}, identifier: 'reading-three-pane'
+                              Other, 0x104557c80, {{220.0, 32.0}, {913.0, 712.0}}
+                                Other, 0x10b2118b0, {{230.0, 42.0}, {360.0, 692.0}}
+                                  Other, 0x10b2119d0, {{230.0, 42.0}, {360.0, 692.0}}
+                                    Other, 0x10b211af0, {{230.0, 42.0}, {360.0, 692.0}}
+                                      Other, 0x10b211c10, {{230.0, 42.0}, {360.0, 692.0}}
+                                        Other, 0x10b211d30, {{230.0, 42.0}, {360.0, 692.0}}
+                                          Other, 0x10b211e50, {{230.0, 42.0}, {360.0, 692.0}}
+                                            Other, 0x10b211f70, {{230.0, 42.0}, {360.0, 692.0}}
+                                              ScrollView, 0x10b212090, {{230.0, 42.0}, {360.0, 692.0}}, identifier: 'feed-compact'
+                                                Other, 0x10b2121b0, {{230.0, 98.0}, {360.0, 471.0}}
+                                                  Other, 0x10b2122d0, {{250.0, 112.0}, {340.0, 436.5}}
+                                                    Button, 0x10b2123f0, {{250.0, 112.0}, {340.0, 159.0}}, identifier: 'topic-4182', label: 'Oil vs. hardwax on a walnut desk top?, in Finishing, Woodworking, started by mara_k, 4 replies, active 10 minutes ago, Photo: Close-up of a solid walnut table top'
+                                                      StaticText, 0x10b212510, {{250.0, 112.0}, {224.5, 46.5}}, label: 'Oil vs. hardwax on a walnut desk top?'
+                                                      StaticText, 0x10b212630, {{250.0, 162.5}, {233.5, 42.0}}, label: 'Sanded to 220. It’s a daily desk: coffee mugs and a laptop. Rubbing oil looks great, but I’m worried about rings. Would hardwax oil hold up better, or should I go straight to a film finish?'
+                                                      Image, 0x10b2128f0, {{480.0, 112.0}, {108.0, 72.0}}, label: 'ph-walnut'
+                                                      StaticText, 0x10b212a10, {{250.0, 214.5}, {20.0, 20.0}}, label: 'MK'
+                                                      StaticText, 0x10443ffb0, {{276.0, 215.5}, {114.0, 18.0}}, label: 'Started by mara_k'
+                                                      Image, 0x104637e00, {{251.5, 242.5}, {11.5, 10.5}}, identifier: 'bubble.left', label: 'Comment Left'
+                                                      StaticText, 0x104638ab0, {{251.5, 238.5}, {68.5, 18.0}}, label: '4 replies'
+                                                      StaticText, 0x104638690, {{326.0, 238.5}, {4.0, 18.0}}, label: '·'
+                                                      StaticText, 0x104638270, {{336.0, 238.5}, {92.5, 18.0}}, label: 'Active 10m ago'
+                                                    Other, 0x104637660, {{250.0, 270.5}, {340.0, 0.5}}
+                                                    Button, 0x1046390d0, {{250.0, 285.0}, {320.0, 98.5}}, identifier: 'topic-4188', label: 'Blotchy cherry: can gel stain save it?, in Finishing, Woodworking, started by theo, 1 reply, active 6 hours ago'
+                                                      StaticText, 0x1046391f0, {{250.0, 284.8}, {296.5, 22.5}}, label: 'Blotchy cherry: can gel stain save it?'
+                                                      StaticText, 0x104639310, {{250.0, 311.3}, {314.5, 42.0}}, label: 'First cherry project, and the oil stain went on blotchy. Can I sand back and use a gel stain, or is it too late?'
+                                                      StaticText, 0x104639430, {{250.0, 363.5}, {20.0, 20.0}}, label: 'T'
+                                                      StaticText, 0x104639550, {{276.0, 364.3}, {95.0, 18.0}}, label: 'Started by theo'
+                                                      StaticText, 0x104642220, {{377.0, 364.3}, {4.0, 18.0}}, label: '·'
+                                                      Image, 0x104642340, {{388.5, 368.0}, {11.5, 10.5}}, identifier: 'bubble.left', label: 'Comment Left'
+                                                      StaticText, 0x104642460, {{388.5, 364.3}, {56.0, 18.0}}, label: '1 reply'
+                                                      StaticText, 0x104642580, {{450.5, 364.3}, {4.0, 18.0}}, label: '·'
+                                                      StaticText, 0x1046426a0, {{460.5, 364.3}, {83.0, 18.0}}, label: 'Active 6h ago'
+                                                    Other, 0x1046427c0, {{0.0, 0.0}, {0.0, 0.0}}
+                                                    Button, 0x1046428e0, {{250.0, 411.5}, {340.0, 137.0}}, identifier: 'topic-4160', label: 'Dewaxed shellac under water-based poly, in Finishing, Woodworking, started by sunil.p, 1 reply, active 2 days ago'
+                                                      StaticText, 0x104642a00, {{250.0, 411.7}, {246.0, 46.5}}, label: 'Dewaxed shellac under water-based poly'
+                                                      StaticText, 0x104642b20, {{250.0, 462.2}, {308.0, 42.0}}, label: 'Does it have to be dewaxed, or will regular shellac work as a sealer under water-based poly?'
+                                                      StaticText, 0x104642c40, {{250.0, 514.0}, {20.0, 20.0}}, label: 'SP'
+                                                      StaticText, 0x104642d60, {{276.0, 515.2}, {109.0, 18.0}}, label: 'Started by sunil.p'
+                                                      StaticText, 0x104642e80, {{391.0, 515.2}, {4.0, 18.0}}, label: '·'
+                                                      Image, 0x104642fa0, {{402.5, 519.0}, {11.5, 10.5}}, identifier: 'bubble.left', label: 'Comment Left'
+                                                      StaticText, 0x1046430c0, {{402.5, 515.2}, {56.0, 18.0}}, label: '1 reply'
+                                                      StaticText, 0x1046431e0, {{464.5, 515.2}, {4.0, 18.0}}, label: '·'
+                                                      StaticText, 0x104643300, {{474.5, 515.2}, {83.0, 18.0}}, label: 'Active 2d ago'
+                                                    Other, 0x10b30e8c0, {{250.0, 548.0}, {340.0, 0.5}}
+                                                Other, 0x10b30e9e0, {{557.0, 98.0}, {30.0, 614.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                  Other, 0x104f0ff90, {{584.0, 577.0}, {3.0, 521.0}}
+                                                Other, 0x10b212b30, {{557.0, 98.0}, {30.0, 614.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                  Other, 0x10b212c50, {{584.0, 577.0}, {3.0, 521.0}}
+                                              Other, 0x104557da0, {{230.0, 42.0}, {360.0, 56.0}}, identifier: 'browse-header'
+                                                Button, 0x10b30eb00, {{246.0, 48.0}, {90.5, 44.0}}, identifier: 'community-scope', label: 'Community: Finishing. Change community'
+                                                  StaticText, 0x10b212d70, {{246.0, 48.0}, {90.5, 44.0}}, label: 'Finishing'
+                                                  Image, 0x10b212e90, {{324.0, 67.0}, {11.0, 6.5}}, identifier: 'chevron.down', label: 'Go Down'
+                                                Button, 0x104f100b0, {{478.0, 48.0}, {44.0, 44.0}}, identifier: 'reveal-topic-search', label: 'Search discussions'
+                                                Button, 0x10b212fb0, {{530.0, 48.0}, {44.0, 44.0}}, identifier: 'feed-options', label: 'Feed options'
+                                                  Button, 0x10b2130d0, {{530.0, 48.0}, {44.0, 44.0}}
+                                                    Image, 0x10b2131f0, {{530.0, 48.0}, {44.0, 44.0}}, identifier: 'ellipsis', label: 'Feed options'
+                                      Other, 0x10b213310, {{230.0, 42.0}, {360.0, 692.0}}
+                                        Other, 0x10b213430, {{230.0, 42.0}, {360.0, 692.0}}
+                                  Other, 0x10b213550, {{230.0, 42.0}, {360.0, 692.0}}
+                                    Other, 0x10b213670, {{230.0, 42.0}, {360.0, 692.0}}
+                                      Other, 0x104f101d0, {{230.0, 42.0}, {360.0, 692.0}}
+                                        Other, 0x104f102f0, {{230.0, 42.0}, {360.0, 692.0}}
+                                          Other, 0x104f10410, {{230.0, 42.0}, {360.0, 692.0}}
+                                            Other, 0x104f10530, {{230.0, 42.0}, {360.0, 593.0}}
+                                        Other, 0x10b10fba0, {{230.0, 42.0}, {360.0, 692.0}}
+                                          Other, 0x10b10fcc0, {{230.0, 42.0}, {360.0, 593.0}}
+                                Other, 0x10b213790, {{220.0, 32.0}, {913.0, 712.0}}
+                                  Other, 0x10b10fde0, {{220.0, 32.0}, {913.0, 712.0}}
+                                    NavigationBar, 0x10b30ec20, {{220.0, 42.0}, {913.0, 54.0}}, identifier: '_TtGC7SwiftUI32NavigationStackHosting'
+                                      Button, 0x10b30ed40, {{614.0, 46.0}, {36.0, 36.0}}, identifier: 'toggle-topic-list', label: 'Focus on discussion'
+                                    Other, 0x10b30ee60, {{220.0, 32.0}, {913.0, 712.0}}
+                                      Other, 0x10b30ef80, {{220.0, 32.0}, {913.0, 712.0}}
+                                        Other, 0x10b2138b0, {{220.0, 32.0}, {913.0, 712.0}}
+                                          Other, 0x10b2139d0, {{220.0, 32.0}, {913.0, 712.0}}
+                                            Image, 0x10b213af0, {{835.5, 342.5}, {52.0, 48.5}}, identifier: 'text.bubble', label: 'Comment Lines'
+                                            StaticText, 0x10b213c10, {{756.2, 342.5}, {210.5, 95.5}}, label: 'Choose a discussion'
+                                            StaticText, 0x104f10650, {{720.0, 441.0}, {283.0, 20.0}}, label: 'Select a topic to read it alongside the list.'
+                                    Other, 0x10b30f0a0, {{220.0, 32.0}, {913.0, 712.0}}
+                                      Other, 0x10b30f1c0, {{220.0, 32.0}, {913.0, 712.0}}
+                              Other, 0x10b30f2e0, {{220.0, 32.0}, {913.0, 712.0}}
+                                Other, 0x10b30f400, {{220.0, 32.0}, {913.0, 712.0}}
+                            StaticText, 0x10b30f520, {{429.5, 698.5}, {274.0, 21.5}}, identifier: 'fixture-banner', label: 'FIXTURE PREVIEW · fictional community content'
+    Window, 0x104742250, {{0.0, 0.0}, {1133.0, 744.0}}
+      Other, 0x104742370, {{0.0, 0.0}, {1133.0, 744.0}}
+        Other, 0x104742490, {{0.0, 0.0}, {1133.0, 744.0}}
+    Window, 0x10442f6c0, {{0.0, 0.0}, {1133.0, 744.0}}
+      Other, 0x10b30f640, {{0.0, 0.0}, {1133.0, 744.0}}
+        Other, 0x10b213d30, {{0.0, 0.0}, {1133.0, 744.0}}
+Path to element:
+ →Application, 0x10443f4f0, pid: 68398, label: 'Fomio'
+Query chain:
+ →Find: Target Application 'com.fomio.mobile'
+  Output: {
+    Application, 0x10b214070, pid: 68398, label: 'Fomio'
+  }

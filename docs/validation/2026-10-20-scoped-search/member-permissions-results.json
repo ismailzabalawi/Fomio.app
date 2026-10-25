@@ -1,0 +1,110 @@
+{
+  "date": "2026-10-20",
+  "reference_revision": "d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2",
+  "deployed_revision": "unknown",
+  "deployed_auth_modes": [
+    "existing administrator browser cookie session",
+    "credential-free guest GETs"
+  ],
+  "ordinary_member_live": "blocked: user confirmed only admin account available",
+  "private_target": "restricted-root-A, discovered in authenticated catalog; names, IDs and content omitted",
+  "staff_browser_observations": {
+    "current_session": {
+      "authenticated": true,
+      "admin": true,
+      "moderator": false,
+      "staff": true
+    },
+    "catalog": {
+      "root_count": 12,
+      "restricted_root_count": 1,
+      "restricted_child_count": 0
+    },
+    "scoped_numeric_constraint_search": {
+      "post_count": 3,
+      "topic_count": 3,
+      "all_in_selected_category": true,
+      "archetypes": [
+        "regular"
+      ],
+      "exact_hit_identity_present": true,
+      "grouped_error": false
+    },
+    "numeric_constraint_only_search": {
+      "post_count": 3,
+      "all_in_selected_category": true,
+      "grouped_error": false
+    },
+    "http_status_note": "browser DOM JSON only; HTTP status was not captured"
+  },
+  "guest_observations": [
+    {
+      "case": "restricted_context",
+      "status": 403,
+      "error_type": "invalid_access",
+      "post_count": 0,
+      "topic_count": 0,
+      "category_object_present": false,
+      "has_grouped_error": false
+    },
+    {
+      "case": "restricted_numeric_filter",
+      "status": 200,
+      "error_type": null,
+      "post_count": 0,
+      "topic_count": 0,
+      "category_object_present": false,
+      "has_grouped_error": false
+    },
+    {
+      "case": "restricted_category_detail",
+      "status": 403,
+      "error_type": "invalid_access",
+      "post_count": 0,
+      "topic_count": 0,
+      "category_object_present": false,
+      "has_grouped_error": false
+    }
+  ],
+  "positive_guest_pagination": {
+    "query": "source category:4",
+    "context": "category",
+    "context_id": 4,
+    "pages": [
+      {
+        "page": 1,
+        "status": 200,
+        "post_count": 50,
+        "topic_count": 50,
+        "category_ids": [
+          11
+        ],
+        "more_full_page_results": true,
+        "has_grouped_error": false
+      },
+      {
+        "page": 2,
+        "status": 200,
+        "post_count": 50,
+        "topic_count": 50,
+        "category_ids": [
+          11
+        ],
+        "more_full_page_results": true,
+        "has_grouped_error": false
+      }
+    ],
+    "exact_hit_overlap_between_pages": 0,
+    "note": "sample confirms positive continuation, not stable snapshots under concurrent writes or exhaustive search"
+  },
+  "local_permission_matrix": {
+    "examples": 14,
+    "failures": 0,
+    "pending": 0,
+    "source_copy": "git archive of recorded HEAD; installed JS dependencies reused by copy-on-write cloning",
+    "postgres": "disposable Unix-socket cluster and dedicated test database",
+    "redis": "disposable loopback instance on port 16389",
+    "auth": "fabricated nonstaff accounts and a fabricated per-user read key; no deployed credentials used"
+  },
+  "changes": "documentation and evidence only; no app or backend reference edits; no deployed mutations"
+}

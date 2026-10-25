@@ -3,6 +3,7 @@ import SwiftUI
 struct DiscussionView: View {
     @Environment(AppState.self) private var app
     @Bindable var state: DiscussionState
+    @State private var kept: Draft?
     var body: some View {
         let _ = app.siteTheme
         ScrollViewReader { proxy in
@@ -25,6 +26,7 @@ struct DiscussionView: View {
                                 Button("Show all replies") { app.navigate(.discussion(state.topicID, nil)) }.font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44).background(Color.fomioFill, in: .capsule).padding(.bottom, 12)
                             }
                             if let opening = state.opening { PostCard(post: opening, state: state).id(opening.id) }
+                            if let kept { KeptReplyCard(draft: kept) { app.resume(kept) } }
                             HStack(alignment: .firstTextBaseline) {
                                 ScaledTitle("Replies", size: 19)
                                 Text("\(page.summary.replyCount)").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
@@ -46,8 +48,19 @@ struct DiscussionView: View {
                         if let error = state.error { failure(error) }
                     }.padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 24).scrollTargetLayout()
                 }
-            }.scrollPosition(id: $state.anchor)
-            .onChange(of: state.highlight) { _, value in if let value { proxy.scrollTo(value, anchor: .center) } }
+            }.accessibilityIdentifier("discussion-content")
+            .scrollPosition(id: $state.anchor, anchor: .top)
+            // A reply branch can be taller than a short window. Centering that
+            // branch can put its target header behind floating navigation controls.
+            .task(id: state.highlight) {
+                // This also runs when scope exclusion remounts a retained discussion.
+                // Let the loaded nested branch install its IDs before scrolling; a cold
+                // link can finish loading before the first scroll view layout.
+                guard let target = state.anchor ?? state.highlight else { return }
+                await Task.yield()
+                guard !Task.isCancelled else { return }
+                proxy.scrollTo(target, anchor: .top)
+            }
             .safeAreaInset(edge: .bottom) {
                 if let page = state.page, let opening = state.opening, page.canReply || app.username == nil {
                     let target = state.focus == .notification ? state.highlighted ?? opening : opening
@@ -71,9 +84,14 @@ struct DiscussionView: View {
                 }
             }
         }
-        .task { if state.page == nil { await state.load() }; app.displayed(state.route, state: state) }
+        // Keyed by the state object: clearing the tab's discussion cache (for example after blocking)
+        // hands this still-mounted view a fresh, empty state for the same route, which must load.
+        .task(id: ObjectIdentifier(state)) { if state.page == nil { await state.load() }; app.displayed(state.route, state: state) }
         .onChange(of: state.loading) { _, loading in if !loading { app.displayed(state.route, state: state) } }
         .onChange(of: state.requiredContentReady) { _, ready in if ready { app.displayed(state.route, state: state) } }
+        .task(id: [app.draftsRevision, app.identityRevision, app.composer == nil ? 0 : 1]) {
+            kept = app.composer == nil ? app.keptReplies(topic: state.topicID).first : nil
+        }
         .refreshable { await state.load(refresh: true) }
         .onChange(of: app.safetyRevision) { _, _ in Task { await state.load(refresh: true) } }
     }
@@ -81,7 +99,7 @@ struct DiscussionView: View {
         VStack(alignment: .leading, spacing: 6) {
             FlowLayout(spacing: 4) {
                 if let category = app.category(page.summary.categoryID) {
-                    if let parent = category.parentID.flatMap(app.category) { pathLink(parent); Image(systemName: "chevron.right").font(.caption).foregroundStyle(Color.fomioSecondaryText).frame(minHeight: 44).accessibilityHidden(true) }
+                    if let parent = category.parentID.flatMap(app.category) { pathLink(parent); Image(systemName: "chevron.forward").font(.caption).foregroundStyle(Color.fomioSecondaryText).frame(minHeight: 44).accessibilityHidden(true) }
                     pathLink(category)
                 } else {
                     Button(app.categoryName(page.summary.categoryID)) { app.navigate(.community(page.summary.categoryID)) }.frame(minHeight: 44)
@@ -157,6 +175,34 @@ struct ThreadBranch: View {
                 }
             }.id(post.id)
         }
+    }
+}
+/// An unsent reply kept on this discussion, offered where the conversation continues.
+struct KeptReplyCard: View {
+    @Environment(\.dynamicTypeSize) private var textSize
+    let draft: Draft
+    let resume: () -> Void
+    private var preview: String { draft.body.isEmpty ? String(localized: "No text yet") : draft.body }
+    var body: some View {
+        let layout = textSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 10))
+        Button(action: resume) {
+            layout {
+                Text("Draft reply").fontWeight(.semibold).foregroundStyle(Color.fomioText)
+                Text(preview).foregroundStyle(Color.fomioSecondaryText).lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text("Resume").fontWeight(.semibold).foregroundStyle(Color.fomioAccent)
+            }.font(.subheadline).multilineTextAlignment(.leading)
+            .padding(.horizontal, 16).padding(.vertical, 10)
+            .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
+            .background(Color.fomioFill, in: .rect(cornerRadius: 14))
+            .overlay { RoundedRectangle(cornerRadius: 14).strokeBorder(Color.fomioSeparator, lineWidth: 0.5) }
+            .contentShape(.rect(cornerRadius: 14))
+        }.buttonStyle(.plain).padding(.top, 4)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("Resume draft reply")).accessibilityValue(preview)
+            .accessibilityAddTraits(.isButton).accessibilityIdentifier("resume-kept-reply")
     }
 }
 struct PostCard: View {

@@ -1,0 +1,16 @@
+{
+  "Fomio/App/AppState.swift": "67e18f6ee5a9a142f784553a774a0cd24a02be6f1785e5fe407f17a5b6f06bd4",
+  "Fomio/App/FomioApp.swift": "bf73abca50012b2e2269cef9c9787e8d5b2dcb3c6f120b2be6fed728bc45e812",
+  "Fomio/Data/Authentication.swift": "9840470e8aed4aa11ca94e1b7d7eadea81c0dee10912978da933de149e2e1874",
+  "Fomio/Data/DraftStore.swift": "2c8a986c35088e6c887e5deac19aa4e673ff68d2f0c1e408052b6724be0d0e13",
+  "Fomio/Features/ComposerState.swift": "d3dc287409e62440731875d74df26c6f343261bf61fcde7d9a5a726e9701046d",
+  "Fomio/Features/AccountViews.swift": "35ff5e909c629690297bb83028b09d7c1ffd5b3cba577133801173d569174830",
+  "Fomio/Features/DiscussionSearchState.swift": "7432b6ececbfe02f7b59679e481b02542ff0e6bc20013354e73247cf32be0f01",
+  "Fomio/Features/FeedView.swift": "5f69c63e64bc832052d33242cbd26a4a21c5b20113452a7769345c242f5049e9",
+  "Fomio/Features/AdaptiveReadingLayout.swift": "de164f859c7ae07b017d2053d36c3ec0d0e465bec86066e5fc6921cd2777301b",
+  "Fomio/Features/CommunityScopePicker.swift": "e4660a170704193e90d9d0162776cc523164a3b6835ca1bfb0d611c6de0b606d",
+  "Fomio/Features/DiscussionView.swift": "d118ea0240b0195e9d4477345a3d877815125fa0aa82f010a6218bcdb7341aca",
+  "FomioTests/ContractTests.swift": "11ef67b03478b357310d7918c8eea9c9efdc63b151cc1b0818bccd36580dd4c4",
+  "FomioTests/AdaptiveSearchTests.swift": "f66c819c3c3093228f9fd8dd62fa38595f0bf9df801ea744e91d6c1b673ef3b2",
+  "FomioUITests/IPadReadinessUITests.swift": "39149ce097f4622d02a2e51ec89172f89d970754f9c45ab84f1c79e66ceb6886"
+}

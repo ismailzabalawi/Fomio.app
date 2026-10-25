@@ -1,0 +1,24 @@
+[
+  {
+    "path": "/search.json",
+    "status": 200,
+    "error": "Search could not be completed. Please try again.",
+    "posts_empty": true,
+    "topics_absent": true,
+    "leaks_database_config": false
+  },
+  {
+    "path": "/search/query.json",
+    "status": 200,
+    "error": "Search could not be completed. Please try again.",
+    "posts_empty": true,
+    "topics_absent": true,
+    "leaks_database_config": false
+  },
+  {
+    "case": "normal_empty_after_restoring_configuration",
+    "status": 200,
+    "error": null,
+    "posts_empty": true
+  }
+]

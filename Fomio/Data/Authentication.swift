@@ -28,17 +28,22 @@ struct KeychainCredentialStore {
 @MainActor final class AuthenticationService: NSObject, ASWebAuthenticationPresentationContextProviding {
     let configuration: LiveConfiguration
     private var session: ASWebAuthenticationSession?
+    private var attemptID: UUID?
     private var anchor: ASPresentationAnchor?
     private var pendingCallback: CheckedContinuation<URL, any Error>?
     init(configuration: LiveConfiguration) { self.configuration = configuration }
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
         anchor!
     }
-    func signIn() async throws -> String {
-        guard session == nil else { throw RepositoryError.invalid("Sign-in is already in progress.") }
-        guard let window = UIApplication.shared.connectedScenes.compactMap({ ($0 as? UIWindowScene)?.keyWindow }).first else { throw RepositoryError.invalid("No active window is available for sign-in.") }
-        anchor = window
-        defer { session = nil; anchor = nil }
+    /// `anchor` is the window of the view that asked to sign in. The web session is presented
+    /// over that window, not over whichever scene happens to be key, so the sheet follows the
+    /// caller when the app runs in a resized or secondary window.
+    func signIn(anchor: ASPresentationAnchor?) async throws -> String {
+        guard attemptID == nil else { throw RepositoryError.invalid("Sign-in is already in progress.") }
+        guard let window = anchor else { throw RepositoryError.invalid("No active window is available for sign-in.") }
+        let attempt = UUID(); attemptID = attempt
+        self.anchor = window
+        defer { if attemptID == attempt { attemptID = nil; session = nil; self.anchor = nil } }
         let nonce = UUID().uuidString
         let clientID = try KeychainCredentialStore.read(site: configuration.baseURL.absoluteString)?.clientID ?? UUID().uuidString
         var keyError: Unmanaged<CFError>?
@@ -49,6 +54,7 @@ struct KeychainCredentialStore {
             pendingCallback = continuation
             session = ASWebAuthenticationSession(url: authorizationURL, callbackURLScheme: configuration.callbackURL.scheme) { url, error in
                 Task { @MainActor in
+                    guard self.attemptID == attempt else { return }
                     if let url { self.finishCallback(.success(url)) }
                     else { self.finishCallback(.failure(error ?? RepositoryError.unauthorized)) }
                 }
@@ -56,6 +62,7 @@ struct KeychainCredentialStore {
             session?.presentationContextProvider = self
             if session?.start() != true { session = nil; finishCallback(.failure(RepositoryError.invalid("Could not open authorization."))) }
         }
+        guard attemptID == attempt else { throw CancellationError() }
         session = nil
         guard Self.matchesCallback(callback, expected: configuration.callbackURL),
               let encrypted = Self.encryptedPayload(from: callback),
@@ -64,8 +71,14 @@ struct KeychainCredentialStore {
         guard payload.nonce == nonce, !payload.key.isEmpty else { throw RepositoryError.invalid("Authorization callback did not match this attempt.") }
         let credential = Credential(key: payload.key, clientID: clientID, site: configuration.baseURL.absoluteString)
         try KeychainCredentialStore.save(credential)
-        do { return try await currentUsername() }
-        catch { try? KeychainCredentialStore.delete(site: credential.site); throw error }
+        do {
+            let name = try await currentUsername()
+            guard attemptID == attempt else { throw CancellationError() }
+            return name
+        } catch {
+            if attemptID == attempt { try? KeychainCredentialStore.delete(site: credential.site) }
+            throw error
+        }
     }
     /// PKCS#1 DER from `SecKeyCopyExternalRepresentation`, wrapped as PEM for Discourse's `OpenSSL::PKey::RSA.new`.
     nonisolated static func publicKeyPEM(_ pkcs1: Data) -> String {
@@ -103,6 +116,6 @@ struct KeychainCredentialStore {
         struct Session: Decodable { struct User: Decodable { let username: String }; let currentUser: User }
         return try APIClient(configuration: configuration).decode(Session.self, from: data).currentUser.username
     }
-    func signOut() throws { session?.cancel(); session = nil; finishCallback(.failure(RepositoryError.unauthorized)); try KeychainCredentialStore.delete(site: configuration.baseURL.absoluteString) }
+    func signOut() throws { attemptID = nil; session?.cancel(); session = nil; finishCallback(.failure(RepositoryError.unauthorized)); try KeychainCredentialStore.delete(site: configuration.baseURL.absoluteString) }
     private struct AuthPayload: Decodable { var key: String; var nonce: String }
 }

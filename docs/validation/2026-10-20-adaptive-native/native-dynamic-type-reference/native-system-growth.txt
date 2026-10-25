@@ -1,0 +1,25 @@
+Before: (280.5, 213.0, 313.0, 22.333333333333343)
+After: (178.33333333333337, 90.0, 517.3333333333333, 136.66666666666666)
+Attributes: Application, 0x105bde440, pid: 96231, label: 'DynamicTypeReference'
+Element subtree:
+ →Application, 0x105bde440, pid: 96231, label: 'DynamicTypeReference'
+    Window (Main), 0x105bdd180, {{0.0, 0.0}, {874.0, 402.0}}
+      Other, 0x105bdd2c0, {{0.0, 0.0}, {874.0, 402.0}}
+        Other, 0x105bdd7c0, {{0.0, 0.0}, {874.0, 402.0}}
+          Other, 0x105bddcc0, {{0.0, 0.0}, {874.0, 402.0}}
+            Other, 0x105bdcf00, {{0.0, 0.0}, {874.0, 402.0}}
+              ScrollView, 0x105bde080, {{0.0, 0.0}, {874.0, 402.0}}
+                Other, 0x105bde300, {{0.0, 0.0}, {812.0, 272.7}}
+                  StaticText, 0x105bddf40, {{177.2, 16.0}, {519.7, 71.0}}, label: 'Choose a discussion'
+                  StaticText, 0x105bde940, {{178.3, 90.0}, {517.3, 136.7}}, label: 'Select a topic to read it alongside the list.'
+                Other, 0x105bdc640, {{841.0, 62.0}, {30.0, 278.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x105bdca00, {{868.0, 174.3}, {3.0, 162.7}}
+                Other, 0x105bded00, {{841.0, 62.0}, {30.0, 278.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                  Other, 0x105bdea80, {{868.0, 174.3}, {3.0, 162.7}}
+Path to element:
+ →Application, 0x105bde440, pid: 96231, label: 'DynamicTypeReference'
+Query chain:
+ →Find: Target Application 'com.fomio.dynamictypereference'
+  Output: {
+    Application, 0x105bdee40, pid: 96231, label: 'DynamicTypeReference'
+  }

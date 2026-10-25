@@ -1,0 +1,268 @@
+Application: (0.0, 0.0, 669.0, 951.0)
+Window: (0.0, -5.684341886080802e-14, 951.0, 669.0)
+Attributes: Application, 0x1076b92c0, pid: 17553, label: 'Fomio'
+Element subtree:
+ →Application, 0x1076b92c0, pid: 17553, label: 'Fomio'
+    Window, 0x1076b9680, {{0.0, -0.0}, {951.0, 669.0}}
+      Other, 0x1076b97c0, {{0.0, -0.0}, {951.0, 669.0}}
+      Other, 0x1076b9a40, {{0.0, -0.0}, {951.0, 669.0}}
+        Other, 0x1076b9b80, {{0.0, -0.0}, {951.0, 669.0}}
+          Other, 0x1076b9e00, {{-951.0, -669.0}, {2853.0, 2007.0}}
+          Other, 0x1076b9f40, {{0.0, -0.0}, {951.0, 669.0}}
+            Other, 0x1076ba1c0, {{0.0, -0.0}, {951.0, 669.0}}
+              Other, 0x1076ba300, {{0.0, -0.0}, {867.0, 405.0}}
+              Other, 0x1076ba440, {{0.0, -0.0}, {951.0, 669.0}}
+                Other, 0x1076ba580, {{0.0, -0.0}, {951.0, 669.0}}
+                  Other, 0x1076ba6c0, {{0.0, -0.0}, {951.0, 669.0}}
+                    Other, 0x1076ba800, {{0.0, -0.0}, {951.0, 669.0}}
+                      Other, 0x1076ba940, {{0.0, -0.0}, {951.0, 669.0}}
+                        Other, 0x1076b8280, {{0.0, -0.0}, {951.0, 669.0}}
+                          Other, 0x1076b8140, {{0.0, -0.0}, {951.0, 669.0}}, identifier: 'reading-two-pane'
+                            Other, 0x1076bb200, {{0.0, -0.0}, {951.0, 669.0}}
+                              Other, 0x1076bb340, {{0.0, -0.0}, {951.0, 669.0}}
+                                Other, 0x1076bb480, {{0.0, -0.0}, {475.7, 669.0}}
+                                  Other, 0x1076bb5c0, {{0.0, -0.0}, {475.7, 669.0}}
+                                    NavigationBar, 0x1076bb700, {{0.0, 24.0}, {475.7, 58.0}}, identifier: 'Drafts'
+                                      Button, 0x1076bbd40, {{20.0, 24.0}, {48.0, 48.0}}, identifier: 'BackButton', label: 'Me'
+                                      StaticText, 0x1076bbe80, {{203.0, 36.7}, {49.7, 22.7}}, label: 'Drafts'
+                                      Button, 0x1076bbc00, {{391.7, 28.0}, {40.0, 40.0}}, label: 'Hide Sidebar'
+                                    Other, 0x1076bbac0, {{0.0, -0.0}, {475.7, 669.0}}
+                                      Other, 0x1076bb840, {{0.0, -0.0}, {475.7, 669.0}}
+                                        Other, 0x1076baf80, {{0.0, -0.0}, {475.7, 669.0}}
+                                          Other, 0x1076bb980, {{0.0, -0.0}, {475.7, 669.0}}
+                                            CollectionView, 0x1076ba080, {{0.0, -0.0}, {475.7, 669.0}}
+                                              Other, 0x1076b9cc0, {{-20.0, -1256.0}, {535.7, 2914.3}}
+                                              Other, 0x1076b9900, {{0.0, -0.0}, {475.7, 669.0}}
+                                                Other, 0x1076bb0c0, {{0.0, -0.0}, {475.7, 122.0}}
+                                              Other, 0x10769c140, {{0.0, -0.0}, {475.7, 669.0}}
+                                              Cell, 0x10769db80, {{20.0, 117.0}, {415.7, 183.3}}
+                                                Other, 0x10769de00, {{20.0, 117.0}, {415.7, 183.3}}
+                                                  Other, 0x10769df40, {{20.0, 117.0}, {415.7, 183.3}}
+                                                    Other, 0x10769cc80, {{20.0, 117.0}, {415.7, 183.3}}
+                                                Other, 0x10769ee40, {{20.0, 117.0}, {415.7, 183.3}}
+                                                  Other, 0x10769f200, {{20.0, 117.0}, {415.7, 183.3}}
+                                                    Other, 0x10769c8c0, {{20.0, 117.0}, {415.7, 183.3}}
+                                                      Button, 0x10769f5c0, {{40.0, 138.0}, {375.7, 91.3}}, label: 'Resume draft: Reply · Repairs · Electronics, Adaptive discussion 01'
+                                                        StaticText, 0x10769f480, {{40.0, 138.0}, {175.3, 17.7}}, label: 'Reply · Repairs · Electronics'
+                                                        StaticText, 0x10769f700, {{40.0, 160.7}, {182.0, 22.3}}, label: 'Adaptive discussion 01'
+                                                        StaticText, 0x10769f340, {{40.0, 188.0}, {210.7, 20.0}}, label: 'Folded reply remains readable.'
+                                                        StaticText, 0x10769e580, {{40.0, 213.0}, {86.7, 16.3}}, label: 'Edited just now'
+                                                      Button, 0x10769fd40, {{40.0, 247.3}, {57.3, 20.0}}, label: 'Resume'
+                                                      Button, 0x10769fac0, {{117.3, 247.3}, {55.0, 20.0}}, label: 'Discard draft: Adaptive discussion 01'
+                                              Other, 0x10769f840, {{422.7, 82.0}, {30.0, 323.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                Other, 0x10769fe80, {{449.7, 169.7}, {3.0, 232.3}}
+                                              Other, 0x10769fc00, {{422.7, 82.0}, {30.0, 323.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                                Other, 0x10769ebc0, {{449.7, 169.7}, {3.0, 232.3}}
+                                    Toolbar, 0x10769f980, {{0.0, -0.0}, {475.7, 669.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                                      Other, 0x10769ed00, {{0.0, -0.0}, {475.7, 669.0}}
+                                  Other, 0x10769ef80, {{0.0, -0.0}, {475.7, 669.0}}
+                                    Other, 0x10769dcc0, {{0.0, -0.0}, {475.7, 669.0}}
+                                      Other, 0x10769c500, {{0.0, -0.0}, {475.7, 669.0}}
+                                        Other, 0x10769c000, {{0.0, -0.0}, {475.7, 669.0}}
+                                          Other, 0x10769ea80, {{0.0, -0.0}, {475.7, 669.0}}
+                                            Other, 0x10769e6c0, {{0.0, -0.0}, {475.7, 669.0}}
+                                        Other, 0x10769e800, {{0.0, -0.0}, {475.7, 669.0}}
+                                          Other, 0x10769e940, {{0.0, -0.0}, {475.7, 669.0}}
+                                Other, 0x111826300, {{0.0, -0.0}, {951.0, 669.0}}
+                                  Other, 0x111826580, {{0.0, -0.0}, {951.0, 669.0}}
+                                    Other, 0x1118252c0, {{0.0, -0.0}, {951.0, 669.0}}
+                                      Other, 0x111824f00, {{0.0, -0.0}, {951.0, 669.0}}
+                                        Other, 0x111824b40, {{0.0, -0.0}, {951.0, 669.0}}
+                                          Other, 0x111826440, {{0.0, -0.0}, {951.0, 669.0}}
+                                            StaticText, 0x111825180, {{585.0, 131.3}, {192.7, 90.2}}, label: 'Choose a discussion'
+                                            Image, 0x111825400, {{659.7, 131.3}, {43.3, 40.7}}, identifier: 'text.bubble', label: 'Comment Lines'
+                                            StaticText, 0x111825540, {{552.5, 224.5}, {257.7, 46.3}}, label: 'Select a topic to read it alongside the list.'
+                                    Toolbar, 0x111825680, {{0.0, -0.0}, {951.0, 669.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                                      Other, 0x1118257c0, {{0.0, -0.0}, {951.0, 669.0}}
+                                Toolbar, 0x111825900, {{0.0, -0.0}, {951.0, 669.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                                  Other, 0x111825a40, {{0.0, -0.0}, {951.0, 669.0}}
+                            Other, 0x111825b80, {{0.0, -0.0}, {951.0, 669.0}}
+                              Other, 0x111827840, {{0.0, -0.0}, {951.0, 669.0}}
+                          StaticText, 0x111827480, {{378.0, 378.7}, {111.0, 22.3}}, identifier: 'fixture-banner', label: 'Sample community content. This is a preview.'
+                Other, 0x1118275c0, {{0.0, -0.0}, {951.0, 669.0}}
+                  Toolbar, 0x1118261c0, {{0.0, -0.0}, {951.0, 669.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                    Other, 0x111826f80, {{0.0, -0.0}, {951.0, 669.0}}
+                      Other, 0x111826e40, {{0.0, -0.0}, {951.0, 669.0}}
+                        Other, 0x1118270c0, {{0.0, -0.0}, {951.0, 669.0}}
+                          Other, 0x111826d00, {{0.0, 0.0}, {0.0, 0.0}}
+                            Other, 0x111827700, {{879.0, 124.0}, {48.0, 48.0}}
+                              Other, 0x111827e80, {{879.0, 124.0}, {48.0, 48.0}}
+                                Other, 0x111827d40, {{884.0, 129.0}, {38.0, 38.0}}
+                                  Other, 0x111827980, {{884.0, 129.0}, {38.0, 38.0}}
+                                    Button, 0x111827c00, {{884.0, 129.0}, {38.0, 38.0}}, identifier: 'toggle-topic-list', label: 'Focus on discussion'
+                        Other, 0x111827ac0, {{0.0, -0.0}, {951.0, 669.0}}
+                          Other, 0x111827340, {{0.0, 0.0}, {0.0, 0.0}}
+                            Other, 0x111825e00, {{879.0, 433.0}, {48.0, 212.0}}
+                              Other, 0x111826bc0, {{879.0, 433.0}, {48.0, 212.0}}
+                                Other, 0x111827200, {{879.0, 433.0}, {48.0, 212.0}}
+                                  Other, 0x111826940, {{879.0, 433.0}, {48.0, 212.0}}
+                                    Other, 0x111826a80, {{879.0, 433.0}, {48.0, 212.0}}
+                                      Other, 0x1118266c0, {{879.0, 433.0}, {48.0, 212.0}}
+                                        Other, 0x111826800, {{879.0, 433.0}, {44.0, 58.0}}
+                                        Other, 0x111825f40, {{879.0, 433.0}, {48.0, 212.0}}
+                                          Button, 0x111826080, {{881.0, 435.0}, {44.0, 58.0}}, identifier: 'house', label: 'Home'
+                                            Image, 0x111825cc0, {{886.3, 450.0}, {33.3, 28.0}}, identifier: 'house.fill', label: 'home'
+                                          Button, 0x1118248c0, {{881.0, 485.0}, {44.0, 58.0}}, identifier: 'square.grid.2x2', label: 'Communities'
+                                            Image, 0x111824a00, {{889.7, 501.3}, {27.0, 25.0}}, identifier: 'square.grid.2x2.fill', label: 'grid 2x2'
+                                          Button, 0x111824c80, {{881.0, 535.0}, {44.0, 58.0}}, identifier: 'bell', label: 'Notifications', value: 2 items
+                                            Image, 0x111824dc0, {{890.0, 550.0}, {26.3, 28.0}}, identifier: 'bell.fill', label: 'notifications'
+                                          Button, 0x111825040, {{881.0, 585.0}, {44.0, 58.0}}, identifier: 'person.crop.circle', label: 'Me', Selected
+                                            Image, 0x10323af80, {{889.3, 600.3}, {27.3, 27.3}}, identifier: 'person.crop.circle.fill', label: 'account'
+                                        Other, 0x10323b480, {{879.0, 433.0}, {48.0, 212.0}}
+                                        Other, 0x10323b340, {{879.0, 433.0}, {48.0, 212.0}}
+                                          Other, 0x10323b200, {{879.0, 433.0}, {48.0, 212.0}}
+                                            Other, 0x10323abc0, {{879.0, 433.0}, {48.0, 212.0}}
+                                              Other, 0x10323ae40, {{879.0, 433.0}, {48.0, 212.0}}
+                                                Other, 0x10323b700, {{879.0, 433.0}, {48.0, 212.0}}
+                                                  Other, 0x103238dc0, {{879.0, 433.0}, {48.0, 212.0}}
+                                        Other, 0x10323b840, {{881.0, 585.0}, {44.0, 58.0}}
+                                          Other, 0x103238f00, {{881.0, 585.0}, {44.0, 58.0}}
+                                            Other, 0x10323b5c0, {{881.0, 585.0}, {44.0, 58.0}}
+                                            Other, 0x1033febc0, {{881.0, 585.0}, {44.0, 58.0}}
+                                              Other, 0x1033fea80, {{881.0, 585.0}, {44.0, 58.0}}
+                                                Other, 0x1033ff0c0, {{881.0, 585.0}, {44.0, 58.0}}
+                                                  Other, 0x1033fca00, {{881.0, 585.0}, {44.0, 58.0}}
+                                                Other, 0x1033fed00, {{881.0, 585.0}, {44.0, 58.0}}
+                                              Other, 0x1033ff980, {{881.0, 585.0}, {44.0, 58.0}}
+      Other, 0x1033ffe80, {{0.0, -0.0}, {951.0, 669.0}}
+        Other, 0x1033ff480, {{-951.0, -669.0}, {2853.0, 2007.0}}
+        Other, 0x1033fe940, {{8.0, 8.0}, {459.5, 661.0}}
+          Other, 0x1033fd2c0, {{8.0, 8.0}, {459.3, 661.0}}
+            Other, 0x1033fd400, {{8.0, 8.0}, {459.3, 661.0}}
+              Other, 0x1033ffc00, {{8.0, 8.0}, {459.3, 661.0}}
+                Other, 0x1033ffac0, {{8.0, 8.0}, {459.3, 661.0}}
+                  NavigationBar, 0x1033fd680, {{8.0, 24.0}, {459.3, 58.0}}, identifier: 'Reply'
+                    Button, 0x1033ff840, {{28.0, 28.0}, {40.0, 40.0}}, identifier: 'composer-close', label: 'Cancel'
+                    StaticText, 0x1033ff700, {{215.3, 36.7}, {44.7, 22.7}}, label: 'Reply'
+                    Other, 0x1033ff340, {{387.7, 30.0}, {59.7, 36.0}}
+                      Other, 0x1033ff200, {{387.7, 30.0}, {59.7, 36.0}}
+                        Button, 0x1033fef80, {{387.7, 30.0}, {59.7, 36.0}}, identifier: 'composer-post', label: 'Post'
+                  Other, 0x1033fee40, {{8.0, 8.0}, {459.3, 661.0}}
+                    Other, 0x1076b0500, {{8.0, 8.0}, {459.3, 661.0}}
+                      Other, 0x1076b0640, {{8.0, 8.0}, {459.3, 661.0}}
+                        Other, 0x1076b0780, {{8.0, 8.0}, {459.3, 661.0}}
+                          ScrollView, 0x1076b0a00, {{8.0, 8.0}, {459.3, 661.0}}
+                            Other, 0x1076b0b40, {{8.0, 8.0}, {459.3, 661.0}}
+                              Other, 0x1076b0dc0, {{8.0, 8.0}, {459.3, 114.0}}
+                            Other, 0x1076b0f00, {{8.0, 8.0}, {459.3, 661.0}}
+                            Other, 0x1076b1180, {{8.0, 82.0}, {459.3, 319.3}}
+                              StaticText, 0x1076b12c0, {{28.0, 102.0}, {419.3, 63.3}}, label: 'Replying to the discussion · Repairs · Electronics, Adaptive discussion 01'
+                                StaticText, 0x1076b1400, {{40.0, 114.0}, {274.0, 16.3}}, label: 'Replying to the discussion · Repairs · Electronics'
+                                StaticText, 0x1076b1540, {{40.0, 133.3}, {164.0, 20.0}}, label: 'Adaptive discussion 01'
+                              TextView, 0x1076b1680, {{28.0, 181.3}, {419.3, 200.0}}, identifier: 'composer-body', label: 'Reply text', value: Folded reply remai..., Keyboard Focused
+                                Other, 0x1076b2a80, {{28.0, 181.3}, {0.0, 0.0}}, identifier: '_UITextSelectionRangeAdjustmentContainerView'
+                                  Other, 0x1076b2bc0, {{28.0, 181.3}, {0.0, 0.0}}, identifier: 'com.apple.text.grabber.leading'
+                                    Other, 0x1076b2d00, {{20.8, 167.8}, {16.5, 16.5}}
+                                    Other, 0x1076b2e40, {{28.0, 181.3}, {2.0, 0.0}}
+                                  Other, 0x1076b2f80, {{28.0, 181.3}, {0.0, 0.0}}, identifier: 'com.apple.text.grabber.leading'
+                                    Other, 0x1076b30c0, {{20.8, 167.8}, {16.5, 16.5}}
+                                    Other, 0x1076b3480, {{28.0, 181.3}, {2.0, 0.0}}
+                                Other, 0x1076b35c0, {{414.3, 181.3}, {30.0, 200.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                  Other, 0x1076b3700, {{441.3, 184.3}, {3.0, 194.0}}
+                                Other, 0x1076b3840, {{28.0, 348.3}, {419.3, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                                  Other, 0x1076b3980, {{31.0, 375.3}, {404.0, 3.0}}
+                            Other, 0x1076b3e80, {{434.3, 82.0}, {30.0, 251.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                              Other, 0x1076b3c00, {{461.3, 85.0}, {3.0, 222.0}}
+                            Other, 0x1076b3d40, {{434.3, 82.0}, {30.0, 251.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                              Other, 0x1076b3ac0, {{461.3, 85.0}, {3.0, 222.0}}
+                          Other, 0x1076b3200, {{8.0, 82.0}, {459.3, 323.0}}
+                          Other, 0x1076b3340, {{237.7, 243.7}, {0.0, 0.0}}
+                          Other, 0x1076b1040, {{20.0, 345.0}, {435.3, 52.0}}, label: 'Formatting'
+                            Button, 0x1076b0c80, {{24.0, 349.0}, {44.0, 44.0}}, identifier: 'composer-insert', label: 'Add block'
+                            Button, 0x1076b08c0, {{81.0, 349.0}, {62.3, 44.0}}, identifier: 'composer-block-type', label: 'Turn into: Paragraph'
+                              StaticText, 0x1076b2940, {{81.0, 349.0}, {62.3, 44.0}}, label: 'Text'
+                              Image, 0x1076b17c0, {{125.7, 366.3}, {6.7, 9.3}}, identifier: 'chevron.up.chevron.down', label: 'Up And Down Chevrons'
+                            Button, 0x1076b1900, {{147.3, 349.0}, {44.0, 44.0}}, identifier: 'bold', label: 'Bold'
+                            Button, 0x1076b1a40, {{191.3, 349.0}, {44.0, 44.0}}, identifier: 'italic', label: 'Italic'
+                            Button, 0x1076b1b80, {{235.3, 349.0}, {44.0, 44.0}}, identifier: 'link', label: 'Link'
+                            Button, 0x1076b1cc0, {{350.7, 349.0}, {47.7, 44.3}}, identifier: 'composer-more', label: 'More'
+                            Button, 0x1076b1e00, {{407.3, 349.0}, {44.0, 44.0}}, identifier: 'composer-keyboard', label: 'Hide keyboard'
+                            Other, 0x1076b1f40, {{72.0, 362.0}, {1.0, 18.0}}
+                            Other, 0x1076b2080, {{402.3, 362.0}, {1.0, 18.0}}
+                  Toolbar, 0x1076b21c0, {{8.0, 8.0}, {459.3, 661.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                    Other, 0x1076b2300, {{8.0, 8.0}, {459.3, 661.0}}
+    Window, 0x1076b2440, {{0.0, -0.0}, {951.0, 669.0}}
+      Other, 0x1076b2580, {{0.0, -0.0}, {951.0, 669.0}}
+        Other, 0x1076b26c0, {{0.0, -0.0}, {951.0, 669.0}}
+        Other, 0x1076b2800, {{0.0, 405.0}, {951.0, 264.0}}
+          Other, 0x107618000, {{75.0, 405.0}, {801.0, 264.0}}, identifier: 'inputView'
+    Window, 0x107618140, {{0.0, -0.0}, {951.0, 669.0}}
+      Other, 0x107618280, {{0.0, -0.0}, {951.0, 669.0}}
+        Other, 0x1076183c0, {{0.0, 405.0}, {951.0, 264.0}}
+          Other, 0x107618500, {{0.0, 405.0}, {951.0, 265.0}}
+            Other, 0x107618640, {{0.0, 405.0}, {951.0, 265.0}}
+              Other, 0x107618780, {{0.0, 405.0}, {951.0, 285.0}}
+          Other, 0x1076188c0, {{75.0, 405.0}, {801.0, 44.0}}, identifier: 'SystemInputAssistantView'
+            Other, 0x107618a00, {{75.0, 405.0}, {801.0, 44.0}}
+              Other, 0x107618b40, {{552.7, 405.0}, {323.3, 44.0}}, identifier: 'CenterPageView'
+                Other, 0x107618c80, {{552.7, -195.0}, {323.3, 1244.0}}
+                  ScrollView, 0x107618dc0, {{552.7, 405.0}, {323.3, 44.0}}
+                Other, 0x107618f00, {{552.7, 405.0}, {323.3, 44.0}}
+                  Other, 0x107619040, {{552.7, 405.0}, {323.3, 44.0}}
+                    Other, 0x107619180, {{552.7, 405.0}, {323.3, 44.0}}, label: 'Typing Predictions'
+                      Other, 0x1076192c0, {{552.7, 405.0}, {323.3, 44.0}}
+                        Other, 0x107619400, {{552.7, 405.0}, {323.3, 44.0}}
+                          Button, 0x107619540, {{552.7, 405.0}, {107.7, 44.0}}, label: 'I'
+                          Button, 0x107619680, {{660.3, 405.0}, {107.7, 44.0}}, label: 'The'
+                          Button, 0x1076197c0, {{768.0, 405.0}, {107.7, 44.0}}, label: 'If'
+          Other, 0x107619900, {{0.0, 449.0}, {951.0, 220.0}}
+            Button, 0x107619a40, {{19.5, 417.0}, {46.0, 24.0}}, label: 'More'
+              Image, 0x107619b80, {{19.5, 417.0}, {46.0, 24.0}}, identifier: 'ellipsis', label: 'More'
+            Button, 0x107619cc0, {{874.4, 603.7}, {68.1, 68.7}}, identifier: 'dictation', label: 'Dictate', Disabled
+              StaticText, 0x107619e00, {{874.4, 603.7}, {0.0, 0.0}}
+          Other, 0x107619f40, {{75.0, 449.0}, {801.0, 219.0}}
+            Keyboard, 0x10761a080, {{75.0, 449.0}, {801.0, 219.0}}
+              Other, 0x10761a1c0, {{75.0, 449.0}, {801.0, 219.0}}
+                Other, 0x10761a300, {{75.0, 449.0}, {801.0, 219.0}}, identifier: 'UIKeyboardLayoutStar Preview'
+                  Key, 0x10761a440, {{75.0, 449.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10761a580, {{75.0, 449.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x10761a6c0, {{75.0, 449.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10761a800, {{75.0, 449.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x10761a940, {{75.0, 449.0}, {0.0, 0.0}}, label: 'Padding-Left'
+                  Key, 0x10761aa80, {{75.0, 449.0}, {0.0, 0.0}}, label: 'Padding-Right'
+                  Key, 0x10761abc0, {{83.0, 454.0}, {57.0, 51.7}}, label: 'q'
+                  Key, 0x10761ad00, {{140.0, 454.0}, {57.0, 51.7}}, label: 'w'
+                  Key, 0x10761ae40, {{197.0, 454.0}, {57.0, 51.7}}, label: 'e'
+                  Key, 0x10761af80, {{254.0, 454.0}, {57.0, 51.7}}, label: 'r'
+                  Key, 0x10761b0c0, {{311.0, 454.0}, {57.0, 51.7}}, label: 't'
+                  Key, 0x10761b200, {{589.0, 454.0}, {57.0, 51.7}}, label: 'y'
+                  Key, 0x10761b340, {{646.0, 454.0}, {57.0, 51.7}}, label: 'u'
+                  Key, 0x10761b480, {{703.0, 454.0}, {57.0, 51.7}}, label: 'i'
+                  Key, 0x10761b5c0, {{760.0, 454.0}, {57.0, 51.7}}, label: 'o'
+                  Key, 0x10761b700, {{817.0, 454.0}, {57.0, 51.7}}, label: 'p'
+                  Key, 0x10761b840, {{111.7, 505.7}, {57.0, 52.0}}, label: 'a'
+                  Key, 0x10761b980, {{168.7, 505.7}, {57.0, 52.0}}, label: 's'
+                  Key, 0x10761bac0, {{225.7, 505.7}, {57.0, 52.0}}, label: 'd'
+                  Key, 0x10761bc00, {{282.7, 505.7}, {57.0, 52.0}}, label: 'f'
+                  Key, 0x10761bd40, {{339.7, 505.7}, {57.0, 52.0}}, label: 'g'
+                  Key, 0x10761be80, {{560.7, 505.7}, {57.0, 52.0}}, label: 'g'
+                  Key, 0x107690000, {{560.7, 505.7}, {57.0, 52.0}}, label: 'g'
+                  Key, 0x107690140, {{617.7, 505.7}, {57.0, 52.0}}, label: 'h'
+                  Key, 0x107690280, {{674.7, 505.7}, {57.0, 52.0}}, label: 'j'
+                  Key, 0x1076903c0, {{731.7, 505.7}, {57.0, 52.0}}, label: 'k'
+                  Key, 0x107690500, {{788.7, 505.7}, {57.0, 52.0}}, label: 'l'
+                  Button, 0x107690640, {{83.0, 557.7}, {74.0, 51.7}}, identifier: 'shift', label: 'shift'
+                  Key, 0x107690780, {{168.7, 557.7}, {57.0, 51.7}}, label: 'z'
+                  Key, 0x1076908c0, {{225.7, 557.7}, {57.0, 51.7}}, label: 'x'
+                  Key, 0x107690a00, {{282.7, 557.7}, {57.0, 51.7}}, label: 'c'
+                  Key, 0x107690b40, {{339.7, 557.7}, {57.0, 51.7}}, label: 'v'
+                  Key, 0x107690c80, {{560.7, 557.7}, {57.0, 51.7}}, label: 'v'
+                  Key, 0x107690dc0, {{560.7, 557.7}, {57.0, 51.7}}, label: 'v'
+                  Key, 0x107690f00, {{617.7, 557.7}, {57.0, 51.7}}, label: 'b'
+                  Key, 0x107691040, {{674.7, 557.7}, {57.0, 51.7}}, label: 'n'
+                  Key, 0x107691180, {{731.7, 557.7}, {57.0, 51.7}}, label: 'm'
+                  Key, 0x1076912c0, {{800.0, 557.7}, {74.0, 51.7}}, identifier: 'delete', label: 'delete'
+                  Key, 0x107691400, {{83.0, 609.3}, {51.7, 51.7}}, identifier: 'more', label: 'numbers'
+                  Button, 0x107691540, {{134.7, 609.3}, {52.0, 51.7}}, identifier: 'emoji', label: 'Next keyboard', value: العربية
+                  Button, 0x107691680, {{186.7, 609.3}, {51.7, 51.7}}, label: 'Emoji keyboard'
+                  Key, 0x1076917c0, {{238.3, 609.3}, {126.7, 51.7}}, identifier: 'space', label: 'space'
+                  Key, 0x107691900, {{586.0, 609.3}, {158.7, 51.7}}, label: ' '
+                  Button, 0x107691a40, {{744.7, 609.3}, {51.7, 51.7}}, identifier: 'dictation', label: 'Dictate'
+                  Button, 0x107691b80, {{796.3, 609.3}, {77.7, 51.7}}, identifier: 'Return', label: 'return'
+Path to element:
+ →Application, 0x1076b92c0, pid: 17553, label: 'Fomio'
+Query chain:
+ →Find: Target Application 'com.fomio.mobile'
+  Output: {
+    Application, 0x107691cc0, pid: 17553, label: 'Fomio'
+  }

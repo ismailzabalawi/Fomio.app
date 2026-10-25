@@ -1,7 +1,237 @@
 import XCTest
 import UIKit
 
+/// Opt-in Device Hub width journeys and a probe that attaches to a prepared reply.
+/// The attach-only probe never launches, activates or rotates the app.
+@MainActor final class PreparedReplyResizeUITests: XCTestCase {
+    func testTypedHistoryAfterWidthCycle() throws {
+        guard ProcessInfo.processInfo.environment["FOMIO_TYPED_WIDTH_HISTORY_PROBE"] == "1" else {
+            throw XCTSkip("Requires the same manually resized reply containing Qqq on the normal display")
+        }
+        continueAfterFailure = false
+        let app = XCUIApplication(bundleIdentifier: "com.fomio.mobile")
+        XCTAssertEqual(app.state, .runningForeground)
+        let body = app.textViews["composer-body"]
+        XCTAssertEqual(body.value as? String, "Qqq")
+        XCTAssertTrue(app.keyboards.firstMatch.exists)
+        for (label, expected) in [("Undo", "Qq"), ("Redo", "Qqq")] {
+            app.buttons["composer-more"].tap()
+            let action = app.buttons[label]
+            XCTAssertTrue(action.waitForExistence(timeout: 5)); XCTAssertTrue(action.isEnabled)
+            action.tap()
+            XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "value == %@", expected), object: body)], timeout: 10), .completed)
+            XCTAssertTrue(app.keyboards.firstMatch.exists)
+        }
+    }
+    func testKeyboardAndHistoryAcrossManualWidths() throws {
+        guard ProcessInfo.processInfo.environment["FOMIO_KEYBOARD_WIDTH_JOURNEY"] == "1" else {
+            throw XCTSkip("Requires Device Hub compact → regular → compact width controls")
+        }
+        continueAfterFailure = false
+        XCUIDevice.shared.orientation = .portrait
+        let app = XCUIApplication(bundleIdentifier: "com.fomio.mobile")
+        app.launchArguments = ["--fixture", "--ui-testing"]
+        app.launchEnvironment["FOMIO_UI_TEST_NAMESPACE"] = UUID().uuidString
+        app.launch()
+        XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 15))
+        app.buttons["topic-4182"].tap()
+        app.buttons["discussion-reply"].tap()
+        let body = app.textViews["composer-body"]
+        XCTAssertTrue(body.waitForExistence(timeout: 10))
+        body.tap(); body.typeText("Trait draft.")
+        func history(_ label: String, expected: String) {
+            app.buttons["composer-more"].tap()
+            let action = app.buttons[label]
+            XCTAssertTrue(action.waitForExistence(timeout: 5)); XCTAssertTrue(action.isEnabled)
+            action.tap()
+            XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "value == %@", expected), object: body)], timeout: 10), .completed)
+            XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+        }
+        history("Undo", expected: "Trait draft")
+        XCTAssertTrue(app.keyboards.firstMatch.exists)
+        let initialCapture = XCTAttachment(screenshot: app.screenshot())
+        initialCapture.name = "Compact before expansion"; initialCapture.lifetime = .keepAlways; add(initialCapture)
+        let displayScale = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first?.screen.scale ?? 1
+        var redoText = "Trait draft."
+        for (name, regular) in [("Regular", true), ("Compact returned", false)] {
+            NSLog("KEYBOARD_WIDTH_WAIT_%@", name)
+            let resized = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                let expected = CGSize(width: regular ? 1000 : 466, height: 678)
+                let window = app.windows.firstMatch.frame.size
+                // Resize-mode accessibility can report the window divided by
+                // display scale, while the Application frame remains stale.
+                return [app.frame.size, window,
+                        CGSize(width: window.width * displayScale, height: window.height * displayScale)]
+                    .contains { abs($0.width - expected.width) < 1 && abs($0.height - expected.height) < 1 }
+            }, object: nil)
+            XCTAssertEqual(XCTWaiter.wait(for: [resized], timeout: 180), .completed)
+            XCTAssertEqual(body.value as? String, "Trait draft")
+            XCTAssertTrue(app.keyboards.firstMatch.exists)
+            let more = app.buttons["composer-more"]
+            NSLog("KEYBOARD_WIDTH_GEOMETRY %@ app=%@ window=%@ more=%@ keyboard=%@ hittable=%d", name, NSCoder.string(for: app.frame), NSCoder.string(for: app.windows.firstMatch.frame), NSCoder.string(for: more.frame), NSCoder.string(for: app.keyboards.firstMatch.frame), more.isHittable)
+            let geometryCapture = XCTAttachment(screenshot: app.screenshot())
+            geometryCapture.name = name + " keyboard geometry"; geometryCapture.lifetime = .keepAlways; add(geometryCapture)
+            if ProcessInfo.processInfo.environment["FOMIO_KEYBOARD_GEOMETRY_HOLD"] == "1" {
+                NSLog("KEYBOARD_WIDTH_INSPECT %@", app.debugDescription)
+                _ = XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(value: false), object: nil)], timeout: 60)
+            }
+            let clear = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                more.isHittable && more.frame.maxY <= app.keyboards.firstMatch.frame.minY
+            }, object: nil)
+            XCTAssertEqual(XCTWaiter.wait(for: [clear], timeout: 10), .completed)
+            XCTAssertLessThanOrEqual(more.frame.maxY, app.keyboards.firstMatch.frame.minY)
+            history("Redo", expected: redoText)
+            history("Undo", expected: "Trait draft")
+            body.typeText("q")
+            XCTAssertEqual(body.value as? String, "Trait draftq")
+            history("Undo", expected: "Trait draft")
+            let capture = XCTAttachment(screenshot: app.screenshot())
+            capture.name = name; capture.lifetime = .keepAlways; add(capture)
+            redoText = "Trait draftq"
+        }
+    }
+    func testPendingHistoryAndKeyboard() throws {
+        guard ProcessInfo.processInfo.environment["FOMIO_REPLY_RESIZE_PROBE"] == "1" else {
+            throw XCTSkip("Requires a prepared fixture reply with pending redo and manual window resizing")
+        }
+        continueAfterFailure = false
+        let app = XCUIApplication(bundleIdentifier: "com.fomio.mobile")
+        XCTAssertEqual(app.state, .runningForeground)
+        let body = app.textViews["composer-body"]
+        XCTAssertEqual(body.value as? String, "Trait draft")
+        XCTAssertTrue(app.keyboards.firstMatch.exists)
+        func assertBarAboveKeyboard() {
+            let more = app.buttons["composer-more"]
+            XCTAssertTrue(more.isHittable)
+            XCTAssertLessThanOrEqual(more.frame.maxY, app.keyboards.firstMatch.frame.minY,
+                                     "Formatting must remain above docked and floating keyboards")
+        }
+        assertBarAboveKeyboard()
+        func history(_ label: String, expected: String) {
+            app.buttons["composer-more"].tap()
+            let action = app.buttons[label]
+            XCTAssertTrue(action.waitForExistence(timeout: 5))
+            XCTAssertTrue(action.isEnabled)
+            action.tap()
+            let changed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", expected), object: body)
+            XCTAssertEqual(XCTWaiter.wait(for: [changed], timeout: 10), .completed)
+            XCTAssertTrue(app.keyboards.firstMatch.exists)
+            assertBarAboveKeyboard()
+        }
+        history("Redo", expected: "Trait draft.")
+        history("Undo", expected: "Trait draft")
+        let capture = XCTAttachment(screenshot: app.screenshot())
+        capture.name = "Prepared reply resize history and keyboard"; capture.lifetime = .keepAlways; add(capture)
+    }
+}
+
 @MainActor final class FomioUITests: XCTestCase {
+    func testComposerMoreRefreshesUndoRedoAfterEachAction() {
+        let app = launch()
+        app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
+        let body = app.textViews["composer-body"]
+        XCTAssertTrue(body.waitForExistence(timeout: 10)); body.tap(); body.typeText("Menu history.")
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+        for _ in 0..<3 {
+            for (label, expected) in [("Undo", "Menu history"), ("Redo", "Menu history.")] {
+                app.buttons["composer-more"].tap()
+                let action = app.buttons[label]
+                let appeared = action.waitForExistence(timeout: 5)
+                if !appeared {
+                    let capture = XCTAttachment(screenshot: app.screenshot())
+                    capture.name = "More failed to expose " + label
+                    capture.lifetime = .keepAlways; add(capture)
+                    let hierarchy = XCTAttachment(string: app.debugDescription)
+                    hierarchy.name = "Missing menu action hierarchy"
+                    hierarchy.lifetime = .keepAlways; add(hierarchy)
+                }
+                XCTAssertTrue(appeared, "More must expose " + label); XCTAssertTrue(action.isEnabled)
+                action.tap()
+                XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(
+                    predicate: NSPredicate(format: "value == %@", expected), object: body)], timeout: 10), .completed)
+                XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+            }
+        }
+    }
+    func testDuoPhotoReplyAcrossManualFolds() throws {
+        guard ProcessInfo.processInfo.environment["FOMIO_DUO_PHOTO_TEST"] == "1" else { throw XCTSkip("Requires Duo fold controls and native photo-picker selection") }
+        let app = launch(["--upload-fails"])
+        app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
+        let body = app.textViews["composer-body"]
+        XCTAssertTrue(body.waitForExistence(timeout: 10))
+        do {
+            body.tap(); body.typeText("Photo fold draft.")
+            tapSettled(app, app.buttons["composer-more"]); app.buttons["Add photo"].tap()
+            NSLog("DUO_PHOTO_PICKER_READY")
+            // The known fixture is the first item in the provisioned simulator's grid.
+            let photo = app.images.matching(identifier: "PXGGridLayout-Info").firstMatch
+            XCTAssertTrue(photo.waitForExistence(timeout: 30), app.debugDescription)
+            photo.tap()
+            let confirmPhoto = app.buttons["Done"]
+            XCTAssertTrue(confirmPhoto.waitForExistence(timeout: 5), app.debugDescription)
+            confirmPhoto.tap()
+        }
+        XCTAssertTrue(app.buttons["Retry upload"].waitForExistence(timeout: 30))
+        XCTAssertEqual(app.buttons.matching(identifier: "Retry upload").count, 1)
+        let rich = try XCTUnwrap(body.value as? String)
+        XCTAssertTrue(rich.contains("Photo fold draft."))
+        func capture(_ name: String) {
+            let image = XCTAttachment(screenshot: app.screenshot()); image.name = name; image.lifetime = .keepAlways; add(image)
+        }
+        func fold(_ marker: String, expected: String) {
+            let before = app.frame.size
+            NSLog("DUO_PHOTO_WAIT_%@ width=%f height=%f", marker, before.width, before.height)
+            let changed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                abs(app.frame.width - before.width) > 50 || abs(app.frame.height - before.height) > 50
+            }, object: nil)
+            XCTAssertEqual(XCTWaiter.wait(for: [changed], timeout: 120), .completed, "Use Device Hub's fold control")
+            XCTAssertEqual(body.value as? String, expected)
+            XCTAssertEqual(app.buttons.matching(identifier: "Retry upload").count, 1)
+            let post = app.descendants(matching: .any).matching(identifier: "composer-post").firstMatch
+            XCTAssertTrue(post.waitForExistence(timeout: 10), "Post remains present after the sheet transition")
+            XCTAssertFalse(post.isEnabled)
+            capture(marker)
+        }
+        capture("Photo inserted closed")
+        fold("RICH_OPEN", expected: rich)
+        fold("RICH_CLOSED", expected: rich)
+        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        let source = try XCTUnwrap(body.value as? String)
+        XCTAssertTrue(source.contains("Photo fold draft.")); XCTAssertTrue(source.contains("fomio-attachment://"))
+        XCTAssertEqual(source.components(separatedBy: "fomio-attachment://").count - 1, 1)
+        fold("MARKDOWN_OPEN", expected: source)
+        XCTAssertTrue(app.buttons["composer-preview"].exists)
+        fold("MARKDOWN_CLOSED", expected: source)
+        XCTAssertTrue(app.buttons["composer-preview"].exists)
+        app.buttons["composer-close"].tap()
+        XCTAssertTrue(app.buttons["Keep draft"].waitForExistence(timeout: 10)); app.buttons["Keep draft"].tap()
+        app.buttons.matching(identifier: "Me").firstMatch.tap(); app.buttons["me-drafts"].tap()
+        let saved = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Oil vs. hardwax on a walnut desk top?")).firstMatch
+        XCTAssertTrue(saved.waitForExistence(timeout: 10)); saved.tap()
+        XCTAssertTrue(app.buttons["Resume upload"].waitForExistence(timeout: 10))
+        app.buttons["composer-more"].tap(); app.buttons["Edit in Markdown"].tap()
+        XCTAssertEqual(body.value as? String, source)
+        XCTAssertEqual(app.buttons.matching(identifier: "Resume upload").count, 1)
+        capture("Saved photo reply reopened")
+    }
+    func testDuoPendingMarkdownRedoProbe() throws {
+        guard ProcessInfo.processInfo.environment["FOMIO_DUO_REDO_PROBE"] == "1" else { throw XCTSkip("Requires the prepared fixture reply with pending redo") }
+        let app = XCUIApplication(bundleIdentifier: "com.fomio.mobile")
+        guard app.state == .runningForeground else { throw XCTSkip("Prepared app must remain running") }
+        let body = app.textViews["composer-body"]
+        XCTAssertEqual(body.value as? String, "**Duo** reply.\n\n- q")
+        XCTAssertTrue(app.buttons["composer-preview"].exists)
+        app.buttons["composer-more"].tap()
+        let redo = app.buttons["Redo"]
+        XCTAssertTrue(redo.waitForExistence(timeout: 5))
+        XCTAssertTrue(redo.isEnabled)
+        redo.tap()
+        XCTAssertTrue(NSPredicate(format: "value == %@", "**Duo** reply.\n\n- qq").evaluate(with: body) || XCTWaiter.wait(for: [expectation(for: NSPredicate(format: "value == %@", "**Duo** reply.\n\n- qq"), evaluatedWith: body)], timeout: 10) == .completed)
+        let capture = XCTAttachment(screenshot: app.screenshot())
+        capture.name = "Markdown redo after unfolding"; capture.lifetime = .keepAlways; add(capture)
+    }
     func testCaptureIllustrativeStoreScreenshots() throws {
         guard ProcessInfo.processInfo.environment["FOMIO_STORE_CAPTURES"] == "1" else { throw XCTSkip("Store captures require explicit opt-in") }
         let app = launch(["--store-preview"])
@@ -114,10 +344,11 @@ import UIKit
         expand.tap(); XCTAssertTrue(app.buttons["community-4"].waitForNonExistence(timeout: 5))
         expand.tap(); XCTAssertTrue(app.buttons["community-4"].waitForExistence(timeout: 5))
         app.buttons["community-4"].tap()
+        app.buttons["feed-options"].tap()
         let about = app.buttons["community-about"]; XCTAssertTrue(about.waitForExistence(timeout: 5)); about.tap()
         XCTAssertTrue(app.staticTexts["Planes, saws, chisels and keeping them sharp."].waitForExistence(timeout: 5))
         app.buttons["Done"].tap()
-        app.buttons["New discussion in Hand Tools"].tap()
+        newDiscussionControl(app, title: "New discussion in Hand Tools").tap()
         XCTAssertTrue(app.textViews["composer-body"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Hand Tools")).firstMatch.exists)
         XCTAssertFalse(app.buttons["Post"].isEnabled)
@@ -128,17 +359,25 @@ import UIKit
         let search = app.searchFields.firstMatch; XCTAssertTrue(search.waitForExistence(timeout: 5)); search.tap(); search.typeText("Finishing\n")
         XCTAssertTrue(app.buttons["community-1"].exists); XCTAssertFalse(app.buttons["community-5"].exists)
         let child = app.buttons["community-2"]; XCTAssertTrue(child.waitForExistence(timeout: 5)); child.tap()
-        XCTAssertTrue(app.buttons["community-about"].waitForExistence(timeout: 5))
-        app.navigationBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(app.buttons["community-scope"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["community-scope"].label.contains("Finishing"))
+        // Duo moves the system Back action into its native rail, outside the navigation bar.
+        let railBack = app.buttons["BackButton"]
+        if railBack.exists { railBack.tap() }
+        else { app.navigationBars.buttons.matching(NSPredicate(format: "label == 'Communities' OR label == 'Back'")).firstMatch.tap() }
         XCTAssertTrue(child.waitForExistence(timeout: 5)); XCTAssertEqual(search.value as? String, "Finishing")
         XCTAssertFalse(app.buttons["community-5"].exists)
     }
     func testCategoryDarkLargeTextAndThemeReflow() {
         let app = launch(["--preset", "communities", "--dark", "--accessibility-text", "--teal-theme"])
         let root = app.buttons["community-1"]; XCTAssertTrue(root.waitForExistence(timeout: 10)); root.tap()
+        let scope = app.buttons["community-scope"]
+        XCTAssertTrue(scope.isHittable); XCTAssertGreaterThanOrEqual(scope.frame.height, 44)
+        app.buttons["feed-options"].tap()
         let about = app.buttons["community-about"]; XCTAssertTrue(about.waitForExistence(timeout: 5))
-        XCTAssertTrue(about.isHittable); XCTAssertGreaterThanOrEqual(about.frame.height, 44)
-        XCTAssertTrue(app.buttons["New discussion in Woodworking"].exists)
+        // Native menu rows use system metrics; check 44-point sizing on our custom selector.
+        XCTAssertTrue(about.isHittable)
+        XCTAssertTrue(app.buttons["New discussion"].exists)
         let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Category dark accessibility teal"; capture.lifetime = .keepAlways; add(capture)
     }
     func testInserterCancelPreservesHiddenKeyboard() {
@@ -235,7 +474,15 @@ import UIKit
         // At this size the wrapped destination and title push the body's centre below the screen (iOS 27: y 788–988
         // on an 874-pt window), so a centre tap misses. Tap its visible top edge; focus then scrolls it into view.
         let visibleTop = min(0.5, max(0.02, (app.frame.maxY - body.frame.minY - 24) / max(body.frame.height, 1)))
-        body.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: visibleTop)).tap()
+        if UIDevice.current.userInterfaceIdiom == .phone { body.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: visibleTop)).tap() }
+        else {
+            // iPad form sheet: an edge tap can land outside the sheet. The body starts under the floating bar, so
+            // scroll the composer (not the feed behind the sheet) until its first line clears the bar, then tap it.
+            let composer = app.scrollViews.containing(.textView, identifier: "composer-body").firstMatch
+            let bar = app.buttons["composer-insert"]
+            for _ in 0..<4 where body.frame.minY + 44 > bar.frame.minY { composer.swipeUp(velocity: .slow) }
+            body.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0)).withOffset(CGVector(dx: 0, dy: 22)).tap()
+        }
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5)); body.typeText("Audit paragraph")
         body.press(forDuration: 1.1)
         let selectAll = app.menuItems["Select All"]
@@ -324,16 +571,35 @@ import UIKit
         }
         return app
     }
+    /// After `typeText`, the simulator can hide the software keyboard without the editor losing focus
+    /// and restore it on the next touch; the bar then jumps between the safe area and the keys. Tap only
+    /// once the bar has kept the same frame for a second. A control inside a scrolling strip settles on a
+    /// visible `anchor` in the same bar; `tap()` then scrolls the control into view as before.
+    private func tapSettled(_ app: XCUIApplication, _ control: XCUIElement, anchor: XCUIElement? = nil, file: StaticString = #filePath, line: UInt = #line) {
+        let reference = anchor ?? control
+        XCTAssertTrue(control.waitForExistence(timeout: 5) && reference.waitForExistence(timeout: 5), file: file, line: line)
+        var last = CGRect.null, stableSince = Date(), deadline = Date().addingTimeInterval(8)
+        while Date() < deadline {
+            let frame = reference.frame
+            if frame != last || !reference.isHittable { last = frame; stableSince = Date() }
+            else if Date().timeIntervalSince(stableSince) >= 1 { break }
+            Thread.sleep(forTimeInterval: 0.2)
+        }
+        XCTAssertTrue(reference.isHittable, "\(reference) did not settle", file: file, line: line)
+        control.tap()
+    }
     private func dismissComposerKeyboard(_ app: XCUIApplication) {
         guard app.keyboards.firstMatch.exists else { return }
         // The floating bar's own control; a drag on a short reply also pulls the sheet and opens Keep/Discard.
         let toggle = app.buttons["composer-keyboard"]
-        // The software keyboard must be back (not minimized by XCTest's virtual typing keyboard) with the bar above it.
+        // Prefer the software keyboard back (not minimized by XCTest's virtual typing keyboard) with the bar above it.
+        // Some simulators keep it minimized for the whole run; the bar then rests above the safe area, so tap it once
+        // its frame has held still instead of failing.
         let keyboard = app.keyboards.firstMatch
         let raised = NSPredicate { _, _ in keyboard.exists && keyboard.frame.minY < app.frame.maxY - 40 && toggle.exists && toggle.frame.maxY <= keyboard.frame.minY + 1 }
-        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: raised, object: nil)], timeout: 10), .completed,
-                       "Keyboard \(keyboard.frame) and bar toggle \(toggle.frame) after typing")
-        XCTAssertEqual(toggle.label, "Hide keyboard"); tapSettled(toggle)
+        XCTAssertEqual(toggle.label, "Hide keyboard")
+        if XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: raised, object: nil)], timeout: 10) == .completed { tapSettled(toggle) }
+        else { tapSettled(app, toggle) }
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
         // Hiding the keyboard keeps the floating bar reachable above the safe area.
         let docked = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true AND label == %@", "Show keyboard"), object: app.buttons["composer-keyboard"])
@@ -387,7 +653,7 @@ import UIKit
         app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
         let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5))
         body.tap(); body.typeText("Writing before code\n")
-        app.buttons["composer-insert"].tap()
+        tapSettled(app, app.buttons["composer-insert"])
         let search = app.searchFields.firstMatch; XCTAssertTrue(search.waitForExistence(timeout: 5)); search.tap(); search.typeText("Code")
         let codeBlock = app.buttons["Code"]; XCTAssertTrue(codeBlock.waitForExistence(timeout: 5)); codeBlock.tap()
         let code = app.textViews["block-body"]; XCTAssertTrue(code.waitForExistence(timeout: 5)); code.tap(); code.typeText("let greeting = 1")
@@ -432,7 +698,12 @@ import UIKit
         app.buttons["composer-close"].tap(); app.buttons["Keep draft"].tap()
         XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
         app.buttons.matching(identifier: "Me").firstMatch.tap(); XCTAssertTrue(app.buttons["me-drafts"].waitForExistence(timeout: 5)); app.buttons["me-drafts"].tap()
-        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Resume draft: Reply · Finishing")).firstMatch.waitForExistence(timeout: 5))
+        let saved = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Resume draft: Reply · Finishing")).firstMatch
+        XCTAssertTrue(saved.waitForExistence(timeout: 5)); saved.tap()
+        XCTAssertTrue(body.waitForExistence(timeout: 5))
+        XCTAssertEqual((body.value as? String)?.trimmingCharacters(in: .whitespacesAndNewlines), "A durable native reply")
+        let capture = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        capture.name = "Kept native reply reopened"; capture.lifetime = .keepAlways; add(capture)
     }
     func testGuestSignInDoesNotPost() {
         let app = launch(["--guest"])
@@ -460,7 +731,7 @@ import UIKit
     }
     func testFailedPhotoKeepWarnsAndResumeRetainsWriting() {
         let app = launch(["--upload-fails"])
-        let create = app.buttons["New discussion"]
+        let create = newDiscussionControl(app)
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: create)], timeout: 5), .completed)
         create.tap(); app.buttons["composer-destination"].tap(); app.buttons["destination-toggle-1"].tap(); XCTAssertTrue(app.buttons["destination-2"].waitForExistence(timeout: 5)); app.buttons["destination-2"].tap()
         XCTAssertTrue(app.textViews["composer-title"].waitForExistence(timeout: 5)); app.textViews["composer-title"].tap(); app.textViews["composer-title"].typeText("Photo recovery")
@@ -468,14 +739,14 @@ import UIKit
         tapSettled(app.buttons["composer-more"]); let sample = app.buttons["Sample photo"]; XCTAssertTrue(sample.waitForExistence(timeout: 5)); sample.tap()
         XCTAssertTrue(app.buttons["Retry upload"].waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["composer-post"].isEnabled)
         app.buttons["composer-close"].tap(); XCTAssertTrue(app.buttons["Keep draft"].waitForExistence(timeout: 5)); app.buttons["Keep draft"].tap()
-        XCTAssertTrue(app.buttons["New discussion"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["community-scope"].waitForExistence(timeout: 5))
         app.buttons.matching(identifier: "Me").firstMatch.tap(); XCTAssertTrue(app.buttons["me-drafts"].waitForExistence(timeout: 5)); app.buttons["me-drafts"].tap(); let draft = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Photo recovery")).firstMatch; XCTAssertTrue(draft.waitForExistence(timeout: 5)); draft.tap()
         XCTAssertTrue(app.buttons["Resume upload"].waitForExistence(timeout: 5)); app.buttons["Remove photo"].firstMatch.tap()
         XCTAssertEqual(app.textViews["composer-title"].value as? String, "Photo recovery"); XCTAssertEqual((app.textViews["composer-body"].value as? String)?.trimmingCharacters(in: .whitespacesAndNewlines), "Writing stays")
     }
     func testDarkAccessibilityComposerRemainsReachable() {
         let app = launch(["--dark", "--accessibility-text"])
-        let create = app.buttons["New discussion"]
+        let create = newDiscussionControl(app)
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: create)], timeout: 5), .completed)
         create.tap(); app.buttons["composer-destination"].tap(); app.buttons["destination-toggle-1"].tap(); XCTAssertTrue(app.buttons["destination-2"].waitForExistence(timeout: 5)); app.buttons["destination-2"].tap()
         XCTAssertTrue(app.buttons["composer-destination"].waitForExistence(timeout: 5)); XCTAssertTrue(app.buttons["composer-close"].isHittable)
@@ -486,11 +757,98 @@ import UIKit
         dismissComposerKeyboard(app)
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
     }
+    func testReadingFocusPreferenceSurvivesPhoneRotation() {
+        let app = launch()
+        app.buttons["topic-4182"].tap()
+        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 10))
+        XCUIDevice.shared.orientation = .landscapeLeft
+        assertPhoneWindowShape(app, landscape: true)
+        let toggle = app.buttons["toggle-topic-list"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 10)); toggle.tap()
+        XCTAssertEqual(toggle.label, "Show topic list")
+        XCUIDevice.shared.orientation = .portrait
+        assertPhoneWindowShape(app, landscape: false)
+        XCTAssertTrue(app.buttons["discussion-reply"].isHittable)
+        XCUIDevice.shared.orientation = .landscapeLeft
+        assertPhoneWindowShape(app, landscape: true)
+        XCTAssertTrue(toggle.waitForExistence(timeout: 10))
+        XCTAssertEqual(toggle.label, "Show topic list", "Focused reading preference survives temporary collapse")
+        let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Focused reading retained after compact width"; capture.lifetime = .keepAlways; add(capture)
+        toggle.tap()
+        XCTAssertEqual(toggle.label, "Focus on discussion")
+        let scope = app.buttons["community-scope"]
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: scope)], timeout: 8), .completed, "Showing the list restores its header without changing its saved scroll position")
+    }
+    func testPhoneRotationKeepsHomeAndReplyReachable() {
+        let app = launch()
+        assertPhoneWindowShape(app, landscape: false)
+        XCUIDevice.shared.orientation = .landscapeLeft
+        assertPhoneWindowShape(app, landscape: true)
+        // The first row remains visible in the short landscape viewport.
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: app.buttons["topic-4190"])], timeout: 8), .completed)
+        XCUIDevice.shared.orientation = .portrait
+        assertPhoneWindowShape(app, landscape: false)
+        app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
+        XCTAssertTrue(app.textViews["composer-body"].waitForExistence(timeout: 5))
+        XCUIDevice.shared.orientation = .landscapeLeft
+        assertPhoneWindowShape(app, landscape: true)
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: app.buttons["composer-close"])], timeout: 8), .completed)
+        XCUIDevice.shared.orientation = .portrait
+        assertPhoneWindowShape(app, landscape: false)
+    }
     func testArabicHomeRotationKeepsFeedReachable() {
         let app = launch(["-AppleLanguages", "(ar)", "-AppleLocale", "ar_JO", "--rtl"])
+        assertPhoneWindowShape(app, landscape: false)
         XCUIDevice.shared.orientation = .landscapeLeft
+        assertPhoneWindowShape(app, landscape: true)
         XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 5))
         XCUIDevice.shared.orientation = .portrait
+        assertPhoneWindowShape(app, landscape: false)
+    }
+    private func assertPhoneWindowShape(_ app: XCUIApplication, landscape: Bool, file: StaticString = #filePath, line: UInt = #line) {
+        // Device orientation requests need not resize a windowed iPad scene.
+        guard UIDevice.current.userInterfaceIdiom == .phone else { return }
+        let resized = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            landscape ? app.frame.width > app.frame.height : app.frame.height > app.frame.width
+        }, object: nil)
+        let result = XCTWaiter.wait(for: [resized], timeout: 8)
+        let capture = XCTAttachment(screenshot: app.screenshot())
+        capture.name = landscape ? "Phone landscape geometry" : "Phone portrait geometry"
+        capture.lifetime = .keepAlways; add(capture)
+        XCTAssertEqual(result, .completed, "The app window must actually rotate", file: file, line: line)
+    }
+    func testComposerKeepsWritingAndEditingModeAcrossLayoutChanges() {
+        let app = launch()
+        assertPhoneWindowShape(app, landscape: false)
+        app.buttons["topic-4182"].tap()
+        app.buttons["discussion-reply"].tap()
+        let body = app.textViews["composer-body"]
+        XCTAssertTrue(body.waitForExistence(timeout: 5))
+        body.tap(); body.typeText("Keep my writing as the window changes.")
+        tapSettled(app, app.buttons["composer-more"])
+        let markdown = app.buttons["Edit in Markdown"]
+        XCTAssertTrue(markdown.waitForExistence(timeout: 5)); markdown.tap()
+        let written = body.value as? String
+        XCTAssertTrue(written?.contains("Keep my writing") == true)
+
+        for orientation: UIDeviceOrientation in [.landscapeLeft, .portrait, .landscapeRight, .portrait] {
+            XCUIDevice.shared.orientation = orientation
+            assertPhoneWindowShape(app, landscape: orientation != .portrait)
+            let close = app.buttons["composer-close"]
+            XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: close)], timeout: 8), .completed)
+            XCTAssertEqual(body.value as? String, written)
+            XCTAssertTrue(app.buttons["composer-preview"].exists, "Markdown mode survives relayout")
+            XCTAssertTrue(app.frame.contains(close.frame))
+            let capture = XCTAttachment(screenshot: app.screenshot())
+            capture.name = "Composer layout request \(orientation.rawValue)"
+            capture.lifetime = .keepAlways; add(capture)
+        }
+        body.tap(); body.typeText(" Still editing.")
+        XCTAssertTrue((body.value as? String)?.contains("Still editing.") == true)
+        app.buttons["composer-close"].tap()
+        XCTAssertTrue(app.buttons["Keep draft"].waitForExistence(timeout: 5))
+        app.buttons["Keep draft"].tap()
+        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
     }
     func testArabicComposerPreservesMixedTextAcrossModesAndRotation() {
         let app = launch(["-AppleLanguages", "(ar)", "-AppleLocale", "ar_JO", "--rtl"])
@@ -519,28 +877,41 @@ import UIKit
     }
     func testSearchKeepsQueryAndResultsAfterDiscussion() {
         let app = launch()
-        app.buttons["Search discussions"].tap()
-        let query = app.searchFields.firstMatch
-        XCTAssertTrue(query.waitForExistence(timeout: 5)); query.tap(); query.typeText("desk")
+        // Topic search is collapsed in the list header; the magnifier reveals its field.
+        app.buttons["reveal-topic-search"].tap()
+        let query = app.textFields["topic-search-field"]
+        XCTAssertTrue(query.waitForExistence(timeout: 5)); query.tap(); query.typeText("desk\n")
+        // The plain feed also lists this topic, so wait for the search results themselves.
+        XCTAssertTrue(app.scrollViews["scoped-search-results"].waitForExistence(timeout: 10))
         let topic = app.buttons["topic-4182"]
-        XCTAssertTrue(topic.waitForExistence(timeout: 5))
-        query.typeText("\n")
+        XCTAssertTrue(topic.waitForExistence(timeout: 10))
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
         XCTAssertEqual(query.value as? String, "desk")
         topic.tap()
         XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
-        app.navigationBars.buttons.firstMatch.tap()
+        // One pane returns with Back; two panes keep the results beside the discussion.
+        let back = app.buttons["back-to-topic-list"]
+        if back.exists { back.tap() }
+        XCTAssertTrue(app.scrollViews["scoped-search-results"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 5))
-        XCTAssertEqual(app.searchFields.firstMatch.value as? String, "desk")
+        XCTAssertEqual(app.textFields["topic-search-field"].value as? String, "desk")
     }
     func testLiveDoesNotUseFixtureFallback() {
         let app = launch(["--live", "--unconfigured"])
         XCTAssertTrue(app.staticTexts["Community configuration needed"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["topic-4190"].exists)
     }
+    private func newDiscussionControl(_ app: XCUIApplication, title: String = "New discussion") -> XCUIElement {
+        let direct = app.buttons[title]
+        if direct.exists && direct.isHittable { return direct }
+        let options = app.buttons["feed-options"]
+        XCTAssertTrue(options.waitForExistence(timeout: 5)); options.tap()
+        let create = app.buttons["New discussion"]
+        XCTAssertTrue(create.waitForExistence(timeout: 5)); return create
+    }
     func testCommunityFieldSearchesInPlace() {
         let app = launch()
-        let create = app.buttons["New discussion"]
+        let create = newDiscussionControl(app)
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: create)], timeout: 5), .completed)
         create.tap()
         let search = app.textFields["destination-search"]
@@ -559,11 +930,11 @@ import UIKit
         XCTAssertTrue(field.waitForExistence(timeout: 5)); XCTAssertTrue(field.label.contains("Repairs")); XCTAssertFalse(search.exists)
         // Choosing a community alone is not writing, so closing doesn't ask to keep a draft.
         app.buttons["composer-close"].tap()
-        XCTAssertTrue(create.waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["composer-keep-editing"].exists)
+        XCTAssertTrue(app.buttons["community-scope"].waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["composer-keep-editing"].exists)
     }
     func testKeyboardBarNextAndKeepEditing() {
         let app = launch()
-        let create = app.buttons["New discussion"]
+        let create = newDiscussionControl(app)
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: create)], timeout: 5), .completed)
         create.tap()
         app.buttons["composer-destination"].tap(); app.buttons["destination-toggle-1"].tap()

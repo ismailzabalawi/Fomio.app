@@ -38,6 +38,7 @@ Set arguments in the Xcode scheme’s Run action. Fixture account defaults to `j
 | `--rtl` | Override layout direction |
 | `--preset <name>` | Debug only. Open a Screen Pack state: `communities`, `findcom`, `findnone`, `community`, `subcommunity`, `empty`, `denied`, `discussion`, `offline`, `linked`, `unavailable`, `search`, `notifications`, `me`, `profile`, `saved`, `drafts`, `draftlost`, `resumelost`, `chooser`, `reply`, `quote`, `newtopic`, `uploading`, `uploadfail`, `rejected`, `expired`, `unconfirmed`, `pending`, `loading`. Combine with `--guest`, `--dark` or `--accessibility-text`. |
 | `--ui-testing` | Enables isolated fixture draft directory when a valid namespace is supplied |
+| `--rich-editor-prototype` | Debug only. Open the memory-only SwiftUI rich text experiment instead of the app shell. No posting, uploads or saved-draft access. See [scope and validation](validation/2026-10-19-rich-prototype/README.md). Omit the argument to use the existing composer. The prototype has its own Undo/Redo history and a checked native Paste button; unsupported rich clipboard content offers explicit plain-text recovery where available. System gesture/shortcut parity remains a migration gate. |
 
 UI tests set `FOMIO_UI_TEST_NAMESPACE` to a fresh UUID and use `Application Support/UITests/<UUID>`. Normal drafts use `Application Support/Drafts`. Use simulator container inspection for debugging; local records may contain private writing. Do not commit credentials or real private draft data.
 

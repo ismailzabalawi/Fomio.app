@@ -14,7 +14,16 @@ import XCTest
         return app
     }
     private func label(_ app: XCUIApplication, _ id: Int) -> String { app.buttons["notification-\(id)"].label }
-    private func back(_ app: XCUIApplication) { app.navigationBars.buttons.element(boundBy: 0).tap() }
+    /// Returns to the inbox in any reading layout. Beside the list (two or three panes) the inbox stays on screen and
+    /// the first bar button is the list toggle, so only a pushed screen or the one-pane reading view goes back.
+    private func back(_ app: XCUIApplication) {
+        let topicList = app.buttons["back-to-topic-list"]
+        if topicList.exists { topicList.tap(); return }
+        let system = app.navigationBars.buttons["BackButton"]
+        if system.exists { system.tap(); return }
+        if app.buttons["notification-5011"].exists { return }
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+    }
 
     func testExactReplyIsAcknowledgedAfterDisplayAndBackKeepsInbox() {
         let app = launch()

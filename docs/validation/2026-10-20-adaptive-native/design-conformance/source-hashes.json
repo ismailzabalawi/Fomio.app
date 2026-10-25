@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-21",
+  "purpose": "Sources for both design-conformance passes (layout, chooser, kept reply; then empty/no-match states, header, sidebar, wordmark, chooser filter, magnifier). Supersedes acceptance-source-hashes.json for these files only.",
+  "sha256": {
+    "Fomio/Features/AdaptiveReadingLayout.swift": "b1d1fd5aa448d2629be090c3bd62b35fbfba05a11222527da89927e74ac6abfe",
+    "Fomio/App/FomioApp.swift": "8957e6676658a05784551c9da75a1219ba62f1f82f812187f68136638fc09c32",
+    "Fomio/Features/CommunityScopePicker.swift": "76be93ef3134589892957fb626f232e91751524532832d3dfe95805a1209efa4",
+    "Fomio/App/AppState.swift": "8241ecfe4ab1851a5fce1f5076d0712de1362c83f618dff5cef8822689a3aade",
+    "Fomio/Features/DiscussionView.swift": "53e88fd43032d60ada017a5f37c1ae08e1145b3e3b890839698756853aa139f1",
+    "Fomio/Features/FeedView.swift": "2757e33834841670b8a041046c4a9598551fc8af2eaf25ef182c181d71e9ba4c",
+    "Fomio/Domain/Models.swift": "1a3a60d4dc49dfd03efb31ac5cc96987bb747ce468844cf592db1d7151ba81f7",
+    "Fomio/Data/DiscourseService.swift": "00e940c0231f43d0aac102d0bd5a376fc238e2521586481886da6992d71a331a",
+    "Fomio/Data/FixtureService.swift": "36d0b81631ca45ae15d0512adfb58ad9bc89c371214a8968fe6f61ff0dc41852",
+    "Fomio/Resources/Assets.xcassets/wordmark-color.imageset/Contents.json": "322f9b306fbf8cc8095ea767972dc5172907a17686e1ccea38c51449524436a6",
+    "Fomio/Resources/Assets.xcassets/wordmark-color.imageset/logo-wordmark-accent.png": "c7f59d1bd8626d85995ca4449ba0fe0ffe6121cb7ea60677e25cb4c76ca62ee5",
+    "Fomio/Resources/Assets.xcassets/wordmark-color.imageset/logo-wordmark-dark-app.png": "d53333881f929303c7888875216458e09576d50d715ae60ca7113a74b8cb9dcc",
+    "Fomio/Resources/en.lproj/Localizable.strings": "661a18ff4697aefc53d221ce73a725162b758aac21fdf5c1692a69c42e2a776a",
+    "Fomio/Resources/ar.lproj/Localizable.strings": "413fccb753e1432a0a7edc51a4f531c67413c41b9add5538fab480ae55d99157",
+    "FomioTests/AdaptiveSearchTests.swift": "3cb1e06cf731b33cd8032d1d3bf771fd5c0906b7da58bba5ff13b305ec14af0f",
+    "FomioUITests/IPadReadinessUITests.swift": "43489d85aa422e069da1c026be50040b38800d0bd4043b8a70bc5113a42c0322",
+    "FomioUITests/AdaptiveReadingUITests.swift": "1acd4bf8d918c8973869f0e98290f7f45f31edc562a7241541374a59f31aac25",
+    "FomioUITests/FeedAppearanceUITests.swift": "d4791c1e2e3b9f54aed2d82f874cc9977c6baae2d31c33cef313c7bd0aa49a69",
+    "FomioUITests/FomioUITests.swift": "8f3fd5474c215acb643e5c622a28f99a2c5e0db70d20fda586ca6acc0a26fa95",
+    "Fomio/Features/TopicCard.swift": "662be36ccbd05c971eaa04632e419b497d88119646a57f6c960f2d5383ff3df2"
+  }
+}

@@ -1,0 +1,21 @@
+User will not be able to change the font size of this SwiftUI.AccessibilityNode
+Attributes: StaticText, 0x102feed00, {{280.5, 213.0}, {313.0, 22.3}}, label: 'Select a topic to read it alongside the list.'
+Element subtree:
+ →StaticText, 0x102feed00, {{280.5, 213.0}, {313.0, 22.3}}, label: 'Select a topic to read it alongside the list.'
+Path to element:
+ →Application, 0x102fee1c0, pid: 93707, label: 'DynamicTypeReference'
+  ↳Window (Main), 0x102fedf40, {{0.0, 0.0}, {874.0, 402.0}}
+   ↳Other, 0x102fee6c0, {{0.0, 0.0}, {874.0, 402.0}}
+    ↳Other, 0x102fee580, {{0.0, 0.0}, {874.0, 402.0}}
+     ↳Other, 0x102fee800, {{0.0, 0.0}, {874.0, 402.0}}
+      ↳Other, 0x102fee940, {{0.0, 0.0}, {874.0, 402.0}}
+       ↳StaticText, 0x102feed00, {{280.5, 213.0}, {313.0, 22.3}}, label: 'Select a topic to read it alongside the list.'
+Query chain:
+ →Find: Target Application 'com.fomio.dynamictypereference'
+  Output: {
+    Application, 0x102feee40, pid: 93707, label: 'DynamicTypeReference'
+  }
+  ↪︎Find: Descendant with identity binding to AX element pid: 93707, elementOrHash.elementID: 4428041824.10
+    Output: {
+      StaticText, 0x102fef0c0, {{280.5, 213.0}, {313.0, 22.3}}, label: 'Select a topic to read it alongside the list.'
+    }

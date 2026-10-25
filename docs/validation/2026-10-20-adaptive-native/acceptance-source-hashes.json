@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-21",
+  "purpose": "Current inspected source snapshot for the acceptance audit; not a retrospective assertion of byte-identical builds across every historical run",
+  "sha256": {
+    "Fomio/Domain/DiscussionSearch.swift": "344b62d6e3777eabd2b2a6d82d6d3529a350dda2250d75b14510ae5632d40b46",
+    "Fomio/Data/DiscourseService.swift": "16bf3f96753b180a6708ac0288d9cb3beea73de649666f91a4c6e22302c959d5",
+    "Fomio/Data/Network.swift": "4e39b2bb5b0e24e0c69dafef72ac312962c5f6e6911b4d666647d2ac0c4e7f0f",
+    "Fomio/Features/DiscussionSearchState.swift": "7432b6ececbfe02f7b59679e481b02542ff0e6bc20013354e73247cf32be0f01",
+    "Fomio/Features/CommunityScopePicker.swift": "e4660a170704193e90d9d0162776cc523164a3b6835ca1bfb0d611c6de0b606d",
+    "Fomio/Features/AdaptiveReadingLayout.swift": "de164f859c7ae07b017d2053d36c3ec0d0e465bec86066e5fc6921cd2777301b",
+    "Fomio/Features/FeedView.swift": "5f69c63e64bc832052d33242cbd26a4a21c5b20113452a7769345c242f5049e9",
+    "Fomio/Features/DiscussionView.swift": "d118ea0240b0195e9d4477345a3d877815125fa0aa82f010a6218bcdb7341aca",
+    "Fomio/App/AppState.swift": "67e18f6ee5a9a142f784553a774a0cd24a02be6f1785e5fe407f17a5b6f06bd4",
+    "Fomio/App/FomioApp.swift": "bf73abca50012b2e2269cef9c9787e8d5b2dcb3c6f120b2be6fed728bc45e812",
+    "Fomio/Design/Theme.swift": "02631c134a02a6388f52b459a1727b9f052f769b57c8c9baf5933339d981bcd7",
+    "Fomio/Resources/en.lproj/Localizable.strings": "0a201088e71d2d2d9a63d6c06bcf3d7115278daa19e1ccdd927aa6db6920ebbc",
+    "Fomio/Resources/ar.lproj/Localizable.strings": "b2904c0927506c59526c7d322665c5cf53e8ec083431b1221268da5b064ead47"
+  }
+}

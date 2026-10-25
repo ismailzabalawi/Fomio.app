@@ -33,6 +33,37 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
     override func stopLoading() {}
 }
 @MainActor final class ContractTests: XCTestCase {
+    func testAuthenticationWithoutPresentingWindowFailsBeforeStartingSession() async {
+        let configuration = LiveConfiguration(baseURL: URL(string: "https://test.example")!, callbackURL: URL(string: "testfixture://callback")!, scopes: "read")
+        let auth = AuthenticationService(configuration: configuration)
+        do {
+            _ = try await auth.signIn(anchor: nil)
+            XCTFail("Authorization needs the caller's window")
+        } catch {
+            XCTAssertEqual(error as? RepositoryError, .invalid("No active window is available for sign-in."))
+        }
+    }
+    func testPresentingWindowReaderTracksItsOwnWindowAndDetachment() async throws {
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        // Neither window becomes key: the reader must follow its own hierarchy.
+        let first = UIWindow(windowScene: scene), second = UIWindow(windowScene: scene)
+        let reader = PresentingWindowReader.WindowView { _ in }
+        let attached = expectation(description: "Reports first hosting window")
+        reader.onWindowChange = { if $0 === first { attached.fulfill() } }
+        first.addSubview(reader)
+        let attachedResult = await XCTWaiter.fulfillment(of: [attached], timeout: 2)
+        XCTAssertEqual(attachedResult, .completed)
+        let moved = expectation(description: "Reports new hosting window")
+        reader.onWindowChange = { if $0 === second { moved.fulfill() } }
+        second.addSubview(reader)
+        let movedResult = await XCTWaiter.fulfillment(of: [moved], timeout: 2)
+        XCTAssertEqual(movedResult, .completed)
+        let detached = expectation(description: "Clears the detached window")
+        reader.onWindowChange = { if $0 == nil { detached.fulfill() } }
+        reader.removeFromSuperview()
+        let detachedResult = await XCTWaiter.fulfillment(of: [detached], timeout: 2)
+        XCTAssertEqual(detachedResult, .completed)
+    }
     func testBundledAuthenticationCallbackIsRegisteredForIncomingURLs() throws {
         let configuration = try XCTUnwrap(LiveConfiguration.fromBundle())
         let types = try XCTUnwrap(Bundle.main.object(forInfoDictionaryKey: "CFBundleURLTypes") as? [[String: Any]])
@@ -277,9 +308,11 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
         XCTAssertEqual(post.topicID, .init(4190)); XCTAssertTrue(post.deleted); XCTAssertEqual(post.childCount, 1)
     }
     func testSearchUsesPostOrderAndExactTarget() async throws {
-        let (service, _) = try service(#"{"posts":[{"topic_id":4190,"post_number":14,"blurb":"Matched reply","username":"devon"}],"topics":[{"id":4190,"title":"Bench PSU","category_id":6}],"grouped_search_result":{"more_full_page_results":false}}"#)
-        let results = try await service.search("PSU", page: 1)
-        XCTAssertEqual(results.items.first?.targetPostNumber, .init(14)); XCTAssertEqual(results.items.first?.excerpt, "Matched reply")
+        let (service, _) = try service(#"{"posts":[{"id":419014,"topic_id":4190,"post_number":14,"blurb":"Matched reply","username":"devon"}],"topics":[{"id":4190,"title":"Bench PSU","category_id":6,"archetype":"regular"}],"grouped_search_result":{"more_full_page_results":false}}"#)
+        let request = try DiscussionSearchRequest(query: "PSU", scope: .all, page: 1, settings: .init(minimumTermLength: 3, locale: "en"), catalog: [])
+        let results = try await service.search(request)
+        XCTAssertEqual(results.items.first?.id, PostID(419014))
+        XCTAssertEqual(results.items.first?.discussion.targetPostNumber, .init(14)); XCTAssertEqual(results.items.first?.discussion.excerpt, "Matched reply")
     }
     func testPostingQueueIsSeparateFromPublication() async throws {
         let (service, _) = try service(#"{"success":true,"action":"enqueued","pending_count":1}"#, member: true)
@@ -553,5 +586,144 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
                 catch { XCTAssertEqual(error as? RepositoryError, .unavailable) }
             }
         }
+    }
+}
+
+@MainActor final class IndependentWindowTests: XCTestCase {
+    private func windows() -> AppWindows {
+        let fixture = FixtureService()
+        let store = DraftStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString))
+        return AppWindows(service: fixture, fixture: fixture, configuration: nil, store: store)
+    }
+    func testWindowsKeepIndependentNavigationSearchAndComposer() throws {
+        let windows = windows(), first = windows.makeWindow(), second = windows.makeWindow()
+        first.selectScope(.category(CategoryID(45)))
+        first.tabs[.home]?.discussionSearch.query = "walnut"
+        first.navigate(.discussion(TopicID(14), nil))
+        first.selectedTab = .communities
+        first.openComposer(category: nil)
+        XCTAssertEqual(second.selectedTab, .home)
+        XCTAssertEqual(second.tabs[.home]?.browseScope, .all)
+        XCTAssertEqual(second.tabs[.home]?.discussionSearch.query, "")
+        XCTAssertEqual(second.tabs[.home]?.path, [])
+        XCTAssertNil(second.composer)
+        XCTAssertFalse(first.tabs[.home] === second.tabs[.home])
+    }
+    func testDraftHasOneEditorAndResumesLatestSavedWriting() throws {
+        let windows = windows(), first = windows.makeWindow(), second = windows.makeWindow()
+        first.openComposer(category: nil)
+        let editor = try XCTUnwrap(first.composer)
+        editor.draft.body = "First version"; XCTAssertTrue(editor.save())
+        let stale = editor.draft
+        second.resume(stale)
+        XCTAssertNil(second.composer); XCTAssertNotNil(second.banner)
+        XCTAssertThrowsError(try second.discardDraft(stale))
+        editor.draft.body = "Latest writing"; editor.keepDraft()
+        second.resume(stale)
+        XCTAssertEqual(second.composer?.draft.body, "Latest writing")
+        XCTAssertEqual(first.draftsRevision, second.draftsRevision)
+    }
+    func testNewActionCannotReplaceAnOpenOrAuthenticationSuspendedDraft() throws {
+        let windows = windows(), state = windows.makeWindow()
+        state.openComposer(category: nil)
+        let editor = try XCTUnwrap(state.composer)
+        editor.draft.body = "Writing to retain"
+        state.openComposer(category: nil)
+        XCTAssertTrue(state.composer === editor)
+        XCTAssertEqual(state.composer?.draft.body, "Writing to retain")
+        state.reserveForAuthentication(editor); state.composer = nil
+        state.openComposer(category: nil)
+        XCTAssertNil(state.composer); XCTAssertEqual(state.ownedDraftID, editor.id)
+        state.cancelAuthenticationIntent(); state.openComposer(category: nil)
+        XCTAssertNotNil(state.composer); XCTAssertNotEqual(state.composer?.id, editor.id)
+    }
+    func testRetainedInactiveEditorDoesNotUseAReleasedWindow() async throws {
+        let windows = windows()
+        var window: AppState? = windows.makeWindow()
+        window?.openComposer(category: nil)
+        let editor = try XCTUnwrap(window?.composer)
+        window?.closeWindow(); window = nil
+        // A queued button task can outlive its disconnected scene. The editor's
+        // unowned AppState must never be touched after deactivation.
+        await editor.submit()
+        editor.draft.submission = .unconfirmed
+        await editor.checkAgain()
+        XCTAssertFalse(editor.checking)
+    }
+    func testClosingWindowSavesWritingAndReleasesDraftOwnership() throws {
+        let windows = windows(), first = windows.makeWindow(), second = windows.makeWindow()
+        first.openComposer(category: nil)
+        let editor = try XCTUnwrap(first.composer)
+        editor.draft.body = "Writing before window closes"
+        first.closeWindow()
+        XCTAssertNil(first.composer)
+        second.resume(editor.draft)
+        XCTAssertEqual(second.composer?.draft.body, "Writing before window closes")
+        XCTAssertFalse(editor.save())
+    }
+    func testAuthenticationSuspensionRetainsDraftOwnership() throws {
+        let windows = windows(), first = windows.makeWindow(), second = windows.makeWindow()
+        first.openComposer(category: nil)
+        let editor = try XCTUnwrap(first.composer)
+        editor.draft.body = "Private draft"; XCTAssertTrue(editor.save())
+        first.reserveForAuthentication(editor); first.composer = nil
+        second.resume(editor.draft)
+        XCTAssertNil(second.composer)
+        first.cancelAuthenticationIntent()
+        second.resume(editor.draft)
+        XCTAssertEqual(second.composer?.id, editor.id)
+    }
+    func testReauthenticationUpdatesEveryWindowSearchIdentity() async {
+        let windows = windows(), first = windows.makeWindow(), second = windows.makeWindow()
+        let firstViewer = first.searchViewer, secondViewer = second.searchViewer
+        await first.signIn()
+        XCTAssertEqual(first.account, .fixture); XCTAssertEqual(second.account, .fixture)
+        XCTAssertNotEqual(first.searchViewer, firstViewer)
+        XCTAssertNotEqual(second.searchViewer, secondViewer)
+    }
+    func testExpiredAuthenticationIsSharedWithExistingAndNewWindows() {
+        let windows = windows(), first = windows.makeWindow(), second = windows.makeWindow()
+        second.openComposer(category: nil)
+        first.authenticationExpired()
+        XCTAssertNil(second.username); XCTAssertTrue(second.composer?.expired == true)
+        XCTAssertNil(windows.makeWindow().username)
+    }
+    func testSignOutClosesAllEditorsAndPreventsAutosaveResurrection() async throws {
+        let windows = windows(), first = windows.makeWindow(), second = windows.makeWindow()
+        second.openComposer(category: nil)
+        let editor = try XCTUnwrap(second.composer)
+        editor.draft.body = "Private writing"; XCTAssertTrue(editor.save()); editor.changed()
+        second.navigate(.discussion(TopicID(14), nil)); second.pendingAction = {}
+        first.signOut()
+        XCTAssertEqual(second.account, .guest); XCTAssertNil(second.username)
+        XCTAssertNil(second.composer); XCTAssertNil(second.pendingAction)
+        XCTAssertEqual(second.tabs[.home]?.path, [])
+        XCTAssertFalse(editor.save())
+        try await Task.sleep(for: .milliseconds(650))
+        XCTAssertTrue(try windows.store.list(account: .fixture).isEmpty)
+        XCTAssertEqual(windows.makeWindow().account, .guest)
+    }
+    func testSignInSynchronizesIdentityWithoutExecutingOtherWindowIntent() async {
+        let windows = windows(), first = windows.makeWindow(), second = windows.makeWindow()
+        first.signOut()
+        var firstRuns = 0, secondRuns = 0
+        first.pendingAction = { firstRuns += 1 }; second.pendingAction = { secondRuns += 1 }
+        second.authRequested = true
+        await first.signIn()
+        XCTAssertEqual(firstRuns, 1); XCTAssertEqual(secondRuns, 0)
+        XCTAssertEqual(second.account, .fixture); XCTAssertEqual(second.username, AppState.fixtureMember)
+        XCTAssertNil(second.pendingAction); XCTAssertFalse(second.authRequested)
+    }
+    func testNewWindowCleanupProtectsUnsavedAttachmentInAnotherWindow() throws {
+        let windows = windows(), first = windows.makeWindow()
+        first.openComposer(category: nil)
+        let editor = try XCTUnwrap(first.composer)
+        var attachment = ComposerAttachment(status: .retained)
+        let bytes = Data([1, 2, 3, 4])
+        attachment.localFileName = try windows.store.retain(bytes, draft: editor.draft, attachment: attachment.id)
+        editor.draft.attachments.append(attachment)
+        let second = windows.makeWindow()
+        try second.reconcileDraftFiles()
+        XCTAssertEqual(try windows.store.photo(draft: editor.draft, attachment: attachment), bytes)
     }
 }

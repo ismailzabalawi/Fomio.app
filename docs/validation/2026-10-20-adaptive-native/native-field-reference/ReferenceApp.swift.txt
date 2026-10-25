@@ -1,0 +1,22 @@
+import SwiftUI
+
+@main struct ReferenceApp: App {
+    var body: some Scene { WindowGroup { ReferenceView() } }
+}
+struct ReferenceView: View {
+    @State private var query = "Adaptive"
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Search field reference").font(.headline)
+            if ProcessInfo.processInfo.arguments.contains("--framed") {
+                TextField("Search discussions", text: $query)
+                    .font(.body).frame(minHeight: 44)
+                    .accessibilityIdentifier("field")
+            } else {
+                TextField("Search discussions", text: $query)
+                    .font(.body).accessibilityIdentifier("field")
+            }
+            Text("No navigation, search state or Fomio layout is installed.").font(.body)
+        }.padding()
+    }
+}
