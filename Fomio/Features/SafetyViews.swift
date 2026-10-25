@@ -12,27 +12,53 @@ struct ReportPostView: View {
     @State private var uncertain = false
     @State private var error: String?
     private var reason: ReportReason? { reasons.first { $0.id == selected } }
+    private var excerpt: String { (post.cooked.map(HTMLContent.plainText) ?? post.body).trimmingCharacters(in: .whitespacesAndNewlines) }
     var body: some View {
         NavigationStack {
             Form {
-                Section { Text("Report post #\(post.number.rawValue) by @\(post.author). Your report goes to the community’s moderators.") }
+                Section {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 8) {
+                            Avatar(name: post.authorName ?? post.author, size: 28)
+                            Text(post.authorName ?? "@\(post.author)").font(.subheadline.weight(.semibold))
+                            Spacer(minLength: 0)
+                            Text("#\(post.number.rawValue)").font(.caption).foregroundStyle(Color.fomioSecondaryText)
+                        }
+                        if !excerpt.isEmpty { Text(excerpt).font(.subheadline).foregroundStyle(Color.fomioSecondaryText).lineLimit(3) }
+                    }.padding(.vertical, 4).accessibilityElement(children: .combine)
+                } footer: { Text("Your report goes to the community’s moderators.") }
                 if !loaded { ProgressView("Checking reporting options…") }
-                else if reasons.isEmpty && error == nil { Text("Reporting is not available for this post with your current account.") }
+                else if reasons.isEmpty && error == nil { Text("You can’t report this post with your current account. Contact support if you need help.") }
                 if !reasons.isEmpty {
-                    Section("Reason") {
-                        Picker("Reason", selection: $selected) {
-                            Text("Choose a reason").tag(nil as Int?)
-                            ForEach(reasons) { Text($0.title).tag(Optional($0.id)) }
-                        }.accessibilityIdentifier("report-reason")
-                        if let reason, !reason.description.isEmpty { Text(reason.description).foregroundStyle(.secondary) }
+                    Section("Why are you reporting it?") {
+                        ForEach(reasons) { option in
+                            Button { selected = option.id } label: {
+                                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text(option.title).foregroundStyle(Color.fomioText)
+                                        if !option.description.isEmpty { Text(option.description).font(.subheadline).foregroundStyle(Color.fomioSecondaryText) }
+                                    }
+                                    Spacer(minLength: 0)
+                                    Image(systemName: "checkmark").font(.body.weight(.semibold)).foregroundStyle(Color.fomioAccent).opacity(selected == option.id ? 1 : 0).accessibilityHidden(true)
+                                }.frame(minHeight: 44).contentShape(.rect)
+                            }.buttonStyle(.plain)
+                            .accessibilityElement(children: .ignore).accessibilityLabel(option.title).accessibilityHint(option.description)
+                            .accessibilityAddTraits(selected == option.id ? [.isButton, .isSelected] : .isButton)
+                            .accessibilityIdentifier("report-reason-\(option.id)")
+                        }
                     }
-                    Section(reason?.requiresMessage == true ? "Details (required)" : "Details (optional)") {
-                        TextField("Explain your concern", text: $message, axis: .vertical).lineLimit(4...10)
+                    if reason != nil {
+                        Section {
+                            TextField(reason?.requiresMessage == true ? "Explain your concern" : "Explain your concern (optional)", text: $message, axis: .vertical).lineLimit(4...10)
+                                .accessibilityIdentifier("report-details")
+                        } header: { Text("Details") } footer: { if reason?.requiresMessage == true { Text("Required for this reason.") } }
                     }
                 }
-                if uncertain { Text("Your report may have been received. It has not been confirmed. Close this screen and check the post before reporting again.") }
-                if let error { Text(error).foregroundStyle(Color.fomioDanger) }
-                if error != nil && reasons.isEmpty && !uncertain { Button("Try again") { Task { await load() } } }
+                if uncertain {
+                    Label("Your report may have been received, but it wasn’t confirmed. Close this screen and check the post before reporting again.", systemImage: "questionmark.circle")
+                }
+                if let error { Label(error, systemImage: "exclamationmark.circle").foregroundStyle(Color.fomioDanger) }
+                if error != nil && reasons.isEmpty && !uncertain { Button("Try again") { Task { await load() } }.foregroundStyle(Color.fomioAccent) }
                 if submitting { ProgressView("Sending report…") }
             }
             .disabled(submitting || uncertain)
@@ -58,7 +84,7 @@ struct ReportPostView: View {
         submitting = true; error = nil
         do {
             try await app.service.report(post: post, reason: reason.id, message: message)
-            if app.username == username { dismiss(); app.toast("Report sent to moderators") }
+            if app.username == username { dismiss(); app.toast("Report received") }
         } catch {
             self.error = error.localizedDescription
             let kind = error as? RepositoryError
@@ -106,22 +132,47 @@ struct BlockingConfirmation: ViewModifier {
     }
 }
 
+struct BlockedMemberRow: View {
+    @Environment(AppState.self) private var app
+    let username: String
+    @State private var confirming = false
+    var body: some View {
+        HStack(spacing: 12) {
+            Avatar(name: username, size: 36)
+            Text("@\(username)").font(.body.weight(.semibold)).lineLimit(1)
+            Spacer(minLength: 8)
+            Button("Unblock") { confirming = true }
+                .buttonStyle(.bordered).foregroundStyle(Color.fomioAccent).frame(minHeight: 44)
+                .disabled(app.safetyChanging.contains(username.lowercased()))
+                .accessibilityLabel("Unblock @\(username)").accessibilityIdentifier("unblock-\(username)")
+        }.modifier(BlockingConfirmation(username: username, confirming: $confirming))
+    }
+}
+
 struct BlockedMembersView: View {
     @Environment(AppState.self) private var app
     var body: some View {
         List {
-            if let error = app.safetyError { Section { Text(error); Button("Refresh") { Task { await app.refreshSafety() } } } }
+            if let error = app.safetyError {
+                Section {
+                    Label(error, systemImage: "exclamationmark.circle").foregroundStyle(Color.fomioDanger)
+                    Button("Refresh") { Task { await app.refreshSafety() } }.foregroundStyle(Color.fomioAccent).frame(minHeight: 44)
+                }
+            }
             if let session = app.safety, session.username == app.username {
                 let names = session.ignoredUsers
-                if names.isEmpty { Text("No blocked members") }
-                ForEach(names, id: \.self) { name in
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("@\(name)").font(.headline)
-                        BlockingButton(username: name)
-                    }.padding(.vertical, 4)
+                Section {
+                    if names.isEmpty {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("No blocked members").font(.headline)
+                            Text("Block someone from a post’s More menu or their profile.").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
+                        }.padding(.vertical, 6)
+                    }
+                    ForEach(names, id: \.self) { name in BlockedMemberRow(username: name) }
+                } footer: {
+                    Text("Blocking hides a member’s posts and notifications from you on every device signed in to this account. It uses the community’s Ignore setting and lasts until you unblock.")
                 }
             } else if app.safetyError == nil { ProgressView("Loading blocked members…") }
-            Section { Text("Blocks are saved to your community account using Ignore with the Forever option. You can unblock a member at any time.").foregroundStyle(.secondary) }
         }.navigationTitle("Blocked members").task { await app.refreshSafety() }
             .refreshable { await app.refreshSafety() }
     }

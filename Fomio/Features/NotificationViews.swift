@@ -267,17 +267,17 @@ struct NotificationSettingsView: View {
                     Text("Alerts").font(.body.weight(.semibold))
                     Spacer()
                     Label(status.label, systemImage: status.symbol).font(.subheadline.weight(.semibold)).foregroundStyle(status.isError ? Color.fomioDanger : status.label == "On" ? Color.fomioAccent : Color.fomioSecondaryText)
-                }.accessibilityElement(children: .combine).accessibilityIdentifier("alert-status")
+                }.alignmentGuide(.listRowSeparatorLeading) { _ in 0 }.accessibilityElement(children: .combine).accessibilityIdentifier("alert-status")
                 Text(status.detail).font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
                 switch device.status {
                 case .off, .detached:
-                    Button("Turn on alerts") { device.explaining = true }.frame(minHeight: 44).accessibilityIdentifier("alerts-turn-on")
+                    Button("Turn on alerts") { device.explaining = true }.foregroundStyle(Color.fomioAccent).frame(minHeight: 44).accessibilityIdentifier("alerts-turn-on")
                 case .notAllowed:
-                    Button("Open \(words.system) Settings") { openSettings() }.frame(minHeight: 44).accessibilityIdentifier("alerts-open-settings")
+                    Button("Open \(words.system) Settings") { openSettings() }.foregroundStyle(Color.fomioAccent).frame(minHeight: 44).accessibilityIdentifier("alerts-open-settings")
                 case .failed, .allowed:
-                    Button(device.status == .failed ? "Try again" : "Finish setup") { Task { await device.enroll(account: app.account) } }.frame(minHeight: 44).accessibilityIdentifier("alerts-retry")
+                    Button(device.status == .failed ? "Try again" : "Finish setup") { Task { await device.enroll(account: app.account) } }.foregroundStyle(Color.fomioAccent).frame(minHeight: 44).accessibilityIdentifier("alerts-retry")
                 case .on:
-                    Button("Manage in \(words.system) Settings") { openSettings() }.frame(minHeight: 44)
+                    Button("Manage in \(words.system) Settings") { openSettings() }.foregroundStyle(Color.fomioAccent).frame(minHeight: 44)
                 case .finishing, .updating:
                     ProgressView().frame(maxWidth: .infinity, alignment: .leading)
                 case .unavailable: EmptyView()
@@ -285,7 +285,7 @@ struct NotificationSettingsView: View {
             } header: { Text("This \(words.device)") }
             Section {
                 Text("Which activity notifies you, email notifications and quiet hours are set on the community’s website. They apply on every device.").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
-                Button { if let url = app.notificationSite.map({ LiveConfiguration(baseURL: $0, callbackURL: $0, scopes: "").url("my/preferences/notifications") }) { app.webDestination = url } } label: { Label("Open preferences on website", systemImage: "arrow.up.right.square") }.frame(minHeight: 44)
+                Button { if let url = app.notificationSite.map({ LiveConfiguration(baseURL: $0, callbackURL: $0, scopes: "").url("my/preferences/notifications") }) { app.webDestination = url } } label: { Label("Open preferences on website", systemImage: "arrow.up.right.square") }.foregroundStyle(Color.fomioAccent).frame(minHeight: 44)
             } header: { Text("Community") } footer: {
                 Text("Alerts can be delayed, grouped or held by Focus, Do Not Disturb and your community settings. You can still check activity in your inbox when alerts are off.")
             }

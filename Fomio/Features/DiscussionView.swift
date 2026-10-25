@@ -229,9 +229,17 @@ struct PostCard: View {
                 }.buttonStyle(.plain).accessibilityLabel("View profile, \(post.author)")
                 Spacer()
                 Text("#\(post.number.rawValue)").font(.caption).foregroundStyle(Color.fomioSecondaryText)
+                if !own, app.username != nil, !post.deleted, !post.ignored, !app.isBlocked(post.author) {
+                    Menu { safetyActions } label: {
+                        Image(systemName: "ellipsis").font(.body.weight(.semibold)).foregroundStyle(Color.fomioSecondaryText).frame(width: 44, height: 44).contentShape(.rect)
+                    }
+                    .accessibilityLabel("Report or block @\(post.author), post \(post.number.rawValue)")
+                    .padding(.trailing, -12)
+                }
             }
             if post.deleted || post.ignored || app.isBlocked(post.author) {
-                Text(post.deleted ? "This reply was deleted." : "This reply is hidden.").foregroundStyle(Color.fomioSecondaryText)
+                let noun = post.number.rawValue == 1 ? "post" : "reply"
+                Text(post.deleted ? "This \(noun) was deleted." : app.isBlocked(post.author) ? "Hidden because you blocked @\(post.author)." : "This \(noun) is hidden.").foregroundStyle(Color.fomioSecondaryText)
                 if app.isBlocked(post.author) { BlockingButton(username: post.author) }
             }
             else {
@@ -240,14 +248,6 @@ struct PostCard: View {
                 else { Text(.init(post.body)).font(post.number.rawValue == 1 ? .body : .callout).textSelection(.enabled) }
                 if let image = post.image { SamplePhoto(name: image) }
                 FlowLayout(spacing: 10) { actions }
-                if !own, app.username != nil {
-                    Menu {
-                        Button { reporting = true } label: { Label("Report post", systemImage: "flag") }
-                        Button { blocking = true } label: { Label("Block member…", systemImage: "person.crop.circle.badge.xmark") }
-                            .disabled(app.safetyChanging.contains(post.author.lowercased()))
-                    } label: { Label("Safety", systemImage: "ellipsis.circle").frame(minHeight: 44) }
-                    .accessibilityLabel("Report or block @\(post.author), post \(post.number.rawValue)")
-                }
             }
         }.padding(highlighted ? 12 : 0)
         .background(highlighted ? Color.fomioSelected : Color.clear, in: .rect(cornerRadius: 14))
@@ -260,8 +260,14 @@ struct PostCard: View {
             if !post.deleted {
                 Button { save() } label: { Label(post.bookmarkID == nil ? "Save post" : "Remove from Saved", systemImage: post.bookmarkID == nil ? "bookmark" : "bookmark.slash") }
                 ShareButton(topic: post.topicID, number: post.number)
+                if !own, app.username != nil, !post.ignored, !app.isBlocked(post.author) { Divider(); safetyActions }
             }
         }
+    }
+    @ViewBuilder private var safetyActions: some View {
+        Button { reporting = true } label: { Label("Report post", systemImage: "flag") }
+        Button(role: .destructive) { blocking = true } label: { Label("Block member…", systemImage: "person.crop.circle.badge.xmark") }
+            .disabled(app.safetyChanging.contains(post.author.lowercased()))
     }
     @ViewBuilder private var actions: some View {
         if own {

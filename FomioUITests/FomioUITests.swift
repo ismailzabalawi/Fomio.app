@@ -279,9 +279,8 @@ import UIKit
         let safety = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Report or block @")).firstMatch
         XCTAssertTrue(safety.waitForExistence(timeout: 5)); safety.tap()
         app.buttons["Report post"].tap()
-        let picker = app.buttons["report-reason"]
-        XCTAssertTrue(picker.waitForExistence(timeout: 5)); picker.tap()
-        app.buttons["Something else"].tap()
+        let reason = app.buttons["Something else"]
+        XCTAssertTrue(reason.waitForExistence(timeout: 5)); reason.tap()
         XCTAssertFalse(app.buttons["Send report"].isEnabled)
         let details = app.textFields["Explain your concern"]
         XCTAssertTrue(details.waitForExistence(timeout: 5)); details.tap(); details.typeText("Fictional concern for the fixture moderators")
@@ -290,10 +289,10 @@ import UIKit
         app.buttons["Block member…"].tap()
         let confirm = app.buttons["Block member"].firstMatch
         XCTAssertTrue(confirm.waitForExistence(timeout: 5)); confirm.tap()
-        XCTAssertTrue(app.staticTexts["This reply is hidden."].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Hidden because you blocked @")).firstMatch.waitForExistence(timeout: 5))
         app.buttons.matching(identifier: "Me").firstMatch.tap()
         app.buttons["Blocked members"].tap()
-        let unblock = app.buttons["Unblock member"].firstMatch
+        let unblock = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "unblock-")).firstMatch
         XCTAssertTrue(unblock.waitForExistence(timeout: 5)); unblock.tap()
         let confirmUnblock = app.buttons["Unblock member"].firstMatch
         XCTAssertTrue(confirmUnblock.waitForExistence(timeout: 5)); confirmUnblock.tap()

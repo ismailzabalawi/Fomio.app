@@ -44,8 +44,8 @@ struct MeView: View {
                     }
                 }
                 Section {
-                    Button("Sign out", role: .destructive) { signOutWarning = true }.frame(minHeight: 44)
-                    Button("Delete account…", role: .destructive) { deletingAccount = true }.frame(minHeight: 44)
+                    Button("Sign out", role: .destructive) { signOutWarning = true }.foregroundStyle(Color.fomioDanger).frame(minHeight: 44)
+                    Button("Delete account…", role: .destructive) { deletingAccount = true }.foregroundStyle(Color.fomioDanger).frame(minHeight: 44)
                 }
             } else {
                 Section {
@@ -56,9 +56,9 @@ struct MeView: View {
                     }.padding(.vertical, 8)
                 }
             }
-            if let configuration = app.configuration {
-                Section("Support and policies") {
-                    Link(destination: URL(string: "mailto:support@fomio.app")!) { Label("Email support", systemImage: "envelope") }.frame(minHeight: 44)
+            Section("Support and policies") {
+                Link(destination: URL(string: "mailto:support@fomio.app")!) { Label("Email support", systemImage: "envelope") }.frame(minHeight: 44)
+                if let configuration = app.configuration {
                     Link(destination: configuration.url("about")) { Label("Help and contact", systemImage: "questionmark.circle") }.frame(minHeight: 44)
                     Link(destination: configuration.url("privacy")) { Label("Privacy policy", systemImage: "hand.raised") }.frame(minHeight: 44)
                     Link(destination: configuration.url("tos")) { Label("Terms of service", systemImage: "doc.text") }.frame(minHeight: 44)
@@ -116,7 +116,7 @@ struct DeleteAccountView: View {
                 if deleted {
                     Section {
                         Text("Your account was deleted. Local sign-out still needs to finish.")
-                        Button("Finish sign-out") { app.signOut(); if app.username == nil { dismiss() } }
+                        Button("Finish sign-out") { app.signOut(); if app.username == nil { dismiss() } }.foregroundStyle(Color.fomioAccent)
                     }
                 } else if uncertain {
                     Section {
@@ -131,6 +131,7 @@ struct DeleteAccountView: View {
                             .textInputAutocapitalization(.never).autocorrectionDisabled()
                             .accessibilityLabel("Type your username to confirm account deletion")
                         Button("Delete account permanently", role: .destructive) { confirming = true }
+                            .foregroundStyle(confirmation == username ? Color.fomioDanger : Color.fomioSecondaryText)
                             .disabled(confirmation != username || submitting)
                     } footer: { Text("You are deleting @\(username).") }
                 } else if permitted == false {
@@ -138,11 +139,11 @@ struct DeleteAccountView: View {
                 } else if error == nil {
                     ProgressView("Checking account…")
                 }
-                if let error { Section { Text(error).foregroundStyle(Color.fomioDanger) } }
+                if let error { Section { Label(error, systemImage: "exclamationmark.circle").foregroundStyle(Color.fomioDanger) } }
                 if !deleted {
                     Section {
-                        Link("Contact support", destination: URL(string: "mailto:support@fomio.app")!)
-                        if permitted == nil && error != nil { Button("Check again") { Task { await check() } }.disabled(submitting) }
+                        Link("Contact support", destination: URL(string: "mailto:support@fomio.app")!).foregroundStyle(Color.fomioAccent)
+                        if permitted == nil && error != nil { Button("Check again") { Task { await check() } }.foregroundStyle(Color.fomioAccent).disabled(submitting) }
                     }
                 }
                 if submitting { ProgressView("Deleting account…") }
@@ -186,6 +187,7 @@ struct ProfileView: View {
     let username: String
     @State private var member: Member?
     @State private var error: String?
+    @State private var blocking = false
     var body: some View {
         ScrollView {
             ReadingColumn {
@@ -198,21 +200,27 @@ struct ProfileView: View {
                                 Text("@\(member.username)\(member.joined.map { " · Joined \($0)" } ?? "")").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
                             }
                         }
-                        BlockingButton(username: username)
-                        if app.isBlocked(username) { Text("You have blocked this member. Their content is hidden.").foregroundStyle(.secondary) }
-                        if !member.bio.isEmpty && !app.isBlocked(username) { Text(member.bio).textSelection(.enabled) }
-                        SectionLabel("Recent discussions").padding(.top, 8)
-                        if member.recent.isEmpty { Text("No discussions started yet.").foregroundStyle(Color.fomioSecondaryText) }
-                        VStack(spacing: 0) {
-                            ForEach(member.recent.filter { !app.isBlocked($0.author) && !app.isBlocked(username) }) { topic in
-                                Button { app.navigate(.discussion(topic.id, nil)) } label: {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(app.categoryName(topic.categoryID)).font(.footnote.weight(.semibold)).foregroundStyle(Color.fomioAccent)
-                                        Text(topic.title).font(.body.weight(.semibold)).foregroundStyle(.primary).multilineTextAlignment(.leading)
-                                        Text([repliesText(topic.replyCount), topic.activity].filter { !$0.isEmpty }.joined(separator: " · ")).font(.footnote).foregroundStyle(Color.fomioSecondaryText)
-                                    }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 12).contentShape(.rect)
-                                }.buttonStyle(.plain).accessibilityLabel("\(topic.title), in \(app.categoryName(topic.categoryID))")
-                                Divider().overlay(Color.fomioSeparator)
+                        if app.isBlocked(username) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Label("You blocked this member", systemImage: "person.crop.circle.badge.xmark").font(.subheadline.weight(.semibold))
+                                Text("Their bio, discussions and replies are hidden from you.").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
+                                BlockingButton(username: username).font(.subheadline.weight(.semibold)).foregroundStyle(Color.fomioAccent)
+                            }.padding(14).frame(maxWidth: .infinity, alignment: .leading).background(Color.fomioFill, in: .rect(cornerRadius: 14))
+                        } else {
+                            if !member.bio.isEmpty { Text(member.bio).textSelection(.enabled) }
+                            SectionLabel("Recent discussions").padding(.top, 8)
+                            if member.recent.isEmpty { Text("No discussions started yet.").foregroundStyle(Color.fomioSecondaryText) }
+                            VStack(spacing: 0) {
+                                ForEach(member.recent.filter { !app.isBlocked($0.author) }) { topic in
+                                    Button { app.navigate(.discussion(topic.id, nil)) } label: {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(app.categoryName(topic.categoryID)).font(.footnote.weight(.semibold)).foregroundStyle(Color.fomioAccent)
+                                            Text(topic.title).font(.body.weight(.semibold)).foregroundStyle(.primary).multilineTextAlignment(.leading)
+                                            Text([repliesText(topic.replyCount), topic.activity].filter { !$0.isEmpty }.joined(separator: " · ")).font(.footnote).foregroundStyle(Color.fomioSecondaryText)
+                                        }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 12).contentShape(.rect)
+                                    }.buttonStyle(.plain).accessibilityLabel("\(topic.title), in \(app.categoryName(topic.categoryID))")
+                                    Divider().overlay(Color.fomioSeparator)
+                                }
                             }
                         }
                     } else if let error { ScreenMessage(title: "Profile unavailable", message: error, action: { Task { await load() } }) }
@@ -220,6 +228,17 @@ struct ProfileView: View {
                 }.padding(20)
             }
         }.background(Color.fomioBackground).navigationTitle(username == app.username ? "Profile" : username).navigationBarTitleDisplayMode(.inline).task { await load() }
+        .toolbar {
+            if member != nil, !app.isBlocked(username), let current = app.username, current.caseInsensitiveCompare(username) != .orderedSame {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button(role: .destructive) { blocking = true } label: { Label("Block member…", systemImage: "person.crop.circle.badge.xmark") }
+                            .disabled(app.safetyChanging.contains(username.lowercased()))
+                    } label: { Image(systemName: "ellipsis") }.accessibilityLabel("More for @\(username)")
+                }
+            }
+        }
+        .modifier(BlockingConfirmation(username: username, confirming: $blocking))
     }
     private func load() async { do { member = try await app.service.profile(username); error = nil } catch { self.error = error.localizedDescription } }
 }
