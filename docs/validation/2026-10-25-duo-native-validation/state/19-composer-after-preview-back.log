@@ -1,0 +1,9 @@
+scene act=0 screen=(0.0, 0.0, 669.0, 951.0) coord=(0.0, 0.0, 669.0, 951.0) iface=2
+ win UIWindow key=true bounds=(0.0, 0.0, 669.0, 951.0) hSC=2 vSC=2 cs=UICTContentSizeCategoryL style=1 safe=UIEdgeInsets(top: 82.0, left: 0.0, bottom: 34.0, right: 0.0) vbe=UIVerticalBarEdge(rawValue: 0)
+   rr division: ["(0.0, 455.5, 669.0, 40.0) active=true"]
+   rr occlusion: ["(611.0, 677.3333333333334, 37.0, 58.0) active=false", "(525.0, 0.0, 144.0, 82.0) active=true"]
+ win UITextEffectsWindow key=false bounds=(0.0, 0.0, 669.0, 951.0) hSC=2 vSC=2 cs=UICTContentSizeCategoryL style=1 safe=UIEdgeInsets(top: 82.0, left: 0.0, bottom: 34.0, right: 0.0) vbe=UIVerticalBarEdge(rawValue: 0)
+   rr division: ["(0.0, 455.5, 669.0, 40.0) active=true"]
+   rr occlusion: ["(611.0, 677.3333333333334, 37.0, 58.0) active=false", "(525.0, 0.0, 144.0, 82.0) active=true"]
+
+

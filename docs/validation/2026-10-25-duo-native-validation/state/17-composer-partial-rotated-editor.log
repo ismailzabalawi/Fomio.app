@@ -1,0 +1,5 @@
+window (0.0, 0.0, 669.0, 951.0) hSC=2 kbd? UIWindow
+textview 0x000000011558a400 frame=44,285 580x200 first=true sel={34, 0} undo=0x0000000114d2e450 canUndo=true canRedo=false text="DuoVal 1025 fixture reply alphaqwe"
+window (0.0, 0.0, 669.0, 951.0) hSC=2 kbd? UITextEffectsWindow
+
+

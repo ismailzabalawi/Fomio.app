@@ -1,0 +1,122 @@
+// Disposable system probe for iPhone Duo validation. Not part of Fomio.
+// Records OS component geometry only; results are not a Fomio implementation pass.
+import SwiftUI
+import AVFoundation
+
+@MainActor final class ProbeLog {
+    static let shared = ProbeLog()
+    private var entries: [String: String] = [:]
+    func record(_ key: String, _ value: String) {
+        guard entries[key] != value else { return }
+        entries[key] = value
+        let url = URL.documentsDirectory.appending(path: "probe.json")
+        if let data = try? JSONSerialization.data(withJSONObject: entries, options: [.prettyPrinted, .sortedKeys]) {
+            try? data.write(to: url)
+        }
+    }
+}
+
+struct Metrics: View {
+    let key: String
+    @Environment(\.horizontalSizeClass) private var h
+    @Environment(\.verticalSizeClass) private var v
+    @Environment(\.toolbarVerticalEdge) private var edge
+    var body: some View {
+        GeometryReader { proxy in
+            let f = proxy.frame(in: .global)
+            let s = proxy.safeAreaInsets
+            let div = proxy.reservedRegions(kind: .division, options: .includeInactive)
+            let occ = proxy.reservedRegions(kind: .occlusion, options: .includeInactive)
+            let text = """
+            frame=\(Int(f.minX)),\(Int(f.minY)) \(Int(f.width))x\(Int(f.height))
+            safe t\(Int(s.top)) l\(Int(s.leading)) b\(Int(s.bottom)) r\(Int(s.trailing))
+            hSC=\(h == .regular ? "regular" : "compact") vSC=\(v == .regular ? "regular" : "compact")
+            toolbarVerticalEdge=\(edge.map { $0 == .leading ? "leading" : "trailing" } ?? "nil")
+            division=\(div.map { "\(Int($0.frame.minX)),\(Int($0.frame.minY)) \(Int($0.frame.width))x\(Int($0.frame.height)) \($0.isActive ? "active" : "inactive")" })
+            occlusion=\(occ.map { "\(Int($0.frame.minX)),\(Int($0.frame.minY)) \(Int($0.frame.width))x\(Int($0.frame.height)) \($0.isActive ? "active" : "inactive")" })
+            """
+            Text(text)
+                .font(.caption.monospaced())
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .onAppear { ProbeLog.shared.record(key, text) }
+                .onChange(of: text) { ProbeLog.shared.record(key, text) }
+        }
+    }
+}
+
+struct SheetContent: View {
+    let placement: String
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            Metrics(key: "sheet-\(placement)")
+                .padding()
+                .navigationTitle("Sheet \(placement)")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) { Button("Cancel", systemImage: "xmark") { dismiss() } }
+                    ToolbarItem(placement: .confirmationAction) { Button("Done", systemImage: "checkmark") { dismiss() } }
+                    ToolbarItemGroup(placement: .bottomBar) {
+                        Button("Bold", systemImage: "bold") {}
+                        Button("Photo", systemImage: "photo") {}
+                    }
+                }
+        }
+    }
+}
+
+struct Root: View {
+    let tab: String
+    @State private var presented: String?
+    @State private var text = ""
+    var body: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("SYSTEM PROBE — not Fomio").font(.headline)
+                HStack {
+                    ForEach(["automatic", "leading", "center", "trailing"], id: \.self) { p in
+                        Button(p) { presented = p }.buttonStyle(.bordered).accessibilityIdentifier("present-\(p)")
+                    }
+                }
+                TextField("Keyboard probe", text: $text).textFieldStyle(.roundedBorder)
+                Text("frontCamera=\(AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera], mediaType: .video, position: .front).devices.count)")
+                    .font(.caption.monospaced())
+                Metrics(key: "root-\(tab)")
+            }
+            .padding()
+            .navigationTitle("Probe \(tab)")
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) { Button("Back", systemImage: "chevron.backward") {} }
+                ToolbarItem(placement: .primaryAction) { Button("Compose", systemImage: "square.and.pencil") {} }
+                ToolbarItemGroup(placement: .bottomBar) {
+                    Button("Like", systemImage: "heart") {}
+                    Button("Share", systemImage: "square.and.arrow.up") {}
+                }
+            }
+            .sheet(item: Binding(get: { presented.map(Box.init) }, set: { presented = $0?.id })) { box in
+                SheetContent(placement: box.id).presentationPlacement(placement(box.id))
+            }
+        }
+        .onAppear {
+            if tab == "A", let i = CommandLine.arguments.firstIndex(of: "--sheet"), i + 1 < CommandLine.arguments.count {
+                presented = CommandLine.arguments[i + 1]
+            }
+        }
+    }
+    func placement(_ id: String) -> PresentationPlacement {
+        switch id { case "leading": .leading; case "center": .center; case "trailing": .trailing; default: .automatic }
+    }
+}
+
+struct Box: Identifiable { let id: String }
+
+@main struct DuoProbeApp: App {
+    var body: some Scene {
+        WindowGroup {
+            TabView {
+                Tab("A", systemImage: "a.circle") { Root(tab: "A") }
+                Tab("B", systemImage: "b.circle") { Root(tab: "B") }
+            }
+        }
+    }
+}

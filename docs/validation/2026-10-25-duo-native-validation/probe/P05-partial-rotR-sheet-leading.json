@@ -1,0 +1,4 @@
+{
+  "root-A" : "frame=16,291 637x561\nsafe t0 l0 b0 r0\nhSC=regular vSC=regular\ntoolbarVerticalEdge=nil\ndivision=[\"-16,164 669x40 active\"]\nocclusion=[\"5,-75 37x57 inactive\", \"509,-291 144x82 active\"]",
+  "sheet-leading" : "frame=24,180 621x673\nsafe t0 l0 b0 r0\nhSC=compact vSC=regular\ntoolbarVerticalEdge=nil\ndivision=[\"-24,275 669x40 active\"]\nocclusion=[\"-3,35 37x57 inactive\"]"
+}

@@ -31,6 +31,7 @@ Current native baseline: 2026-10-03. The fixture MVP is implemented; live releas
 - [SwiftUI rich text prototype](validation/2026-10-19-rich-prototype/README.md) records the Debug-only prose experiment, source-preservation guarantees, native tests and remaining migration gates. The existing composer remains in use.
 
 - [iPhone Duo preparation](iphone-duo-readiness.md) records the adaptive layout audit, composer sizing fix, local tooling evidence and remaining fold/resize acceptance.
+- [iPhone Duo native validation 2026-10-25](validation/2026-10-25-duo-native-validation/README.md) tests the `duo-adaptive-reading` build (`8e2a248`) on the iPhone Duo / iOS 27.1 simulator through Device Hub poses, Split View and a disposable system probe. Composer continuity passes. Collapse navigation fails (D1). Camera, PiP, VoiceOver and device checks remain open; Duo is not ready.
 
 - [Notifications IA and integration map](notifications-ia.md) is the 2026-10-18 pre-public planning packet: inbox/types, grouped-reply destinations, read/seen/count semantics, foreground freshness, push enrollment/relay boundaries, current native gaps and delivery acceptance. Source review is distinct from deployed/device verification.
 - [Notifications Claude Design handoff](design/notifications-claude-handoff.md) records the IA-based mockup brief, design destination and browser review status.

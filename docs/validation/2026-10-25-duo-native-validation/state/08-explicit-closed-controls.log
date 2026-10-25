@@ -1,0 +1,15 @@
+== window (0.0, 0.0, 466.0, 678.0)
+HostingUIButton '' 20,164 76x44
+HostingUIButton '' 20,468 76x44
+HostingUIButton '' 20,701 76x44
+_UITabButton 'Home' 396,444 44x58
+_UITabButton 'Communities' 396,494 44x58
+_UITabButton 'Notifications' 396,544 44x58
+_UITabButton 'Me' 396,594 44x58
+_UITabButton 'Home' 396,444 44x58
+_UITabButton 'Communities' 396,494 44x58
+_UITabButton 'Notifications' 396,544 44x58
+_UITabButton 'Me' 396,594 44x58
+UILabel '2' 427,548 12x16
+
+
