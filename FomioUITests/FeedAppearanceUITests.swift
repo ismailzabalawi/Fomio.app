@@ -73,8 +73,9 @@ import XCTest
         XCTAssertTrue(topic.waitForExistence(timeout: 5))
         XCTAssertLessThan(abs(topic.frame.minY - before), 3, "Choosing All restores the Home reading position")
         topic.tap()
-        XCTAssertTrue(app.buttons["back-to-topic-list"].waitForExistence(timeout: 5))
-        app.buttons["back-to-topic-list"].tap()
+        // One pane returns to the list with Back; beside the discussion (two panes) the list never left.
+        let back = app.buttons["back-to-topic-list"]
+        if back.waitForExistence(timeout: 5) { back.tap() }
         XCTAssertTrue(topic.waitForExistence(timeout: 5))
         XCTAssertLessThan(abs(topic.frame.minY - before), 3, "Topic Back restores the Home reading position")
         XCTAssertTrue(app.scrollViews["feed-cards"].exists)
@@ -98,7 +99,8 @@ import XCTest
         XCTAssertFalse(failure.exists)
         loaded.tap()
         XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
-        app.buttons["back-to-topic-list"].tap()
+        // One pane returns with Back; beside the discussion (two panes) the list never left.
+        if app.buttons["back-to-topic-list"].exists { app.buttons["back-to-topic-list"].tap() }
         XCTAssertTrue(loaded.waitForExistence(timeout: 5)); XCTAssertTrue(app.scrollViews["feed-compact"].exists)
     }
 
@@ -172,14 +174,16 @@ import XCTest
         scrollUntilHittable(app, element)
         let window = app.windows.firstMatch, height = window.frame.height
         let origin = window.coordinate(withNormalizedOffset: .zero)
+        // Drag inside the feed column: beside a discussion (two panes) the window's centre is the discussion.
+        let x = feedList(app).frame.midX - window.frame.minX
         for _ in 0..<6 {
             let delta = y - element.frame.minY
             // A press-drag shorter than this lands as a tap on the card under the start point.
             if abs(delta) < 12 { break }
             let step = max(-height * 0.35, min(height * 0.35, delta))
             let startY = step < 0 ? height * 0.7 : height * 0.3
-            origin.withOffset(CGVector(dx: window.frame.width / 2, dy: startY))
-                .press(forDuration: 0.1, thenDragTo: origin.withOffset(CGVector(dx: window.frame.width / 2, dy: startY + step)), withVelocity: .slow, thenHoldForDuration: 0.5)
+            origin.withOffset(CGVector(dx: x, dy: startY))
+                .press(forDuration: 0.1, thenDragTo: origin.withOffset(CGVector(dx: x, dy: startY + step)), withVelocity: .slow, thenHoldForDuration: 0.5)
             Thread.sleep(forTimeInterval: 0.3)
         }
     }
@@ -187,7 +191,7 @@ import XCTest
         var attempts = 0
         let first = app.buttons["topic-4190"]
         let top = app.descendants(matching: .any).matching(identifier: "browse-header").firstMatch.frame.maxY
-        while !(first.exists && first.isHittable && first.frame.minY >= top) && attempts < 15 { app.swipeDown(velocity: .fast); attempts += 1 }
+        while !(first.exists && first.isHittable && first.frame.minY >= top) && attempts < 15 { feedList(app).swipeDown(velocity: .fast); attempts += 1 }
         // Pulling at the top reveals the new search field; keep the appearance journey on the feed.
         if app.buttons["cancel-topic-search"].exists { app.buttons["cancel-topic-search"].tap() }
         Thread.sleep(forTimeInterval: 1)
@@ -200,8 +204,12 @@ import XCTest
     }
     private func scrollUntilHittable(_ app: XCUIApplication, _ element: XCUIElement) {
         var attempts = 0
-        while !(element.exists && element.isHittable) && attempts < 12 { app.swipeUp(velocity: .slow); attempts += 1 }
+        while !(element.exists && element.isHittable) && attempts < 12 { feedList(app).swipeUp(velocity: .slow); attempts += 1 }
         XCTAssertTrue(element.exists && element.isHittable, "\(element) not reachable")
+    }
+    /// The feed's own scroll view, in either appearance.
+    private func feedList(_ app: XCUIApplication) -> XCUIElement {
+        app.scrollViews.matching(NSPredicate(format: "identifier BEGINSWITH 'feed-'")).firstMatch
     }
     private func capture(_ app: XCUIApplication, _ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)

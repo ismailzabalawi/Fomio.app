@@ -639,7 +639,10 @@ import UIKit
             XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
             XCTAssertEqual(filter.value as? String, "Wood", "Done keeps the filter without a newline")
             XCTAssertTrue(app.buttons["scope-1"].waitForExistence(timeout: 10))
-            try app.performAccessibilityAudit(for: [.contrast, .hitRegion, .sufficientElementDescription, .textClipped, .trait])
+            // iPad keeps the system keyboard's prediction strip in the tree after Done; it is not app UI.
+            try app.performAccessibilityAudit(for: [.contrast, .hitRegion, .sufficientElementDescription, .textClipped, .trait]) { issue in
+                issue.detailedDescription.contains("TUIPredictionViewCell")
+            }
             capture(app, "Audited community chooser with filter")
             app.terminate()
         }
