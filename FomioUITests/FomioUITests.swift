@@ -677,7 +677,7 @@ import UIKit
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: editBlock)], timeout: 5), .completed)
         let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Native composer with code block"; capture.lifetime = .keepAlways; add(capture)
         editBlock.tap(); XCTAssertTrue(code.waitForExistence(timeout: 5)); XCTAssertEqual(code.value as? String, "let greeting = 1")
-        app.navigationBars.buttons.element(boundBy: 0).tap(); XCTAssertTrue(code.waitForNonExistence(timeout: 5))
+        tapBack(app); XCTAssertTrue(code.waitForNonExistence(timeout: 5))
         app.buttons["composer-close"].tap(); app.buttons["Keep draft"].tap()
     }
     func testSwipeDismissalProtectsChangedWriting() {
