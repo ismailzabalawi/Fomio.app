@@ -152,8 +152,19 @@ struct TabRoot: View {
     @State private var compactColumn: NavigationSplitViewColumn = .sidebar
     @State private var focusedReading = false
     /// A discussion opened only because two panes appeared with nothing selected.
-    /// It is withdrawn again if the window narrows before the reader chooses anything.
+    /// If the window narrows before the reader chooses anything, one pane shows the list.
     @State private var autoSelected: Route?
+    /// Hides the tab bar for a moment after the split expands; see `refreshBars`.
+    @State private var refreshingBars = false
+    @State private var barRefresh: Task<Void, Never>?
+    /// Changes when the split expands on another display than it was built on, so it is rebuilt there.
+    @State private var splitGeneration = 0
+    @State private var splitScreen: ObjectIdentifier?
+    @State private var window: UIWindow?
+    #if DEBUG
+    /// UI tests narrow the reading split in place, standing in for a fold or window resize.
+    @State private var compactOverride = false
+    #endif
     private var readingIndex: Int? {
         state.path.firstIndex { if case .discussion = $0 { true } else if case .thread = $0 { true } else { false } }
     }
@@ -186,7 +197,7 @@ struct TabRoot: View {
     }
     private var reading: some View {
         GeometryReader { geometry in
-            let layout = ReadingLayout(width: geometry.size.width, scale: ReadingLayout.scale(for: textSize))
+            let layout = ReadingLayout(width: readingWidth(geometry.size.width), scale: ReadingLayout.scale(for: textSize))
             let showsSidebar = layout.sidebar && !focusedReading && !app.sidebarHidden
             HStack(spacing: 0) {
                 if showsSidebar {
@@ -221,13 +232,18 @@ struct TabRoot: View {
                     }
                 }
                 .navigationSplitViewStyle(.balanced)
+                .id(splitGeneration)
+                .background(PresentingWindowReader { found in
+                    window = found
+                    if splitScreen == nil, let found { splitScreen = ObjectIdentifier(found.screen) }
+                })
                 // Duo can offer sufficient physical width with compact traits. Only the reading
                 // split receives this presentation hint; the app's composer keeps real window traits.
                 .environment(\.horizontalSizeClass, layout.twoPanes ? .regular : .compact)
                 .environment(\.readingSidebarVisible, showsSidebar)
                 .environment(\.readingShowSidebar, layout.sidebar && app.sidebarHidden && !focusedReading ? { app.sidebarHidden = false } : nil)
             }
-            .toolbar(showsSidebar ? .hidden : .visible, for: .tabBar)
+            .toolbar(showsSidebar || refreshingBars ? .hidden : .visible, for: .tabBar)
             .onChange(of: readingRoute, initial: true) { _, route in
                 compactColumn = route == nil ? .sidebar : .detail
                 if route != autoSelected { autoSelected = nil }
@@ -237,19 +253,76 @@ struct TabRoot: View {
                 let route = Route.discussion(topic, nil)
                 autoSelected = route; state.path = [route]
             }
-            .onChange(of: state.readingSelectionRevision) { _, _ in compactColumn = .detail }
+            // Every navigation to a discussion is the reader's choice, even of the auto-selected one.
+            .onChange(of: state.readingSelectionRevision) { _, _ in compactColumn = .detail; autoSelected = nil }
             .onChange(of: state.discussionSearch.failure) { _, failure in
                 if failure != nil { app.invalidateSearchAccess(in: tab) }
             }
             .onChange(of: layout.twoPanes) { _, two in
                 visibility = two && focusedReading ? .detailOnly : .all
-                // Folding returns to the list, not to a discussion the reader never chose.
-                if !two, let auto = autoSelected, state.path == [auto] { state.path = []; autoSelected = nil }
+                if two { refreshBars() }
+                // Folding shows the list, not a discussion the reader never chose. The route stays:
+                // clearing it while the split collapsed left the discussion without its toolbar
+                // once it expanded again, and unfolding returns to the same place.
+                if !two, let auto = autoSelected, state.path == [auto] { compactColumn = .sidebar }
             }
             // A containing element keeps this identifier from replacing the sidebar header controls' own.
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier(focusedReading && layout.twoPanes ? "reading-focused" : showsSidebar ? "reading-three-pane" : layout.twoPanes ? "reading-two-pane" : "reading-one-pane")
+            // A fold settles through several widths; refresh once the last one has held.
+            // While refreshing, a size change means the hidden bar has gone: show it again.
+            .onChange(of: geometry.size) {
+                if refreshingBars { barRefresh?.cancel(); endBarRefresh() }
+                else if barRefresh != nil { refreshBars() }
+            }
+            #if DEBUG
+            // Top centre, clear of the edges where taps become system gestures.
+            .overlay(alignment: .top) {
+                if ProcessInfo.processInfo.arguments.contains("--reading-size-override") {
+                    Button(compactOverride ? "Restore width" : "Compact width") {
+                        compactOverride.toggle()
+                        // Change the scene's real trait too, so UIKit collapses the split as a fold does.
+                        for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
+                            if compactOverride { scene.traitOverrides.horizontalSizeClass = .compact }
+                            else { scene.traitOverrides.remove(UITraitHorizontalSizeClass.self) }
+                        }
+                    }
+                    .font(.caption).buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("debug-toggle-compact-reading")
+                }
+            }
+            #endif
         }
+    }
+    /// iPhone Duo / iOS 27.1: when unfolding moves the window to the inner display and the split
+    /// expands, the vertical bar (tabs, Back, More actions) stays empty, even in a plain SwiftUI
+    /// TabView + NavigationSplitView. Hiding the tab bar for a moment once the size has settled
+    /// lays the bars out again. Folding the other way keeps them, so only expansion refreshes.
+    private func refreshBars() {
+        barRefresh?.cancel()
+        barRefresh = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(300)); guard !Task.isCancelled else { return }
+            // After a move between displays the columns can come back empty too; a new split
+            // hosts them again. Not on an in-place resize, and not while something is presented
+            // (the community chooser, a sheet), which rebuilding would dismiss.
+            if let screen = window?.screen, ObjectIdentifier(screen) != splitScreen,
+               window?.rootViewController?.presentedViewController == nil {
+                splitGeneration += 1; splitScreen = ObjectIdentifier(screen)
+            }
+            refreshingBars = true
+            // Normally shown again by the size change; this is the fallback.
+            try? await Task.sleep(for: .milliseconds(500)); guard !Task.isCancelled else { return }
+            endBarRefresh()
+        }
+    }
+    private func endBarRefresh() {
+        refreshingBars = false; barRefresh = nil
+    }
+    /// The Duo's closed display is 466 pt wide.
+    private func readingWidth(_ width: CGFloat) -> CGFloat {
+        #if DEBUG
+        if compactOverride { return min(width, 466) }
+        #endif
+        return width
     }
     private struct AutoSelectKey: Equatable { var twoPanes: Bool; var path: [Route]; var first: TopicID? }
     /// The Home feed's first readable topic, while it is the list on screen and no search is open.
