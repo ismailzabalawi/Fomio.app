@@ -178,6 +178,8 @@ struct TabRoot: View {
     @State private var visibility: NavigationSplitViewVisibility = .all
     @State private var compactColumn: NavigationSplitViewColumn = .sidebar
     @State private var focusedReading = false
+    /// iPhone Duo's partial fold: an active vertical division in this tab root's coordinates.
+    @State private var division: CGRect?
     /// A discussion opened only because two panes appeared with nothing selected.
     /// If the window narrows before the reader chooses anything, one pane shows the list.
     @State private var autoSelected: Route?
@@ -224,7 +226,8 @@ struct TabRoot: View {
     }
     private var reading: some View {
         GeometryReader { geometry in
-            let layout = ReadingLayout(width: readingWidth(geometry.size.width), scale: ReadingLayout.scale(for: textSize))
+            let regions = DivisionRegions(division: division, width: geometry.size.width)
+            let layout = ReadingLayout(width: readingWidth(geometry.size.width), scale: ReadingLayout.scale(for: textSize), regions: regions)
             let showsSidebar = layout.sidebar && !focusedReading && !app.sidebarHidden
             HStack(spacing: 0) {
                 if showsSidebar {
@@ -246,21 +249,26 @@ struct TabRoot: View {
                                     ToolbarItem(placement: .topBarLeading) {
                                         Button { compactColumn = .sidebar } label: { Label("Back to topic list", systemImage: "chevron.backward") }
                                             .accessibilityIdentifier("back-to-topic-list")
-                                    }
+                                    }.barPriority(true)
                                 } else if layout.twoPanes {
                                     ToolbarItem(placement: .topBarLeading) {
                                         Button {
                                             focusedReading.toggle(); visibility = focusedReading ? .detailOnly : .all
                                         } label: { Label(LocalizedStringKey(focusedReading ? "Show topic list" : "Focus on discussion"), systemImage: "sidebar.leading") }
                                         .accessibilityIdentifier("toggle-topic-list")
-                                    }
+                                    }.barPriority(true)
                                 }
                             }
                             .environment(\.readingCreate, (tab == .home || tab == .communities) && (!layout.twoPanes || focusedReading)
                                 ? { app.create(category: state.browseScope.categoryID) } : nil)
                     }
+                    // Beside the list in a division, the discussion starts after the hinge band.
+                    .safeAreaPadding(.leading, layout.twoPanes && !focusedReading ? regions?.band ?? 0 : 0)
                 }
                 .navigationSplitViewStyle(.balanced)
+                // One pane (or the focused discussion) in a division keeps to the larger region. Padding
+                // the frame, not the safe area: a centred reading column ignores safe-area padding.
+                .padding(regionEdges(regions, layout: layout), regionInset(regions, layout: layout))
                 .id(splitGeneration)
                 .background(PresentingWindowReader { found in
                     window = found
@@ -272,6 +280,7 @@ struct TabRoot: View {
                 .environment(\.readingSidebarVisible, showsSidebar)
                 .environment(\.readingShowSidebar, layout.sidebar && app.sidebarHidden && !focusedReading ? { app.sidebarHidden = false } : nil)
             }
+            .background(DisplayDivisionReader { division = $0 })
             .toolbar(showsSidebar || refreshingBars ? .hidden : .visible, for: .tabBar)
             .onChange(of: readingRoute, initial: true) { _, route in
                 compactColumn = route == nil ? .sidebar : .detail
@@ -345,6 +354,17 @@ struct TabRoot: View {
     }
     private func endBarRefresh() {
         refreshingBars = false; barRefresh = nil
+    }
+    private func confinedToRegion(_ regions: DivisionRegions?, layout: ReadingLayout) -> Bool {
+        regions != nil && (!layout.twoPanes || focusedReading)
+    }
+    private func regionEdges(_ regions: DivisionRegions?, layout: ReadingLayout) -> Edge.Set {
+        guard let regions, confinedToRegion(regions, layout: layout) else { return [] }
+        return regions.leading >= regions.trailing ? .trailing : .leading
+    }
+    private func regionInset(_ regions: DivisionRegions?, layout: ReadingLayout) -> CGFloat {
+        guard let regions, confinedToRegion(regions, layout: layout) else { return 0 }
+        return regions.band + min(regions.leading, regions.trailing)
     }
     /// The Duo's closed display is 466 pt wide.
     private func readingWidth(_ width: CGFloat) -> CGFloat {

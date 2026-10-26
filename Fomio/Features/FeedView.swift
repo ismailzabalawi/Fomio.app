@@ -255,7 +255,7 @@ struct FeedView: View {
                 .disabled(browse.browseScope.categoryID != nil && category == nil)
                 .accessibilityLabel(category.map { BrowseLocalization.format("New discussion in %@", locale: locale, $0.name) } ?? localized("New discussion"))
                 .accessibilityIdentifier("feed-create")
-        }
+        }.barPriority(true)
         ToolbarSpacer(.fixed, placement: .topBarTrailing)
         ToolbarItemGroup(placement: .topBarTrailing) {
             // Reveals and focuses search; with search open and empty it hides it again.
@@ -265,7 +265,7 @@ struct FeedView: View {
                 .tint(searchShown ? Color.fomioAccent : nil)
                 .accessibilityIdentifier("reveal-topic-search")
             optionsMenu
-        }
+        }.barPriority(false)
     }
     private var searchField: some View {
         let layout = textSize.isAccessibilitySize

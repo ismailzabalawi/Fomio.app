@@ -74,14 +74,14 @@ struct DiscussionView: View {
                         Button { app.reply(to: target) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left") }
                             .buttonStyle(.glassProminent).tint(Color.fomioAccent).accessibilityIdentifier("discussion-reply")
                             .accessibilityLabel(target.number.rawValue > 1 ? "Reply to \(target.author) · #\(target.number.rawValue)" : "Reply to \(page.summary.title)")
-                    }
+                    }.barPriority(true)
                     ToolbarSpacer(.fixed, placement: .topBarTrailing)
                 }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button { save(opening) } label: { Label(opening.bookmarkID == nil ? "Save" : "Remove from Saved", systemImage: opening.bookmarkID == nil ? "bookmark" : "bookmark.fill") }
                         .accessibilityIdentifier("discussion-save")
                     ShareButton(topic: opening.topicID, number: nil).accessibilityIdentifier("discussion-share")
-                }
+                }.barPriority(false)
             }
             // The feed header carries Create; the bar offers it only while that header is off screen.
             if let createFromReading {
