@@ -119,9 +119,14 @@ struct DiscussionView: View {
         }.padding(.bottom, 16)
     }
     private func pathLink(_ category: Community) -> some View {
-        Button { app.navigate(.community(category.id)) } label: {
-            HStack(spacing: 5) { CategoryMark(category: category, size: 20); Text(category.name).font(.caption.weight(.semibold)) }.frame(minHeight: 44)
-        }.buttonStyle(.plain).accessibilityLabel("Open community \(category.name)")
+        // The decorative mark sits beside the link: inside it, the server-chosen mark colour counted
+        // against the label's contrast. The shape gives the whole 44-point row to the plain button.
+        HStack(spacing: 5) {
+            CategoryMark(category: category, size: 20)
+            Button { app.navigate(.community(category.id)) } label: {
+                Text(category.name).font(.caption.weight(.semibold)).frame(minWidth: 44, minHeight: 44).contentShape(.rect)
+            }.buttonStyle(.plain).accessibilityLabel("Open community \(category.name)")
+        }
     }
     @ViewBuilder private func failure(_ error: String) -> some View {
         if state.page == nil, state.errorKind == .unavailable {

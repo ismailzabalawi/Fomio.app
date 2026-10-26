@@ -47,9 +47,15 @@ import UIKit
         attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
     private func revealChoice(_ choice: XCUIElement, in app: XCUIApplication) {
+        // The chooser opens with its filter focused; Return (Done) lowers the keyboard so swipes reach the list.
+        let filter = app.textFields["community-filter"]
+        if filter.waitForExistence(timeout: 5), app.keyboards.firstMatch.exists {
+            filter.typeText("\n"); _ = app.keyboards.firstMatch.waitForNonExistence(timeout: 5)
+        }
         for _ in 0..<5 {
             if choice.exists && choice.isHittable { return }
-            app.collectionViews.firstMatch.swipeUp()
+            // The chooser's own list: with the filter focused, the keyboard's suggestion bar is a collection view too.
+            app.collectionViews.containing(.button, identifier: "scope-all").firstMatch.swipeUp()
         }
         XCTAssertTrue(choice.exists && choice.isHittable)
     }

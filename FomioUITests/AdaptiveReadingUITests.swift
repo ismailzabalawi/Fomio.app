@@ -168,7 +168,7 @@ import UIKit
     /// The validation's sequence: read the auto-selected discussion, fold back to the list,
     /// unfold, choose another discussion and scroll it, then fold again.
     private func exerciseCollapse(_ app: XCUIApplication, fold: () -> Void, unfold: () -> Void) throws {
-        let more = app.buttons["discussion-more"]
+        let more = app.buttons["discussion-share"]
         XCTAssertTrue(more.waitForExistence(timeout: 10))
         app.scrollViews["discussion-content"].swipeUp()
         fold()
