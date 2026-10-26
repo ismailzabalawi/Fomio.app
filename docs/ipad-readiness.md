@@ -74,9 +74,21 @@ The [preserved native evidence packet](validation/2026-10-20-ipad-readiness/READ
 
 `testNativeNarrowWindowKeepsQueryAndSelection` is opt-in with `FOMIO_IPAD_WINDOW_RESIZE=1`, requiring the OS corner-resize affordance. It never substitutes a debug width and requires an observed window below 720pt. A skipped or failed probe is not a narrow-window pass.
 
-## System-bar mapping — 26 October 2026
+## System-bar mapping — 26–27 October 2026
 
-The same toolbar mapping as [Duo readiness](iphone-duo-readiness.md) (2026-10-26) applies on iPad. The list column's bar carries the wordmark, Create, Search and feed options. The discussion bar carries Reply, then Save and Share, and the header holds only the one-line scope. An intermediate version kept Create, Search and options in the 300 pt list header, which split "All communities" mid-word; moving them to the bar replaced it. Tests on iPad Pro 11-inch (M5) / iOS 27.0 (fixture): 8 passed, 4 skipped, 1 failed — `testWideSidebarScopesAndExcludedDiscussionReturn` fails on an ambiguous `app.buttons["Home"]` query (sidebar row plus tab item). It fails at the same assertion on unmodified `bece043`, so the failure predates this change. The header check in `IPadReadinessUITests` now asserts a one-line scope plus the three bar buttons.
+The [Duo readiness](iphone-duo-readiness.md) mapping applies on iPad. The list column's bar carries Create, Search and options; the discussion bar carries Reply, then Save and Share. Home's first topic opens beside the list in two panes (merged from the D1 branch).
+
+iPad Pro 11-inch (M5) / iOS 27.0, fixture, branch `claude/duo-system-bar`:
+- **Regressions found and fixed:**
+  - The breadcrumb hit area and contrast: the category mark now sits beside the link.
+  - The DEBUG reading-size toggle moved out from under the bar.
+  - Test helpers: feed gestures target the feed column, Back to topic list is only expected in one pane, the chooser helper lowers the focused filter's keyboard before swiping, and the wide-sidebar test queries the visible Home row.
+- **Environment:** after about two hours of multi-window tests the simulator timed out preparing a test worker, and leftover window scenes made later tests launch on Communities. Restarting the existing simulator and uninstalling the app cleared both.
+- **Still failing, and also failing on unmodified `main` (`bece043`):**
+  - `testCommunityChooserAccessibilityAudit`: contrast. The system keyboard prediction cell is now excluded from the audit.
+  - Composer tests: `testComposerCatalogueQuickQuoteAndSearchRecovery`, `testComposerMoreRefreshesUndoRedoAfterEachAction` (duplicate element), `testDarkAccessibilityComposerRemainsReachable`, `testInserterCancelPreservesHiddenKeyboard`, `testKeyboardBarNextAndKeepEditing` and `testNativeFormattingCaretTypingSurvivesSourceSwitch` (172 pt between bar and keys on the iPad keyboard).
+
+These are iPad keyboard and composer behaviours outside this work and need their own investigation.
 
 ## Final acceptance and release limits
 
