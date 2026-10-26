@@ -228,6 +228,8 @@ struct TabRoot: View {
                                     }
                                 }
                             }
+                            .environment(\.readingCreate, (tab == .home || tab == .communities) && (!layout.twoPanes || focusedReading)
+                                ? { app.create(category: state.browseScope.categoryID) } : nil)
                     }
                 }
                 .navigationSplitViewStyle(.balanced)

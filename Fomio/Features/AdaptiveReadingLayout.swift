@@ -132,4 +132,6 @@ extension EnvironmentValues {
     @Entry var readingSidebarVisible = false
     /// Present when the window could show the sidebar but the reader hid it.
     @Entry var readingShowSidebar: (() -> Void)? = nil
+    /// Present while a topic feed's header, which carries Create, is off screen beside this discussion.
+    @Entry var readingCreate: (() -> Void)? = nil
 }

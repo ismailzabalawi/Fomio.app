@@ -8,8 +8,6 @@ struct CommunityScopePicker: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var presentation: Presentation?
     @State private var query = ""
-    @FocusState private var focused: Bool
-    @ScaledMetric(relativeTo: .body) private var searchSymbolSize = 20.0
     /// The list title: 24 pt bold at Standard text, growing with the title style.
     @ScaledMetric(relativeTo: .title2) private var titleSize = 24.0
     let scope: BrowseScope
@@ -93,25 +91,10 @@ struct CommunityScopePicker: View {
                     ? AnyLayout(VStackLayout(alignment: .trailing, spacing: 0))
                     : AnyLayout(HStackLayout(alignment: .center, spacing: 8))
                 layout {
-                    HStack(spacing: 8) {
-                        Image(systemName: "magnifyingglass").font(.system(size: min(searchSymbolSize, 28)))
-                            .foregroundStyle(.secondary).accessibilityHidden(true)
-                        // Vertical like the topic search field: it sizes with Dynamic Type, where the
-                        // single-line field's UIKit backing fails the text-clipping audit. Return still means Done.
-                        TextField("Find communities", text: Binding(get: { query }, set: { value in
-                            // Ending focus inside the text change is ignored in an iPad popover; defer it a turn.
-                            if value.contains("\n") { query = value.replacingOccurrences(of: "\n", with: ""); Task { @MainActor in focused = false } }
-                            else { query = value }
-                        }), axis: .vertical).focused($focused)
-                            .lineLimit(1...3).font(.body).frame(minHeight: 44)
-                            .textInputAutocapitalization(.never).autocorrectionDisabled()
-                            .submitLabel(.done).onSubmit { focused = false }
-                            .accessibilityIdentifier("community-filter")
-                    }.padding(.horizontal, 12).frame(minHeight: 44).background(Color.fomioFill, in: .rect(cornerRadius: 12))
+                    CommunityFilterField(query: $query)
                     Button { presentation = nil } label: { Text("Cancel").frame(minHeight: 44).contentShape(.rect) }.accessibilityIdentifier("scope-cancel")
                 }.padding(.horizontal, 16).padding(.vertical, 6).background(Color.fomioBackground)
             }
-            .task { focused = true }
             .onKeyPress(.escape) { presentation = nil; return .handled }
         }.environment(app)
             .environment(\.dynamicTypeSize, textSize)
@@ -160,5 +143,31 @@ struct FomioWordmark: View {
     var body: some View {
         Image("wordmark-color").resizable().scaledToFit().frame(height: height)
             .environment(\.layoutDirection, .leftToRight).accessibilityLabel("Fomio")
+    }
+}
+
+/// The chooser's filter owns its focus: focus state held by the presenting picker does not
+/// reliably reach a field inside the presented sheet or popover, so Return left it focused.
+private struct CommunityFilterField: View {
+    @Binding var query: String
+    @FocusState private var focused: Bool
+    @ScaledMetric(relativeTo: .body) private var searchSymbolSize = 20.0
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass").font(.system(size: min(searchSymbolSize, 28)))
+                .foregroundStyle(.secondary).accessibilityHidden(true)
+            // Vertical like the topic search field: it sizes with Dynamic Type, where the
+            // single-line field's UIKit backing fails the text-clipping audit. Return still means Done.
+            TextField("Find communities", text: Binding(get: { query }, set: { value in
+                // Ending focus inside the text change is ignored in an iPad popover; defer it a turn.
+                if value.contains("\n") { query = value.replacingOccurrences(of: "\n", with: ""); Task { @MainActor in focused = false } }
+                else { query = value }
+            }), axis: .vertical).focused($focused)
+                .lineLimit(1...3).font(.body).frame(minHeight: 44)
+                .textInputAutocapitalization(.never).autocorrectionDisabled()
+                .submitLabel(.done).onSubmit { focused = false }
+                .accessibilityIdentifier("community-filter")
+        }.padding(.horizontal, 12).frame(minHeight: 44).background(Color.fomioFill, in: .rect(cornerRadius: 12))
+            .task { focused = true }
     }
 }

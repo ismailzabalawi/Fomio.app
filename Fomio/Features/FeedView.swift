@@ -80,17 +80,14 @@ struct FeedView: View {
     @AppStorage(FeedAppearance.storageKey) private var appearance: FeedAppearance = .compact
     private var geometry: FeedGeometry { state.geometry }
     @State private var pendingRestore: FeedGeometry.Anchor?
-    @State private var columnWidth: CGFloat = 0
     @State private var headerCornerInsets = RectangleCornerInsets()
     @State private var userScrolling = false
     @ScaledMetric(relativeTo: .body) private var controlSymbolSize = 20.0
-    private var roomyToolbar: Bool { columnWidth >= 560 && !textSize.isAccessibilitySize }
     private var needsNativeBack: Bool {
         !browse.path.prefix { route in
             switch route { case .discussion, .thread: false; default: true }
         }.isEmpty
     }
-    private var showsDirectCreate: Bool { roomyToolbar && needsNativeBack }
     private var browse: TabState { app.tabs[originTab]! }
     private var search: DiscussionSearchState { browse.discussionSearch }
     private var selectedTopic: TopicID? {
@@ -196,18 +193,8 @@ struct FeedView: View {
         }
         .background(Color.fomioBackground)
         .toolbar(removing: .sidebarToggle)
-        .toolbar(needsNativeBack ? .visible : .hidden, for: .navigationBar)
         .navigationTitle("").navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                if showsDirectCreate {
-                    Button { app.create(category: category?.id) } label: { Image(systemName: "square.and.pencil") }
-                        .accessibilityLabel(category.map { BrowseLocalization.format("New discussion in %@", locale: locale, $0.name) } ?? localized("New discussion"))
-                        .disabled(browse.browseScope.categoryID != nil && category == nil)
-                }
-            }
-        }
-        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { columnWidth = $0 }
+        .toolbar { feedToolbar }
         .sheet(isPresented: $showingAbout) { if let category { CommunityAboutView(category: category) } }
         .task(id: FeedLoadKey(scope: browse.browseScope, viewer: viewer, state: ObjectIdentifier(state))) {
             state.updateViewer(viewer)
@@ -226,46 +213,11 @@ struct FeedView: View {
         .onKeyPress(.escape) { cancelSearch(); return .handled }
     }
     private var browseHeader: some View {
-        let layout = textSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
-            : AnyLayout(HStackLayout(alignment: .center, spacing: 8))
-        let searchShown = search.revealed || search.active
-        let hidesSearch = searchShown && search.query.isEmpty
-        return VStack(alignment: .leading, spacing: 4) {
-            // Home shows the wordmark above its title unless the sidebar already carries it.
-            // A hidden sidebar is restored from this top-leading corner, as in the reviewed layout.
-            let showsLogo = originTab == .home && !sidebarVisible && !needsNativeBack
-            if showsLogo || showSidebar != nil {
-                HStack(spacing: 12) {
-                    if let showSidebar {
-                        Button(action: showSidebar) {
-                            Image(systemName: "sidebar.squares.leading").font(.system(size: min(controlSymbolSize, 28)))
-                                .frame(width: 44, height: 44).contentShape(.circle).glassEffect(.regular.interactive(), in: .circle)
-                        }.buttonStyle(.plain).accessibilityLabel("Show sidebar").accessibilityIdentifier("show-sidebar")
-                    }
-                    if showsLogo { FomioWordmark() }
-                }.frame(minHeight: 44, alignment: .leading)
-            }
-            layout {
-                // Keep this one chooser mounted while the header changes layout. Native
-                // toolbar title slots can silently clip or drop long/large scope labels.
-                CommunityScopePicker(scope: browse.browseScope, request: chooserRequest) { app.selectScope($0, in: originTab) }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                HStack(spacing: 8) {
-                    if textSize.isAccessibilitySize { Spacer(minLength: 0) }
-                    // Reveals and focuses search; with search open and empty it hides it again.
-                    Button { toggleSearch(hiding: hidesSearch) } label: {
-                        Image(systemName: "magnifyingglass").font(.system(size: min(controlSymbolSize, 28)))
-                            .foregroundStyle(searchShown ? Color.fomioAccent : Color.fomioText).frame(width: 44, height: 44)
-                            .contentShape(.circle)
-                            .glassEffect(searchShown ? .regular.tint(Color.fomioAccent.opacity(0.14)).interactive() : .regular.interactive(), in: .circle)
-                    }.buttonStyle(.plain)
-                        .accessibilityLabel(LocalizedStringKey(hidesSearch ? "Hide search" : "Search discussions"))
-                        .accessibilityIdentifier("reveal-topic-search")
-                    optionsMenu.labelStyle(.iconOnly).buttonStyle(.plain)
-                }
-            }
-        }.padding(.horizontal, 16).padding(.vertical, 6)
+        // Keep this one chooser mounted while the header changes layout. Native
+        // toolbar title slots can silently clip or drop long/large scope labels.
+        CommunityScopePicker(scope: browse.browseScope, request: chooserRequest) { app.selectScope($0, in: originTab) }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 16).padding(.vertical, 6)
             // Padding participates in multiline measurement and hit testing.
             // A visual corner offset can reflow this header without reserving
             // the resulting extra text height in the safe-area inset.
@@ -274,6 +226,41 @@ struct FeedView: View {
             .background(Color.fomioBackground)
             .onGeometryChange(for: RectangleCornerInsets.self) { $0.containerCornerInsets } action: { headerCornerInsets = $0 }
             .accessibilityElement(children: .contain).accessibilityIdentifier("browse-header")
+    }
+    /// The list's actions live in the system bar, which the system places and compresses:
+    /// along the top on iPhone and iPad, and in Duo's vertical bars. Create leads, so it stays
+    /// direct longest; options move into overflow first.
+    @ToolbarContentBuilder private var feedToolbar: some ToolbarContent {
+        let searchShown = search.revealed || search.active
+        let hidesSearch = searchShown && search.query.isEmpty
+        if let showSidebar {
+            // A hidden sidebar is restored from the list's leading edge, as in the reviewed layout.
+            ToolbarItem(placement: .topBarLeading) {
+                Button(action: showSidebar) { Label("Show sidebar", systemImage: "sidebar.squares.leading") }
+                    .accessibilityIdentifier("show-sidebar")
+            }
+        }
+        // Home shows the wordmark unless the sidebar already carries it.
+        if originTab == .home && !sidebarVisible && !needsNativeBack {
+            ToolbarItem(placement: .topBarLeading) { FomioWordmark().fixedSize() }.sharedBackgroundVisibility(.hidden)
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button { app.create(category: category?.id) } label: { Label("New discussion", systemImage: "plus") }
+                .buttonStyle(.glassProminent).tint(Color.fomioAccent)
+                .disabled(browse.browseScope.categoryID != nil && category == nil)
+                .accessibilityLabel(category.map { BrowseLocalization.format("New discussion in %@", locale: locale, $0.name) } ?? localized("New discussion"))
+                .accessibilityIdentifier("feed-create")
+        }
+        ToolbarSpacer(.fixed, placement: .topBarTrailing)
+        ToolbarItemGroup(placement: .topBarTrailing) {
+            // Reveals and focuses search; with search open and empty it hides it again.
+            Button { toggleSearch(hiding: hidesSearch) } label: {
+                Label(LocalizedStringKey(hidesSearch ? "Hide search" : "Search discussions"), systemImage: "magnifyingglass")
+            }
+                .tint(searchShown ? Color.fomioAccent : nil)
+                .accessibilityIdentifier("reveal-topic-search")
+            optionsMenu
+        }
     }
     private var searchField: some View {
         let layout = textSize.isAccessibilitySize
@@ -367,10 +354,6 @@ struct FeedView: View {
                 Button { openWindow(id: "browse") } label: { Label("New window", systemImage: "macwindow.badge.plus") }
                     .accessibilityIdentifier("new-browsing-window")
             }
-            if !showsDirectCreate {
-                Button { app.create(category: category?.id) } label: { Label("New discussion", systemImage: "square.and.pencil") }
-                    .disabled(browse.browseScope.categoryID != nil && category == nil)
-            }
             if category != nil { Button { showingAbout = true } label: { Label("About", systemImage: "info.circle") }.accessibilityIdentifier("community-about") }
             Button {
                 if search.active { search.refresh(service: app.service, viewer: viewer, scope: browse.browseScope, catalog: app.browseCatalog) }
@@ -382,8 +365,7 @@ struct FeedView: View {
                     ForEach(FeedAppearance.allCases) { option in Label(option.title, systemImage: option.symbol).tag(option) }
                 } label: { Text("Feed appearance") }.pickerStyle(.inline)
             }
-        } label: { Label(localized(category == nil ? "Home options" : "Feed options"), systemImage: "ellipsis")
-                .font(.system(size: min(controlSymbolSize, 28))).frame(width: 44, height: 44).contentShape(.circle).glassEffect(.regular.interactive(), in: .circle) }
+        } label: { Label(localized(category == nil ? "Home options" : "Feed options"), systemImage: "ellipsis") }
         .accessibilityIdentifier("feed-options")
     }
     private func select(_ value: FeedAppearance) {
@@ -577,3 +559,4 @@ struct CommunityAboutView: View {
         }
     }
 }
+

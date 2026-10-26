@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DiscussionView: View {
     @Environment(AppState.self) private var app
+    @Environment(\.readingCreate) private var createFromReading
     @Bindable var state: DiscussionState
     @State private var kept: Draft?
     var body: some View {
@@ -61,26 +62,32 @@ struct DiscussionView: View {
                 guard !Task.isCancelled else { return }
                 proxy.scrollTo(target, anchor: .top)
             }
-            .safeAreaInset(edge: .bottom) {
-                if let page = state.page, let opening = state.opening, page.canReply || app.username == nil {
-                    let target = state.focus == .notification ? state.highlighted ?? opening : opening
-                    ReadingColumn {
-                        Button { app.reply(to: target) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left").font(.body.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44) }
-                            .buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).accessibilityIdentifier("discussion-reply")
-                            .accessibilityLabel(target.number.rawValue > 1 ? "Reply to \(target.author) · #\(target.number.rawValue)" : "Reply to \(page.summary.title)")
-                            .padding(.horizontal, 20).padding(.vertical, 8)
-                    }
-                }
-            }
         }.background(Color.fomioBackground).navigationTitle("Discussion").navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) { Color.clear.frame(width: 1, height: 1).accessibilityHidden(true) }
+            // Reviewed bar order: the prominent Reply, then Save and Share as grouped secondary actions.
+            // The system places these items, including Duo's vertical bars, and moves the last ones into overflow first.
             if let opening = state.opening {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Button { save(opening) } label: { Label(opening.bookmarkID == nil ? "Save" : "Remove from Saved", systemImage: opening.bookmarkID == nil ? "bookmark" : "bookmark.slash") }
-                        ShareButton(topic: opening.topicID, number: nil)
-                    } label: { Image(systemName: "ellipsis") }.accessibilityLabel("More actions").accessibilityIdentifier("discussion-more")
+                if let page = state.page, page.canReply || app.username == nil {
+                    let target = state.focus == .notification ? state.highlighted ?? opening : opening
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button { app.reply(to: target) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left") }
+                            .buttonStyle(.glassProminent).tint(Color.fomioAccent).accessibilityIdentifier("discussion-reply")
+                            .accessibilityLabel(target.number.rawValue > 1 ? "Reply to \(target.author) · #\(target.number.rawValue)" : "Reply to \(page.summary.title)")
+                    }
+                    ToolbarSpacer(.fixed, placement: .topBarTrailing)
+                }
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button { save(opening) } label: { Label(opening.bookmarkID == nil ? "Save" : "Remove from Saved", systemImage: opening.bookmarkID == nil ? "bookmark" : "bookmark.fill") }
+                        .accessibilityIdentifier("discussion-save")
+                    ShareButton(topic: opening.topicID, number: nil).accessibilityIdentifier("discussion-share")
+                }
+            }
+            // The feed header carries Create; the bar offers it only while that header is off screen.
+            if let createFromReading {
+                ToolbarItem(placement: .secondaryAction) {
+                    Button(action: createFromReading) { Label("New discussion", systemImage: "square.and.pencil") }
+                        .accessibilityIdentifier("discussion-create")
                 }
             }
         }

@@ -74,6 +74,10 @@ The [preserved native evidence packet](validation/2026-10-20-ipad-readiness/READ
 
 `testNativeNarrowWindowKeepsQueryAndSelection` is opt-in with `FOMIO_IPAD_WINDOW_RESIZE=1`, requiring the OS corner-resize affordance. It never substitutes a debug width and requires an observed window below 720pt. A skipped or failed probe is not a narrow-window pass.
 
+## System-bar mapping — 26 October 2026
+
+The same toolbar mapping as [Duo readiness](iphone-duo-readiness.md) (2026-10-26) applies on iPad. The list column's bar carries the wordmark, Create, Search and feed options. The discussion bar carries Reply, then Save and Share, and the header holds only the one-line scope. An intermediate version kept Create, Search and options in the 300 pt list header, which split "All communities" mid-word; moving them to the bar replaced it. Tests on iPad Pro 11-inch (M5) / iOS 27.0 (fixture): 8 passed, 4 skipped, 1 failed — `testWideSidebarScopesAndExcludedDiscussionReturn` fails on an ambiguous `app.buttons["Home"]` query (sidebar row plus tab item). It fails at the same assertion on unmodified `bece043`, so the failure predates this change. The header check in `IPadReadinessUITests` now asserts a one-line scope plus the three bar buttons.
+
 ## Final acceptance and release limits
 
 - Functional iPad window creation, scope parity/exclusion/return, narrow search/Back, chooser resizing/rotation, editor resizing/rotation and direct typing are verified at the recorded native/fixture layer. Existing passes are reused; no additional repeat run is needed.

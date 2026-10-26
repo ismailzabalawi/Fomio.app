@@ -35,11 +35,10 @@ import UIKit
         XCTAssertLessThanOrEqual(label.frame.maxX, header.frame.maxX + 1)
         XCTAssertLessThanOrEqual(label.frame.maxY, header.frame.maxY + 1)
         if !arguments.contains("--accessibility-text") {
-            let visible = app.buttons["community-scope"].frame
-                .union(app.buttons["reveal-topic-search"].frame)
-                .union(app.buttons["feed-options"].frame)
-            XCTAssertLessThanOrEqual(visible.height + 12, 80,
-                                     "Scope/actions plus padding must occupy one compact header, excluding the OS safe area")
+            // Create, search and options live in the list's system bar; the header holds only the scope.
+            XCTAssertLessThanOrEqual(app.buttons["community-scope"].frame.height + 12, 80,
+                                     "The scope must occupy one compact header, excluding the OS safe area")
+            for id in ["feed-create", "reveal-topic-search", "feed-options"] { XCTAssertTrue(app.buttons[id].exists, id) }
         }
         return app
     }
@@ -91,7 +90,8 @@ import UIKit
         XCTAssertTrue(topic.waitForExistence(timeout: 10)); XCTAssertTrue(topic.isSelected); XCTAssertTrue(reply.exists)
         app.buttons["sidebar-all"].tap()
         XCTAssertTrue(app.buttons["community-scope"].label.contains("All communities"))
-        XCTAssertTrue(app.buttons["Home"].isSelected, "Scope changes stay in the originating Home tab")
+        // The hidden tab bar keeps its own Home item in the tree; the sidebar row is the visible destination.
+        XCTAssertTrue(app.buttons["sidebar-tab-home"].isSelected, "Scope changes stay in the originating Home tab")
         XCTAssertTrue(topic.isSelected); XCTAssertTrue(reply.exists)
         capture(app, "Wide iPad sidebar root child All parity and retained discussion")
         app.buttons["hide-sidebar"].tap()

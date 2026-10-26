@@ -807,8 +807,9 @@ import UIKit
         XCTAssertTrue(list.exists)
         XCTAssertTrue(app.buttons["topic-9101"].waitForExistence(timeout: 10))
         // A deliberate drag at the loaded list's top exercises pull reveal without fling timing.
-        list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2)).press(forDuration: 0.15,
-            thenDragTo: list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.65)),
+        // It starts on the first row: the list scrolls under the header, whose height varies with width.
+        let start = app.buttons["topic-9101"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        start.press(forDuration: 0.15, thenDragTo: start.withOffset(CGVector(dx: 0, dy: list.frame.height * 0.45)),
             withVelocity: .slow, thenHoldForDuration: 0.5)
         XCTAssertTrue(app.textFields["topic-search-field"].waitForExistence(timeout: 10))
         app.buttons["cancel-topic-search"].tap()

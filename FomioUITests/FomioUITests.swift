@@ -245,7 +245,7 @@ import UIKit
         }
         capture("Illustrative-01-Home")
         topic.tap()
-        XCTAssertTrue(app.buttons["discussion-more"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["discussion-share"].waitForExistence(timeout: 10))
         capture("Illustrative-02-Discussion")
         app.swipeUp()
         capture("Illustrative-04-Replies")
@@ -266,7 +266,7 @@ import UIKit
         }
         capture("Store-01-Home")
         topic.tap()
-        XCTAssertTrue(app.buttons["discussion-more"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.buttons["discussion-share"].waitForExistence(timeout: 20))
         capture("Store-02-Discussion")
         app.buttons.matching(identifier: "Communities").firstMatch.tap()
         XCTAssertTrue(app.buttons.matching(NSPredicate(format: "identifier MATCHES %@", "community-[0-9]+" )).firstMatch.waitForExistence(timeout: 20))
@@ -376,7 +376,7 @@ import UIKit
         let about = app.buttons["community-about"]; XCTAssertTrue(about.waitForExistence(timeout: 5))
         // Native menu rows use system metrics; check 44-point sizing on our custom selector.
         XCTAssertTrue(about.isHittable)
-        XCTAssertTrue(app.buttons["New discussion"].exists)
+        XCTAssertTrue(app.buttons["feed-create"].exists)
         let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Category dark accessibility teal"; capture.lifetime = .keepAlways; add(capture)
     }
     func testInserterCancelPreservesHiddenKeyboard() {
@@ -900,13 +900,10 @@ import UIKit
         XCTAssertTrue(app.staticTexts["Community configuration needed"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["topic-4190"].exists)
     }
+    /// Create sits in the feed header at every width.
     private func newDiscussionControl(_ app: XCUIApplication, title: String = "New discussion") -> XCUIElement {
-        let direct = app.buttons[title]
-        if direct.exists && direct.isHittable { return direct }
-        let options = app.buttons["feed-options"]
-        XCTAssertTrue(options.waitForExistence(timeout: 5)); options.tap()
-        let create = app.buttons["New discussion"]
-        XCTAssertTrue(create.waitForExistence(timeout: 5)); return create
+        let create = app.buttons["feed-create"]
+        XCTAssertTrue(create.waitForExistence(timeout: 5)); XCTAssertEqual(create.label, title); return create
     }
     func testCommunityFieldSearchesInPlace() {
         let app = launch()
