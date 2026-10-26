@@ -458,7 +458,7 @@ import UIKit
         XCTAssertEqual(preview.value as? String, "What I tried\nA quieter finish\nThin coats")
         XCTAssertFalse(preview.isEnabled && app.keyboards.firstMatch.exists)
         let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Rendered Markdown preview"; capture.lifetime = .keepAlways; add(capture)
-        app.navigationBars.buttons.element(boundBy: 0).tap()
+        tapBack(app)
         XCTAssertTrue(body.waitForExistence(timeout: 5)); XCTAssertEqual(body.value as? String, source)
         tapSettled(app.buttons["composer-more"]); app.buttons["Rich text"].tap()
         XCTAssertEqual(body.value as? String, "What I tried\nA quieter finish\nThin coats")
@@ -473,12 +473,14 @@ import UIKit
         // At this size the wrapped destination and title push the body's centre below the screen (iOS 27: y 788–988
         // on an 874-pt window), so a centre tap misses. Tap its visible top edge; focus then scrolls it into view.
         let visibleTop = min(0.5, max(0.02, (app.frame.maxY - body.frame.minY - 24) / max(body.frame.height, 1)))
-        if UIDevice.current.userInterfaceIdiom == .phone { body.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: visibleTop)).tap() }
+        let bar = app.buttons["composer-insert"]
+        // iPhone Duo opens with the title focused, so the keyboard and its floating bar already cover the body.
+        let barCoversBody = bar.exists && body.frame.minY + 44 > bar.frame.minY
+        if UIDevice.current.userInterfaceIdiom == .phone && !barCoversBody { body.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: visibleTop)).tap() }
         else {
             // iPad form sheet: an edge tap can land outside the sheet. The body starts under the floating bar, so
             // scroll the composer (not the feed behind the sheet) until its first line clears the bar, then tap it.
             let composer = app.scrollViews.containing(.textView, identifier: "composer-body").firstMatch
-            let bar = app.buttons["composer-insert"]
             for _ in 0..<4 where body.frame.minY + 44 > bar.frame.minY { composer.swipeUp(velocity: .slow) }
             body.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0)).withOffset(CGVector(dx: 0, dy: 22)).tap()
         }
@@ -756,7 +758,8 @@ import UIKit
         dismissComposerKeyboard(app)
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
     }
-    func testReadingFocusPreferenceSurvivesPhoneRotation() {
+    func testReadingFocusPreferenceSurvivesPhoneRotation() throws {
+        try skipOrientationRequestsOnDuo()
         let app = launch()
         app.buttons["topic-4182"].tap()
         XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 10))
@@ -778,7 +781,8 @@ import UIKit
         let scope = app.buttons["community-scope"]
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: scope)], timeout: 8), .completed, "Showing the list restores its header without changing its saved scroll position")
     }
-    func testPhoneRotationKeepsHomeAndReplyReachable() {
+    func testPhoneRotationKeepsHomeAndReplyReachable() throws {
+        try skipOrientationRequestsOnDuo()
         let app = launch()
         assertPhoneWindowShape(app, landscape: false)
         XCUIDevice.shared.orientation = .landscapeLeft
@@ -795,7 +799,8 @@ import UIKit
         XCUIDevice.shared.orientation = .portrait
         assertPhoneWindowShape(app, landscape: false)
     }
-    func testArabicHomeRotationKeepsFeedReachable() {
+    func testArabicHomeRotationKeepsFeedReachable() throws {
+        try skipOrientationRequestsOnDuo()
         let app = launch(["-AppleLanguages", "(ar)", "-AppleLocale", "ar_JO", "--rtl"])
         assertPhoneWindowShape(app, landscape: false)
         XCUIDevice.shared.orientation = .landscapeLeft
@@ -803,6 +808,21 @@ import UIKit
         XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 5))
         XCUIDevice.shared.orientation = .portrait
         assertPhoneWindowShape(app, landscape: false)
+    }
+    /// Back in either bar form: a horizontal navigation bar, or iPhone Duo's vertical system bar,
+    /// where it sits in a toolbar. The newest Back (a presented screen's) is last in the tree.
+    private func tapBack(_ app: XCUIApplication) {
+        let bar = app.navigationBars.buttons.element(boundBy: 0)
+        if bar.exists { bar.tap(); return }
+        let back = app.buttons.matching(identifier: "BackButton").allElementsBoundByIndex.last
+        XCTAssertNotNil(back, "No Back control in either bar form"); back?.tap()
+    }
+    /// iPhone Duo changes pose through Device Hub (fold, unfold, rotate); an XCUIDevice orientation
+    /// request leaves its window unchanged. Its pose transitions are validated through Device Hub instead.
+    private func skipOrientationRequestsOnDuo() throws {
+        if ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"]?.contains("Duo") == true {
+            throw XCTSkip("iPhone Duo poses come from Device Hub, not XCUIDevice orientation requests")
+        }
     }
     private func assertPhoneWindowShape(_ app: XCUIApplication, landscape: Bool, file: StaticString = #filePath, line: UInt = #line) {
         // Device orientation requests need not resize a windowed iPad scene.
@@ -816,7 +836,8 @@ import UIKit
         capture.lifetime = .keepAlways; add(capture)
         XCTAssertEqual(result, .completed, "The app window must actually rotate", file: file, line: line)
     }
-    func testComposerKeepsWritingAndEditingModeAcrossLayoutChanges() {
+    func testComposerKeepsWritingAndEditingModeAcrossLayoutChanges() throws {
+        try skipOrientationRequestsOnDuo()
         let app = launch()
         assertPhoneWindowShape(app, landscape: false)
         app.buttons["topic-4182"].tap()
@@ -849,7 +870,8 @@ import UIKit
         app.buttons["Keep draft"].tap()
         XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
     }
-    func testArabicComposerPreservesMixedTextAcrossModesAndRotation() {
+    func testArabicComposerPreservesMixedTextAcrossModesAndRotation() throws {
+        try skipOrientationRequestsOnDuo()
         let app = launch(["-AppleLanguages", "(ar)", "-AppleLocale", "ar_JO", "--rtl"])
         app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
         let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5))

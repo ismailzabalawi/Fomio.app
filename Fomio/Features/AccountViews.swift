@@ -150,7 +150,7 @@ struct DeleteAccountView: View {
             }
             .disabled(submitting)
             .navigationTitle("Delete account").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() }.disabled(submitting) } }
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close", systemImage: "xmark") { dismiss() }.disabled(submitting) } }
             .task { await check() }
             .alert("Permanently delete @\(username)?", isPresented: $confirming) {
                 Button("Cancel", role: .cancel) {}

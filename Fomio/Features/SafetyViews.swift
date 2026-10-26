@@ -64,9 +64,10 @@ struct ReportPostView: View {
             .disabled(submitting || uncertain)
             .navigationTitle("Report post").navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() }.disabled(submitting) }
+                ToolbarItem(placement: .cancellationAction) { Button("Close", systemImage: "xmark") { dismiss() }.disabled(submitting) }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Send report") { Task { await send() } }
+                    // A symbol lets the item stay in a compressed vertical bar, such as iPhone Duo's with the keyboard up.
+                    Button("Send report", systemImage: "paperplane") { Task { await send() } }.buttonStyle(.glassProminent).tint(Color.fomioAccent)
                         .disabled(submitting || uncertain || reason == nil || (reason?.requiresMessage == true && message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
                 }
             }.task { await load() }

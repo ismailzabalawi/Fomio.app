@@ -213,11 +213,27 @@ struct FeedView: View {
         .onKeyPress(.escape) { cancelSearch(); return .handled }
     }
     private var browseHeader: some View {
-        // Keep this one chooser mounted while the header changes layout. Native
-        // toolbar title slots can silently clip or drop long/large scope labels.
-        CommunityScopePicker(scope: browse.browseScope, request: chooserRequest) { app.selectScope($0, in: originTab) }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 16).padding(.vertical, 6)
+        VStack(alignment: .leading, spacing: 4) {
+            // Home shows the wordmark above its title unless the sidebar already carries it. A hidden
+            // sidebar is restored from this top-leading corner, as in the reviewed layout. Both stay in
+            // the header: a conditional bar item was not re-added on iPhone Duo until the next navigation.
+            let showsLogo = originTab == .home && !sidebarVisible && !needsNativeBack
+            if showsLogo || showSidebar != nil {
+                HStack(spacing: 12) {
+                    if let showSidebar {
+                        Button(action: showSidebar) {
+                            Image(systemName: "sidebar.squares.leading").font(.system(size: min(controlSymbolSize, 28)))
+                                .frame(width: 44, height: 44).contentShape(.circle).glassEffect(.regular.interactive(), in: .circle)
+                        }.buttonStyle(.plain).accessibilityLabel("Show sidebar").accessibilityIdentifier("show-sidebar")
+                    }
+                    if showsLogo { FomioWordmark() }
+                }.frame(minHeight: 44, alignment: .leading)
+            }
+            // Keep this one chooser mounted while the header changes layout. Native
+            // toolbar title slots can silently clip or drop long/large scope labels.
+            CommunityScopePicker(scope: browse.browseScope, request: chooserRequest) { app.selectScope($0, in: originTab) }
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }.padding(.horizontal, 16).padding(.vertical, 6)
             // Padding participates in multiline measurement and hit testing.
             // A visual corner offset can reflow this header without reserving
             // the resulting extra text height in the safe-area inset.
@@ -233,17 +249,6 @@ struct FeedView: View {
     @ToolbarContentBuilder private var feedToolbar: some ToolbarContent {
         let searchShown = search.revealed || search.active
         let hidesSearch = searchShown && search.query.isEmpty
-        if let showSidebar {
-            // A hidden sidebar is restored from the list's leading edge, as in the reviewed layout.
-            ToolbarItem(placement: .topBarLeading) {
-                Button(action: showSidebar) { Label("Show sidebar", systemImage: "sidebar.squares.leading") }
-                    .accessibilityIdentifier("show-sidebar")
-            }
-        }
-        // Home shows the wordmark unless the sidebar already carries it.
-        if originTab == .home && !sidebarVisible && !needsNativeBack {
-            ToolbarItem(placement: .topBarLeading) { FomioWordmark().fixedSize() }.sharedBackgroundVisibility(.hidden)
-        }
         ToolbarItem(placement: .topBarTrailing) {
             Button { app.create(category: category?.id) } label: { Label("New discussion", systemImage: "plus") }
                 .buttonStyle(.glassProminent).tint(Color.fomioAccent)

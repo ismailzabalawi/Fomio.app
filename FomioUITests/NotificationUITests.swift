@@ -19,7 +19,8 @@ import XCTest
     private func back(_ app: XCUIApplication) {
         let topicList = app.buttons["back-to-topic-list"]
         if topicList.exists { topicList.tap(); return }
-        let system = app.navigationBars.buttons["BackButton"]
+        // Duo's vertical system bar keeps Back in a toolbar rather than a navigation bar.
+        let system = app.buttons.matching(identifier: "BackButton").firstMatch
         if system.exists { system.tap(); return }
         if app.buttons["notification-5011"].exists { return }
         app.navigationBars.buttons.element(boundBy: 0).tap()
