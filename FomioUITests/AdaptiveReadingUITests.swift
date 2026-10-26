@@ -126,6 +126,85 @@ import UIKit
         XCTAssertTrue(topic.exists)
         capture(app, "Duo folded Back retains exact search")
     }
+    /// D1 (2026-10-25 Duo validation): after an auto-selected discussion is withdrawn by a
+    /// fold and re-added by unfolding, choosing another discussion must keep its navigation
+    /// chrome in two panes and after collapsing to one.
+    func testSelectedDiscussionKeepsNavigationAfterCollapse() throws {
+        let app = launchDefaultFixture(["--reading-size-override"])
+        guard find(app, "reading-two-pane").waitForExistence(timeout: 30) else {
+            throw XCTSkip("Requires a window wide enough for two panes")
+        }
+        let toggle = app.buttons["debug-toggle-compact-reading"]
+        try exerciseCollapse(app, fold: {
+            toggle.tap()
+            XCTAssertTrue(self.find(app, "reading-one-pane").waitForExistence(timeout: 10))
+        }, unfold: {
+            toggle.tap()
+            XCTAssertTrue(self.find(app, "reading-two-pane").waitForExistence(timeout: 10))
+        })
+    }
+    func testSelectedDiscussionKeepsNavigationAfterManualDuoFold() throws {
+        guard ProcessInfo.processInfo.environment["FOMIO_ADAPTIVE_DUO_FOLD"] == "1" else {
+            throw XCTSkip("Requires Device Hub Closed and Open at each DUO_PRESS marker")
+        }
+        let app = launchDefaultFixture()
+        XCTAssertTrue(find(app, "reading-two-pane").waitForExistence(timeout: 90), "Start on the actual open display")
+        var presses = 0
+        func press(_ control: String, until identifier: String) {
+            presses += 1; NSLog("DUO_PRESS \(control) \(presses)")
+            XCTAssertTrue(find(app, identifier).waitForExistence(timeout: 90), "Use the native \(control) control")
+        }
+        try exerciseCollapse(app, fold: { press("Closed", until: "reading-one-pane") },
+                             unfold: { press("Open", until: "reading-two-pane") })
+    }
+    /// The default fixture: its discussions are long enough to scroll before collapsing.
+    private func launchDefaultFixture(_ arguments: [String] = []) -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = ["--fixture", "--ui-testing"] + arguments
+        app.launchEnvironment["FOMIO_UI_TEST_NAMESPACE"] = UUID().uuidString
+        app.launch()
+        return app
+    }
+    /// The validation's sequence: read the auto-selected discussion, fold back to the list,
+    /// unfold, choose another discussion and scroll it, then fold again.
+    private func exerciseCollapse(_ app: XCUIApplication, fold: () -> Void, unfold: () -> Void) throws {
+        let more = app.buttons["discussion-more"]
+        XCTAssertTrue(more.waitForExistence(timeout: 10))
+        app.scrollViews["discussion-content"].swipeUp()
+        fold()
+        XCTAssertTrue(app.buttons["topic-4190"].waitForExistence(timeout: 10), "An untouched auto-selection folds to the list")
+        XCTAssertFalse(app.buttons["back-to-topic-list"].exists)
+        unfold()
+        XCTAssertTrue(more.waitForExistence(timeout: 5), "Unfolding returns to the same discussion with its actions")
+        XCTAssertTrue(app.buttons["toggle-topic-list"].waitForExistence(timeout: 5))
+        // Let the unfold's rotation and bar refresh settle before scrolling the list.
+        Thread.sleep(forTimeInterval: 2)
+        // Not the first row, which two panes auto-select; the validation's explicit choice.
+        let topic = app.buttons["topic-4199"]
+        // Scroll the list column from its top; the window's middle is the discussion in two panes.
+        let window = app.windows.firstMatch
+        func dragList(from start: CGFloat, to end: CGFloat) {
+            window.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: start))
+                .press(forDuration: 0.05, thenDragTo: window.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: end)))
+        }
+        if !(topic.exists && topic.isHittable) { for _ in 0..<4 { dragList(from: 0.35, to: 0.95) } }
+        for _ in 0..<6 where !(topic.exists && topic.isHittable) { dragList(from: 0.75, to: 0.45) }
+        XCTAssertTrue(topic.waitForExistence(timeout: 10)); topic.tap()
+        XCTAssertTrue(app.staticTexts["Sunil P."].waitForExistence(timeout: 10))
+        XCTAssertTrue(more.waitForExistence(timeout: 5), "The chosen discussion keeps its actions in two panes")
+        XCTAssertTrue(app.buttons["toggle-topic-list"].exists)
+        app.scrollViews["discussion-content"].swipeUp()
+        fold()
+        let back = app.buttons["back-to-topic-list"]
+        XCTAssertTrue(back.waitForExistence(timeout: 10), "Collapsing a chosen discussion must expose return navigation")
+        let hittable = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in back.isHittable }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [hittable], timeout: 5), .completed, "Back becomes usable once the fold settles")
+        XCTAssertTrue(more.exists, "The discussion's own actions survive the collapse")
+        recordWindow(app, "Collapsed chosen discussion"); capture(app, "Collapsed chosen discussion keeps navigation")
+        back.tap()
+        XCTAssertTrue(topic.waitForExistence(timeout: 10))
+        XCTAssertTrue(topic.isHittable, "Back returns to the topic list")
+    }
     private func recordWindow(_ app: XCUIApplication, _ name: String) {
         let evidence = XCTAttachment(string: "Application: \(app.frame)\nWindow: \(app.windows.firstMatch.frame)\nActive screens: \(XCUIScreen.screens.count)\n\(app.debugDescription)")
         evidence.name = name + " geometry and hierarchy"; evidence.lifetime = .keepAlways; add(evidence)

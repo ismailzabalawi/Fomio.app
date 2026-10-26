@@ -292,10 +292,10 @@ struct PostCard: View {
                 .font(.subheadline.weight(.medium)).padding(.horizontal, 12).frame(minHeight: 44).background(Color.fomioFill, in: .capsule)
         }.buttonStyle(.plain).accessibilityLabel(post.bookmarkID == nil ? "Save post by \(post.author)" : "Remove post by \(post.author) from Saved")
         if post.canReply || app.username == nil {
-            if post.number.rawValue > 1 {
-                Button { app.reply(to: post) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left").labelStyle(CompactIconLabel()).frame(minHeight: 44) }
-                    .font(.subheadline.weight(.medium)).buttonStyle(.plain).accessibilityLabel("Reply to \(post.author), post \(post.number.rawValue)")
-            }
+            // Every row, the opening post's included, carries its own Reply beside the bar's.
+            Button { app.reply(to: post) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left").labelStyle(CompactIconLabel()).frame(minHeight: 44) }
+                .font(.subheadline.weight(.medium)).buttonStyle(.plain).accessibilityLabel("Reply to \(post.author), post \(post.number.rawValue)")
+                .accessibilityIdentifier("post-reply-\(post.number.rawValue)")
             Button { app.reply(to: post, quote: true) } label: { Label("Quote", systemImage: "quote.opening").labelStyle(CompactIconLabel()).foregroundStyle(Color.fomioSecondaryText).frame(minHeight: 44) }
                 .font(.subheadline.weight(.medium)).frame(minHeight: 44).buttonStyle(.plain).accessibilityLabel("Quote \(post.author)’s post")
         }

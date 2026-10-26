@@ -33,6 +33,34 @@ Apple's [preparation guide](https://developer.apple.com/iphone-duo/prepare/) des
 
 ## Validation and tooling
 
+**D1 collapse follow-up — 2026-10-26:** D1 from the 2026-10-25 native validation (no Back, ••• or Reply after Open → Closed with a chosen discussion) is **fixed and verified on iPhone Duo / iOS 27.1 through Device Hub**. It does not start at the final fold. After an earlier Closed → Open cycle, the two-pane discussion already lacks its Focus toggle and •••; folding then carries that over. There are two causes:
+
+- **Platform (system probe, not Fomio):** a plain SwiftUI `TabView(.tabBarOnly)` with a `NavigationSplitView` loses its whole trailing vertical bar (tabs and the detail's toolbar items) after every Closed → Open (4/4). Hiding the tab bar for a moment once the size settles restores it (5/5). After such an unfold the split's columns can also come back empty. In Fomio this showed as a blank list column, with no rows on screen or in the accessibility tree, in about 1 run in 3.
+- **Fomio:** folding withdrew the auto-selected discussion by clearing `state.path` in the same update as the split collapse, which also left the detail without its toolbar.
+
+The change in `TabRoot` (`Fomio/App/FomioApp.swift`):
+
+- **Auto-selection on fold:** an untouched auto-selected discussion keeps its route. Folding shows the list column (`compactColumn = .sidebar`), and unfolding returns to the same discussion and reading position. Any navigation to a discussion, including the auto-selected one, counts as the reader's choice.
+- **Bar refresh on expansion:** once the size settles after the split expands, the tab bar is hidden for a moment and shown again.
+- **Split rebuild on expansion:** at the same point the `NavigationSplitView` is rebuilt (new identity). This happens only when the window is on a different `UIScreen` than the split was built on (the Duo's displays are distinct screen objects), and nothing is presented in the window.
+  - An in-place resize (iPad windowing, the size-override harness) never rebuilds.
+  - An open community chooser or sheet is never dismissed by unfolding. If something is presented during the unfold, the list column can still come back empty; this is the accepted residual risk.
+- **Tests:** a DEBUG `--reading-size-override` toggle (466 pt plus the scene's real compact size class) backs `testSelectedDiscussionKeepsNavigationAfterCollapse`. `testSelectedDiscussionKeepsNavigationAfterManualDuoFold` (`FOMIO_ADAPTIVE_DUO_FOLD=1`, Device Hub pressed at its `DUO_PRESS` markers) replays the validation sequence. Both tests run Closed → Open → explicit choice → scroll → Closed, then require Back and •••, and require Back to return to the list.
+
+Results with the final change (Xcode 27.1, Duo / iOS 27.1, existing simulator reused, Device Hub driven through Accessibility):
+
+| Check | Result |
+| --- | --- |
+| `testSelectedDiscussionKeepsNavigationAfterManualDuoFold`, real fold | **3/3 pass** (the earlier "rebuild always" variant: 4/5, then 2/2 after a test wait fix) |
+| `testSelectedDiscussionKeepsNavigationAfterCollapse`, size override | Pass; fails on the original code |
+| `testExactSearchBackAfterManualDuoFold`, `testChooserRetainsFilterAfterManualDuoFold`, `testGroupedFailureSurvivesManualDuoFoldUntilRetry`, `testFocusedKeptDraftUnfoldsWithoutCaretCommand` | Pass |
+| `testDraftRetainsTextAfterManualDuoFoldAndKeepReopen` | **Fails 3/3, also on the original code.** The ⌘↓ caret placement before unfolding is not kept, and the continuation lands at the start. In this session Device Hub Closed presented the outer display in landscape (678×466) rather than the validation's portrait. Not caused by this change; still open. |
+| `FomioTests` | 181 run, 0 failures, 4 skipped (live) |
+
+Observation: in 2 of the D1 runs, one tap after unfolding waited about 6 minutes for XCTest's "app animations complete" before continuing and passing. This was also seen once before the rebuild was added; the cause is not established.
+
+**D2 decision (recommended):** keep "an untouched auto-selection folds to the list". With this change the discussion is no longer discarded: unfolding restores it with its reading position (validation F3). Scrolling alone does not make it a choice; any tap that opens a discussion does.
+
 **Keyboard diagnosis/fix follow-up — 2026-10-19:** [native follow-up](validation/2026-10-19-duo-keyboard-fix/README.md) verifies actual onscreen typing at **466×678 → 1000×678 → 466×678**: `Q` → `Qq` → `Qqq`, without refocusing, with the same native editor and undo manager and presenting traits **1→2→1**. Keyboard and bar remain visible and clear. A window-local frame-notification reader lifts the original bar above the floating keyboard; guide-reader experiments were removed. Three compact regressions pass. More-menu history operation at regular width and after return remains unresolved; resize input coordinates are inconsistent and both the full resize test and attach-only history probe remain failed. The Mac lock is resolved; do not describe the remaining gap as a locked-desktop blocker.
 
 **Compact/regular follow-up — 2026-10-19:** [measured resize validation](validation/2026-10-19-duo-size-classes/README.md) establishes presenting-window **compact → regular → compact** at **466×678 → 1000×678 → 466×678** in Device Hub Resize mode on Duo / iOS 27.1. The same reply, native editor, undo manager, focus and (in the uninterrupted cycle) caret survive; actual Redo/Undo after the first return restore the expected text, and the autosaved draft remains readable. The editor stays compact inside the regular-width form sheet. **Keyboard acceptance remains open:** the keyboard disappears at regular width and returns at compact width in the uninterrupted cycle; another expanded capture shows keyboard/bar overlap. The expanded UI probe fails to reach More, with an invalid hit point. Host/tooling instability prevents assigning an app root cause. No production change or full gate closure is claimed. Earlier statements that no measured presenting-trait crossing exists are superseded by this scoped result.
