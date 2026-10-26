@@ -314,8 +314,8 @@ struct TabRoot: View {
                 else if barRefresh != nil { refreshBars() }
             }
             #if DEBUG
-            // Top centre, clear of the edges where taps become system gestures.
-            .overlay(alignment: .top) {
+            // Bottom centre, above the home indicator: at the top, bars that carry list actions cover it.
+            .overlay(alignment: .bottom) {
                 if ProcessInfo.processInfo.arguments.contains("--reading-size-override") {
                     Button(compactOverride ? "Restore width" : "Compact width") {
                         compactOverride.toggle()
@@ -325,7 +325,7 @@ struct TabRoot: View {
                             else { scene.traitOverrides.remove(UITraitHorizontalSizeClass.self) }
                         }
                     }
-                    .font(.caption).buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("debug-toggle-compact-reading")
+                    .font(.caption).buttonStyle(.bordered).frame(minHeight: 44).padding(.bottom, 40).accessibilityIdentifier("debug-toggle-compact-reading")
                 }
             }
             #endif
