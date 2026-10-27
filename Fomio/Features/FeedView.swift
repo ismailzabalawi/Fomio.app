@@ -385,13 +385,24 @@ struct FeedView: View {
         let scope = browse.browseScope, viewer = viewer, attempt = UUID()
         state.restoreAttempt = attempt
         var transaction = Transaction(); transaction.disablesAnimations = true
+        // A list saved at its top returns to the top edge. Scrolling to the first row's id would put it under the
+        // header inset until the offset correction below runs, and that correction needs measured rows.
+        if anchor.id == state.items.first?.id, anchor.offset >= 0 {
+            withTransaction(transaction) { state.scrollPosition.scrollTo(edge: .top) }
+            return
+        }
         withTransaction(transaction) { state.scrollPosition.scrollTo(id: BrowseRowAnchor.topic(anchor.id), anchor: .top) }
         Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(100))
-            guard !Task.isCancelled, !search.active, browse.browseScope == scope,
-                  self.viewer == viewer, browse.feeds[scope.feedKey] === state, state.restoreAttempt == attempt else { return }
-            let offset = geometry.restoredOffset(for: anchor)
-            if let offset { withTransaction(transaction) { state.scrollPosition.scrollTo(y: offset) } }
+            // A recreated feed (a Split View move rebuilds the scene) measures its rows a few frames later.
+            for _ in 0..<10 {
+                try? await Task.sleep(for: .milliseconds(100))
+                guard !Task.isCancelled, !search.active, browse.browseScope == scope,
+                      self.viewer == viewer, browse.feeds[scope.feedKey] === state, state.restoreAttempt == attempt else { return }
+                if let offset = geometry.restoredOffset(for: anchor) {
+                    withTransaction(transaction) { state.scrollPosition.scrollTo(y: offset) }
+                    return
+                }
+            }
         }
     }
 }

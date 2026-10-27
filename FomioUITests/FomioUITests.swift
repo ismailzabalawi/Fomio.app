@@ -916,6 +916,8 @@ import UIKit
         }
         body.tap(); body.typeText(" Still editing.")
         XCTAssertTrue((body.value as? String)?.contains("Still editing.") == true)
+        // iPad: the keys return after typeText and lift the form sheet; a Cancel tap made meanwhile is lost.
+        waitForSoftwareKeyboard(app, settling: app.buttons["composer-close"])
         app.buttons["composer-close"].tap()
         XCTAssertTrue(app.buttons["Keep draft"].waitForExistence(timeout: 5))
         app.buttons["Keep draft"].tap()
