@@ -346,6 +346,11 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
         let blocks = HTMLContent.blocks("<p>use the <img src=\"https://example.invalid/images/emoji/apple/heart.png?v=15\" title=\":heart:\" class=\"emoji\" alt=\":heart:\" loading=\"lazy\" width=\"20\" height=\"20\"> to show support</p><img src=\"/uploads/photo.jpg\" alt=\"Bench\">")
         XCTAssertEqual(blocks, [.text("use the :heart: to show support"), .image("/uploads/photo.jpg", "Bench")])
     }
+    func testLightboxMetaIsNotBodyText() {
+        // Shape observed in a cooked upload on the deployed site, 2026-10-27 (URLs shortened, empty alt and filename).
+        let blocks = HTMLContent.blocks("<p>Source</p><div class=\"lightbox-wrapper\"><a class=\"lightbox\" href=\"/uploads/original/a.jpeg\" title=\"\"><img src=\"/uploads/optimized/a_690x388.jpeg\" alt=\"\" role=\"presentation\" width=\"690\" height=\"388\"><div class=\"meta\"><svg class=\"fa d-icon d-icon-far-image svg-icon\" aria-hidden=\"true\"><use href=\"#far-image\"></use></svg><span class=\"filename\"></span><span class=\"informations\">1280×720 63.3 KB</span><svg class=\"fa d-icon d-icon-discourse-expand svg-icon\" aria-hidden=\"true\"><use href=\"#discourse-expand\"></use></svg></div></a></div><p>After</p>")
+        XCTAssertEqual(blocks, [.text("Source"), .image("/uploads/optimized/a_690x388.jpeg", "Community photo"), .text("After")])
+    }
     /// Decodes a query the way Rack does for Rails params: "+" means space, then percent-decoding.
     private func railsQuery(_ url: URL) -> [String: String] {
         let pairs = (url.query(percentEncoded: true) ?? "").split(separator: "&").map { $0.split(separator: "=", maxSplits: 1).map(String.init) }

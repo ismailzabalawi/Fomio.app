@@ -325,7 +325,9 @@ import UIKit
         XCTAssertTrue(child.waitForExistence(timeout: 15)); XCTAssertTrue(app.buttons["community-45"].exists)
         let directory = XCTAttachment(screenshot: app.screenshot()); directory.name = "Live root and child category identity"; directory.lifetime = .keepAlways; add(directory)
         child.tap()
-        let about = app.buttons["community-about"]; XCTAssertTrue(about.waitForExistence(timeout: 15)); about.tap()
+        // About is in the feed's options menu in the bar.
+        let options = app.buttons["feed-options"]; XCTAssertTrue(options.waitForExistence(timeout: 15)); options.tap()
+        let about = app.buttons["community-about"]; XCTAssertTrue(about.waitForExistence(timeout: 5)); about.tap()
         XCTAssertTrue(app.buttons["Done"].waitForExistence(timeout: 5)); app.buttons["Done"].tap()
         let topic = app.buttons.matching(NSPredicate(format: "identifier MATCHES %@", "topic-[0-9]+" )).firstMatch
         XCTAssertTrue(topic.waitForExistence(timeout: 15))

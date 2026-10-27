@@ -1,5 +1,9 @@
 # Discourse API reference
 
+## Live guest checks — 2026-10-27
+
+The owner confirmed `https://meta.fomio.app` as the live site (already the app's `FomioBaseURL`). Deployed Discourse reports `2026.10.0-latest` (`/about.json`); the deployed revision was not compared with the local reference checkout. Guest reads only: the live read contract tests, live store captures and live category/About/topic navigation pass on iPhone 17 and iPad. Cooked uploads carry a lightbox `div.meta` (file name and size) that the native renderer now drops. Member reads, sign-in and every write remain pending an ordinary member account and explicit write approval. [Results](validation/2026-10-27-live-site/README.md).
+
 ## Independent notification contract audit — 2026-10-18
 
 Read-only reference HEAD freshly verified at `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`. `NotificationsController#index:81–98` applies the unread predicate before the raw count, offset and limit, then removes inaccessible topic and disabled badge notifications. Consequently, acknowledgment shifts the unread offset window, and absence from exhausted unread history does not positively establish `read: true`. Store-level probes reproduced a skipped unread row after acknowledgment, retention of inaccessible titles after refresh, and false read confirmation after visibility loss. This audit did not verify deployed revision equivalence or issue live requests/writes. See [independent audit](validation/2026-10-18-notifications/independent-audit.md) for evidence and unresolved acceptance gates.
