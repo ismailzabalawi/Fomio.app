@@ -635,10 +635,12 @@ import UIKit
             app.buttons["community-scope"].tap()
             let filter = app.textFields["community-filter"]
             // Done ends editing; audit the chooser itself rather than the system keyboard's prediction cells.
-            XCTAssertTrue(filter.waitForExistence(timeout: 10)); filter.tap(); filter.typeText("Wood\n")
+            // "Join" keeps a root and a child row that fit the iPad AX form sheet. With "Wood" the last row straddles
+            // the sheet's bottom edge and the audit samples the dimmed feed behind its clipped text (iPad, iOS 27).
+            XCTAssertTrue(filter.waitForExistence(timeout: 10)); filter.tap(); filter.typeText("Join\n")
             XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
-            XCTAssertEqual(filter.value as? String, "Wood", "Done keeps the filter without a newline")
-            XCTAssertTrue(app.buttons["scope-1"].waitForExistence(timeout: 10))
+            XCTAssertEqual(filter.value as? String, "Join", "Done keeps the filter without a newline")
+            XCTAssertTrue(app.buttons["scope-1"].waitForExistence(timeout: 10)); XCTAssertTrue(app.buttons["scope-3"].exists)
             // iPad keeps the system keyboard's prediction strip in the tree after Done; it is not app UI.
             try app.performAccessibilityAudit(for: [.contrast, .hitRegion, .sufficientElementDescription, .textClipped, .trait]) { issue in
                 issue.detailedDescription.contains("TUIPredictionViewCell")

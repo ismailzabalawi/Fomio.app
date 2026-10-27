@@ -84,11 +84,21 @@ iPad Pro 11-inch (M5) / iOS 27.0, fixture, branch `claude/duo-system-bar`:
   - The DEBUG reading-size toggle moved out from under the bar.
   - Test helpers: feed gestures target the feed column, Back to topic list is only expected in one pane, the chooser helper lowers the focused filter's keyboard before swiping, and the wide-sidebar test queries the visible Home row.
 - **Environment:** after about two hours of multi-window tests the simulator timed out preparing a test worker, and leftover window scenes made later tests launch on Communities. Restarting the existing simulator and uninstalling the app cleared both.
-- **Still failing, and also failing on unmodified `main` (`bece043`):**
-  - `testCommunityChooserAccessibilityAudit`: contrast. The system keyboard prediction cell is now excluded from the audit.
-  - Composer tests: `testComposerCatalogueQuickQuoteAndSearchRecovery`, `testComposerMoreRefreshesUndoRedoAfterEachAction` (duplicate element), `testDarkAccessibilityComposerRemainsReachable`, `testInserterCancelPreservesHiddenKeyboard`, `testKeyboardBarNextAndKeepEditing` and `testNativeFormattingCaretTypingSurvivesSourceSwitch` (172 pt between bar and keys on the iPad keyboard).
-
-These are iPad keyboard and composer behaviours outside this work and need their own investigation.
+- **Seven tests that also failed on unmodified `main` (`bece043`): resolved 27 October as test assumptions, not app defects.** All seven reproduced on this iPad before any change. Evidence came from result-bundle hierarchies, screen-recording frames and probe runs. The fixes are test-only:
+  - `testComposerMoreRefreshesUndoRedoAfterEachAction`: the iPad keyboard's shortcut bar has its own Undo/Redo (`assistantUndo`, `assistantRedo`). More-menu actions are now queried excluding those buttons.
+  - `testNativeFormattingCaretTypingSurvivesSourceSwitch`: on iPad the composer is a form sheet that the system lifts clear of the keyboard. The bar sits 12 pt above the sheet's bottom edge, and the sheet ends about 105 pt above the prediction row. That accounts for the 172 pt gap. On iPad the test now asserts the bar is on the sheet's bottom edge (≤ 24 pt) and the sheet clears the keys and prediction row. The 64 pt check is unchanged on iPhone.
+  - `testInserterCancelPreservesHiddenKeyboard`, `testComposerCatalogueQuickQuoteAndSearchRecovery` (first failure) and `testDarkAccessibilityComposerRemainsReachable`: after `typeText`, iPad shows only the minimized assistant bar, with no keyboard element, while the editor keeps focus. The keyboard-hiding helper returned early, then the software keyboard came back on its own. The helper now decides from the editor's focus (the bar's Hide/Show keyboard toggle). It waits for the keys to return and for the sheet to settle before tapping.
+  - `testKeyboardBarNextAndKeepEditing`: the Cancel tap was swallowed. The touch detached XCTest's virtual hardware keyboard, and the software keyboard rose and moved the form sheet between touch-down and touch-up. Cancel showed its pressed state but its action never ran. A probe showed the exit dialog appears and stays every time once the sheet is still. The test now waits for the keys and the target to settle before tapping Cancel, the title and the community control. A real iPad with a hardware keyboard does not raise the software keyboard on a touch.
+  - `testComposerCatalogueQuickQuoteAndSearchRecovery` (after search): iPad's search field has no Cancel of its own and keeps the sheet's toolbar, so the search-Cancel query matched the inserter's own Cancel. On iPad the test now asserts that Cancel stays reachable while searching. iPhone still cancels the search first.
+  - `testCommunityChooserAccessibilityAudit`: the contrast issue (a SwiftUI node with no element) appears only in the dark RTL accessibility-size pass, where the chooser is a form sheet. With "Wood", the last row ("Joinery") straddles the sheet's bottom edge, and the audit samples the dimmed feed behind its clipped text. With "Join", the same row sits fully inside the sheet and the audit passes, even though the dimmed feed is still visible below. The test filters "Join" and still audits the filter, Cancel, All, a root row and a child row.
+- **Results (fixture, test-only changes):**
+  - iPad: the seven together, **7 passed**.
+  - iPhone 17 / iOS 27.0, full UI target: **112 run, 0 failures, 33 opt-in skips**.
+  - iPhone Duo / iOS 27.1, Closed (folded) portrait, full UI target: 112 run, 2 failures, 39 opt-in skips.
+    - `testVisualHeadingMarkdownPreviewAndReturnPreserveDraft` passed when rerun alone.
+    - `testNativeFormattingCaretTypingSurvivesSourceSwitch` fails in its unchanged iPhone branch with 91.7 pt between bar and keys against the 64 pt limit. Unmodified `71de94a`, built separately, fails the same way on the same device and pose, so this branch did not cause it. It is a separate Duo Closed-pose item and is still open.
+  - The final assertion tweak in the keyboard helper was rechecked: its callers pass on iPhone 17 (5 tests) and iPad (4 tests).
+- Busy simulators make these runs slow: the seven took about 30 minutes on iPad while two phone suites ran beside them.
 
 ## Final acceptance and release limits
 

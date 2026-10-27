@@ -137,7 +137,7 @@ import UIKit
         for _ in 0..<3 {
             for (label, expected) in [("Undo", "Menu history"), ("Redo", "Menu history.")] {
                 app.buttons["composer-more"].tap()
-                let action = app.buttons[label]
+                let action = menuAction(app, label)
                 let appeared = action.waitForExistence(timeout: 5)
                 if !appeared {
                     let capture = XCTAttachment(screenshot: app.screenshot())
@@ -524,9 +524,14 @@ import UIKit
         let catalogue = XCTAttachment(screenshot: app.screenshot()); catalogue.name = "Polished insertion catalogue"; catalogue.lifetime = .keepAlways; add(catalogue)
         let search = app.searchFields.firstMatch; search.tap(); search.typeText("vote")
         XCTAssertTrue(app.buttons["Poll"].waitForExistence(timeout: 5), "Search includes the block description")
-        // Native searchable replaces the navigation actions while active. Cancel search first, then close the sheet.
-        let searchCancel = app.buttons.matching(NSPredicate(format: "(label == %@ OR label == %@) AND identifier != %@", "Close", "Cancel", "composer-close")).firstMatch
-        XCTAssertTrue(searchCancel.waitForExistence(timeout: 5)); searchCancel.tap()
+        // On iPhone native searchable replaces the navigation actions while active: cancel search first, then close the
+        // sheet. iPad keeps the sheet's Cancel beside a search field that has no Cancel of its own.
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            XCTAssertTrue(app.buttons["composer-insert-cancel"].isHittable, "Cancel stays reachable while searching")
+        } else {
+            let searchCancel = app.buttons.matching(NSPredicate(format: "(label == %@ OR label == %@) AND NOT (identifier IN %@)", "Close", "Cancel", ["composer-close", "composer-insert-cancel"])).firstMatch
+            XCTAssertTrue(searchCancel.waitForExistence(timeout: 5)); searchCancel.tap()
+        }
         XCTAssertTrue(app.buttons["composer-insert-cancel"].waitForExistence(timeout: 5))
         app.buttons["composer-insert-cancel"].tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5)); XCTAssertEqual(body.value as? String, "What I tried")
@@ -589,22 +594,51 @@ import UIKit
         XCTAssertTrue(reference.isHittable, "\(reference) did not settle", file: file, line: line)
         control.tap()
     }
+    /// The More menu's action, not the iPad keyboard shortcut bar's own Undo/Redo (`assistantUndo`, `assistantRedo`).
+    private func menuAction(_ app: XCUIApplication, _ label: String) -> XCUIElement {
+        app.buttons.matching(NSPredicate(format: "label == %@ AND NOT (identifier BEGINSWITH %@)", label, "assistant")).firstMatch
+    }
+    /// While the editor is focused, waits for the software keyboard to come back from XCTest's virtual hardware
+    /// keyboard and for `element` to hold still. On iPad only a minimized assistant bar shows meanwhile (no keyboard
+    /// element), and the composer's form sheet rises with the keys when they return: a tap made then starts on a
+    /// control and ends off it, so the control's action never runs.
+    private func waitForSoftwareKeyboard(_ app: XCUIApplication, settling element: XCUIElement) {
+        guard app.buttons["composer-keyboard"].label == "Hide keyboard" else { return }
+        let keyboard = app.keyboards.firstMatch
+        let raised = NSPredicate { _, _ in keyboard.exists && keyboard.frame.minY < app.frame.maxY - 40 }
+        _ = XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: raised, object: nil)], timeout: 10)
+        waitForStableFrame(element)
+    }
+    private func waitForStableFrame(_ element: XCUIElement) {
+        var last = element.frame, stableSince = Date()
+        let deadline = Date().addingTimeInterval(5)
+        while Date() < deadline && Date().timeIntervalSince(stableSince) < 0.6 {
+            Thread.sleep(forTimeInterval: 0.15)
+            if element.frame != last { last = element.frame; stableSince = Date() }
+        }
+    }
     private func dismissComposerKeyboard(_ app: XCUIApplication) {
-        guard app.keyboards.firstMatch.exists else { return }
         // The floating bar's own control; a drag on a short reply also pulls the sheet and opens Keep/Discard.
         let toggle = app.buttons["composer-keyboard"]
+        // Decide from the editor's focus, not the keyboard: on iPad the software keyboard can still be minimized
+        // after typeText, with only the assistant bar showing, and returns by itself while the editor keeps focus.
+        XCTAssertTrue(toggle.waitForExistence(timeout: 5))
+        if app.keyboards.firstMatch.exists { XCTAssertEqual(toggle.label, "Hide keyboard") }
+        guard toggle.label == "Hide keyboard" else { return }
+        waitForSoftwareKeyboard(app, settling: toggle)
         // Prefer the software keyboard back (not minimized by XCTest's virtual typing keyboard) with the bar above it.
         // Some simulators keep it minimized for the whole run; the bar then rests above the safe area, so tap it once
         // its frame has held still instead of failing.
         let keyboard = app.keyboards.firstMatch
         let raised = NSPredicate { _, _ in keyboard.exists && keyboard.frame.minY < app.frame.maxY - 40 && toggle.exists && toggle.frame.maxY <= keyboard.frame.minY + 1 }
-        XCTAssertEqual(toggle.label, "Hide keyboard")
-        if XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: raised, object: nil)], timeout: 10) == .completed { tapSettled(toggle) }
+        if XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: raised, object: nil)], timeout: 1) == .completed { tapSettled(toggle) }
         else { tapSettled(app, toggle) }
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
         // Hiding the keyboard keeps the floating bar reachable above the safe area.
         let docked = XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true AND label == %@", "Show keyboard"), object: app.buttons["composer-keyboard"])
         XCTAssertEqual(XCTWaiter.wait(for: [docked], timeout: 5), .completed)
+        // The iPad form sheet settles back down once the keys leave; the next tap must not land mid-move.
+        waitForStableFrame(toggle)
     }
     func testNativeFormattingCaretTypingSurvivesSourceSwitch() {
         let app = launch(["--preset", "newtopic"])
@@ -621,7 +655,15 @@ import UIKit
         let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Composer bar attached to keyboard"; capture.lifetime = .keepAlways; add(capture)
         // XCTest’s keyboard frame excludes the QuickType prediction row.
         XCTAssertLessThanOrEqual(more.frame.maxY, keyboard.frame.minY)
-        XCTAssertLessThanOrEqual(keyboard.frame.minY - more.frame.maxY, 64, "Only the prediction row should separate formatting controls from the keys")
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            // iPad presents the composer as a form sheet that the system lifts clear of the keyboard; the bar rides
+            // the sheet's bottom edge rather than the keys, and the whole sheet stays above the prediction row.
+            let sheet = app.scrollViews.containing(.textView, identifier: "composer-body").firstMatch.frame
+            XCTAssertLessThanOrEqual(sheet.maxY - more.frame.maxY, 24, "Formatting controls sit on the sheet's bottom edge")
+            XCTAssertLessThanOrEqual(sheet.maxY, keyboard.frame.minY - 44, "The sheet stays clear of the keys and prediction row")
+        } else {
+            XCTAssertLessThanOrEqual(keyboard.frame.minY - more.frame.maxY, 64, "Only the prediction row should separate formatting controls from the keys")
+        }
         more.tap(); app.buttons["Format"].tap(); app.buttons["Bold"].firstMatch.tap()
         body.typeText("Bold")
         tapSettled(app.buttons["composer-more"]); app.buttons["Edit in Markdown"].tap()
@@ -969,6 +1011,7 @@ import UIKit
         XCTAssertEqual(body.value as? String, "First line\nSecond line")
         body.typeText(" before")
         let beforeDialog = body.value as? String ?? ""
+        waitForSoftwareKeyboard(app, settling: app.buttons["composer-close"])
         app.buttons["composer-close"].tap()
         let keepEditing = app.buttons["composer-keep-editing"].firstMatch
         XCTAssertTrue(keepEditing.waitForExistence(timeout: 5)); keepEditing.tap()
@@ -977,8 +1020,10 @@ import UIKit
         let expectedBody = beforeDialog.replacingOccurrences(of: " before", with: " before continued")
         XCTAssertEqual(body.value as? String, expectedBody)
         XCTAssertEqual(title.value as? String, "Keyboard journey")
+        waitForSoftwareKeyboard(app, settling: title)
         title.tap(); title.typeText(" before")
         let beforeChooser = title.value as? String ?? ""
+        waitForSoftwareKeyboard(app, settling: app.buttons["composer-destination"])
         app.buttons["composer-destination"].tap()
         XCTAssertTrue(app.buttons["destination-2"].waitForExistence(timeout: 5))
         app.buttons["destination-2"].tap()
