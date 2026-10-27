@@ -2,7 +2,7 @@
 
 ## Live guest checks — 2026-10-27
 
-The owner confirmed `https://meta.fomio.app` as the live site (already the app's `FomioBaseURL`). Deployed Discourse reports `2026.10.0-latest` (`/about.json`); the deployed revision was not compared with the local reference checkout. Guest reads only: the live read contract tests, live store captures and live category/About/topic navigation pass on iPhone 17 and iPad. Cooked uploads carry a lightbox `div.meta` (file name and size) that the native renderer now drops. Member reads, sign-in and every write remain pending an ordinary member account and explicit write approval. [Results](validation/2026-10-27-live-site/README.md).
+The owner confirmed `https://meta.fomio.app` as the live site (already the app's `FomioBaseURL`). Deployed Discourse reports `2026.10.0-latest` (`/about.json`); the deployed revision was not compared with the local reference checkout. Guest reads only: the live read contract tests, live store captures and live category/About/topic navigation pass on iPhone 17 and iPad. Cooked uploads carry a lightbox `div.meta` (file name and size) that the native renderer now drops. Signed in (owner-performed sign-in, stored per-user key): member reads pass, and the approved write round trip in Experiments & Ideas (create, reply, nested quoted reply, threaded readback, bookmark, delete) passes with verified cleanup. The test account is staff, so ordinary-member permissions remain unverified. The per-key user API limit (50/min, 4,000/day by default) was hit by back-to-back test runs. [Results](validation/2026-10-27-live-site/README.md).
 
 ## Independent notification contract audit — 2026-10-18
 
