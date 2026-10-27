@@ -136,10 +136,11 @@ import UniformTypeIdentifiers
         // A native typing burst is a single session action, separate from mode changes.
         app.buttons["prototype-undo"].tap()
         XCTAssertEqual(rich.value as? String, original)
-        XCTAssertTrue(app.keyboards.firstMatch.exists)
+        // After typeText, iPad shows only the minimized assistant bar until the keys return on their own.
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
         app.buttons["prototype-redo"].tap()
         XCTAssertEqual(rich.value as? String, "مرحبا Fomio")
-        XCTAssertTrue(app.keyboards.firstMatch.exists)
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
         app.segmentedControls["prototype-mode"].buttons["Markdown"].tap()
         XCTAssertEqual(app.textViews["prototype-markdown"].value as? String, "مرحبا Fomio")
     }

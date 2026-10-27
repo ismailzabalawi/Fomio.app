@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DiscussionView: View {
     @Environment(AppState.self) private var app
+    @Environment(\.readingCreate) private var createFromReading
     @Bindable var state: DiscussionState
     @State private var kept: Draft?
     var body: some View {
@@ -61,26 +62,32 @@ struct DiscussionView: View {
                 guard !Task.isCancelled else { return }
                 proxy.scrollTo(target, anchor: .top)
             }
-            .safeAreaInset(edge: .bottom) {
-                if let page = state.page, let opening = state.opening, page.canReply || app.username == nil {
-                    let target = state.focus == .notification ? state.highlighted ?? opening : opening
-                    ReadingColumn {
-                        Button { app.reply(to: target) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left").font(.body.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44) }
-                            .buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).accessibilityIdentifier("discussion-reply")
-                            .accessibilityLabel(target.number.rawValue > 1 ? "Reply to \(target.author) · #\(target.number.rawValue)" : "Reply to \(page.summary.title)")
-                            .padding(.horizontal, 20).padding(.vertical, 8)
-                    }
-                }
-            }
         }.background(Color.fomioBackground).navigationTitle("Discussion").navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) { Color.clear.frame(width: 1, height: 1).accessibilityHidden(true) }
+            // Reviewed bar order: the prominent Reply, then Save and Share as grouped secondary actions.
+            // The system places these items, including Duo's vertical bars, and moves the last ones into overflow first.
             if let opening = state.opening {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Button { save(opening) } label: { Label(opening.bookmarkID == nil ? "Save" : "Remove from Saved", systemImage: opening.bookmarkID == nil ? "bookmark" : "bookmark.slash") }
-                        ShareButton(topic: opening.topicID, number: nil)
-                    } label: { Image(systemName: "ellipsis") }.accessibilityLabel("More actions").accessibilityIdentifier("discussion-more")
+                if let page = state.page, page.canReply || app.username == nil {
+                    let target = state.focus == .notification ? state.highlighted ?? opening : opening
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button { app.reply(to: target) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left") }
+                            .buttonStyle(.glassProminent).tint(Color.fomioAccent).accessibilityIdentifier("discussion-reply")
+                            .accessibilityLabel(target.number.rawValue > 1 ? "Reply to \(target.author) · #\(target.number.rawValue)" : "Reply to \(page.summary.title)")
+                    }.barPriority(true)
+                    ToolbarSpacer(.fixed, placement: .topBarTrailing)
+                }
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button { save(opening) } label: { Label(opening.bookmarkID == nil ? "Save" : "Remove from Saved", systemImage: opening.bookmarkID == nil ? "bookmark" : "bookmark.fill") }
+                        .accessibilityIdentifier("discussion-save")
+                    ShareButton(topic: opening.topicID, number: nil).accessibilityIdentifier("discussion-share")
+                }.barPriority(false)
+            }
+            // The feed header carries Create; the bar offers it only while that header is off screen.
+            if let createFromReading {
+                ToolbarItem(placement: .secondaryAction) {
+                    Button(action: createFromReading) { Label("New discussion", systemImage: "square.and.pencil") }
+                        .accessibilityIdentifier("discussion-create")
                 }
             }
         }
@@ -112,9 +119,14 @@ struct DiscussionView: View {
         }.padding(.bottom, 16)
     }
     private func pathLink(_ category: Community) -> some View {
-        Button { app.navigate(.community(category.id)) } label: {
-            HStack(spacing: 5) { CategoryMark(category: category, size: 20); Text(category.name).font(.caption.weight(.semibold)) }.frame(minHeight: 44)
-        }.buttonStyle(.plain).accessibilityLabel("Open community \(category.name)")
+        // The decorative mark sits beside the link: inside it, the server-chosen mark colour counted
+        // against the label's contrast. The shape gives the whole 44-point row to the plain button.
+        HStack(spacing: 5) {
+            CategoryMark(category: category, size: 20)
+            Button { app.navigate(.community(category.id)) } label: {
+                Text(category.name).font(.caption.weight(.semibold)).frame(minWidth: 44, minHeight: 44).contentShape(.rect)
+            }.buttonStyle(.plain).accessibilityLabel("Open community \(category.name)")
+        }
     }
     @ViewBuilder private func failure(_ error: String) -> some View {
         if state.page == nil, state.errorKind == .unavailable {
@@ -285,10 +297,10 @@ struct PostCard: View {
                 .font(.subheadline.weight(.medium)).padding(.horizontal, 12).frame(minHeight: 44).background(Color.fomioFill, in: .capsule)
         }.buttonStyle(.plain).accessibilityLabel(post.bookmarkID == nil ? "Save post by \(post.author)" : "Remove post by \(post.author) from Saved")
         if post.canReply || app.username == nil {
-            if post.number.rawValue > 1 {
-                Button { app.reply(to: post) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left").labelStyle(CompactIconLabel()).frame(minHeight: 44) }
-                    .font(.subheadline.weight(.medium)).buttonStyle(.plain).accessibilityLabel("Reply to \(post.author), post \(post.number.rawValue)")
-            }
+            // Every row, the opening post's included, carries its own Reply beside the bar's.
+            Button { app.reply(to: post) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left").labelStyle(CompactIconLabel()).frame(minHeight: 44) }
+                .font(.subheadline.weight(.medium)).buttonStyle(.plain).accessibilityLabel("Reply to \(post.author), post \(post.number.rawValue)")
+                .accessibilityIdentifier("post-reply-\(post.number.rawValue)")
             Button { app.reply(to: post, quote: true) } label: { Label("Quote", systemImage: "quote.opening").labelStyle(CompactIconLabel()).foregroundStyle(Color.fomioSecondaryText).frame(minHeight: 44) }
                 .font(.subheadline.weight(.medium)).frame(minHeight: 44).buttonStyle(.plain).accessibilityLabel("Quote \(post.author)’s post")
         }

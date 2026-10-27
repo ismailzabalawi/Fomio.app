@@ -14,6 +14,18 @@ Apple's [preparation guide](https://developer.apple.com/iphone-duo/prepare/) des
 
 **Independent audit and unlocked width retries — 2026-10-20:** [audit and results](validation/2026-10-20-xcode-duo-audit/README.md) confirms the Xcode window-anchor implementation and its existing 125/125 and 7/7 result summaries. Two added checks for missing anchors and reader attachment/movement/detachment pass on a second Duo. No blocking finding in that scoped change. Both unlocked width runs still fail regular-width More reachability before history actions, with conflicting display/keyboard coordinates. The fresh simulator later also encounters install/launch and accessibility-automation failures; the original Duo cannot reboot because its data directory is missing. No regular-width or compact-return history acceptance is claimed; the current blocker is not a locked Mac.
 
+**System-bar mapping and poses — 2026-10-26/27 (branch `claude/duo-system-bar`):** Implements the native mapping from the [Fomio Adaptive Reading — SwiftUI Duo](https://claude.ai/artifact/LkZrmM5qkXpovx8QB29C5D) canvas (version `1793000980-747e`) and merges `claude/duo-d1-collapse-fix` (D1 fold fix, Sample content row, Home auto-selection). Its older header controls and floating Reply are superseded rather than carried over.
+- **Discussion:** the bottom Reply strip and More menu are gone. The toolbar carries a prominent Reply, then Save and Share; Create is a `.secondaryAction` only while the feed is off screen.
+- **Feed:** Create, Search and options are toolbar items. The header keeps the wordmark/Show sidebar row and the one-line scope. Conditional bar items were not re-added on the Duo after leaving a category feed, which moved the list 58 pt.
+- **Priorities:** iOS 27 `visibilityPriority`: Back/list toggle, Reply and Create high; Save/Share and options low. iOS overflows by priority. Without it, the short closed bar sent Back and Reply into More.
+- **Partial fold:** `UIView.reservedRegions(kind: .division)` (iOS 27.1) reports the hinge while the window keeps its size. Panes map to the regions on either side, or one pane keeps to the larger region; nothing sits in the band.
+- **Report sheet:** text-only Close/Send report were dropped from the Duo's compressed vertical bar with the keyboard up, so a report could not be sent while typing. Sheet actions now carry symbols.
+- **Chooser:** the filter owns its focus, so Return dismisses the keyboard in the presented sheet or popover (the 2026-10-22 failure).
+
+Pose results with screenshots: [2026-10-26 pose validation](validation/2026-10-26-duo-poses/README.md). Open, partial fold (Standard and AX), inner portrait, closed portrait, both closed landscapes and Split View (left, right and back to full screen, 27 October) pass. Split View found one defect, now fixed: moving between halves rebuilds the feed, and its scroll restore left the first row under the list header.
+
+Tests (fixture, existing simulators): iPhone 17 / iOS 27.0 full suite **293 passed, 0 failed** (at `579aa92`; later commits touch the breadcrumb, a DEBUG toggle and tests). iPhone Duo / iOS 27.1, folded portrait: every failure from the full run passes when rerun. Phone-rotation tests skip on the Duo (its poses come from Device Hub). Running the suite with the Duo left in Open changes layout-gated tests, so pose matters when comparing runs. The one remaining folded failure, `testNativeFormattingCaretTypingSurvivesSourceSwitch` (91.7 pt gap), was resolved 27 October as a test assumption: Device Hub attaches the Mac's keyboard as a hardware keyboard, so the software keys are minimized below the window (y 722 of 678) and the bar correctly rests at the bottom. With minimization off the 64 pt check passes against real keys; details in [iPad readiness](ipad-readiness.md). iPad: see [iPad readiness](ipad-readiness.md).
+
 ## Initial source audit
 
 | Area | Finding / action |
@@ -30,6 +42,34 @@ Apple's [preparation guide](https://developer.apple.com/iphone-duo/prepare/) des
 | Discourse | No adapter, permission or posting contract changes in this pass. |
 
 ## Validation and tooling
+
+**D1 collapse follow-up — 2026-10-26:** D1 from the 2026-10-25 native validation (no Back, ••• or Reply after Open → Closed with a chosen discussion) is **fixed and verified on iPhone Duo / iOS 27.1 through Device Hub**. It does not start at the final fold. After an earlier Closed → Open cycle, the two-pane discussion already lacks its Focus toggle and •••; folding then carries that over. There are two causes:
+
+- **Platform (system probe, not Fomio):** a plain SwiftUI `TabView(.tabBarOnly)` with a `NavigationSplitView` loses its whole trailing vertical bar (tabs and the detail's toolbar items) after every Closed → Open (4/4). Hiding the tab bar for a moment once the size settles restores it (5/5). After such an unfold the split's columns can also come back empty. In Fomio this showed as a blank list column, with no rows on screen or in the accessibility tree, in about 1 run in 3.
+- **Fomio:** folding withdrew the auto-selected discussion by clearing `state.path` in the same update as the split collapse, which also left the detail without its toolbar.
+
+The change in `TabRoot` (`Fomio/App/FomioApp.swift`):
+
+- **Auto-selection on fold:** an untouched auto-selected discussion keeps its route. Folding shows the list column (`compactColumn = .sidebar`), and unfolding returns to the same discussion and reading position. Any navigation to a discussion, including the auto-selected one, counts as the reader's choice.
+- **Bar refresh on expansion:** once the size settles after the split expands, the tab bar is hidden for a moment and shown again.
+- **Split rebuild on expansion:** at the same point the `NavigationSplitView` is rebuilt (new identity). This happens only when the window is on a different `UIScreen` than the split was built on (the Duo's displays are distinct screen objects), and nothing is presented in the window.
+  - An in-place resize (iPad windowing, the size-override harness) never rebuilds.
+  - An open community chooser or sheet is never dismissed by unfolding. If something is presented during the unfold, the list column can still come back empty; this is the accepted residual risk.
+- **Tests:** a DEBUG `--reading-size-override` toggle (466 pt plus the scene's real compact size class) backs `testSelectedDiscussionKeepsNavigationAfterCollapse`. `testSelectedDiscussionKeepsNavigationAfterManualDuoFold` (`FOMIO_ADAPTIVE_DUO_FOLD=1`, Device Hub pressed at its `DUO_PRESS` markers) replays the validation sequence. Both tests run Closed → Open → explicit choice → scroll → Closed, then require Back and •••, and require Back to return to the list.
+
+Results with the final change (Xcode 27.1, Duo / iOS 27.1, existing simulator reused, Device Hub driven through Accessibility):
+
+| Check | Result |
+| --- | --- |
+| `testSelectedDiscussionKeepsNavigationAfterManualDuoFold`, real fold | **3/3 pass** (the earlier "rebuild always" variant: 4/5, then 2/2 after a test wait fix) |
+| `testSelectedDiscussionKeepsNavigationAfterCollapse`, size override | Pass; fails on the original code |
+| `testExactSearchBackAfterManualDuoFold`, `testChooserRetainsFilterAfterManualDuoFold`, `testGroupedFailureSurvivesManualDuoFoldUntilRetry`, `testFocusedKeptDraftUnfoldsWithoutCaretCommand` | Pass |
+| `testDraftRetainsTextAfterManualDuoFoldAndKeepReopen` | **Fails 3/3, also on the original code.** The ⌘↓ caret placement before unfolding is not kept, and the continuation lands at the start. In this session Device Hub Closed presented the outer display in landscape (678×466) rather than the validation's portrait. Not caused by this change; still open. |
+| `FomioTests` | 181 run, 0 failures, 4 skipped (live) |
+
+Observation: in 2 of the D1 runs, one tap after unfolding waited about 6 minutes for XCTest's "app animations complete" before continuing and passing. This was also seen once before the rebuild was added; the cause is not established.
+
+**D2 decision (recommended):** keep "an untouched auto-selection folds to the list". With this change the discussion is no longer discarded: unfolding restores it with its reading position (validation F3). Scrolling alone does not make it a choice; any tap that opens a discussion does.
 
 **Keyboard diagnosis/fix follow-up — 2026-10-19:** [native follow-up](validation/2026-10-19-duo-keyboard-fix/README.md) verifies actual onscreen typing at **466×678 → 1000×678 → 466×678**: `Q` → `Qq` → `Qqq`, without refocusing, with the same native editor and undo manager and presenting traits **1→2→1**. Keyboard and bar remain visible and clear. A window-local frame-notification reader lifts the original bar above the floating keyboard; guide-reader experiments were removed. Three compact regressions pass. More-menu history operation at regular width and after return remains unresolved; resize input coordinates are inconsistent and both the full resize test and attach-only history probe remain failed. The Mac lock is resolved; do not describe the remaining gap as a locked-desktop blocker.
 

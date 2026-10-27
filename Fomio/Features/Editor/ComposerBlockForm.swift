@@ -141,7 +141,7 @@ struct ComposerBlockForm: View {
             default: EmptyView()
             }
         }.navigationTitle(Text(LocalizedStringKey(value.kind.title))).navigationBarTitleDisplayMode(.inline)
-        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Save") {
+        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Save", systemImage: "checkmark") {
             do { onSave(try value.markup(maximumOptions: maximumOptions)); dismiss() } catch { self.error = error.localizedDescription }
         }.accessibilityIdentifier("block-save") } }
     }

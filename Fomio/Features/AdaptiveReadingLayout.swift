@@ -9,14 +9,26 @@ struct ReadingLayout: Equatable {
     var twoPanes: Bool
     var sidebar: Bool
     var listIdeal: CGFloat
-    var listMinimum: CGFloat { 300 * scale }
-    var listMaximum: CGFloat { 380 * scale }
+    /// Set while a display division splits the window: the list fills the leading region exactly.
+    var regionListWidth: CGFloat?
+    var listMinimum: CGFloat { regionListWidth ?? 300 * scale }
+    var listMaximum: CGFloat { regionListWidth ?? 380 * scale }
     init(width: CGFloat, scale: CGFloat) {
         self.scale = scale
         twoPanes = width >= (300 + 420) * scale
         sidebar = twoPanes && width >= 1080 * scale
         let available = width - (sidebar ? Self.sidebarWidth : 0)
         listIdeal = max(300 * scale, min(380 * scale, available * 0.36))
+    }
+    /// Within a display division (iPhone Duo's partial fold) each pane is a region: the list takes the
+    /// leading region and the discussion the trailing one, never the band between. A region is held to a
+    /// phone's reading width (320) rather than the 420 used beside the list, since it is its own surface.
+    init(width: CGFloat, scale: CGFloat, regions: DivisionRegions?) {
+        self.init(width: width, scale: scale)
+        guard let regions else { return }
+        sidebar = false
+        twoPanes = regions.leading >= 300 * scale && regions.trailing >= 320 * scale
+        if twoPanes { regionListWidth = regions.leading; listIdeal = regions.leading }
     }
     /// Minima grow more slowly than body text so larger sizes keep two panes longer:
     /// ×1.15 at a 23 pt body and ×1.6 at 34 pt, continuing that rate beyond.
@@ -132,4 +144,50 @@ extension EnvironmentValues {
     @Entry var readingSidebarVisible = false
     /// Present when the window could show the sidebar but the reader hid it.
     @Entry var readingShowSidebar: (() -> Void)? = nil
+    /// Present while a topic feed's header, which carries Create, is off screen beside this discussion.
+    @Entry var readingCreate: (() -> Void)? = nil
+}
+
+/// The regions either side of an active vertical display division, in the reading root's width.
+struct DivisionRegions: Equatable {
+    var leading: CGFloat
+    var band: CGFloat
+    var trailing: CGFloat
+    init?(division: CGRect?, width: CGFloat) {
+        guard let division, division.minX > 0, division.maxX < width else { return nil }
+        leading = division.minX; band = division.width; trailing = width - division.maxX
+    }
+}
+
+/// Reports the display's active vertical division (iPhone Duo's partial fold) in this view's
+/// coordinates, so the reading split can keep panes, controls and text out of the hinge band.
+/// The window keeps its size across that fold, so the division is read from UIKit, not from geometry.
+struct DisplayDivisionReader: UIViewRepresentable {
+    let onChange: (CGRect?) -> Void
+    func makeUIView(context: Context) -> Probe { let probe = Probe(); probe.isUserInteractionEnabled = false; probe.onChange = onChange; return probe }
+    func updateUIView(_ probe: Probe, context: Context) { probe.onChange = onChange; probe.report() }
+    final class Probe: UIView {
+        var onChange: ((CGRect?) -> Void)?
+        private var reported: CGRect?? = .none
+        override func layoutSubviews() { super.layoutSubviews(); report() }
+        override func safeAreaInsetsDidChange() { super.safeAreaInsetsDidChange(); report() }
+        override func didMoveToWindow() { super.didMoveToWindow(); report() }
+        func report() {
+            var division: CGRect?
+            if #available(iOS 27.1, *), window != nil {
+                division = reservedRegions(kind: .division).first { $0.isActive && $0.frame.height > $0.frame.width }?.frame
+            }
+            guard reported != .some(division) else { return }
+            reported = .some(division)
+            DispatchQueue.main.async { [weak self] in self?.onChange?(division) }
+        }
+    }
+}
+
+extension ToolbarContent {
+    /// Which bar items stay direct when the system compresses the bar (iPhone Duo's short or folded
+    /// vertical bar): the reviewed order keeps Back and the primary action, and moves secondary ones first.
+    @ToolbarContentBuilder func barPriority(_ high: Bool) -> some ToolbarContent {
+        if #available(iOS 27.0, *) { visibilityPriority(high ? .high : .low) } else { self }
+    }
 }

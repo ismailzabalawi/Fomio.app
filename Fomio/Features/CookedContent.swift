@@ -40,7 +40,8 @@ struct HTMLContent {
         return result
     }
     static func blocks(_ html: String) -> [Block] {
-        let html = inlineEmoji(html)
+        // An upload's lightbox carries its file name and size in `<div class="meta">`, which the web shows only on hover.
+        let html = inlineEmoji(html).replacingOccurrences(of: "<div\\s+class=[\"']meta[\"'][^>]*>[\\s\\S]*?</div>", with: "", options: [.regularExpression, .caseInsensitive])
         guard let regex = try? NSRegularExpression(pattern: "<details\\b[^>]*>[\\s\\S]*?</details>|<span\\b[^>]*class=[\"'][^\"']*spoiler[^\"']*[\"'][^>]*>[\\s\\S]*?</span>|<span\\b[^>]*class=[\"'][^\"']*discourse-local-date[^\"']*[\"'][^>]*>[\\s\\S]*?</span>|<div\\b[^>]*class=[\"'][^\"']*poll[^\"']*[\"'][^>]*>[\\s\\S]*?</div>|<pre\\b[^>]*>[\\s\\S]*?</pre>|<blockquote\\b[^>]*>[\\s\\S]*?</blockquote>|<aside\\b[^>]*>[\\s\\S]*?</aside>|<img\\b[^>]*>|<(?:table|iframe|video|audio|script|style)\\b[^>]*>[\\s\\S]*?</(?:table|iframe|video|audio|script|style)>", options: .caseInsensitive) else { return [.unsupported] }
         var blocks: [Block] = [], cursor = html.startIndex
         for match in regex.matches(in: html, range: NSRange(html.startIndex..., in: html)) {
@@ -64,7 +65,7 @@ struct HTMLContent {
             }
             else if lower.hasPrefix("<pre") { blocks.append(.code(plainText(segment))) }
             else if lower.hasPrefix("<blockquote") || lower.hasPrefix("<aside") { blocks.append(.quote(markdown(segment))) }
-            else if lower.hasPrefix("<img"), let source = attribute("src", in: segment) { blocks.append(.image(source, attribute("alt", in: segment) ?? "Community photo")) }
+            else if lower.hasPrefix("<img"), let source = attribute("src", in: segment) { blocks.append(.image(source, attribute("alt", in: segment).flatMap { $0.isEmpty ? nil : $0 } ?? "Community photo")) }
             else if !lower.hasPrefix("<script") && !lower.hasPrefix("<style") { blocks.append(.unsupported) }
             cursor = range.upperBound
         }

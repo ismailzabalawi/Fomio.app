@@ -133,10 +133,10 @@ struct ComposerView: View {
                         TextField("Text", text: $linkLabel)
                         TextField("URL", text: $linkURL).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
                     }.navigationTitle("Link")
-                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Insert") { if let range = editingLinkRange { bodyEditor.send(.replace(range, DiscourseMarkupCodec.link(label: linkLabel, url: linkURL))) } else { bodyEditor.send(.link(linkLabel, linkURL)) }; presentation = nil }.disabled(URL(string: linkURL)?.scheme.map { !["https", "http"].contains($0) } ?? true) } }
+                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Insert", systemImage: "checkmark") { if let range = editingLinkRange { bodyEditor.send(.replace(range, DiscourseMarkupCodec.link(label: linkLabel, url: linkURL))) } else { bodyEditor.send(.link(linkLabel, linkURL)) }; presentation = nil }.disabled(URL(string: linkURL)?.scheme.map { !["https", "http"].contains($0) } ?? true) } }
                 case let .photo(id):
                     Form { TextField("Image description", text: $photoDescription, axis: .vertical) }.navigationTitle("Photo")
-                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Save") {
+                    .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Save", systemImage: "checkmark") {
                         if let node = DiscourseMarkupCodec.parse(state.draft.body).first(where: { state.attachment(for: $0)?.id == id }), let index = state.draft.attachments.firstIndex(where: { $0.id == id }) {
                             var changed = state.draft.attachments[index]; changed.description = photoDescription
                             bodyEditor.send(.replace(node.range, changed.markup)); state.draft.attachments[index].description = photoDescription

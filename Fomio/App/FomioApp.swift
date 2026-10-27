@@ -178,6 +178,22 @@ struct TabRoot: View {
     @State private var visibility: NavigationSplitViewVisibility = .all
     @State private var compactColumn: NavigationSplitViewColumn = .sidebar
     @State private var focusedReading = false
+    /// iPhone Duo's partial fold: an active vertical division in this tab root's coordinates.
+    @State private var division: CGRect?
+    /// A discussion opened only because two panes appeared with nothing selected.
+    /// If the window narrows before the reader chooses anything, one pane shows the list.
+    @State private var autoSelected: Route?
+    /// Hides the tab bar for a moment after the split expands; see `refreshBars`.
+    @State private var refreshingBars = false
+    @State private var barRefresh: Task<Void, Never>?
+    /// Changes when the split expands on another display than it was built on, so it is rebuilt there.
+    @State private var splitGeneration = 0
+    @State private var splitScreen: ObjectIdentifier?
+    @State private var window: UIWindow?
+    #if DEBUG
+    /// UI tests narrow the reading split in place, standing in for a fold or window resize.
+    @State private var compactOverride = false
+    #endif
     private var readingIndex: Int? {
         state.path.firstIndex { if case .discussion = $0 { true } else if case .thread = $0 { true } else { false } }
     }
@@ -195,8 +211,23 @@ struct TabRoot: View {
         })
     }
     var body: some View {
+        // A row of its own: the split's columns ignore container insets, so an inset banner floated over content.
+        VStack(spacing: 0) {
+            if showsFixtureBanner {
+                Text("Sample content")
+                    .font(.caption.weight(.medium)).foregroundStyle(Color.fomioSecondaryText)
+                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity).padding(.vertical, 2).background(Color.fomioBackground)
+                    .accessibilityLabel("Sample community content. This is a preview.")
+                    .accessibilityIdentifier("fixture-banner")
+            }
+            reading
+        }
+    }
+    private var reading: some View {
         GeometryReader { geometry in
-            let layout = ReadingLayout(width: geometry.size.width, scale: ReadingLayout.scale(for: textSize))
+            let regions = DivisionRegions(division: division, width: geometry.size.width)
+            let layout = ReadingLayout(width: readingWidth(geometry.size.width), scale: ReadingLayout.scale(for: textSize), regions: regions)
             let showsSidebar = layout.sidebar && !focusedReading && !app.sidebarHidden
             HStack(spacing: 0) {
                 if showsSidebar {
@@ -218,49 +249,135 @@ struct TabRoot: View {
                                     ToolbarItem(placement: .topBarLeading) {
                                         Button { compactColumn = .sidebar } label: { Label("Back to topic list", systemImage: "chevron.backward") }
                                             .accessibilityIdentifier("back-to-topic-list")
-                                    }
+                                    }.barPriority(true)
                                 } else if layout.twoPanes {
                                     ToolbarItem(placement: .topBarLeading) {
                                         Button {
                                             focusedReading.toggle(); visibility = focusedReading ? .detailOnly : .all
                                         } label: { Label(LocalizedStringKey(focusedReading ? "Show topic list" : "Focus on discussion"), systemImage: "sidebar.leading") }
                                         .accessibilityIdentifier("toggle-topic-list")
-                                    }
+                                    }.barPriority(true)
                                 }
                             }
+                            .environment(\.readingCreate, (tab == .home || tab == .communities) && (!layout.twoPanes || focusedReading)
+                                ? { app.create(category: state.browseScope.categoryID) } : nil)
                     }
+                    // Beside the list in a division, the discussion starts after the hinge band.
+                    .safeAreaPadding(.leading, layout.twoPanes && !focusedReading ? regions?.band ?? 0 : 0)
                 }
                 .navigationSplitViewStyle(.balanced)
+                // One pane (or the focused discussion) in a division keeps to the larger region. Padding
+                // the frame, not the safe area: a centred reading column ignores safe-area padding.
+                .padding(regionEdges(regions, layout: layout), regionInset(regions, layout: layout))
+                .id(splitGeneration)
+                .background(PresentingWindowReader { found in
+                    window = found
+                    if splitScreen == nil, let found { splitScreen = ObjectIdentifier(found.screen) }
+                })
                 // Duo can offer sufficient physical width with compact traits. Only the reading
                 // split receives this presentation hint; the app's composer keeps real window traits.
                 .environment(\.horizontalSizeClass, layout.twoPanes ? .regular : .compact)
                 .environment(\.readingSidebarVisible, showsSidebar)
                 .environment(\.readingShowSidebar, layout.sidebar && app.sidebarHidden && !focusedReading ? { app.sidebarHidden = false } : nil)
             }
-            .toolbar(showsSidebar ? .hidden : .visible, for: .tabBar)
-            .onChange(of: readingRoute, initial: true) { _, route in compactColumn = route == nil ? .sidebar : .detail }
-            .onChange(of: state.readingSelectionRevision) { _, _ in compactColumn = .detail }
+            .background(DisplayDivisionReader { division = $0 })
+            .toolbar(showsSidebar || refreshingBars ? .hidden : .visible, for: .tabBar)
+            .onChange(of: readingRoute, initial: true) { _, route in
+                compactColumn = route == nil ? .sidebar : .detail
+                if route != autoSelected { autoSelected = nil }
+            }
+            .onChange(of: AutoSelectKey(twoPanes: layout.twoPanes, path: state.path, first: firstFeedTopic), initial: true) { _, key in
+                guard key.twoPanes, key.path.isEmpty, let topic = key.first else { return }
+                let route = Route.discussion(topic, nil)
+                autoSelected = route; state.path = [route]
+            }
+            // Every navigation to a discussion is the reader's choice, even of the auto-selected one.
+            .onChange(of: state.readingSelectionRevision) { _, _ in compactColumn = .detail; autoSelected = nil }
             .onChange(of: state.discussionSearch.failure) { _, failure in
                 if failure != nil { app.invalidateSearchAccess(in: tab) }
             }
             .onChange(of: layout.twoPanes) { _, two in
                 visibility = two && focusedReading ? .detailOnly : .all
+                if two { refreshBars() }
+                // Folding shows the list, not a discussion the reader never chose. The route stays:
+                // clearing it while the split collapsed left the discussion without its toolbar
+                // once it expanded again, and unfolding returns to the same place.
+                if !two, let auto = autoSelected, state.path == [auto] { compactColumn = .sidebar }
             }
             // A containing element keeps this identifier from replacing the sidebar header controls' own.
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier(focusedReading && layout.twoPanes ? "reading-focused" : showsSidebar ? "reading-three-pane" : layout.twoPanes ? "reading-two-pane" : "reading-one-pane")
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if showsFixtureBanner {
-                Text("Sample content")
-                    .font(.caption.weight(.medium)).foregroundStyle(Color.fomioText)
-                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 10).padding(.vertical, 3)
-                    .background(Color.fomioBackground, in: .capsule).padding(.bottom, 4)
-                    .allowsHitTesting(false).accessibilityLabel("Sample community content. This is a preview.")
-                    .accessibilityIdentifier("fixture-banner")
+            // A fold settles through several widths; refresh once the last one has held.
+            // While refreshing, a size change means the hidden bar has gone: show it again.
+            .onChange(of: geometry.size) {
+                if refreshingBars { barRefresh?.cancel(); endBarRefresh() }
+                else if barRefresh != nil { refreshBars() }
             }
+            #if DEBUG
+            // Bottom centre, above the home indicator: at the top, bars that carry list actions cover it.
+            .overlay(alignment: .bottom) {
+                if ProcessInfo.processInfo.arguments.contains("--reading-size-override") {
+                    Button(compactOverride ? "Restore width" : "Compact width") {
+                        compactOverride.toggle()
+                        // Change the scene's real trait too, so UIKit collapses the split as a fold does.
+                        for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
+                            if compactOverride { scene.traitOverrides.horizontalSizeClass = .compact }
+                            else { scene.traitOverrides.remove(UITraitHorizontalSizeClass.self) }
+                        }
+                    }
+                    .font(.caption).buttonStyle(.bordered).frame(minHeight: 44).padding(.bottom, 40).accessibilityIdentifier("debug-toggle-compact-reading")
+                }
+            }
+            #endif
         }
+    }
+    /// iPhone Duo / iOS 27.1: when unfolding moves the window to the inner display and the split
+    /// expands, the vertical bar (tabs, Back, More actions) stays empty, even in a plain SwiftUI
+    /// TabView + NavigationSplitView. Hiding the tab bar for a moment once the size has settled
+    /// lays the bars out again. Folding the other way keeps them, so only expansion refreshes.
+    private func refreshBars() {
+        barRefresh?.cancel()
+        barRefresh = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(300)); guard !Task.isCancelled else { return }
+            // After a move between displays the columns can come back empty too; a new split
+            // hosts them again. Not on an in-place resize, and not while something is presented
+            // (the community chooser, a sheet), which rebuilding would dismiss.
+            if let screen = window?.screen, ObjectIdentifier(screen) != splitScreen,
+               window?.rootViewController?.presentedViewController == nil {
+                splitGeneration += 1; splitScreen = ObjectIdentifier(screen)
+            }
+            refreshingBars = true
+            // Normally shown again by the size change; this is the fallback.
+            try? await Task.sleep(for: .milliseconds(500)); guard !Task.isCancelled else { return }
+            endBarRefresh()
+        }
+    }
+    private func endBarRefresh() {
+        refreshingBars = false; barRefresh = nil
+    }
+    private func confinedToRegion(_ regions: DivisionRegions?, layout: ReadingLayout) -> Bool {
+        regions != nil && (!layout.twoPanes || focusedReading)
+    }
+    private func regionEdges(_ regions: DivisionRegions?, layout: ReadingLayout) -> Edge.Set {
+        guard let regions, confinedToRegion(regions, layout: layout) else { return [] }
+        return regions.leading >= regions.trailing ? .trailing : .leading
+    }
+    private func regionInset(_ regions: DivisionRegions?, layout: ReadingLayout) -> CGFloat {
+        guard let regions, confinedToRegion(regions, layout: layout) else { return 0 }
+        return regions.band + min(regions.leading, regions.trailing)
+    }
+    /// The Duo's closed display is 466 pt wide.
+    private func readingWidth(_ width: CGFloat) -> CGFloat {
+        #if DEBUG
+        if compactOverride { return min(width, 466) }
+        #endif
+        return width
+    }
+    private struct AutoSelectKey: Equatable { var twoPanes: Bool; var path: [Route]; var first: TopicID? }
+    /// The Home feed's first readable topic, while it is the list on screen and no search is open.
+    private var firstFeedTopic: TopicID? {
+        guard tab == .home, !state.discussionSearch.active else { return nil }
+        return state.feed(key: state.browseScope.feedKey).items.first { !app.isBlocked($0.author) }?.id
     }
     @ViewBuilder private var root: some View {
         switch tab {
