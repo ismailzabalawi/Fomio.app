@@ -38,4 +38,4 @@ The owner signed in on the iPhone 17 simulator with a test account through the a
 ## Open
 
 - **Blank first frame.** A Debug build on the Duo simulator shows a blank window for several seconds after launch, with sample content as well as live, so it is not network-bound. A sample showed the main thread inside `dyld_sim` waiting on debugger image notifications. Not established for a Release build or hardware; measure there before treating it as an app defect.
-- **Ordinary-member evidence** (restricted categories, denied create, report/flag limits) needs a non-staff account. Uploads, likes and editing were not exercised.
+- **Ordinary-member evidence** (restricted categories, denied create, report/flag limits) needs a non-staff account. The owner decided on 2026-10-27 that staff coverage is enough for now, so these checks are deferred, not passed. Uploads, likes and editing were not exercised.
