@@ -24,7 +24,7 @@ Apple's [preparation guide](https://developer.apple.com/iphone-duo/prepare/) des
 
 Pose results with screenshots: [2026-10-26 pose validation](validation/2026-10-26-duo-poses/README.md). Open, partial fold (Standard and AX), inner portrait, closed portrait and both closed landscapes pass; Split View was not rerun on this build.
 
-Tests (fixture, existing simulators): iPhone 17 / iOS 27.0 full suite **293 passed, 0 failed** (at `579aa92`; later commits touch the breadcrumb, a DEBUG toggle and tests). iPhone Duo / iOS 27.1, folded portrait: every failure from the full run passes when rerun. Phone-rotation tests skip on the Duo (its poses come from Device Hub). Running the suite with the Duo left in Open changes layout-gated tests, so pose matters when comparing runs. iPad: see [iPad readiness](ipad-readiness.md).
+Tests (fixture, existing simulators): iPhone 17 / iOS 27.0 full suite **293 passed, 0 failed** (at `579aa92`; later commits touch the breadcrumb, a DEBUG toggle and tests). iPhone Duo / iOS 27.1, folded portrait: every failure from the full run passes when rerun. Phone-rotation tests skip on the Duo (its poses come from Device Hub). Running the suite with the Duo left in Open changes layout-gated tests, so pose matters when comparing runs. The one remaining folded failure, `testNativeFormattingCaretTypingSurvivesSourceSwitch` (91.7 pt gap), was resolved 27 October as a test assumption: Device Hub attaches the Mac's keyboard as a hardware keyboard, so the software keys are minimized below the window (y 722 of 678) and the bar correctly rests at the bottom. With minimization off the 64 pt check passes against real keys; details in [iPad readiness](ipad-readiness.md). iPad: see [iPad readiness](ipad-readiness.md).
 
 ## Initial source audit
 

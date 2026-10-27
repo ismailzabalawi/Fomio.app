@@ -502,6 +502,8 @@ import UIKit
         let app = launch(["--preset", "newtopic"])
         let body = app.textViews["composer-body"]
         XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("What I tried")
+        // On iPad the keys return after typeText and lift the form sheet; a double tap made meanwhile misses the word.
+        waitForSoftwareKeyboard(app, settling: body)
         body.doubleTap()
         let done = app.buttons["composer-selection-done"]
         XCTAssertTrue(done.waitForExistence(timeout: 5))
@@ -645,25 +647,32 @@ import UIKit
         let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["composer-insert"].isHittable); XCTAssertTrue(app.buttons["composer-more"].isHittable)
         let hiddenCapture = XCTAttachment(screenshot: app.screenshot()); hiddenCapture.name = "Composer entry bar without keyboard"; hiddenCapture.lifetime = .keepAlways; add(hiddenCapture)
-        body.tap(); body.typeText("Before ")
-        XCTAssertFalse(app.buttons["composer-keyboard-done"].exists)
+        body.tap()
         let more = app.buttons["composer-more"]
         XCTAssertTrue(more.waitForExistence(timeout: 5))
-        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: more)], timeout: 5), .completed)
         let keyboard = app.keyboards.firstMatch
         XCTAssertTrue(keyboard.waitForExistence(timeout: 5))
+        waitForSoftwareKeyboard(app, settling: more)
+        XCTAssertTrue(more.isHittable)
         let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Composer bar attached to keyboard"; capture.lifetime = .keepAlways; add(capture)
         // XCTest’s keyboard frame excludes the QuickType prediction row.
         XCTAssertLessThanOrEqual(more.frame.maxY, keyboard.frame.minY)
-        if UIDevice.current.userInterfaceIdiom == .pad {
+        if keyboard.frame.minY >= app.frame.maxY - 40 {
+            // A connected hardware keyboard minimizes the software keys below the window (Device Hub attaches the
+            // Mac's keyboard to the Duo: keys at y 722 in a 678 pt window). The bar then rests on the bottom safe area.
+            XCTAssertGreaterThanOrEqual(more.frame.maxY, app.frame.maxY - 72, "With the keys minimized the bar sits at the bottom (bar \(more.frame), window \(app.frame))")
+        } else if UIDevice.current.userInterfaceIdiom == .pad {
             // iPad presents the composer as a form sheet that the system lifts clear of the keyboard; the bar rides
             // the sheet's bottom edge rather than the keys, and the whole sheet stays above the prediction row.
             let sheet = app.scrollViews.containing(.textView, identifier: "composer-body").firstMatch.frame
             XCTAssertLessThanOrEqual(sheet.maxY - more.frame.maxY, 24, "Formatting controls sit on the sheet's bottom edge")
             XCTAssertLessThanOrEqual(sheet.maxY, keyboard.frame.minY - 44, "The sheet stays clear of the keys and prediction row")
         } else {
-            XCTAssertLessThanOrEqual(keyboard.frame.minY - more.frame.maxY, 64, "Only the prediction row should separate formatting controls from the keys")
+            XCTAssertLessThanOrEqual(keyboard.frame.minY - more.frame.maxY, 64, "Only the prediction row should separate formatting controls from the keys (bar \(more.frame), keyboard \(keyboard.frame))")
         }
+        body.typeText("Before ")
+        XCTAssertFalse(app.buttons["composer-keyboard-done"].exists)
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: more)], timeout: 5), .completed)
         more.tap(); app.buttons["Format"].tap(); app.buttons["Bold"].firstMatch.tap()
         body.typeText("Bold")
         tapSettled(app.buttons["composer-more"]); app.buttons["Edit in Markdown"].tap()

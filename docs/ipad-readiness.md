@@ -96,9 +96,14 @@ iPad Pro 11-inch (M5) / iOS 27.0, fixture, branch `claude/duo-system-bar`:
   - iPhone 17 / iOS 27.0, full UI target: **112 run, 0 failures, 33 opt-in skips**.
   - iPhone Duo / iOS 27.1, Closed (folded) portrait, full UI target: 112 run, 2 failures, 39 opt-in skips.
     - `testVisualHeadingMarkdownPreviewAndReturnPreserveDraft` passed when rerun alone.
-    - `testNativeFormattingCaretTypingSurvivesSourceSwitch` fails in its unchanged iPhone branch with 91.7 pt between bar and keys against the 64 pt limit. Unmodified `71de94a`, built separately, fails the same way on the same device and pose, so this branch did not cause it. It is a separate Duo Closed-pose item and is still open.
+    - `testNativeFormattingCaretTypingSurvivesSourceSwitch` failed in its iPhone branch with 91.7 pt between bar and keys against the 64 pt limit, also on unmodified `71de94a`. **Resolved later on 27 October (see below): the keys were not on screen.**
   - The final assertion tweak in the keyboard helper was rechecked: its callers pass on iPhone 17 (5 tests) and iPad (4 tests).
 - Busy simulators make these runs slow: the seven took about 30 minutes on iPad while two phone suites ran beside them.
+- **Full iPad rerun with the fixes (`1393437`), 27 October:** iPad Pro 11-inch (M5) / iOS 27.0, existing simulator restarted and app uninstalled first. UI target: **112 run, 3 failures, 29 opt-in skips** (about 70 minutes).
+  - `testSwitchKeepsMidFeedTopicAnchorBothDirections` passed when rerun alone.
+  - `testComposerSelectionFormattingKeepsActionsReachable` and `testTypingUndoThenRedoRestoresArabicAndEmojiReplacement` failed again alone. Both act right after `typeText`, the same minimized-keyboard window as the seven above: the double tap landed while the returning keys lifted the form sheet, and the keyboard check ran while only the assistant bar showed. The first now waits for the keys and the editor to settle (`waitForSoftwareKeyboard`); the second waits up to 10 s for the keyboard element. **Both pass 2/2 on iPad** and pass on iPhone 17.
+  - That run's tests opened on the Communities tab again late in the suite (leftover scenes); the reruns used a restarted simulator.
+- **Duo keyboard gap resolved (test-only):** on iPhone Duo / iOS 27.1 the result's own frames showed the keyboard element at y 722 in a 678 pt window: the software keys were minimized below the screen, not separated from the bar. Device Hub attaches the Mac's keyboard to the Duo as a hardware keyboard, so the system minimizes the software keys (`AutomaticMinimizationEnabled`); the bar correctly rests on the bottom safe area with its Show keyboard control. With minimization turned off on that simulator for one run, the unchanged 64 pt check **passed** against real keys, so the layout is right. The test now measures before typing, and when the keys are minimized below the window it asserts the bar sits at the bottom (≤ 72 pt from the window's bottom edge) instead of measuring against keys that are not shown. Passes on the Duo (hardware keyboard, setting restored), iPhone 17 (keys on screen) and iPad (form sheet over keys).
 
 ## Final acceptance and release limits
 
