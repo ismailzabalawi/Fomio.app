@@ -19,8 +19,8 @@ Rich text was tested first with outer portrait/inner landscape, then inner portr
 
 ## Evidence and automation
 
-- [Rich undo after folding](01-rich-undo-closed.png), [rich redo after unfolding](02-rich-redo-open.png), [rich redo after folding in landscape](03-rich-redo-closed-landscape.png).
-- [Markdown undo after unfolding](04-markdown-undo-open.png), [Markdown redo after folding](05-markdown-redo-closed.png), [final Markdown redo after unfolding](06-markdown-redo-open.png).
+- Rich undo after folding, rich redo after unfolding, rich redo after folding in landscape.
+- Markdown undo after unfolding, Markdown redo after folding, final Markdown redo after unfolding.
 - [Native pending-redo inspection](pending-redo-state.log): same editor `0x10e5c6400`, undo manager `0x115cf1180`, scene and first responder; `canRedo = 1`, `markedText = 0`, source ending `- q`, window 669×951 points, compact width. Debugger detached before the XCTest probe.
 - [XCTest summary](test-summary.json): **1 passed, 0 failed, 0 skipped**. `FomioUITests.testDuoPendingMarkdownRedoProbe` attaches to the prepared running app, asserts exact Markdown source and Preview, taps the enabled Redo action and asserts the exact restored source. It does not launch a fresh reply or automate folding. Normal test runs skip this probe unless `FOMIO_DUO_REDO_PROBE=1`; prepare the fixture `**Duo** reply.\n\n- q` with a pending redo to `- qq` before running it. XcodeBuildMCP `testRunnerEnv` supplies that opt-in.
 

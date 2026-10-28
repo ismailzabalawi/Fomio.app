@@ -13,10 +13,10 @@ Implementation base: `d802e389280bed5e07b11b5865d4eb462795e37d`, with working-tr
 
 ## Captures
 
-- [iPhone native code card](editor-captures/iphone-code-block.png)
-- [iPhone Arabic keyboard-open landscape](editor-captures/iphone-arabic-landscape.png)
-- [iPad native code card](editor-captures/ipad-code-block.png)
-- [iPad Arabic app window](editor-captures/ipad-arabic-window.png)
+- iPhone native code card
+- iPhone Arabic keyboard-open landscape
+- iPad native code card
+- iPad Arabic app window
 
 The 2026-10-04 design snapshot preserves downloaded component/showcase sources and copied helper source alongside a rendered ScreenPack reference. It does not claim a complete offline archive. The previous snapshot is preserved. The accepted scope supersedes the mockup warning that unfinished photos are lost.
 
@@ -28,7 +28,7 @@ The iPhone Arabic keyboard-open rotation hang reproduced a SwiftUI status-bar pr
 
 ## Live member acceptance blocked
 
-The configured `https://meta.fomio.app` normal authorization page reported that it could not issue user API keys before member credentials were entered. No member credential was saved or submitted, and no backend settings were changed. [Authorization evidence](editor-captures/live-user-api-disabled.png). A later transport fix corrected the malformed public-key query, and the native app now reaches the login page; the callback URL scheme, incoming-URL fallback and wrapped Base64 decoder are also fixed. See the [API diagnosis](discourse-api-reference.md). A real issued-key callback, upload, posting, moderation outcomes, previews and plugins remain unverified. A completed normal user-API-key authorization flow is required to finish these release checks.
+The configured `https://meta.fomio.app` normal authorization page reported that it could not issue user API keys before member credentials were entered. No member credential was saved or submitted, and no backend settings were changed. Authorization evidence. A later transport fix corrected the malformed public-key query, and the native app now reaches the login page; the callback URL scheme, incoming-URL fallback and wrapped Base64 decoder are also fixed. See the [API diagnosis](discourse-api-reference.md). A real issued-key callback, upload, posting, moderation outcomes, previews and plugins remain unverified. A completed normal user-API-key authorization flow is required to finish these release checks.
 
 ## Release gates still open
 
@@ -84,7 +84,7 @@ More → Edit in Markdown remains an optional monospaced source mode; More → R
 
 Result bundles live under `~/Library/Developer/XcodeBuildMCP/workspaces/Fomio-Swift-a437303753c0/result-bundles/`. Counts refer to these groups, not one combined suite. During development, regression tests caught stale attachment positions and a nested-emphasis selection-end mapping defect; both were fixed and passed the later groups. Final iPad verification passed **94 checks**, with **4 live tests skipped**, on iPad Pro 11-inch (M5) / iPadOS 26.1: the full unit/contract target plus checklist creation/toggle and visual/source/preview return. This run includes capability gating, numbered-list conversion, nested selection toolbar states and formatted-newline handling. Result: `test_sim_2026-10-15T17-39-06-758Z_pid335_c6bebf3a.xcresult`; build diagnostics reported no warnings/errors.
 
-Visually inspected native [heading editing](validation/2026-10-15-wysiwyg/visual-heading.png) and [rendered preview](validation/2026-10-15-wysiwyg/preview.png), and [optional source mode](validation/2026-10-15-wysiwyg/markdown.png). Apple references consulted: [UITextView](https://developer.apple.com/documentation/uikit/uitextview), [TextEditor](https://developer.apple.com/documentation/swiftui/texteditor), and [text-input guidance](https://developer.apple.com/design/human-interface-guidelines/text-fields). Search excerpts were available; this is not a full HIG/accessibility acceptance claim.
+Visually inspected native heading editing and rendered preview, and optional source mode. Apple references consulted: [UITextView](https://developer.apple.com/documentation/uikit/uitextview), [TextEditor](https://developer.apple.com/documentation/swiftui/texteditor), and [text-input guidance](https://developer.apple.com/design/human-interface-guidelines/text-fields). Search excerpts were available; this is not a full HIG/accessibility acceptance claim.
 
 ### Limits
 

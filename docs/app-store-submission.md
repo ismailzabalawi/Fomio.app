@@ -95,7 +95,7 @@ After the required native screenshot slots were filled and build 7 was selected,
 
 ### Owner-approved Add for Review completed
 
-On 2026-10-18 at 08:02 Asia/Amman, after explicit owner approval for **Add for Review**, Connect accepted version 0.8.0 / build 7 and displays **Ready for Review**. Its Draft Submission panel shows **Item Ready to Submit**, iOS App 0.8.0, 0.8.0 (7), and a separate **Submit for Review** button. That final button was not clicked; no Waiting for Review status is claimed. Existing manual release remains selected. The earlier automatic-approval block is resolved for Add for Review only. [Confirmation](validation/2026-10-18-submission/review-draft-connect.jpg).
+On 2026-10-18 at 08:02 Asia/Amman, after explicit owner approval for **Add for Review**, Connect accepted version 0.8.0 / build 7 and displays **Ready for Review**. Its Draft Submission panel shows **Item Ready to Submit**, iOS App 0.8.0, 0.8.0 (7), and a separate **Submit for Review** button. That final button was not clicked; no Waiting for Review status is claimed. Existing manual release remains selected. The earlier automatic-approval block is resolved for Add for Review only. Confirmation.
 
 ## Branding and ASO preparation — 18 October 2026
 

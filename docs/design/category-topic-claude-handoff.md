@@ -38,7 +38,7 @@ Independent browser checks completed:
 
 Claude separately reported click-through checks for the core path, guest flow, AMOLED, iPad and narrow/AX2, and fixes for long-name overlap and abbreviated Back text. Its final report explicitly leaves search/filter return, About, Like/Save/Share and composer outcomes as code-reviewed rather than independently clicked. The notification return listed above adds independent evidence for that specific journey only. A background Claude review was mentioned but its completion was not observed; do not count it as passing evidence.
 
-Evidence: [light category](snapshots/2026-10-06-category-topic/category-review.jpg), [AMOLED topic](snapshots/2026-10-06-category-topic/topic-amoled-review.jpg). At the original narrow Claude canvas width the review index stacks above the device; the native product frame is distinct from that reviewer layout. Captures use the canvas's 75% preview zoom, not a different native text scale.
+Evidence: light category, AMOLED topic. At the original narrow Claude canvas width the review index stacks above the device; the native product frame is distinct from that reviewer layout. Captures use the canvas's 75% preview zoom, not a different native text scale.
 
 Remaining: independent search/filter/About/action/outcome journeys; exhaustive responsive/target/contrast checks; iPad resizing; real SwiftUI materials, Dynamic Type and VoiceOver; current deployment/catalog/member write verification. No app/backend code was changed and no live member action was performed.
 
@@ -56,7 +56,7 @@ A follow-up refinement removed the large empty photo upload slot and caption fro
 
 Claude separately reports core-flow checks, light/AMOLED/AX2/iPad visual checks, word wrapping and dark accent fixes, and a review-driven About target-height fix. Its first elevated report explicitly left guest/composer outcomes and 320/360 phones unclicked. No independent exhaustive hit-target, contrast, VoiceOver or Dynamic Type audit is claimed. Native title scaling and all deployed settings/permissions remain to be verified.
 
-Evidence: [elevated light board](snapshots/2026-10-06-category-topic/elevated-light-board.png), [elevated AMOLED board](snapshots/2026-10-06-category-topic/elevated-amoled-board.png). Captures use 75% Claude canvas zoom with its chat sidebar collapsed. No app or backend code changed.
+Evidence: elevated light board, elevated AMOLED board. Captures use 75% Claude canvas zoom with its chat sidebar collapsed. No app or backend code changed.
 
 ## Backend identity and themes refinement
 
@@ -70,7 +70,7 @@ Independent browser checks: Purple→Teal changes buttons, links, selected tabs 
 
 Claude separately reports light/dark core navigation, deep hierarchy, logo variants, AX2 reflow and palette checks. It left drawer tables and exact default two-line cutoff visually unconfirmed; its subsequent background review completion was not observed. Native icon resolution, full Dynamic Type/contrast/material validation, actual deployed assets/palette selection and theme CSS overrides remain pending. Native app/backend code were not changed.
 
-Evidence: [Purple scheme](snapshots/2026-10-06-category-topic/theme-purple-board.png), [Teal scheme](snapshots/2026-10-06-category-topic/theme-teal-board.png), captured at 75% canvas zoom. Earlier screenshots above are historical and retain the superseded monogram treatment.
+Evidence: Purple scheme, Teal scheme, captured at 75% canvas zoom. Earlier screenshots above are historical and retain the superseded monogram treatment.
 
 ## Creative direction for a younger audience
 
@@ -82,7 +82,7 @@ Claude reports edits to `mockups/FmNativeDevice.dc.html` and the elevated board'
 
 Independent checks: refreshed the canvas to load the updated shared component, inspected Purple light and Teal dark boards, navigated Bicycles→Wheel building→wheel discussion→Continue this thread→Show all replies. Topic 48213 and target/highlight #14 were preserved. Screenshots confirm representative visual changes, not exhaustive accessibility/contrast, native motion or deployed behavior.
 
-Evidence: [creative Purple light](snapshots/2026-10-06-category-topic/creative-purple-board.png), [creative Teal dark](snapshots/2026-10-06-category-topic/creative-teal-dark-board.png). Earlier screenshots are retained as historical comparisons. No native app/backend code changed.
+Evidence: creative Purple light, creative Teal dark. Earlier screenshots are retained as historical comparisons. No native app/backend code changed.
 
 ## Compact defaults and one subcategory level
 
@@ -94,7 +94,7 @@ Fixture taxonomy now has Bicycles as a root with Wheel building, Commuting and H
 
 Independent checks: refreshed shared-component preview; inspected the compact default Purple light board, AX2 reflow, and Teal dark. Opened Bicycles→Hub servicing→New discussion and confirmed the exact root/child destination and own gear identity. No post was submitted. Claude separately reports root/child/topic/focused/all-replies/back and composer checks; its background review completion was not independently observed. No native app/backend code changed.
 
-Evidence: [compact two-level board](snapshots/2026-10-06-category-topic/compact-two-level-board.png). Prior screenshots are historical and can show superseded deeper-category chains and larger defaults. Live taxonomy/settings alignment, native accessibility/materials and exhaustive visual checks remain pending.
+Evidence: compact two-level board. Prior screenshots are historical and can show superseded deeper-category chains and larger defaults. Live taxonomy/settings alignment, native accessibility/materials and exhaustive visual checks remain pending.
 
 
 ## Native implementation — 2026-10-06

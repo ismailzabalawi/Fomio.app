@@ -17,14 +17,14 @@
 | Rich-text unfold and fold | Exact native editor value, including the attachment placeholder, remains unchanged. One Retry upload action remains; Post stays disabled after the native sheet settles. |
 | Markdown unfold and fold | Exact full source remains unchanged, with one local attachment reference: `fomio-attachment://06259CA4-6219-4FC3-9EBF-1615A7BCAA75`. Markdown Preview remains available. |
 | Keep and reopen | The saved reply opens from Me → Drafts. It has one Resume upload action and the identical text and attachment reference after switching to Markdown. |
-| Retained photo bytes | After the passing test, the corresponding local JPEG still exists: **180,708 bytes**, decoded and visually inspected as the same walnut fixture image (960×640). [Retained file](retained-photo.jpg), [hash and storage evidence](retained-photo.json). This is a post-test read, not a before/after byte comparison. |
+| Retained photo bytes | After the passing test, the corresponding local JPEG still exists: **180,708 bytes**, decoded and visually inspected as the same walnut fixture image (960×640). Retained file, [hash and storage evidence](retained-photo.json). This is a post-test read, not a before/after byte comparison. |
 
 The recovered Resume upload state also exercises `ComposerState`'s existing restoration check: missing or undecodable retained photo bytes become `.missing`, rather than `.retained`. Saving/reopening here occurs within the app session; it is not a process-termination recovery test.
 
 ## Evidence
 
-- [Native rich-text closed](01-rich-closed.png) and [opened](02-rich-open.png) show the actual photo thumbnail during the earlier diagnostic run with the same fixture and production source.
-- [Markdown closed](03-markdown-closed.png) and [opened](04-markdown-open.png) are explicit-display native captures from the final passing run, showing the same attachment UUID.
+- Native rich-text closed and opened show the actual photo thumbnail during the earlier diagnostic run with the same fixture and production source.
+- Markdown closed and opened are explicit-display native captures from the final passing run, showing the same attachment UUID.
 - [Test summary](test-summary.json): `FomioUITests.testDuoPhotoReplyAcrossManualFolds`, 1 passed, 0 failed, 0 skipped. [Source snapshot](source-snapshot.json).
 - Machine-local result bundle: `/Users/ismailzabalawi/Library/Developer/XcodeBuildMCP/workspaces/Fomio-Swift-a437303753c0/result-bundles/test_sim_2026-10-18T20-30-42-495Z_pid74721_1f4a8daf.xcresult`; build/test log copied to `.build/duo-photo-final.log`.
 

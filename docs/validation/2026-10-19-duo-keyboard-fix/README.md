@@ -43,7 +43,7 @@ One fixture reply remained open through **466×678 → 1000×678 → 466×678** 
 | [Regular after key tap](typing-regular.log) | `Qq` | 2 (regular) | `{2,0}` | same / same | first responder, canUndo=1 |
 | [Compact returned after key tap](typing-compact-after.log) | `Qqq` | 1 (compact) | `{3,0}` | same / same | first responder, canUndo=1 |
 
-Keyboard and bar remain visible and clear in [regular-width capture](regular-input.png) and [compact-return capture](compact-return-input.png). For these screenshots, `simctl io ... screenshot --display=Resizable` captures the correct scene. Earlier numeric-display exports that showed a blank/inactive display are excluded from acceptance evidence.
+Keyboard and bar remain visible and clear in regular-width capture and compact-return capture. For these screenshots, `simctl io ... screenshot --display=Resizable` captures the correct scene. Earlier numeric-display exports that showed a blank/inactive display are excluded from acceptance evidence.
 
 A test-driver coordinate-conversion experiment reached regular width but failed to open More: **1 failed, 0 passed/skipped**, `test_sim_2026-10-19T14-23-07-733Z_pid62367_126efb64.xcresult`. The correction was removed; the driver retains the original reachability requirement and now logs concise frames. No accessibility or coordinate workaround was added to the app.
 

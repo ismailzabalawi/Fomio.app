@@ -22,7 +22,7 @@ Reconcile/invalidate branch caches during a successful refresh and refetch previ
 
 ### 4. P2 — Arabic phone composer does not rotate to landscape
 
-`testArabicComposerPreservesMixedTextAcrossModesAndRotation` again timed out waiting for a landscape window after the orientation request. [Captured outcome](arabic-rotation-failure.png) remains portrait. The test keeps mixed Arabic/Latin text intact before that failure. Prior iPad orientation-request tests did not assert actual landscape geometry and cannot close this phone gate. No orientation workaround was applied during this audit.
+`testArabicComposerPreservesMixedTextAcrossModesAndRotation` again timed out waiting for a landscape window after the orientation request. Captured outcome remains portrait. The test keeps mixed Arabic/Latin text intact before that failure. Prior iPad orientation-request tests did not assert actual landscape geometry and cannot close this phone gate. No orientation workaround was applied during this audit.
 
 ### 5. Verification gap — Catalogue test failed during active search
 

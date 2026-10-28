@@ -23,8 +23,8 @@
 
 ## Evidence and failed probe
 
-- Uninterrupted second cycle: [compact with keyboard](04-cycle-compact.png), [regular without keyboard](05-cycle-regular.png), [compact return with keyboard](06-cycle-compact-return.png). These are native simulator captures from **display 5, Resizable**. Native displays 1/3 are not the active scene during Resize mode.
-- [First expanded keyboard overlap](02-regular.png).
+- Uninterrupted second cycle: compact with keyboard, regular without keyboard, compact return with keyboard. These are native simulator captures from **display 5, Resizable**. Native displays 1/3 are not the active scene during Resize mode.
+- First expanded keyboard overlap.
 - Native state: [compact baseline](04-cycle-compact-state.log), [regular](05-cycle-regular-state.log), [compact return](06-cycle-compact-return-state.log). UI snapshots are saved alongside them; accessibility snapshots sometimes lag the visible keyboard, so the inspected native captures establish visibility.
 - Added opt-in `PreparedReplyResizeUITests.testPendingHistoryAndKeyboard` in `FomioUITests.swift`. It attaches without launching, activating or requesting orientation, requires `Trait draft` with a pending redo and visible keyboard, then exercises Redo/Undo. Normal runs skip it unless `FOMIO_REPLY_RESIZE_PROBE=1`.
 - The expanded-width probe **failed: 1 failed, 0 passed, 0 skipped**. It passed the initial text/keyboard checks, but tapping More computed hit point **{-1, -1}**, dismissed the keyboard and never opened Redo. [Test log](history-probe.log). This is not a passing automated history or resize result. Manual actions after return establish the scoped history result above.

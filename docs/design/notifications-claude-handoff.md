@@ -34,7 +34,7 @@ Claude separately reports exact-reply scroll retention, grouped Back, unavailabl
 
 Still unverified: independent full NT01–NT12 regression, cold-start push directly, narrow/RTL Back retention, setup-renewal settings status, every overlay with keyboard, exhaustive targets/contrast, native Dynamic Type/VoiceOver/materials, actual permission/Settings interactions, live Discourse reads/writes/realtime and physical-device push. Unsupported notifications without a valid web destination have no explicit per-row dismissal in this slice; that product decision remains open. Browser rendering is design evidence only.
 
-Captures: [light inbox](snapshots/2026-10-18-notifications/inbox-light.jpg), [narrow dark accessibility approximation](snapshots/2026-10-18-notifications/narrow-dark-ax2.jpg), at 75% Claude canvas zoom. No source export was downloaded; cloud files remain the editable mockup reference.
+Captures: light inbox, narrow dark accessibility approximation, at 75% Claude canvas zoom. No source export was downloaded; cloud files remain the editable mockup reference.
 
 ## Narrow tabs and device wording correction — 2026-10-18
 
@@ -51,7 +51,7 @@ Independent checks on the final rendered files:
 
 Claude additionally reports measuring 320pt AX2 across light/dark and LTR/RTL and updating the board's NT02/NT09/NT10 cases and Handoff notes. It identified an existing RTL time-order issue (“Unread min 12”); that unrelated localization issue remains recorded for implementation. Native Dynamic Type, VoiceOver and system tab behavior still require native validation. No app/backend code changed and no real permission or delivery operation occurred.
 
-Evidence: [corrected narrow tabs](snapshots/2026-10-18-notifications/narrow-tabs-fixed.jpg), [final-row clearance](snapshots/2026-10-18-notifications/bottom-clearance-fixed.jpg), [corrected iPad setup wording](snapshots/2026-10-18-notifications/ipad-wording-fixed.jpg). Final prototype: populated inbox, 320pt AX2, light/LTR, test failure injection cleared.
+Evidence: corrected narrow tabs, final-row clearance, corrected iPad setup wording. Final prototype: populated inbox, 320pt AX2, light/LTR, test failure injection cleared.
 
 ## Native implementation — 2026-10-18
 

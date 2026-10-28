@@ -4,7 +4,7 @@
 
 ## Cause and retained fix
 
-The [pre-fix screenshot](before-redo-clipped.png) and [accessibility hierarchy](before-menu-hierarchy.txt) show that the second menu **is open** after successful Undo. Its visible collection starts with Undo at y=20; Redo is outside the visible menu viewport and absent from the accessible buttons. The menu is taller than the space above the keyboard. This establishes a menu-order/overflow issue in the compact reproduction, not a lost undo manager or a failure to reopen the menu.
+The pre-fix screenshot and [accessibility hierarchy](before-menu-hierarchy.txt) show that the second menu **is open** after successful Undo. Its visible collection starts with Undo at y=20; Redo is outside the visible menu viewport and absent from the accessible buttons. The menu is taller than the space above the keyboard. This establishes a menu-order/overflow issue in the compact reproduction, not a lost undo manager or a failure to reopen the menu.
 
 `ComposerView.editorMenu` now puts Undo and Redo first. The existing native `ComposerMoreMenu` requests [fixed element ordering](https://developer.apple.com/documentation/uikit/uicontextmenuconfiguration/elementorder/fixed), keeping history at the visible start of the scrollable menu. The native control, menu refresh logic, adaptive rows, editor/history ownership and prior keyboard fix remain intact. No responder reset, extra hosting controller or coordinate workaround was added.
 

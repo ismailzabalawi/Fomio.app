@@ -13,7 +13,7 @@ Scope: the reviewed native adaptive browsing/search design and its IA/API contra
 | Exact Search/Saved/notification/public-link destinations and retained reading position | bb34cc9f five native exact-route/anchor cases;3pt/6pt scroll assertions unchanged | Verified at app-handler level. Production Universal Link entitlements/delivery remain deferred |
 | Draft identity/text/parent/photo recovery through size changes, Keep/reopen and auth intent | Phone orientation cases;1649be54 and8c48709c actual Duo roundtrips; peer editor Zoom/focus result | Recorded fixture/native journeys pass. No live write inferred |
 | Compact space use, dark wordmark and one/two/three-pane native adaptation |0ff7ced1;365eda30;bad7850d and inspected captures | Targeted five-layout visual/interaction checks pass, including actual native fold/window-control clearance |
-| Large text/RTL semantic rendering and native size changes | Phone actual AX5/in-place focus; [iPad native growth](ipad-native-text-growth-summary.json), [AX5 capture](ipad-native-ax5-empty-card.png) | Reported heading22.5→69pt and body20→128.5pt grow and restore; exact scope retained |
+| Large text/RTL semantic rendering and native size changes | Phone actual AX5/in-place focus; [iPad native growth](ipad-native-text-growth-summary.json), AX5 capture | Reported heading22.5→69pt and body20→128.5pt grow and restore; exact scope retained |
 | VoiceOver chooser/search/error/Retry/Cancel in each layout | Phone f63df1c6/453e46eb; [Closed Duo](duo-closed-voiceover-final-summary.json); [Open native actions](duo-open-voiceover-manual-observations.json) | Phone and Closed Duo gesture cases pass. Open native accessibility actions verified separately; automated Open touch run remains failed. Wide native chooser/filter proof is supplemented by completed native Cancel/search/error/Retry/Cancel actions with off restoration. Narrow iPad b3368447 passes one externally driven native-action observation including cleanup. Earlier interrupted/touch runs remain failed; these action reviews do not establish full rotor/touch traversal |
 | Current failure announced once without stealing focus, clear accessible Retry/Cancel; Reduce Motion | Repeated-attempt identity/state tests; guarded native announcement source; inspected phone query/Retry focus;ce613e56 real Reduce Motion recovery | Native state/focus and functional Reduce Motion verified. Human confirms the failure was announced once during VoiceOver runs (2026-10-21); tools do not independently hear audio |
 
@@ -46,7 +46,7 @@ Evidence (sources in [design-conformance/source-hashes.json](design-conformance/
 
 - Unit/contract: 180 tests, 176 passed, 4 opt-in live tests skipped, 0 failures (iPhone 17, iOS 27.1). New cases: `testReadingLayoutFollowsReviewedMinimaAndSlowerTextScaling` and `testKeptReplyIsOfferedOnItsTopicAndReplyContinuesIt`.
 - iPad Air 13-inch UI: 5 of 5 passed. These were the wide sidebar scopes, independent windows, rotation with reply and Keep draft, chooser filter across rotation, and AX3 RTL dark. The AX3 case now also asserts `reading-two-pane` at 1366 pt and a chooser field wider than 400 pt (form sheet, not the 360 pt popover).
-- Inspected captures: [AX3 RTL chooser sheet over two panes](design-conformance/ipad-air-ax3-rtl-chooser-sheet-two-pane.png), [kept reply card after Keep draft](design-conformance/ipad-kept-reply-card.png).
+- Inspected captures: AX3 RTL chooser sheet over two panes, kept reply card after Keep draft.
 
 Not rerun in this pass: the iPhone `AdaptiveReadingUITests`, Duo Open/Closed, narrow iPad and VoiceOver journeys. Those earlier results predate these sources. The hashes in `acceptance-source-hashes.json` no longer match `AppState.swift`, `FomioApp.swift`, `AdaptiveReadingLayout.swift`, `CommunityScopePicker.swift`, `DiscussionView.swift` or the strings files.
 
@@ -85,7 +85,7 @@ These failures remain. None comes from this pass, and none was suppressed:
 
 There is no earlier full-target iPhone baseline for these uncommitted sources, so the report/block and media-label failures are attributed from what the tests exercise, not from a before/after run.
 
-Inspected captures: [empty community](design-conformance/phone-empty-community-choose.png), [dark AX3 header](design-conformance/phone-dark-ax3-header-wordmark.png), [Arabic RTL header](design-conformance/phone-arabic-rtl-header.png), [sidebar marks and counts](design-conformance/ipad-sidebar-marks-counts.png), [sidebar hidden with show control](design-conformance/ipad-sidebar-hidden-show-control.png).
+Inspected captures: empty community, dark AX3 header, Arabic RTL header, sidebar marks and counts, sidebar hidden with show control.
 
 Still deliberately different: scope is kept per tab (IA map decision); the mockup shares one scope. Not rerun: Duo Open/Closed, narrow iPad and VoiceOver journeys.
 

@@ -42,8 +42,8 @@ Native Device Hub controls provided a working manual path. Safari displayed in l
 
 | Evidence | Result |
 | --- | --- |
-| [Home landscape](home-landscape.jpg) / [portrait](home-portrait.jpg) | Reading column and tab controls adapt to the available space. |
-| [Reply landscape](reply-landscape.jpg) / [portrait](reply-portrait.jpg) | Identical reply text and visible sheet controls after rotation. |
+| Home landscape / portrait | Reading column and tab controls adapt to the available space. |
+| Reply landscape / portrait | Identical reply text and visible sheet controls after rotation. |
 | LLDB after foreground landscape | Window bounds `874 × 402`, effective orientation `landscapeRight`, scene orientation lock false, root lock preference false, root supported mask 30. |
 
 Images are optimized simulator JPEG exports (800×368 landscape / 368×800 portrait), not native-resolution App Store assets. They contain fictional fixture content only.

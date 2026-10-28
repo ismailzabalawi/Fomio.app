@@ -18,6 +18,8 @@ Current native baseline: 2026-10-03. The fixture MVP is implemented; live releas
 
 ## Design and historical references
 
+Screenshots, photos and screen recordings under `docs/` were removed on 2026-10-29 to keep the repository small. Validation records still describe what each capture showed; the files remain in git history before that removal commit.
+
 - [Notifications IA and integration map](notifications-ia.md) is the 2026-10-18 pre-public planning packet: inbox/types, grouped-reply destinations, read/seen/count semantics, foreground freshness, push enrollment/relay boundaries, current native gaps and delivery acceptance. Source review is distinct from deployed/device verification.
 - [Notifications validation 2026-10-18](validation/2026-10-18-notifications/README.md) records native implementation evidence, simulator limits and live/push gates.
 - [iPad readiness](ipad-readiness.md) tracks the native adaptive implementation, packaging, iPad rotation/chooser/composer evidence, and remaining narrow-window and input acceptance.

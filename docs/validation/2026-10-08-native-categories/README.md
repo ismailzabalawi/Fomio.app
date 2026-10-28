@@ -18,6 +18,6 @@ Result bundles under `~/Library/Developer/XcodeBuildMCP/workspaces/Fomio-Swift-a
 | `test_sim_2026-10-08T09-45-50-222Z_pid88456_4e58d21d.xcresult` | Corrected live hierarchy/icon contract passed |
 | `test_sim_2026-10-08T09-46-45-757Z_pid88456_c1180c38.xcresult` | Strengthened live native hierarchy/navigation UI passed |
 
-[Directory capture](captures/30566D30-FAA8-4578-8583-905E6DC92714.png), [filtered child](captures/C588EA2F-CE61-43F8-A4A0-F153E6797BEC.png), [child feed](captures/5CBFD61A-4B23-4F04-A93E-43C733AD478D.png), [topic](captures/6404426A-405F-4989-988D-6FB0F4B69B31.png). Captures exported from the final passing XCTest result; manifest records provenance.
+Directory capture, filtered child, child feed, topic. Captures exported from the final passing XCTest result; manifest records provenance.
 
 Scope: live anonymous catalog and selected phone UI, not exhaustive device/dark-mode/member composer acceptance. Catalog updates appear on fresh launch or directory refresh; there is no realtime admin-edit subscription. Existing TestFlight binaries need a new build for the added icon mappings. No TestFlight upload was performed.

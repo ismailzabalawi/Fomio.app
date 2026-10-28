@@ -63,7 +63,7 @@ Independent checks through the rendered browser UI:
 - Refresh failed retained cards; Try again displayed Refreshing, then removed the warning.
 - Inspected default Purple/light editorial, Teal/dark AX2 with vertically stacked metadata, 320pt editorial and contained iPad. Theme, text-size, device and composition controls changed the rendered views.
 
-Captures: [editorial Home](snapshots/2026-10-07-topic-card/editorial-home.png), [Teal dark AX2](snapshots/2026-10-07-topic-card/teal-dark-ax2.png), [contained iPad](snapshots/2026-10-07-topic-card/contained-ipad.png), [narrow editorial](snapshots/2026-10-07-topic-card/narrow-editorial.png). Canvas zoom is 75% for editorial/narrow and 50% for dark/iPad; it is separate from mock accessibility scaling.
+Captures: editorial Home, Teal dark AX2, contained iPad, narrow editorial. Canvas zoom is 75% for editorial/narrow and 50% for dark/iPad; it is separate from mock accessibility scaling.
 
 Limits: representative browser review only. The 320pt tab labels abbreviate in the mock shell; native tab adaptation and bottom safe-area/content behavior need validation. All topic/user/category fixtures and thumbnails are illustrative. No deployed media/status contract, real native accessibility, material rendering, contrast audit or physical-device result is established. Claude reported a background review still running; its completion is not counted as evidence.
 
@@ -73,7 +73,7 @@ User requested seeing the proposed switch implemented. Claude updated the existi
 
 Claude reports changes to `mockups/FmHomeFeedDevice.dc.html` and the main Topic Card board, preserving card and historical shared files. It reports topic-anchor restoration when switching, synchronized reviewer controls/category feeds, keyboard/Escape/outside dismissal, and dark/narrow/AX2 checks. Its measured topic #5 position changed 64→63px while raw offset changed 900→1161px; topic Back retained Cards and the offset. These are Claude-reported checks, not independent native evidence. Loaded-page/error preservation and unavailable-storage fallback were not exercised.
 
-Independent browser checks: selected Cards in the product menu; feed changed to contained cards and readout reported Cards with anchor #1 at 162px. Reloaded the preview, reopened Prototype: Cards persisted. Reopened Home options and visually confirmed Cards checkmark. Left that menu open for review. Capture: [Feed appearance menu](snapshots/2026-10-08-topic-card/feed-appearance-menu.png), at 75% canvas zoom. Native app/backend code was not changed.
+Independent browser checks: selected Cards in the product menu; feed changed to contained cards and readout reported Cards with anchor #1 at 162px. Reloaded the preview, reopened Prototype: Cards persisted. Reopened Home options and visually confirmed Cards checkmark. Left that menu open for review. Capture: Feed appearance menu, at 75% canvas zoom. Native app/backend code was not changed.
 
 ## Native implementation — 2026-10-15
 

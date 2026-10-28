@@ -10,4 +10,4 @@ Applied through the user-authenticated Discourse editor at `https://meta.fomio.a
 - Staff category and all visibility/permission, posting and category-type controls left unedited.
 - HTTP 429 errors recovered with cooldowns and paced operations; final readback confirms complete identity application.
 
-[Overview](overview.jpg), [full directory](categories.jpg), [readback and collected before-edit snapshots](readback.json). These are browser evidence, not native screenshots or a complete permission/API test. Before snapshots are not a complete rollback baseline; Sports and General preceded collection. Native symbol mapping, dark mode, signed-out rendering and updated native API decoding remain pending.
+Overview, full directory, [readback and collected before-edit snapshots](readback.json). These are browser evidence, not native screenshots or a complete permission/API test. Before snapshots are not a complete rollback baseline; Sports and General preceded collection. Native symbol mapping, dark mode, signed-out rendering and updated native API decoding remain pending.

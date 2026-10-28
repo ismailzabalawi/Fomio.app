@@ -70,7 +70,7 @@ Tests cover account isolation and sign-out, durable recovery, persistence failur
 
 Native UI automation covers the core journey, guest authentication without posting, exact notification reply, missing live configuration, uncertain retry warning, failed-photo recovery and dark accessibility text. Results: **24 unit tests and 8 UI tests passed across the full regression run and targeted reruns** on iPhone 17 / iOS 26.1. The original regression run had a dismissal-timing failure in photo recovery; the test now waits for the composer to dismiss and passes. The added search-return test exposed a hidden search field; explicit native drawer placement corrected it and the targeted rerun passed. No build warnings were reported by the final build/test tools.
 
-Native launches succeeded on iPhone 17 and iPad Pro 11-inch (M5), iOS 26.1. Captures were visually inspected: [iPhone Home](validation/2026-10-03/iphone-home.jpg), [iPad Home](validation/2026-10-03/ipad-home.jpg). The iPad capture shows the system sidebar toggle, adaptive top tabs and centered content. Interactive iPad resizing and complete sidebar/composer validation remain pending.
+Native launches succeeded on iPhone 17 and iPad Pro 11-inch (M5), iOS 26.1. Captures were visually inspected: iPhone Home, iPad Home. The iPad capture shows the system sidebar toggle, adaptive top tabs and centered content. Interactive iPad resizing and complete sidebar/composer validation remain pending.
 
 XcodeBuildMCP result bundles are under `/Users/ismailzabalawi/Library/Developer/XcodeBuildMCP/workspaces/Fomio.app-1d5e7f2fae17/result-bundles/`:
 
@@ -127,7 +127,7 @@ Removed the separate UIKit Next/Done accessory row from title and body inputs. T
 
 Build and five targeted iPhone 17 Pro / iOS 26.1 fixture UI journeys passed across separate runs: large accessibility text, title/body focus and Keep editing, caret formatting/source switching, protected sheet dismissal, and native block editing. Existing tests were adapted to use native Next and drag dismissal instead of removed buttons. The block journey waits for menu readiness after restored keyboard focus. XCTest’s keyboard frame excludes QuickType; the screenshot verifies the visible boundary. Earlier test failures concerned the removed controls, an overly narrow geometry assertion, and gesture/menu timing. This is targeted docked-keyboard evidence, not a full-suite or floating-keyboard claim.
 
-Evidence: [composer capture](validation/2026-10-05/composer-keyboard.png). Local result bundles under `~/Library/Developer/XcodeBuildMCP/workspaces/Fomio-Swift-a437303753c0/result-bundles/`: `test_sim_2026-10-05T07-42-36-110Z_pid67831_ad4aa207.xcresult` (large text), `test_sim_2026-10-05T07-46-11-544Z_pid67831_4b210df0.xcresult` (title/focus), `test_sim_2026-10-05T07-47-47-155Z_pid67831_8223dc41.xcresult` (formatting and protected dismissal), and `test_sim_2026-10-05T07-53-36-449Z_pid67831_6e0282cd.xcresult` (final block journey).
+Evidence: composer capture. Local result bundles under `~/Library/Developer/XcodeBuildMCP/workspaces/Fomio-Swift-a437303753c0/result-bundles/`: `test_sim_2026-10-05T07-42-36-110Z_pid67831_ad4aa207.xcresult` (large text), `test_sim_2026-10-05T07-46-11-544Z_pid67831_4b210df0.xcresult` (title/focus), `test_sim_2026-10-05T07-47-47-155Z_pid67831_8223dc41.xcresult` (formatting and protected dismissal), and `test_sim_2026-10-05T07-53-36-449Z_pid67831_6e0282cd.xcresult` (final block journey).
 
 
 ### Bar visibility follow-up — 2026-10-05
@@ -136,7 +136,7 @@ The formatting bar now collapses to zero height and becomes invisible, untappabl
 
 Final iPhone 17 / iOS 26.1 targeted formatting journey passed: keyboard-down entry with a hidden bar, keyboard-up controls and alignment, caret Bold typing, Markdown switching, and hidden controls after dismissal. Result: `test_sim_2026-10-05T08-18-20-947Z_pid67831_7050b6d1.xcresult`. Protected swipe dismissal also passed in `test_sim_2026-10-05T08-11-37-980Z_pid67831_6f3f18eb.xcresult`. Earlier attempts exposed transition/menu timing and test harness interruptions; those are not passing evidence. The updated app also built and ran on iPhone 17 Pro / iOS 26.1. Floating keyboards and physical keyboard behavior were not exercised in this follow-up.
 
-Captures: [keyboard hidden](validation/2026-10-05/composer-keyboard-hidden.png), [keyboard visible](validation/2026-10-05/composer-keyboard-visible.png).
+Captures: keyboard hidden, keyboard visible.
 
 ## Floating composer bar (direction A) — 2026-10-05 (working tree)
 
@@ -150,7 +150,7 @@ UI test changes: the keyboard helper hides the keyboard with the bar's own contr
 
 Implemented and verified on iPhone 17 Pro / iOS 26.1 simulator:
 
-- Accessibility text sizes use Add block · More · Done/Keyboard, with formatting and transformations in More. SwiftUI icon targets stay 44 pt wide; semantic text can grow vertically. The largest system text size (`UICTContentSizeCategoryAccessibilityXXXL`) now keeps all three selection controls inside the screen and hittable. [Fixed capture](design/snapshots/2026-10-05-bar-audit/large-text-selection-fixed.png); [audit failure](design/snapshots/2026-10-05-bar-audit/large-text-selection.png).
+- Accessibility text sizes use Add block · More · Done/Keyboard, with formatting and transformations in More. SwiftUI icon targets stay 44 pt wide; semantic text can grow vertically. The largest system text size (`UICTContentSizeCategoryAccessibilityXXXL`) now keeps all three selection controls inside the screen and hittable. Fixed capture; audit failure.
 - Add block Cancel preserves a deliberately hidden keyboard. Keyboard-up Cancel still restores the captured caret; choosing a new text block explicitly focuses its new caret.
 - Bold, Italic and Link are disabled for heading/structured-block selections in More and omitted from the heading bar. Matching editor-command guards preserve source, selection and undo history, including selections spanning a heading and paragraph. Headings still render existing inline markup literally; full inline heading projection remains unimplemented.
 - Development display settings now apply directly to the composer sheet. The previous `--accessibility-text` test passed with regular composer controls and did not establish large-text acceptance.

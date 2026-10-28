@@ -29,7 +29,7 @@ Other icons and all colors match the proposal. Existing substantive Dev Blog Abo
 
 Verification: reloaded directory DOM matched all 26 IDs/names/icon symbols/colors with **zero mismatches**. Root descriptions were visible in the reloaded directory; child description saves were checked in their editor flow. White badge text and parent color families were confirmed from rendered badge styles. Separate reload checks were also completed for early edits including Politics and Science & Health. Temporary HTTP 429 responses affected the icon picker/navigation; cooldown and slower edits recovered them, and final readback resolved the save uncertainty. No rate-limit settings were changed.
 
-Evidence: [full directory capture](validation/2026-10-08-category-identities/categories.jpg), [overview](validation/2026-10-08-category-identities/overview.jpg), and [DOM readback and edit records](validation/2026-10-08-category-identities/readback.json). The edit records are collected UI snapshots, not a complete transactional rollback backup; the first Sports and General edits preceded that collection.
+Evidence: full directory capture, overview, and [DOM readback and edit records](validation/2026-10-08-category-identities/readback.json). The edit records are collected UI snapshots, not a complete transactional rollback backup; the first Sports and General edits preceded that collection.
 
 Remaining: native icon mapping support, native/live API decoding of these updated identities, dark-mode visual verification, and fresh signed-out rendering. No app or backend checkout code was changed in this application pass. Existing permissions were not modified; browser verification does not constitute a complete permission regression audit.
 

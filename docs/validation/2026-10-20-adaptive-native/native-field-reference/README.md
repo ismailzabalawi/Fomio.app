@@ -6,4 +6,4 @@ One view uses only `TextField(...).font(.body)` inside an unconstrained VStack. 
 
 Sources are stored as `.txt` to keep them outside app targets. To reproduce in a disposable folder, restore `App/ReferenceApp.swift`, `UITests/ReferenceUITests.swift` and `project.yml` from these files, run `xcodegen generate`, then test SearchFieldReference on the recorded simulator/runtime. No Fomio project regeneration occurred. The reference uses a separate bundle identifier and derived-data folder. Native Fomio tool settings were restored in the explicit `fomio-native` profile afterward; the original default profile was left untouched.
 
-[Summary](summary.json), [bare issue](bare-field-issue.txt), [minimum-height issue](minimum-height-field-issue.txt), [capture](bare-field.png), [hierarchy](bare-field-hierarchy.txt).
+[Summary](summary.json), [bare issue](bare-field-issue.txt), [minimum-height issue](minimum-height-field-issue.txt), capture, [hierarchy](bare-field-hierarchy.txt).

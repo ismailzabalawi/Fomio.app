@@ -58,13 +58,13 @@ Format menu, a bottom writing toolbar, and the publish action in the phone
 header. Discourse still handles writing, saving, uploads and publishing.
 Light, dark, Arabic layout and enlarged text have been exercised locally.
 
-- [Phone, light](composer-v4-implementation/phone-light.png)
-- [Phone, dark](composer-v4-implementation/phone-dark.png)
-- [Desktop, light](composer-v4-implementation/desktop-light.png)
-- [Desktop, dark](composer-v4-implementation/desktop-dark.png)
-- [Tablet](composer-v4-implementation/tablet-light.png)
-- [Offline warning at large text](composer-v4-implementation/phone-offline-largest.png)
-- [Writing below that warning](composer-v4-implementation/phone-offline-largest-writing.png)
+- Phone, light
+- Phone, dark
+- Desktop, light
+- Desktop, dark
+- Tablet
+- Offline warning at large text
+- Writing below that warning
 
 The [theme ZIP](composer-v4-implementation/fomio-composer-review.zip) contains
 only the current theme runtime files. It is a review package, not an updated

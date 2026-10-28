@@ -88,8 +88,8 @@ is deferred, not an implemented guarantee. D3/D5–D10 keep doc 17's scope.
   sign-off**. Temporary preview files are not shipped as theme code.
 
 Retained visual review outputs (local artifacts, not native integration proof):
-[light preview](/Users/ismailzabalawi/.codex/visualizations/2026/09/30/01a0f377-c789-7f61-a8ec-50de5779a30f/composer-feedback-light.png),
-[dark preview](/Users/ismailzabalawi/.codex/visualizations/2026/09/30/01a0f377-c789-7f61-a8ec-50de5779a30f/composer-feedback-dark.png).
+light preview,
+dark preview.
 
 ### Fidelity ledger
 

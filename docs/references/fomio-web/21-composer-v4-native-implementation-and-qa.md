@@ -113,13 +113,13 @@ not a replacement for the production homepage.
 
 | Evidence | Result |
 |---|---|
-| [Phone light](composer-v4-implementation/phone-light.png), 390×844 | Header action, category/audience, serif title and bottom toolbar. Upload, Format, emoji and Options fit at normal text size alongside the native mode switch. |
-| [Phone dark](composer-v4-implementation/phone-dark.png) and [desktop dark](composer-v4-implementation/desktop-dark.png) | Native Fomio AMOLED palette, same controls and writing hierarchy. |
-| [Desktop light](composer-v4-implementation/desktop-light.png), 1280×800 | Centered 840px native dock, native initial height 400px. Height remains user-resizable. |
-| [Tablet light](composer-v4-implementation/tablet-light.png), 834×1194 | Native dock at 802px width, no document horizontal overflow; existing draft text retained across resizing. D1's tablet customization remains deferred. |
-| [Largest text](composer-v4-implementation/phone-largest-text.png), 360×740 | Native 20px root font. Actions wrap without document overflow; toolbar labels no longer overlap. Native horizontal toolbar scrolling reaches Options. The single-line native title scrolls horizontally for long titles. |
-| [Arabic dark](composer-v4-implementation/phone-rtl-dark.png), 360×740 | Real native Arabic locale, RTL direction, mirrored header and category, zero document overflow. Theme-only Format copy currently falls back to English; full localization is not claimed. |
-| [Large offline warning](composer-v4-implementation/phone-offline-largest.png) and [writing after scrolling](composer-v4-implementation/phone-offline-largest-writing.png) | Actual blocked local draft-save request; warning remains readable. At 360×740/20px text the editor retains 160px height, and the field region scrolls by 131px to expose writing. Network blocking was cleared afterward. |
+| Phone light, 390×844 | Header action, category/audience, serif title and bottom toolbar. Upload, Format, emoji and Options fit at normal text size alongside the native mode switch. |
+| Phone dark and desktop dark | Native Fomio AMOLED palette, same controls and writing hierarchy. |
+| Desktop light, 1280×800 | Centered 840px native dock, native initial height 400px. Height remains user-resizable. |
+| Tablet light, 834×1194 | Native dock at 802px width, no document horizontal overflow; existing draft text retained across resizing. D1's tablet customization remains deferred. |
+| Largest text, 360×740 | Native 20px root font. Actions wrap without document overflow; toolbar labels no longer overlap. Native horizontal toolbar scrolling reaches Options. The single-line native title scrolls horizontally for long titles. |
+| Arabic dark, 360×740 | Real native Arabic locale, RTL direction, mirrored header and category, zero document overflow. Theme-only Format copy currently falls back to English; full localization is not claimed. |
+| Large offline warning and writing after scrolling | Actual blocked local draft-save request; warning remains readable. At 360×740/20px text the editor retains 160px height, and the field region scrolls by 131px to expose writing. Network blocking was cleared afterward. |
 | Upload and content blocks | A generated 96×96 test image uploaded through the native picker, rendered, resized to 75%, survived rich/Markdown switching and draft reload. Native Table Builder, Hide details, Blur spoiler and Build poll inserted their native markup. Correctly separated blocks rendered as a table, details, spoiler and poll in rich text. |
 | Plugin runtime | The isolated source export required `assets:precompile:build_plugins`; after compilation, native details, footnote, local date/time, spoiler and poll options appeared. No plugin functionality was reimplemented in the theme. |
 

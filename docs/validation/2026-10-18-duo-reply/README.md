@@ -22,9 +22,9 @@ Focused native fixture acceptance passes for closed/open transitions while writi
 
 ## Evidence
 
-- [Closed reply](01-closed-reply.png), [opened reply](02-open-reply.png).
-- [Selected word on inner display](03-open-selection.png), [same selection after folding](04-closed-selection.png).
-- [Open with keyboard](05-open-keyboard.png), [folded with keyboard](06-closed-keyboard.png), [reopened with continued typing](07-reopened-typing.png).
+- Closed reply, opened reply.
+- Selected word on inner display, same selection after folding.
+- Open with keyboard, folded with keyboard, reopened with continued typing.
 - Read-only LLDB snapshots: [before fold](open-selection-state.log), [after fold](closed-selection-state.log), [after repeated transitions and typing](reopened-state.log). Each debugger session detached before subsequent UI interaction.
 
 The simulator has multiple displays. Default tool screenshots can capture an inactive display and appear black. These captures explicitly use `simctl io … screenshot --display=1` for the outer display (1398×2034 pixels) and `--display=3` for the opened inner display (2853×2007 pixels in this orientation). A black inactive-display capture is not evidence of an app failure.
