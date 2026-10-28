@@ -65,6 +65,7 @@ private struct FeedLoadKey: Hashable { var scope: BrowseScope; var viewer: Searc
 
 struct FeedView: View {
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.supportsMultipleWindows) private var supportsMultipleWindows
     @Environment(AppState.self) private var app
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var textSize
@@ -368,7 +369,7 @@ struct FeedView: View {
     }
     private var optionsMenu: some View {
         Menu {
-            if UIDevice.current.userInterfaceIdiom == .pad {
+            if supportsMultipleWindows {
                 Button { openWindow(id: "browse") } label: { Label("New window", systemImage: "macwindow.badge.plus") }
                     .accessibilityIdentifier("new-browsing-window")
             }
