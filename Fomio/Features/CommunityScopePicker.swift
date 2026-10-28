@@ -100,7 +100,11 @@ struct CommunityScopePicker: View {
                         // single-line field's UIKit backing fails the text-clipping audit. Return still means Done.
                         TextField("Find communities", text: Binding(get: { query }, set: { value in
                             // Ending focus inside the text change is ignored in an iPad popover; defer it a turn.
-                            if value.contains("\n") { query = value.replacingOccurrences(of: "\n", with: ""); Task { @MainActor in focused = false } }
+                            if value.contains("\n") {
+                                query = value.replacingOccurrences(of: "\n", with: "")
+                                // Return is a newline in this vertical field; a focus change alone can leave the keyboard up in a popover.
+                                Task { @MainActor in focused = false; UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
+                            }
                             else { query = value }
                         }), axis: .vertical).focused($focused)
                             .lineLimit(1...3).font(.body).frame(minHeight: 44)

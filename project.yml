@@ -49,12 +49,18 @@ targets:
     type: bundle.unit-test
     platform: iOS
     sources: [FomioTests]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.fomio.mobile.tests
     dependencies:
       - target: Fomio
   FomioUITests:
     type: bundle.ui-testing
     platform: iOS
     sources: [FomioUITests]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.fomio.mobile.uitests
     dependencies:
       - target: Fomio
 schemes:

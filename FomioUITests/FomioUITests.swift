@@ -493,7 +493,7 @@ import UIKit
         for id in ["composer-insert", "composer-more", "composer-selection-done"] {
             let button = app.buttons[id]
             XCTAssertTrue(button.isHittable)
-            XCTAssertTrue(app.frame.contains(button.frame), "Control outside screen: \(id), \(button.frame)")
+            XCTAssertTrue(app.windows.firstMatch.frame.contains(button.frame), "Control outside the window: \(id), \(button.frame), window \(app.windows.firstMatch.frame)")
         }
     }
     func testComposerSelectionFormattingKeepsActionsReachable() {
@@ -506,7 +506,7 @@ import UIKit
         app.buttons["Bold"].firstMatch.tap()
         XCTAssertTrue(done.isHittable)
         for id in ["composer-insert", "composer-more", "composer-selection-done"] {
-            XCTAssertTrue(app.buttons[id].isHittable); XCTAssertTrue(app.frame.contains(app.buttons[id].frame))
+            XCTAssertTrue(app.buttons[id].isHittable); XCTAssertTrue(app.windows.firstMatch.frame.contains(app.buttons[id].frame))
         }
         let selection = XCTAttachment(screenshot: app.screenshot()); selection.name = "Polished contextual selection bar"; selection.lifetime = .keepAlways; add(selection)
         done.tap(); tapSettled(app.buttons["composer-more"]); app.buttons["Edit in Markdown"].tap()
@@ -682,11 +682,13 @@ import UIKit
         let app = launch()
         app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
         XCTAssertTrue(app.textViews["composer-body"].waitForExistence(timeout: 5))
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.08)).press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8)))
+        let grabber = app.navigationBars["Reply"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        grabber.press(forDuration: 0.1, thenDragTo: grabber.withOffset(CGVector(dx: 0, dy: 480)), withVelocity: .slow, thenHoldForDuration: 0.3)
         XCTAssertTrue(app.textViews["composer-body"].waitForNonExistence(timeout: 5))
         app.buttons["discussion-reply"].tap(); let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("Keep this writing")
         dismissComposerKeyboard(app)
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.08)).press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8)))
+        let changedGrabber = app.navigationBars["Reply"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        changedGrabber.press(forDuration: 0.1, thenDragTo: changedGrabber.withOffset(CGVector(dx: 0, dy: 480)), withVelocity: .slow, thenHoldForDuration: 0.3)
         XCTAssertTrue(app.buttons["Keep draft"].waitForExistence(timeout: 5)); app.buttons["Keep draft"].tap()
     }
     func testHomeDiscussionReplyAndKeepDraft() {

@@ -28,7 +28,7 @@ struct DiscussionView: View {
                             if let opening = state.opening { PostCard(post: opening, state: state).id(opening.id) }
                             if let kept { KeptReplyCard(draft: kept) { app.resume(kept) } }
                             HStack(alignment: .firstTextBaseline) {
-                                ScaledTitle("Replies", size: 19)
+                                ScaledTitle("Replies", size: 19).id("replies-heading")
                                 Text("\(page.summary.replyCount)").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
                                 Spacer()
                                 if let sort = page.effectiveSort {
@@ -50,6 +50,7 @@ struct DiscussionView: View {
                 }
             }.accessibilityIdentifier("discussion-content")
             .scrollPosition(id: $state.anchor, anchor: .top)
+            .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { state.viewport = $0 }
             // A reply branch can be taller than a short window. Centering that
             // branch can put its target header behind floating navigation controls.
             .task(id: state.highlight) {
@@ -59,17 +60,23 @@ struct DiscussionView: View {
                 guard let target = state.anchor ?? state.highlight else { return }
                 await Task.yield()
                 guard !Task.isCancelled else { return }
+                // A lazy stack cannot scroll to a reply it has not laid out. In a short window the reply list starts
+                // below the viewport, so bring its heading on screen first; that lays out the branches for the target.
+                proxy.scrollTo("replies-heading", anchor: .top)
+                try? await Task.sleep(for: .milliseconds(80))
+                guard !Task.isCancelled else { return }
                 proxy.scrollTo(target, anchor: .top)
             }
             .safeAreaInset(edge: .bottom) {
-                if let page = state.page, let opening = state.opening, page.canReply || app.username == nil {
-                    let target = state.focus == .notification ? state.highlighted ?? opening : opening
+                if let page = state.page, let target = state.replyTarget, page.canReply || app.username == nil, state.floatingReply {
                     ReadingColumn {
                         Button { app.reply(to: target) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left").font(.body.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44) }
                             .buttonStyle(.glassProminent).foregroundStyle(Color.fomioOnAccent).accessibilityIdentifier("discussion-reply")
                             .accessibilityLabel(target.number.rawValue > 1 ? "Reply to \(target.author) · #\(target.number.rawValue)" : "Reply to \(page.summary.title)")
                             .padding(.horizontal, 20).padding(.vertical, 8)
                     }
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { state.floatingBarHeight = $0 }
+                    .onDisappear { state.floatingBarHeight = 0 }
                 }
             }
         }.background(Color.fomioBackground).navigationTitle("Discussion").navigationBarTitleDisplayMode(.inline)
@@ -113,8 +120,10 @@ struct DiscussionView: View {
     }
     private func pathLink(_ category: Community) -> some View {
         Button { app.navigate(.community(category.id)) } label: {
-            HStack(spacing: 5) { CategoryMark(category: category, size: 20); Text(category.name).font(.caption.weight(.semibold)) }.frame(minHeight: 44)
-        }.buttonStyle(.plain).accessibilityLabel("Open community \(category.name)")
+            HStack(spacing: 5) { CategoryMark(category: category, size: 20); Text(category.name).font(.caption.weight(.semibold)) }
+        }
+        .buttonStyle(.plain).frame(minHeight: 44).contentShape(.rect)
+        .accessibilityLabel("Open community \(category.name)")
     }
     @ViewBuilder private func failure(_ error: String) -> some View {
         if state.page == nil, state.errorKind == .unavailable {
@@ -285,10 +294,14 @@ struct PostCard: View {
                 .font(.subheadline.weight(.medium)).padding(.horizontal, 12).frame(minHeight: 44).background(Color.fomioFill, in: .capsule)
         }.buttonStyle(.plain).accessibilityLabel(post.bookmarkID == nil ? "Save post by \(post.author)" : "Remove post by \(post.author) from Saved")
         if post.canReply || app.username == nil {
-            if post.number.rawValue > 1 {
-                Button { app.reply(to: post) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left").labelStyle(CompactIconLabel()).frame(minHeight: 44) }
-                    .font(.subheadline.weight(.medium)).buttonStyle(.plain).accessibilityLabel("Reply to \(post.author), post \(post.number.rawValue)")
-            }
+            // The opening post's row carries Reply too: the floating Reply hides while this row is on screen.
+            // While it stands in for the floating Reply it takes that button's identifier and label.
+            let standsIn = state.replyTarget?.id == post.id && !state.floatingReply
+            Button { app.reply(to: post) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left").labelStyle(CompactIconLabel()).frame(minHeight: 44) }
+                .font(.subheadline.weight(.medium)).buttonStyle(.plain)
+                .accessibilityLabel(!standsIn ? "Reply to \(post.author), post \(post.number.rawValue)"
+                    : post.number.rawValue > 1 ? "Reply to \(post.author) · #\(post.number.rawValue)" : "Reply to \(state.page?.summary.title ?? post.author)")
+                .accessibilityIdentifier(standsIn ? "discussion-reply" : "post-reply-\(post.number.rawValue)")
             Button { app.reply(to: post, quote: true) } label: { Label("Quote", systemImage: "quote.opening").labelStyle(CompactIconLabel()).foregroundStyle(Color.fomioSecondaryText).frame(minHeight: 44) }
                 .font(.subheadline.weight(.medium)).frame(minHeight: 44).buttonStyle(.plain).accessibilityLabel("Quote \(post.author)’s post")
         }
