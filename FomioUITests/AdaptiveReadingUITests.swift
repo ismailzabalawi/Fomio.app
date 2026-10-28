@@ -2,7 +2,7 @@ import XCTest
 import UIKit
 
 @MainActor final class AdaptiveReadingUITests: XCTestCase {
-    override func setUp() { continueAfterFailure = false }
+    override func setUp() { continueAfterFailure = false; MainActor.assumeIsolated { XCUIDevice.shared.orientation = .portrait } }
     private func launch(_ arguments: [String] = [], waitForScope: Bool = true) -> XCUIApplication {
         if ProcessInfo.processInfo.environment["FOMIO_REQUIRE_REDUCE_MOTION"] == "1" {
             XCTAssertTrue(UIAccessibility.isReduceMotionEnabled, "Enable the actual simulator Reduce Motion setting before this run")
@@ -83,8 +83,9 @@ import UIKit
     private func scrollTo(_ element: XCUIElement, in app: XCUIApplication) {
         for _ in 0..<10 {
             if element.exists && element.isHittable { return }
+            // Scroll the list itself: on a wide split view a window-level swipe lands in the detail pane.
             let list = app.scrollViews["scoped-search-results"]
-            if list.exists { list.swipeUp() } else { app.swipeUp() }
+            if list.exists { list.swipeUp() } else { app.scrollViews.matching(NSPredicate(format: "identifier BEGINSWITH %@", "feed-")).firstMatch.swipeUp() }
         }
         XCTAssertTrue(element.exists && element.isHittable)
     }
@@ -459,6 +460,7 @@ import UIKit
         XCTAssertTrue(app.buttons["community-scope"].label.contains("All communities"))
         app.buttons["community-scope"].tap()
         XCTAssertTrue(filter.waitForExistence(timeout: 10)); filter.tap(); filter.typeText("Turning\n")
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
         XCTAssertEqual(filter.value as? String, "Turning", "Done dismisses the keyboard without changing the local filter")
         let turning = app.buttons["scope-9"]
         XCTAssertTrue(turning.waitForExistence(timeout: 10))
@@ -556,9 +558,9 @@ import UIKit
             app.buttons["community-scope"].tap()
             let filter = app.textFields["community-filter"]
             // Done ends editing; audit the chooser itself rather than the system keyboard's prediction cells.
-            XCTAssertTrue(filter.waitForExistence(timeout: 10)); filter.tap(); filter.typeText("Wood\n")
+            XCTAssertTrue(filter.waitForExistence(timeout: 10)); filter.tap(); filter.typeText("Finishing\n")
             XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
-            XCTAssertEqual(filter.value as? String, "Wood", "Done keeps the filter without a newline")
+            XCTAssertEqual(filter.value as? String, "Finishing", "Done keeps the filter without a newline")
             XCTAssertTrue(app.buttons["scope-1"].waitForExistence(timeout: 10))
             try app.performAccessibilityAudit(for: [.contrast, .hitRegion, .sufficientElementDescription, .textClipped, .trait])
             capture(app, "Audited community chooser with filter")
