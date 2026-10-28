@@ -24,7 +24,7 @@ struct DiscussionView: View {
                             if let opening = state.opening { PostCard(post: opening, state: state).id(opening.id) }
                             if let kept { KeptReplyCard(draft: kept) { app.resume(kept) } }
                             HStack(alignment: .firstTextBaseline) {
-                                ScaledTitle("Replies", size: 19)
+                                ScaledTitle("Replies", size: 19).id("replies-heading")
                                 Text("\(page.summary.replyCount)").font(.subheadline).foregroundStyle(Color.fomioSecondaryText)
                                 Spacer()
                                 if let sort = page.effectiveSort {
@@ -55,6 +55,11 @@ struct DiscussionView: View {
                 // link can finish loading before the first scroll view layout.
                 guard let target = state.anchor ?? state.highlight else { return }
                 await Task.yield()
+                guard !Task.isCancelled else { return }
+                // A lazy stack cannot scroll to a reply it has not laid out. In a short window the reply list starts
+                // below the viewport, so bring its heading on screen first; that lays out the branches for the target.
+                proxy.scrollTo("replies-heading", anchor: .top)
+                try? await Task.sleep(for: .milliseconds(80))
                 guard !Task.isCancelled else { return }
                 proxy.scrollTo(target, anchor: .top)
             }
@@ -109,8 +114,10 @@ struct DiscussionView: View {
     }
     private func pathLink(_ category: Community) -> some View {
         Button { app.navigate(.community(category.id)) } label: {
-            HStack(spacing: 5) { CategoryMark(category: category, size: 20); Text(category.name).font(.caption.weight(.semibold)) }.frame(minHeight: 44)
-        }.buttonStyle(.plain).accessibilityLabel("Open community \(category.name)")
+            HStack(spacing: 5) { CategoryMark(category: category, size: 20); Text(category.name).font(.caption.weight(.semibold)) }
+        }
+        .buttonStyle(.plain).frame(minHeight: 44).contentShape(.rect)
+        .accessibilityLabel("Open community \(category.name)")
     }
     @ViewBuilder private func failure(_ error: String) -> some View {
         if state.page == nil, state.errorKind == .unavailable {

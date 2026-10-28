@@ -35,10 +35,9 @@ struct ComposerKeyboardAvoidance: UIViewRepresentable {
             super.layoutSubviews()
             guard let window else { return }
             let inWindow = keyboardFrame.map { window.convert($0, from: window.screen.coordinateSpace) } ?? .null
-            // The system already lifts the SwiftUI bar for a bottom-docked,
-            // full-width keyboard. Only floating/undocked geometry needs more room.
-            let undocked = !inWindow.isNull && (inWindow.width < window.bounds.width - 1 || inWindow.maxY < window.bounds.maxY - 1)
-            let keyboard = undocked ? convert(inWindow, from: window) : .null
+            // Usually SwiftUI has already lifted the bar above a docked keyboard, so the overlap is zero and
+            // no extra inset is added. After a pushed form closes that lift can be missing; measure the real overlap.
+            let keyboard = inWindow.isNull ? CGRect.null : convert(inWindow, from: window)
             let overlap = bounds.intersection(keyboard)
             let inset = overlap.isNull || overlap.isEmpty ? 0 : max(0, bounds.maxY - safeAreaInsets.bottom - overlap.minY)
             guard abs(inset - reportedInset) > 0.5 else { return }
