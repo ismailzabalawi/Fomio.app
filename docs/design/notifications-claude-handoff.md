@@ -52,3 +52,21 @@ Independent checks on the final rendered files:
 Claude additionally reports measuring 320pt AX2 across light/dark and LTR/RTL and updating the board's NT02/NT09/NT10 cases and Handoff notes. It identified an existing RTL time-order issue (“Unread min 12”); that unrelated localization issue remains recorded for implementation. Native Dynamic Type, VoiceOver and system tab behavior still require native validation. No app/backend code changed and no real permission or delivery operation occurred.
 
 Evidence: [corrected narrow tabs](snapshots/2026-10-18-notifications/narrow-tabs-fixed.jpg), [final-row clearance](snapshots/2026-10-18-notifications/bottom-clearance-fixed.jpg), [corrected iPad setup wording](snapshots/2026-10-18-notifications/ipad-wording-fixed.jpg). Final prototype: populated inbox, 320pt AX2, light/LTR, test failure injection cleared.
+
+## Native implementation — 2026-10-18
+
+Branch `claude/fomio-notifications` (worktree `.claude/worktrees/fomio-notifications`). The cloud board and `mockups/FmNotifDevice.dc.html` were read through the claude.ai design reader after the built-in browser proved unsigned; the device component and `support.js` are exported with hashes in [the snapshot source folder](snapshots/2026-10-18-notifications/README.md). The approved design is preserved: copy, row anatomy (dot + weight + “Unread” word, avatar or neutral glyph, action line, 2/3-line title, community and time), acknowledgment states, empty/footer states, settings statuses, explanation sheet, composer-protection and mismatch wording, iPhone/iOS vs iPad/iPadOS wording.
+
+Native deviations, all directed by the board's own Handoff: the browser tab bar is the system `TabView` (`sidebarAdaptable` on iPad), whose label sizing is native rather than the mock's 62/72 pt custom bar; community context appears only when the service supplies it (the notification serializer has no category, so live rows omit it); the fixture seed uses existing Fomio fixture people/topics instead of the mock's names; the reconnect/new-while-paging pill is not built because no realtime stream is enabled.
+
+### Unsupported rows — proposed dismissal (not built)
+
+Rows with no native or website destination can stay unread indefinitely, and website handoffs are not acknowledged because the app cannot observe the web visit. Proposal for product decision: a per-row “Mark as read” action (swipe action and context menu) shown only for website/unsupported destinations, requiring an explicit tap, sending the same exact-ID `PUT` with the existing failure/unknown handling. No bulk “mark all read”. Until approved, these rows stay unread and keep counting in the server badge.
+
+### Remaining gates
+
+Native Dynamic Type at every size, VoiceOver order and announcements, RTL, external keyboard and resized iPad windows need device review; live Discourse reads/mark-read/totals with a real member and deployed type mix; MessageBus protocol verification; relay, enrollment and APNs delivery on a distribution-signed device. See [implementation validation](../validation/2026-10-18-notifications/README.md).
+
+### Audit follow-up — 2026-10-18/19
+
+The four independent-audit findings and the expired-key tap gap are fixed with regression tests; see [validation](../validation/2026-10-18-notifications/README.md). No design change: wording, row anatomy and states are as approved.

@@ -16,7 +16,7 @@ Search requests bypass HTTP cache reuse, and the URLSession delegate refuses the
 
 ```mermaid
 flowchart TD
-  App[FomioApp: select environment] --> Shared[AppWindows: identity, services, draft ownership]
+  App[FomioApp: select environment] --> Shared[AppWindows: identity, services, draft ownership, notifications]
   Shared --> State[AppState per window: navigation, composer]
   State --> Views[SwiftUI feature views]
   Views --> Feature[Observable feature state]
@@ -97,3 +97,33 @@ Discussion presentation adds the parent/child path, compact scaling titles, name
 `FeedAppearance` (`compact` default, `cards`) is a device preference stored with `@AppStorage("feedAppearance")`. `FeedView` (Home and every category feed) reads it and shows a toolbar options menu beside Search/Create containing a native inline `Picker` with icons and a selected checkmark. There is no Settings screen. Both appearances render the same `FeedState` items, order, pins, pagination and error state; only presentation differs.
 
 Switching preserves the reading position without animation: before the change, `FeedGeometry` (non-observed, so scroll updates do not re-render) identifies the first visible topic and its offset from the visible top. After relayout the feed scrolls that topic to the top, then uses a clamped `UnitPoint` placement — through the following topic when the anchor was partly above the top — so the same fraction remains hidden (or the same distance below the top when fully visible). Feeds hidden in a navigation stack restore from their own last-known geometry when another feed changes the shared preference. Back navigation keeps the existing `scrollPosition(id:)` anchor. Near the end of loaded content the system clamps the offset, so a shorter appearance can move the anchor down.
+
+## Reporting & Safety — 2026-10-17 (superseded)
+
+_Historical: build 0.8.0 (7) replaced this build 6 implementation; the sources named below were removed. Current safety code is `Data/DiscourseSafety.swift` and `Features/SafetyViews.swift`._
+
+
+`Domain/Safety.swift` defines `ReportTarget` (post ID vs topic ID), `ReportReason`, `ReportContext`, `FlagAction`, `AccountSafety`, `MemberSafety`, `IgnoreDuration` and `SafetyRepository`. `CommunityService` now includes `SafetyRepository`. `Data/SafetyService.swift` is the live adapter: `site.json` catalog cached per service, fresh `posts/:id.json`, `post_actions.json`, `session/current.json`, `u/:username/card.json`, `u/:username/notification_level.json`, `about.json`. The fixture adapter in `FixtureService` simulates every designed outcome via launch arguments: `--report-outcome`, `--timeout-not-received`, `--ignore-outcome`, `--ignored a,b`, `--new-member`, `--ignored-list-fails`, plus presets `report`, `report-discussion`, `ignore`, `ignore-profile`, `staff-profile`, `hidden`, `safety`, `ignored-users`. `Features/SafetyState.swift` holds the report and Ignore state machines; `Features/SafetyViews.swift` the sheets, placeholder, Safety & Help and Ignored users. `AppState` owns account-scoped `safety`, `revealed`, the presented `report`/`ignoreSheet` and `safetyRevision`. `Post.flags` and `DiscussionPage.canFlagTopic` carry server permissions. Moderation stays in Discourse web tooling.
+
+## Notifications — 2026-10-18
+
+`Domain/Notifications.swift` defines `NotificationID` (distinct from topic/post IDs and post numbers), `NotificationKind` (known Discourse types plus `unknown(raw)`), the generic `NotificationItem` envelope, `NotificationResolver` (exact post, topic, grouped bucket, same-site website, unsupported), `NotificationCopy`, `NotificationHistoryPage` (raw-window `nextOffset`), `NotificationTotals` (server scope, 99 cap) and the typed `NotificationIntent`. `NotificationRepository` now exposes history, exact-ID mark-read and totals only; there is no bulk API.
+
+`Features/NotificationStore.swift` is an `@Observable` account-scoped store owned by `AppWindows` and shared by every window (a stand-alone `AppState` in unit tests owns its own): per-filter feeds (ids, raw next offset, page error, empty-batch flag), rows by ID, acknowledgment states, totals, refresh status and the inbox anchor. A generation token discards results from a previous account; `reset(account:)` runs on sign-in changes and sign-out. `AppState.open(notification:)` resolves the destination, clears any cached state for that route and records the pending acknowledgment in the tab; `DiscussionView` calls `AppState.displayed(_:state:)` after a successful load, which acknowledges only when the exact target is present. Grouped focus (`FocusReason.groupedReplies`) makes `DiscussionState` expand the parent's replies.
+
+`App/NotificationDevice.swift` separates `AlertPermissionProvider` (system or simulated) from `AlertEnrollmentService` (live: `UnavailableAlertEnrollment`; fixtures: simulated). `FomioAppDelegate` is the `UNUserNotificationCenterDelegate`; taps are parsed into intents and queued in `IncomingNotifications`. `AppWindows` installs the handler once and routes each tap to the window used most recently (the last to become key or active) that has finished restoring its account; a tap that arrives before any window is ready is held for the first one. Foreground delivery only triggers a refresh. No APNs registration, entitlement or relay client exists.
+
+### Notifications with several windows — 2026-10-22
+
+Merged with the iPad/Duo window model in `264c228`. One `NotificationStore`, one `NotificationDevice` and one duplicate-tap filter (`TapFilter`, ten seconds) live in `AppWindows`, so a read confirmed in one window updates rows, the Unread cursor and the badge in every window. Per window (`AppState`): the pending tap waiting for sign-in or the composer decision, read-on-display bookkeeping (`TabState.acknowledgments`), the composer guard and the website sheet.
+
+| Event | Shared (once) | Each window |
+|---|---|---|
+| Tap | Duplicate filter; target is the most recently used ready window | Site/account/key checks, composer guard, navigation |
+| Read on display | Exact-ID acknowledgment, rows, cursor, totals | Which route is waiting to acknowledge |
+| Sign-out | Store reset to guest, device alerts detached, duplicate filter and held taps cleared | Pending tap, composer decision, tabs (and their acknowledgments) reset |
+| Sign-in | Store rebound on an account change | Only the window that signed in opens the tap it held |
+| Rejected key on a tap | `expireAuthentication()` marks every window signed out | Only the tapped window asks to sign in |
+| Foreground / reconnect | 30-second throttle on the store; concurrent refreshes coalesce | — |
+
+Single-window behaviour is unchanged. A window that closes (`closeWindow`) stops receiving taps.

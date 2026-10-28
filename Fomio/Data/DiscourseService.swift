@@ -217,14 +217,33 @@ import Foundation
         for hit in items { metadata[hit.discussion.id] = hit.discussion; topicSlugs[hit.discussion.id] = hit.discussion.slug }
         return DiscussionSearchPage(items: items, nextPage: group.moreFullPageResults == true && request.page < 10 ? request.page + 1 : nil, reachedLimit: group.moreFullPageResults == true && request.page == 10)
     }
-    func notifications(page: Int) async throws -> Page<Notice> {
-        let dto = try await api.get(NoticesDTO.self, "notifications.json", query: [URLQueryItem(name: "offset", value: String(page * 30)), URLQueryItem(name: "limit", value: "30"), URLQueryItem(name: "filter_by_types", value: "replied,mentioned")], member: true)
-        let items = dto.notifications.filter { $0.notificationType == 1 || $0.notificationType == 2 }.map { notice in
-            Notice(id: notice.id, kind: notice.notificationType == 1 ? .mention : .reply, actor: notice.data?.displayUsername ?? "A member", title: notice.fancyTitle.map(HTMLContent.plainText) ?? "", topicID: notice.topicId.map { TopicID($0) }, number: notice.postNumber.map { PostNumber($0) }, age: RelativeAge.string(iso: notice.createdAt), read: notice.read)
-        }
-        return Page(items: items, nextPage: (page + 1) * 30 < dto.totalRowsNotifications ? page + 1 : nil)
+    func notificationHistory(offset: Int, limit: Int, filter: NotificationFilter) async throws -> NotificationHistoryPage {
+        // History branch: `filter_by_types` is parsed but not applied there, so it is never sent.
+        var query = [URLQueryItem(name: "offset", value: String(offset)), URLQueryItem(name: "limit", value: String(min(limit, 60)))]
+        if filter == .unread { query.append(URLQueryItem(name: "filter", value: "unread")) }
+        let dto = try await api.get(NoticesDTO.self, "notifications.json", query: query, member: true)
+        return NotificationHistoryPage(items: dto.notifications.map(\.domain), offset: offset, limit: min(limit, 60), totalRows: dto.totalRowsNotifications, seenNotificationID: dto.seenNotificationId)
     }
-    func markRead(_ notice: Notice) async throws { _ = try await api.json("notifications/mark-read.json", method: "PUT", payload: ["id": notice.id]) }
+    func markNotificationRead(_ id: NotificationID) async throws {
+        // A missing `id` would read every notification and bump the seen cursor. Never send without one.
+        guard id.rawValue > 0 else { throw RepositoryError.invalid("This notification has no identity to mark as read.") }
+        let data = try await api.json("notifications/mark-read.json", method: "PUT", payload: ["id": id.rawValue])
+        struct Result: Decodable { let success: String? }
+        guard (try? api.decode(Result.self, from: data).success) == "OK" else { throw RepositoryError.unconfirmed }
+    }
+    func credentialIsValid(username: String) async throws -> Bool {
+        struct Session: Decodable { struct User: Decodable { let username: String }; let currentUser: User }
+        do {
+            let session = try await api.get(Session.self, "session/current.json", member: true)
+            return session.currentUser.username.caseInsensitiveCompare(username) == .orderedSame
+        } catch let error as RepositoryError where [.denied, .unauthorized, .unavailable].contains(error) { return false }
+    }
+    func notificationTotals() async throws -> NotificationTotals {
+        struct DTO: Decodable { let unreadNotifications: Int? }
+        let dto = try await api.get(DTO.self, "notifications/totals.json", member: true)
+        guard let value = dto.unreadNotifications else { throw RepositoryError.invalid("The community did not report a notification total.") }
+        return NotificationTotals(unread: max(0, value))
+    }
     func profile(_ username: String) async throws -> Member {
         let dto = try await api.get(MemberDTO.self, "u/\(username).json")
         let recent = try await api.get(FeedEnvelope.self, "topics/created-by/\(username).json")
@@ -322,8 +341,40 @@ struct ContextDTO: Decodable { var topic: TopicDTO; var opPost: PostDTO; var anc
 struct SearchErrorDTO: Decodable { struct Group: Decodable { var error: String? }; var groupedSearchResult: Group? }
 struct SearchDTO: Decodable { struct Result: Decodable { var id: Int; var topicId: Int; var postNumber: Int; var blurb: String?; var username: String? }; struct Group: Decodable { var moreFullPageResults: Bool? }; var topics: [TopicDTO]?; var posts: [Result]?; var users: [UserDTO]?; var groupedSearchResult: Group? }
 struct NoticesDTO: Decodable {
-    struct Item: Decodable { struct Info: Decodable { var displayUsername: String? }; var id: Int; var notificationType: Int; var read: Bool; var topicId: Int?; var postNumber: Int?; var fancyTitle: String?; var createdAt: String?; var data: Info? }
-    var notifications: [Item]; var totalRowsNotifications: Int
+    struct Item: Decodable {
+        /// `data` is a free-form hash; only typed keys used by native destinations and copy are decoded.
+        struct Info: Decodable {
+            var displayUsername: String?; var originalUsername: String?; var username: String?; var topicTitle: String?
+            var replyToPostNumber: Int?; var consolidatedCount: Int?; var count: Int?; var groupName: String?
+            var badgeId: Int?; var badgeName: String?; var badgeSlug: String?; var inboxCount: Int?
+            private enum CodingKeys: String, CodingKey { case displayUsername, originalUsername, username, topicTitle, replyToPostNumber, consolidatedCount, count, groupName, badgeId, badgeName, badgeSlug, inboxCount }
+            init(from decoder: Decoder) throws {
+                // Plugins write arbitrary values into `data`; a mistyped key is dropped rather than failing the page.
+                guard let c = try? decoder.container(keyedBy: CodingKeys.self) else { return }
+                func text(_ key: CodingKeys) -> String? { (try? c.decodeIfPresent(String.self, forKey: key)) ?? nil }
+                func number(_ key: CodingKeys) -> Int? { ((try? c.decodeIfPresent(Int.self, forKey: key)) ?? nil) ?? text(key).flatMap(Int.init) }
+                displayUsername = text(.displayUsername); originalUsername = text(.originalUsername); username = text(.username); topicTitle = text(.topicTitle)
+                replyToPostNumber = number(.replyToPostNumber); consolidatedCount = number(.consolidatedCount); count = number(.count); groupName = text(.groupName)
+                badgeId = number(.badgeId); badgeName = text(.badgeName); badgeSlug = text(.badgeSlug); inboxCount = number(.inboxCount)
+            }
+        }
+        var id: Int; var notificationType: Int; var read: Bool; var highPriority: Bool?; var topicId: Int?; var postNumber: Int?; var fancyTitle: String?; var slug: String?; var createdAt: String?; var data: Info?; var actingUserName: String?
+        private enum CodingKeys: String, CodingKey { case id, notificationType, read, highPriority, topicId, postNumber, fancyTitle, slug, createdAt, data, actingUserName }
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            id = try c.decode(Int.self, forKey: .id); notificationType = try c.decode(Int.self, forKey: .notificationType); read = try c.decodeIfPresent(Bool.self, forKey: .read) ?? false
+            highPriority = try? c.decodeIfPresent(Bool.self, forKey: .highPriority); topicId = try? c.decodeIfPresent(Int.self, forKey: .topicId); postNumber = try? c.decodeIfPresent(Int.self, forKey: .postNumber)
+            fancyTitle = try? c.decodeIfPresent(String.self, forKey: .fancyTitle); slug = try? c.decodeIfPresent(String.self, forKey: .slug); createdAt = try? c.decodeIfPresent(String.self, forKey: .createdAt)
+            data = try? c.decodeIfPresent(Info.self, forKey: .data); actingUserName = try? c.decodeIfPresent(String.self, forKey: .actingUserName)
+        }
+        var domain: NotificationItem {
+            NotificationItem(id: .init(id), kind: NotificationKind(raw: notificationType), read: read, highPriority: highPriority == true, createdAt: createdAt, age: RelativeAge.string(iso: createdAt),
+                             topicID: topicId.map { TopicID($0) }, postNumber: postNumber.map { PostNumber($0) }, topicTitle: (fancyTitle ?? data?.topicTitle).map(HTMLContent.plainText), slug: slug,
+                             displayUsername: data?.displayUsername, originalUsername: data?.originalUsername, actingName: actingUserName, replyBucket: data?.replyToPostNumber.map { PostNumber($0) },
+                             consolidatedCount: data?.consolidatedCount, count: data?.count ?? data?.inboxCount, groupName: data?.groupName, badgeID: data?.badgeId, badgeName: data?.badgeName, badgeSlug: data?.badgeSlug, dataUsername: data?.username)
+        }
+    }
+    var notifications: [Item]; var totalRowsNotifications: Int; var seenNotificationId: Int?
 }
 struct MemberDTO: Decodable {
     struct User: Decodable {

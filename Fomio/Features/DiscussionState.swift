@@ -60,6 +60,11 @@ import Observation
                 }
                 if let previous { children[previous] = [context.target.id] } else { roots = context.target.post.number.rawValue == 1 ? [] : [context.target.id] }
                 page?.nextPage = nil; anchor = context.target.id
+                if case .groupedReplies = focus {
+                    // Grouped replies open the parent post with its new replies (sort=new), like the web bucket link.
+                    expanded.insert(context.target.id)
+                    if !childrenLoaded.contains(context.target.id) { await loadChildren(context.target.id, depth: 0, first: true) }
+                }
             } else {
                 let result = try await service.discussion(topicID, page: 0)
                 guard generation == requestGeneration else { return }
@@ -96,6 +101,13 @@ import Observation
         for child in children[id, default: []] { await restoreBranch(child, depth: depth + 1, wanted: wanted) }
     }
     var opening: Post? { page.flatMap { nodes[$0.opening.id] } }
+    /// Grouped-reply branches are only displayed once the parent's new replies loaded; a parent alone is not enough.
+    var requiredContentReady: Bool {
+        guard page != nil, error == nil else { return false }
+        guard case .groupedReplies = focus, case .thread = route else { return true }
+        guard let target = highlight else { return false }
+        return childrenLoaded.contains(target) && childErrors[target] == nil && !loadingChildren.contains(target)
+    }
     var highlighted: Post? { highlight.flatMap { nodes[$0] } }
     /// What the screen-level Reply answers: the notified post, otherwise the opening post.
     var replyTarget: Post? { focus == .notification ? highlighted ?? opening : opening }

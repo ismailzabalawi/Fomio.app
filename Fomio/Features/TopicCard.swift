@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Device-local feed presentation. Both appearances render the same topics, order, pins and destinations.
 enum FeedAppearance: String, CaseIterable, Identifiable {

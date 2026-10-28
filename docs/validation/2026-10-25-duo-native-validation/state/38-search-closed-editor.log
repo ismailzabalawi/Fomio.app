@@ -1,0 +1,5 @@
+window (0.0, 0.0, 678.0, 466.0) hSC=1 kbd? UIWindow
+textview 0x0000000119520000 frame=56,143 413x24 first=true sel={7, 0} undo=0x0000000119d300e0 canUndo=true canRedo=false attachments=0 text="joinery"
+window (0.0, 0.0, 678.0, 466.0) hSC=1 kbd? UITextEffectsWindow
+
+

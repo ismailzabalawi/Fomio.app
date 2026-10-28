@@ -44,6 +44,10 @@ UI tests set `FOMIO_UI_TEST_NAMESPACE` to a fresh UUID and use `Application Supp
 
 Me → Fixture scenarios provides outcome, offline, upload-failure and nested-capability controls. Diagnostics are available only when a fixture service is active. Fixture mutations disappear when the service restarts; local drafts survive. The sample photo action is for fixture recovery testing. “Add sample drafts” stores the mockup's reply, new-discussion and photo-not-included drafts for the current account.
 
+### Notification fixtures — 2026-10-18
+
+Fixture inbox rows mirror the approved mock cases (exact reply 5011, grouped branch 5010, mention, quote, unsupported with web fallback 5007, unavailable target 5006, unsupported without link 5002, grouped topic 4999, permission-filtered unread batch, older unread 4990). Fixture page size is 6; the seen cursor is 4998, so the badge reads 6. Arguments: `--notif-ack-fails` / `--notif-ack-unknown` (next mark-read fails or is unconfirmed once), `--notif-more-fails` (first older page fails), `--notif-empty`. Presets (`--preset`): `notif-settings`, `notif-setup-fails`, `notif-other-device`, `notif-consolidated`, `notif-push-tap`, `notif-push-other-account`, `notif-push-other-site`, `notif-push-composer`, `notif-push-duplicate`. All prompts, settings screens, website pages and pushes are labelled simulations; nothing reaches a live community.
+
 ## Live configuration
 
 Values live under the app target's `info.properties` in `project.yml`; XcodeGen writes them to `Fomio/Info.plist`, which Xcode merges with the generated plist. Custom keys set as `INFOPLIST_KEY_*` build settings are silently dropped, so do not move them back there. Rerun `xcodegen generate` after changing them.

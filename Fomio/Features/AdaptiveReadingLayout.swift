@@ -41,15 +41,16 @@ struct CommunitySidebar: View {
             VStack(alignment: .leading, spacing: 2) {
                 ForEach(AppTab.allCases) { tab in
                     let selected = app.selectedTab == tab
-                    // The tab bar is hidden beside the sidebar, so the sidebar carries its unread badge.
-                    let unread = tab == .notifications ? app.unreadCount : 0
+                    // The tab bar is hidden beside the sidebar, so the sidebar carries the server-scoped badge.
+                    let badge = tab == .notifications ? app.notificationBadge : nil
+                    let unread = badge == nil ? 0 : app.notifications.totals?.unread ?? 0
                     Button { app.selectedTab = tab } label: {
                         HStack(spacing: 8) {
                             Label(LocalizedStringKey(tab.title), systemImage: tab.symbol)
                                 .font(.body.weight(selected ? .semibold : .regular))
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                            if unread > 0 {
-                                Text(unread, format: .number).font(.footnote.weight(.semibold)).monospacedDigit()
+                            if let badge {
+                                Text(badge).font(.footnote.weight(.semibold)).monospacedDigit()
                                     .foregroundStyle(selected ? Color.fomioAccent : Color.fomioOnAccent)
                                     .padding(.horizontal, 7).frame(minWidth: 22, minHeight: 22)
                                     .background(selected ? Color.fomioOnAccent : Color.fomioAccent, in: .capsule)

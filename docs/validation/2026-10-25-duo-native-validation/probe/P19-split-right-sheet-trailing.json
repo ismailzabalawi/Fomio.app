@@ -1,0 +1,5 @@
+{
+  "root-A" : "frame=16,238 353x380\nsafe t0 l0 b0 r0\nhSC=compact vSC=regular\ntoolbarVerticalEdge=trailing\ndivision=[\"-16,-238 13x669 inactive\"]\nocclusion=[\"179,-217 57x37 inactive\", \"369,-238 84x124 active\"]",
+  "sheet-leading" : "frame=92,90 345x521\nsafe t0 l0 b0 r0\nhSC=compact vSC=regular\ntoolbarVerticalEdge=leading\ndivision=[]\nocclusion=[]",
+  "sheet-trailing" : "frame=24,98 345x521\nsafe t0 l0 b0 r0\nhSC=compact vSC=regular\ntoolbarVerticalEdge=trailing\ndivision=[\"-24,-98 13x669 inactive\"]\nocclusion=[\"171,-77 57x37 inactive\", \"361,-98 84x124 active\"]"
+}

@@ -24,9 +24,16 @@ extension SearchRepository {
     func verifySearchViewer(username: String) async throws { throw RepositoryError.unauthorized }
 }
 @MainActor protocol NotificationRepository {
-    func notifications(page: Int) async throws -> Page<Notice>
-    func markRead(_ notice: Notice) async throws
+    /// History contract: raw `offset`/`limit` window with an optional server read filter. No type filtering.
+    func notificationHistory(offset: Int, limit: Int, filter: NotificationFilter) async throws -> NotificationHistoryPage
+    /// Exact-ID acknowledgment only. There is deliberately no bulk variant.
+    func markNotificationRead(_ id: NotificationID) async throws
+    func notificationTotals() async throws -> NotificationTotals
+    /// Whether the stored per-user key still authenticates `username`. Discourse answers a revoked or expired key
+    /// with 403 `invalid_access` on every request, so content errors alone cannot reveal it.
+    func credentialIsValid(username: String) async throws -> Bool
 }
+extension NotificationRepository { func credentialIsValid(username: String) async throws -> Bool { true } }
 @MainActor protocol ProfileRepository { func profile(_ username: String) async throws -> Member }
 @MainActor protocol BookmarkRepository {
     func saved(username: String, page: Int) async throws -> Page<SavedItem>

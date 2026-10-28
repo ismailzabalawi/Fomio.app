@@ -1,0 +1,67 @@
+t6 label: Thumbnail failed to load: the card falls back to text, in Repairs, Electronics, started by theo, 1 reply, active 2 hours ago, Has image
+frame: (20.0, 557.6666666666666, 362.0, 122.33333333333337)
+Attributes: Button, 0x1065a9900, {{20.0, 557.7}, {362.0, 122.3}}, identifier: 'topic-5004', label: 'Thumbnail failed to load: the card falls back to text, in Repairs, Electronics, started by theo, 1 reply, active 2 hours ago, Has image'
+Element subtree:
+ →Button, 0x1065a9900, {{20.0, 557.7}, {362.0, 122.3}}, identifier: 'topic-5004', label: 'Thumbnail failed to load: the card falls back to text, in Repairs, Electronics, started by theo, 1 reply, active 2 hours ago, Has image'
+    StaticText, 0x1065ab980, {{20.0, 557.7}, {275.7, 46.3}}, label: 'Thumbnail failed to load: the card falls back to text'
+    Other, 0x1065a83c0, {{310.0, 557.7}, {72.0, 72.0}}, label: 'Loading image'
+    StaticText, 0x1065a88c0, {{20.0, 608.0}, {261.3, 42.0}}, label: 'This fictional topic points at a missing image so the media slot is removed.'
+    StaticText, 0x1065a8a00, {{20.0, 660.0}, {20.0, 20.0}}, label: 'T'
+    StaticText, 0x1065a9180, {{46.0, 661.2}, {95.0, 17.7}}, label: 'Started by theo'
+    StaticText, 0x1065a92c0, {{147.0, 661.2}, {4.0, 17.7}}, label: '·'
+    StaticText, 0x1065a8dc0, {{158.3, 661.2}, {55.3, 17.7}}, label: '1 reply'
+    Image, 0x1065a9040, {{158.3, 664.7}, {11.3, 10.7}}, identifier: 'bubble.left', label: 'Comment Left'
+    StaticText, 0x1065a8f00, {{219.7, 661.2}, {4.0, 17.7}}, label: '·'
+    StaticText, 0x1065a8c80, {{229.7, 661.2}, {82.7, 17.7}}, label: 'Active 2h ago'
+Path to element:
+ →Application, 0x106593700, pid: 71207, label: 'Fomio'
+  ↳Window (Main), 0x106591b80, {{0.0, 0.0}, {402.0, 874.0}}
+   ↳Other, 0x106592080, {{0.0, 0.0}, {402.0, 874.0}}
+    ↳Other, 0x1065921c0, {{0.0, 0.0}, {402.0, 874.0}}
+     ↳Other, 0x106592300, {{0.0, 0.0}, {402.0, 874.0}}
+      ↳Other, 0x106592440, {{0.0, 0.0}, {402.0, 874.0}}
+       ↳Other, 0x106592580, {{0.0, 0.0}, {402.0, 874.0}}
+        ↳Other, 0x1065926c0, {{0.0, 0.0}, {402.0, 874.0}}
+         ↳Other, 0x106592800, {{0.0, 0.0}, {402.0, 874.0}}
+          ↳Other, 0x106592940, {{0.0, 0.0}, {402.0, 874.0}}
+           ↳Other, 0x106592a80, {{0.0, 0.0}, {402.0, 874.0}}
+            ↳Other, 0x106592bc0, {{0.0, 0.0}, {402.0, 874.0}}
+             ↳Other, 0x106592d00, {{0.0, 0.0}, {402.0, 874.0}}
+              ↳Other, 0x106593e80, {{0.0, 0.0}, {402.0, 874.0}}
+               ↳Other, 0x102a83200, {{0.0, 0.0}, {402.0, 874.0}}
+                ↳Other, 0x102a835c0, {{0.0, 0.0}, {402.0, 874.0}}
+                 ↳Other, 0x102a83980, {{0.0, 0.0}, {402.0, 874.0}}
+                  ↳ScrollView, 0x102a81040, {{0.0, 0.0}, {402.0, 874.0}}, identifier: 'feed-compact'
+                   ↳Other, 0x102a808c0, {{0.0, -218.0}, {402.0, 1009.0}}
+                    ↳Other, 0x102a83700, {{20.0, -214.0}, {382.0, 957.7}}
+                     ↳Button, 0x1065a9900, {{20.0, 557.7}, {362.0, 122.3}}, identifier: 'topic-5004', label: 'Thumbnail failed to load: the card falls back to text, in Repairs, Electronics, started by theo, 1 reply, active 2 hours ago, Has image'
+Query chain:
+ →Find: Target Application 'com.fomio.mobile'
+  Output: {
+    Application, 0x1100a4140, pid: 71207, label: 'Fomio'
+  }
+  ↪︎Find: Descendants matching type Button
+    Output: {
+      Button, 0x11009e080, {{25.0, 795.0}, {95.3, 54.0}}, identifier: 'house', label: 'Home', Selected
+      Button, 0x11009e300, {{92.3, 795.0}, {123.5, 54.0}}, identifier: 'square.grid.2x2', label: 'Communities'
+      Button, 0x11009e580, {{187.8, 795.0}, {121.9, 54.0}}, identifier: 'bell', label: 'Notifications', value: 6 items
+      Button, 0x11009e800, {{281.7, 795.0}, {95.3, 54.0}}, identifier: 'person.crop.circle', label: 'Me'
+      Button, 0x110076580, {{344.0, 66.0}, {38.0, 36.0}}, identifier: 'feed-options', label: 'Home options'
+      Button, 0x110076080, {{231.3, 66.0}, {39.7, 36.0}}, identifier: 'magnifyingglass', label: 'Search discussions'
+      Button, 0x110076440, {{287.0, 66.0}, {41.0, 36.0}}, identifier: 'square.and.pencil', label: 'New discussion'
+      Button, 0x110077200, {{20.0, -132.7}, {156.7, 44.0}}, identifier: 'topic-category-6', label: 'Open community Repairs, in Electronics'
+      Button, 0x1100775c0, {{20.0, -92.7}, {362.0, 98.3}}, identifier: 'topic-4190', label: 'Bench PSU hums after a fuse swap, in Repairs, Electronics, started by devon, 14 replies, active 2 minutes ago'
+      Button, 0x11008c3c0, {{20.0, 24.0}, {96.7, 44.0}}, identifier: 'topic-category-5', label: 'Open community Electronics'
+      Button, 0x11008ca00, {{20.0, 64.0}, {362.0, 122.3}}, identifier: 'topic-5001', label: 'Read first: how photos and measurements help a repair question, Pinned, in Electronics, started by devon, No replies yet, active 3 hours ago'
+      Button, 0x11008d7c0, {{20.0, 204.7}, {91.7, 44.0}}, identifier: 'topic-category-8', label: 'Open community Gardening'
+      Button, 0x11008db80, {{20.0, 244.7}, {362.0, 122.3}}, identifier: 'topic-5002', label: 'ما أفضل طريقة لري شجرة تين في أصيص خلال الشتاء؟, in Gardening, started by ines.r, 3 replies, active 40 minutes ago'
+      Button, 0x11008e940, {{20.0, 385.3}, {173.3, 44.0}}, identifier: 'topic-category-9', label: 'Open community Turning, in Woodworking'
+      Button, 0x11008ed00, {{20.0, 425.3}, {362.0, 74.0}}, identifier: 'topic-5003', label: 'Untitled bench notes without an opening excerpt, in Turning, Woodworking, No replies yet'
+      Button, 0x11008f340, {{20.0, 517.7}, {156.7, 44.0}}, identifier: 'topic-category-6', label: 'Open community Repairs, in Electronics'
+      Button, 0x11008f700, {{20.0, 557.7}, {362.0, 122.3}}, identifier: 'topic-5004', label: 'Thumbnail failed to load: the card falls back to text, in Repairs, Electronics, started by theo, 1 reply, active 2 hours ago, Has image'
+      Button, 0x11009c640, {{134.7, 721.3}, {132.7, 22.3}}, label: 'More discussions'
+    }
+    ↪︎Find: Elements matching predicate '"topic-5004" IN identifiers'
+      Output: {
+        Button, 0x110063980, {{20.0, 557.7}, {362.0, 122.3}}, identifier: 'topic-5004', label: 'Thumbnail failed to load: the card falls back to text, in Repairs, Electronics, started by theo, 1 reply, active 2 hours ago, Has image'
+      }

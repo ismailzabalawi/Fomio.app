@@ -1,6 +1,7 @@
 import SwiftUI
 
 @main struct FomioApp: App {
+    @UIApplicationDelegateAdaptor(FomioAppDelegate.self) private var delegate
     @State private var windows: AppWindows
     init() {
         #if DEBUG
@@ -17,6 +18,7 @@ import SwiftUI
         #else
         let fixtureMode = false
         #endif
+        let windows: AppWindows
         if fixtureMode {
             let fixture = FixtureService()
             var fixtureConfiguration: LiveConfiguration?
@@ -39,6 +41,10 @@ import SwiftUI
             if arguments.contains("--store-preview") { fixture.prepareStorePreview() }
             if DevelopmentPresets.requested == "loading" { fixture.feedDelay = .seconds(120) }
             if DevelopmentPresets.requested == "partial-community" { fixture.omittedCommunityIDs.insert(.init(9)) }
+            if arguments.contains("--notif-ack-fails") { fixture.notices.nextAcknowledgment = .fail }
+            if arguments.contains("--notif-ack-unknown") { fixture.notices.nextAcknowledgment = .unknown }
+            if arguments.contains("--notif-more-fails") { fixture.notices.failNextPage = true }
+            if arguments.contains("--notif-empty") { fixture.notices.rows = [] }
             #endif
             var store = DraftStore()
             #if DEBUG
@@ -46,10 +52,12 @@ import SwiftUI
                 store = DraftStore(directory: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("UITests/" + namespace.uuidString))
             }
             #endif
-            _windows = State(initialValue: AppWindows(service: fixture, fixture: fixture, configuration: fixtureConfiguration, store: store))
+            windows = AppWindows(service: fixture, fixture: fixture, configuration: fixtureConfiguration, store: store)
         } else {
-            _windows = State(initialValue: AppWindows(service: DiscourseService(configuration: configuration), fixture: nil, configuration: configuration))
+            windows = AppWindows(service: DiscourseService(configuration: configuration), fixture: nil, configuration: configuration)
         }
+        windows.installNotificationHandlers()
+        _windows = State(initialValue: windows)
     }
     var body: some Scene {
         WindowGroup("Fomio", id: "browse") {
@@ -88,6 +96,11 @@ private struct FomioWindow: View {
         .background(PresentingWindowReader { window in
             if let identifier = window?.windowScene?.session.persistentIdentifier { sceneSessionID = identifier }
         })
+        // Side-by-side windows are all `.active`; the key window is the one used most recently, so taps open there.
+        .onReceive(NotificationCenter.default.publisher(for: UIWindow.didBecomeKeyNotification)) { notification in
+            guard let window = notification.object as? UIWindow, window.windowScene?.session.persistentIdentifier == sceneSessionID else { return }
+            state?.becameActive()
+        }
         .onReceive(NotificationCenter.default.publisher(for: UIScene.didDisconnectNotification)) { notification in
             guard let scene = notification.object as? UIScene, scene.session.persistentIdentifier == sceneSessionID else { return }
             state?.closeWindow()
@@ -105,18 +118,29 @@ struct AppShell: View {
                 TabView(selection: $app.selectedTab) {
                     ForEach(AppTab.allCases) { tab in
                         Tab(LocalizedStringKey(tab.title), systemImage: tab.symbol, value: tab) { TabRoot(app: app, tab: tab, state: app.tabs[tab]!) }
-                            .badge(tab == .notifications ? app.unreadCount : 0)
+                            .badge(tab == .notifications ? app.notificationBadge.map { Text($0) } : nil)
                     }
                 }.tabViewStyle(.tabBarOnly)
+                #if DEBUG
+                .overlay(alignment: .bottomTrailing) { SimulatedPushControl() }
+                #endif
                 .modifier(ToastHost(message: app.composer == nil ? app.toastMessage : nil))
-                .sheet(item: $app.composer) { composer in
+                .sheet(item: $app.composer, onDismiss: { app.composerClosed() }) { composer in
                     ComposerView(state: composer)
                         .presentationSizing(ComposerPresentationSizing(isRegularWidth: horizontalSizeClass == .regular))
+                        .safeAreaInset(edge: .top, spacing: 0) { PendingNotificationChip() }
+                        .alert("Open the notification?", isPresented: Binding(get: { app.intentNeedsComposerDecision && app.composer != nil }, set: { if !$0 { app.keepWritingWithPendingNotification() } })) {
+                            Button("Keep Writing", role: .cancel) { app.keepWritingWithPendingNotification() }
+                            if composer.draft.submission != .submitting { Button("Save Draft and Open") { app.saveDraftAndOpenPendingNotification() } }
+                        } message: { Text("Your writing has changes. If you open the notification, the draft is saved on this \(app.device.wording.device).") }
                         .environment(app).modifier(DevelopmentDisplaySettings()).presentationDetents([.large]).presentationCompactAdaptation(.sheet).statusBarHidden(false)
                 }
                 .sheet(isPresented: $app.authRequested, onDismiss: { app.cancelAuthenticationIntent() }) { SignInView(app: app) }
+                .sheet(item: Binding(get: { app.webDestination.map(IdentifiedURL.init) }, set: { app.webDestination = $0?.url })) { WebDestinationSheet(url: $0.url).environment(app) }
                 .task {
-                    await app.restoreAccount(); await app.refreshSafety(); await app.loadTheme(); do { try app.reconcileDraftFiles() } catch { app.banner = error.localizedDescription }; await app.loadCommunities(); await app.refreshUnread()
+                    await app.restoreAccount(); await app.refreshSafety(); await app.loadTheme(); do { try app.reconcileDraftFiles() } catch { app.banner = error.localizedDescription }; await app.loadCommunities(); await app.refreshNotificationTotals()
+                    // Alert handlers are installed once by AppWindows; taps reach this window only from here on.
+                    app.notificationsReady()
                     #if DEBUG
                     if let preset = DevelopmentPresets.requested { await DevelopmentPresets.apply(preset, to: app) }
                     #endif
@@ -129,7 +153,10 @@ struct AppShell: View {
         .tint(Color.fomioAccent)
         .foregroundStyle(Color.fomioText)
         .background(Color.fomioBackground)
-        .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await app.refreshSafety() } } }
+        // A window that opens already active counts as the latest one for notification taps.
+        .onChange(of: scenePhase, initial: true) { _, phase in if phase == .active { app.becameActive() } }
+        .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await app.refreshSafety(); await app.foregroundRefresh() } } }
+        .onChange(of: app.isOffline) { wasOffline, offline in if wasOffline && !offline { Task { await app.foregroundRefresh(force: true) } } }
         .alert("Fomio", isPresented: Binding(get: { app.banner != nil }, set: { if !$0 { app.banner = nil } })) { Button("OK") { app.banner = nil } } message: { Text(app.banner ?? "") }
     }
 }
@@ -307,6 +334,9 @@ struct TabRoot: View {
         case .diagnostics: DiagnosticsView()
         case let .denied(id): AccessDeniedView(name: app.category(id)?.name ?? "This community")
         case .unavailable: UnavailableTargetView()
+        case let .notificationInfo(id): NotificationInfoView(id: id)
+        case .notificationSettings: NotificationSettingsView()
+        case let .notificationMismatch(name): NotificationMismatchView(intended: name)
         }
     }
 }
@@ -415,3 +445,18 @@ struct DevelopmentDisplaySettings: ViewModifier {
         #endif
     }
 }
+
+struct IdentifiedURL: Identifiable { let url: URL; var id: String { url.absoluteString } }
+
+#if DEBUG
+/// UI tests (`--push-control`): sends a fictional alert tap through the real handler from inside this window.
+private struct SimulatedPushControl: View {
+    var body: some View {
+        if ProcessInfo.processInfo.arguments.contains("--push-control") {
+            Button("Simulate notification tap") {
+                IncomingNotifications.shared.deliver(NotificationIntent(site: NotificationFixture.site, username: AppState.fixtureMember, notificationID: .init(5011), topicID: .init(4190), postNumber: .init(14), kind: .replied, title: "Bench PSU hums after a fuse swap"))
+            }.font(.caption).buttonStyle(.bordered).padding(.trailing, 12).padding(.bottom, 64).accessibilityIdentifier("simulate-push")
+        }
+    }
+}
+#endif

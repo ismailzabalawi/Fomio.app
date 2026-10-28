@@ -59,6 +59,16 @@ Out of the original MVP: offline sending queue, server drafts, push transport, H
 
 2026-10-18: the user identified properly wired notifications as a pre-public requirement. The [notifications IA and integration map](notifications-ia.md) scopes inbox/read/count corrections, grouped destinations, foreground freshness and push/relay/device acceptance. Push remains unimplemented; this planning requirement does not establish relay configuration or device delivery.
 
+**Notifications implementation (2026-10-18, branch `claude/fomio-notifications`, not merged or uploaded):** inbox, destinations, exact acknowledgment, totals, reconciliation, account isolation, device-setup states and incoming-tap boundary are implemented and fixture/stub tested ([validation](validation/2026-10-18-notifications/README.md)). Live acceptance is not done. External push dependencies, none provisioned or assumed:
+
+1. A Fomio-owned HTTPS relay that receives Discourse's hub envelope (validates `push_api_secret_key`), maps `client_id` to APNs tokens and sends via an APNs key for team `LK9253R3XB`, topic `com.fomio.mobile`, sandbox and production.
+2. An authenticated device-enrollment contract (client ID ↔ token ↔ account binding, rotation, deletion on sign-out/revocation) that does not hand the relay a user API key; retention, retry, deduplication and monitoring policy.
+3. Discourse admin settings: the relay URL in hidden `allowed_user_api_push_urls`, `push_api_secret_key`; `push` already appears in the recorded `allow_user_api_key_scopes`.
+4. App: Push Notifications capability/`aps-environment` entitlement and profile, a re-authorization that sends `push_url` (existing keys have none), APNs registration wired to the enrollment API, privacy-label review.
+5. A tap payload carrying `notification_id`: the hub envelope has none, so acknowledgment from a push needs a verified server-side addition (e.g., a plugin payload modifier) or remains disabled.
+
+Until these exist, live Settings truthfully show alerts as not available.
+
 ## Keyboard follow-up — 2026-10-04
 
 Implemented a native single-line title field with distinct title/body focus, native Next/Done keyboard controls, interactive dismissal in composer/search/directory, retained search query on submission/navigation, Command-Return for guarded Post and Escape for protected Cancel. Native text selection is captured/restored through Keep editing and the community chooser; the Photos picker uses the same suspension path. Composer recovery messages receive scroll/accessibility focus, with Reduce Motion respected. Editing focus is cleared before sending and when inputs lock. No keyboard-height constants or custom focus navigation for ordinary buttons were introduced.
@@ -102,6 +112,24 @@ Immediately preceding release, all four requested iPad Simulator composer journe
 ## Submission fixes — 2026-10-18 follow-up
 
 Build 0.8.0 (7) includes dynamic native report flow, server-persisted Ignore/block and unblock with account-scoped content filtering, eligible self-deletion, policy/support links, callback registration and expanded privacy manifest. Live policies/contact and owner-approved reporting/Ignore/deletion limits updated. Connect native metadata and linked privacy labels saved. Final simulator regression:102passes,0failures,4opt-in live skips. Signed device archive and distribution IPA pass packaging/signature checks. Final member/device acceptance and listing assets remain; see [current submission packet](app-store-submission.md) and [validation](validation/2026-10-18-submission/README.md). Earlier build 6 blockers are historical.
+
+
+## Build 0.9.0 (8) upload — 2026-10-20
+
+Owner-authorized push and upload only; no App Review submission, automatic review submission or release was performed.
+
+- **Source:** `59793c237305cf59cf6c1b292a9f98a15289da2f` on `main` (version commit on top of `293f3fa`: build 7 baseline, native notifications, composer transition fix, both audit-fix rounds, composer-bar test synchronization).
+- **Verification before release:** two independent clean complete suites on that code, each 183 tests (176 passed, 7 opt-in skips, 0 failed) on iOS 27.0 simulators, independently audited ([validation](validation/2026-10-18-notifications/README.md), [clean-suite review](validation/2026-10-19-independent-audit/clean-suite-review.md)).
+- **Version:** 0.8.0 is approved and closed for new builds (the earlier 0.8.0 (8) upload was rejected with “train version '0.8.0' is closed”, so no build 8 existed). `MARKETING_VERSION` 0.9.0, `CURRENT_PROJECT_VERSION` 8 in `project.yml`, regenerated project; packaged Info.plist resolves 0.9.0 (8).
+- **Archive:** Xcode 27.1 (27A9275), Release, generic iOS, automatic signing, team `LK9253R3XB`: `ARCHIVE SUCCEEDED` (`.build/release-0.9.0-8/Fomio.xcarchive` in the integration worktree).
+- **Export and checks:** app-store-connect export succeeded. IPA SHA-256 `ae178fe667b65dd681746cdc8b688c58faad0607380aa7f774759f4ee75093a5`. Signed by Apple Distribution: Ismail Zabalawi (LK9253R3XB); `codesign --verify --deep --strict` passes; entitlements: application identifier `LK9253R3XB.com.fomio.mobile`, `beta-reports-active` true, `get-task-allow` false, no push entitlement. `scripts/submission_preflight.py`: 20 PASS, no failures.
+- **Upload:** `xcodebuild -exportArchive` with destination `upload` on 2026-10-20 at 00:00:34 +03. Apple reported “Uploading Fomio.ipa is complete … Uploaded package is processing … Upload succeeded.” Exit 0.
+- **Processing:** not yet confirmed in App Store Connect by this session; the in-app browser was not signed in. Check TestFlight / Activity for 0.9.0 (8) before selecting it for a version.
+- **Not established:** live APNs/relay delivery (unavailable by design; live Settings show alerts as not available), live Discourse notification acceptance, iPad and physical-device acceptance. App Review submission remains pending for the owner.
+
+## Superseded build 0.8.0 (6) — upload record (history)
+
+Build 0.8.0 (6) was archived from `31b4d53` (Reporting & Safety feature `6837b25`, recovery fixes `5d60931`) and uploaded on 2026-10-18 at 08:14 Asia/Amman with `xcodebuild -exportArchive` (app-store-connect, upload). Apple reported “Uploaded package is processing” and “Upload succeeded”. **Processing completion was not verified.** App Store Connect wasn't signed in for the uploading session, and on 2026-10-20 the owner chose to skip verification. Build 6 was never selected for review. `e3a6e04` later replaced it with the build 0.8.0 (7) baseline, and its safety sources are no longer on `main`.
 # iPhone Duo preparation — 2026-10-18
 
 The [Duo readiness record](iphone-duo-readiness.md) tracks the initial adaptive composer sizing change and source audit. Xcode 27.1 simulator compilation passes, but actual Duo fold/resize and vertical system bars remain unverified because no Duo simulator is provisioned. Phone composer rotation times out on iOS 26.1 with both the adaptive implementation and an original-sizing control; the earlier rotation passes above do not close this current gate. Resolve that baseline failure and complete the documented native matrix before claiming Duo readiness.

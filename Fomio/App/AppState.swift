@@ -5,17 +5,20 @@ enum AppTab: String, CaseIterable, Identifiable { case home, communities, notifi
     var title: String { rawValue.capitalized }
     var symbol: String { switch self { case .home: "house"; case .communities: "square.grid.2x2"; case .notifications: "bell"; case .me: "person.crop.circle" } }
 }
-enum Route: Hashable { case community(CategoryID), discussion(TopicID, PostNumber?), thread(TopicID, PostNumber), search, profile(String), saved, drafts, credits, diagnostics, denied(CategoryID), unavailable }
+enum Route: Hashable { case community(CategoryID), discussion(TopicID, PostNumber?), thread(TopicID, PostNumber), search, profile(String), saved, drafts, credits, diagnostics, denied(CategoryID), unavailable, notificationInfo(NotificationID), notificationSettings, notificationMismatch(String) }
 /// Why a discussion opened at a specific post. Shown as a text label on that post.
 enum FocusReason: Hashable {
     case notification, search, saved, published
-    var label: String { switch self { case .notification: "From your notification"; case .search: "Search match"; case .saved: "Saved reply"; case .published: "Your reply" } }
+    /// Consolidated replies: the parent post or topic plus its new replies, never one author's exact reply.
+    case groupedReplies(Int)
+    var label: String { switch self { case .notification: "From your notification"; case .search: "Search match"; case .saved: "Saved reply"; case .published: "Your reply"; case let .groupedReplies(count): "Your post · \(count) new replies" } }
+    var fromNotification: Bool { switch self { case .notification, .groupedReplies: true; default: false } }
 }
 /// The member action that asked for sign-in; it names the action and is restored afterwards, never auto-applied.
 enum AuthGate: Equatable {
-    case signIn, reply, quote, like, save, create(String?)
+    case signIn, reply, quote, like, save, create(String?), notification
     var title: String {
-        switch self { case .signIn: "Sign in"; case .reply: "Sign in to reply"; case .quote: "Sign in to quote"; case .like: "Sign in to like posts"; case .save: "Sign in to save discussions"; case .create: "Sign in to start a discussion" }
+        switch self { case .notification: "Sign in to open this notification"; case .signIn: "Sign in"; case .reply: "Sign in to reply"; case .quote: "Sign in to quote"; case .like: "Sign in to like posts"; case .save: "Sign in to save discussions"; case .create: "Sign in to start a discussion" }
     }
     var message: String {
         switch self {
@@ -23,6 +26,7 @@ enum AuthGate: Equatable {
         case let .create(name): name.map { "You’ll come back with a new discussion in \($0) open. Nothing is posted until you tap Post." } ?? "You’ll come back and choose a community. Nothing is posted until you tap Post."
         case .like, .save: "You’ll come back to this post. Nothing is applied until you tap it again."
         case .signIn: "Reply to discussions, save them for later and get notified when someone replies to you."
+        case .notification: "Your session on the community ended. After you sign in, Fomio takes you to the notification you tapped."
         }
     }
 }
@@ -41,9 +45,25 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     var feeds: [String: FeedState] = [:]
     var discussions: [Route: DiscussionState] = [:]
     var focus: [Route: FocusReason] = [:]
+    /// Notification to acknowledge once the pushed destination has been displayed.
+    var acknowledgments: [Route: NotificationID] = [:]
+    /// Which notification opened a route, kept for status and unavailable copy after acknowledgment starts.
+    var notificationRoutes: [Route: NotificationID] = [:]
     func feed(key: String) -> FeedState { if let value = feeds[key] { return value }; let value = FeedState(); feeds[key] = value; return value }
 }
-/// Process-wide identity and draft ownership; browsing state belongs to each scene.
+/// Refuses the same notification tap delivered twice within ten seconds, whichever window receives it.
+struct TapFilter {
+    private var recent: [String: Date] = [:]
+    private(set) var duplicates = 0
+    mutating func accept(_ intent: NotificationIntent, now: Date = Date()) -> Bool {
+        recent = recent.filter { now.timeIntervalSince($0.value) < 10 }
+        if recent[intent.dedupeKey] != nil { duplicates += 1; return false }
+        recent[intent.dedupeKey] = now; return true
+    }
+    mutating func forget(_ intent: NotificationIntent) { recent[intent.dedupeKey] = nil }
+    mutating func clear() { recent = [:] }
+}
+/// Process-wide identity, draft ownership and notifications; browsing state belongs to each scene.
 @MainActor @Observable final class AppWindows {
     let service: any CommunityService
     let fixture: FixtureService?
@@ -55,7 +75,14 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     private(set) var displayName: String?
     private(set) var identityRevision = 0
     var draftsRevision = 0
-    var unreadCount = 0
+    /// One inbox, read state and badge for every window: a read confirmed in one window shows in the others at once.
+    let notifications: NotificationStore
+    /// Alert permission and enrollment belong to the device, not to a window.
+    let device: NotificationDevice
+    @ObservationIgnored var taps = TapFilter()
+    /// Taps that arrived before any window finished launching (a cold start from an alert).
+    @ObservationIgnored private var heldIntents: [NotificationIntent] = []
+    @ObservationIgnored private weak var lastActive: AppState?
     private struct Window { weak var state: AppState? }
     @ObservationIgnored private var windows: [Window] = []
 
@@ -66,13 +93,41 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         account = member ? .fixture : .guest
         username = member ? AppState.fixtureMember : nil
         displayName = member ? "Jonah Wells" : nil
+        (notifications, device) = AppState.makeNotifications(service: service, fixture: fixture, account: member ? .fixture : .guest)
     }
     func makeWindow() -> AppState { AppState(service: service, fixture: fixture, configuration: configuration, store: store, windows: self) }
     func register(_ state: AppState) {
         windows.removeAll { $0.state == nil }; windows.append(Window(state: state))
         state.account = account; state.username = username; state.displayName = displayName
     }
+    func unregister(_ state: AppState) {
+        windows.removeAll { $0.state == nil || $0.state === state }
+        if lastActive === state { lastActive = nil }
+    }
     var states: [AppState] { windows.compactMap(\.state) }
+    /// The window a notification tap opens in: the one used most recently, else the newest launched window.
+    var notificationTarget: AppState? {
+        let ready = states.filter(\.acceptsNotifications)
+        if let lastActive, ready.contains(where: { $0 === lastActive }) { return lastActive }
+        return ready.last
+    }
+    /// Installs the process-wide alert handlers once, rather than letting whichever window launched last win.
+    func installNotificationHandlers(_ incoming: IncomingNotifications = .shared) {
+        incoming.foreground = { [weak self] in Task { await self?.notificationTarget?.foregroundRefresh(force: true) } }
+        incoming.handler = { [weak self] intent in self?.deliver(intent) }
+    }
+    func deliver(_ intent: NotificationIntent) {
+        guard let target = notificationTarget else { heldIntents.append(intent); return }
+        Task { await target.receive(intent) }
+    }
+    func activated(_ state: AppState) { lastActive = state }
+    /// A window finished restoring the account and its first load; held taps open there.
+    func windowReady(_ state: AppState) {
+        state.acceptsNotifications = true
+        if lastActive == nil { lastActive = state }
+        let held = heldIntents; heldIntents = []
+        for intent in held { Task { await state.receive(intent) } }
+    }
     func editor(for id: UUID) -> AppState? { states.first { $0.ownedDraftID == id } }
     var openDrafts: [Draft] { states.flatMap { $0.ownedDrafts } }
     func expireAuthentication() {
@@ -82,6 +137,9 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     func publish(account: AccountID, username: String?, displayName: String?, from origin: AppState, signingOut: Bool = false) {
         identityRevision += 1
         self.account = account; self.username = username; self.displayName = displayName
+        // Cleared and detached once here; each window then drops its own pending tap and read-on-display bookkeeping.
+        AppState.rebind(notifications, device, to: account, signingOut: signingOut)
+        if signingOut { taps.clear(); heldIntents = [] }
         for state in states {
             state.receiveAccount(account, username: username, displayName: displayName, signingOut: signingOut, preserveIntent: state === origin)
         }
@@ -118,6 +176,7 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     func cancelAuthenticationIntent() {
         guard !completingAuthentication else { return }
         pendingAction = nil; suspendedComposer = nil; gate = .signIn
+        if username == nil { pendingIntent = nil }
     }
     var composer: ComposerState? {
         get { presentedComposer }
@@ -142,11 +201,21 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
     var toastMessage: String?
     var pendingNotice: PendingNotice?
     var guestNoteDismissed = false
-    private var localUnreadCount = 0
-    var unreadCount: Int {
-        get { windows?.unreadCount ?? localUnreadCount }
-        set { if let windows { windows.unreadCount = newValue } else { localUnreadCount = newValue } }
+    /// Shared with every window through `windows`; a stand-alone state (unit tests) owns its own pair.
+    let notifications: NotificationStore
+    let device: NotificationDevice
+    /// A notification tap waiting for sign-in or for this window's composer to be finished. It never posts anything.
+    var pendingIntent: NotificationIntent?
+    var intentNeedsComposerDecision = false
+    var webDestination: URL?
+    /// Set once this window has restored the account and finished its first load; taps are routed only then.
+    @ObservationIgnored var acceptsNotifications = false
+    @ObservationIgnored private var localTaps = TapFilter()
+    private var taps: TapFilter {
+        get { windows?.taps ?? localTaps }
+        set { if let windows { windows.taps = newValue } else { localTaps = newValue } }
     }
+    var duplicateTaps: Int { taps.duplicates }
     private var localDraftsRevision = 0
     var draftsRevision: Int {
         get { windows?.draftsRevision ?? localDraftsRevision }
@@ -167,15 +236,35 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         self.service = service; self.fixture = fixture; self.configuration = configuration; self.draftStore = store
         self.isConfigured = fixture != nil || configuration != nil
         self.auth = windows?.auth ?? configuration.map { AuthenticationService(configuration: $0) }
-        if fixture != nil, !ProcessInfo.processInfo.arguments.contains("--guest") { account = .fixture; username = Self.fixtureMember; displayName = "Jonah Wells" }
+        let member = fixture != nil && !ProcessInfo.processInfo.arguments.contains("--guest")
+        if let windows { notifications = windows.notifications; device = windows.device }
+        else { (notifications, device) = Self.makeNotifications(service: service, fixture: fixture, account: member ? .fixture : .guest) }
+        if member { account = .fixture; username = Self.fixtureMember; displayName = "Jonah Wells" }
         windows?.register(self)
         do { try reconcileDraftFiles() } catch { banner = error.localizedDescription }
+    }
+    static func makeNotifications(service: any CommunityService, fixture: FixtureService?, account: AccountID) -> (NotificationStore, NotificationDevice) {
+        let store = NotificationStore(service: service, account: account)
+        if fixture != nil { store.pageSize = 6 }
+        let isPad = UIDevice.current.userInterfaceIdiom == .pad
+        let device = fixture != nil ? NotificationDevice(permissions: SimulatedAlertPermission(), enrollments: SimulatedAlertEnrollment(), isPad: isPad) : NotificationDevice(permissions: SystemAlertPermission(), enrollments: UnavailableAlertEnrollment(), isPad: isPad)
+        device.bind(account: account)
+        return (store, device)
+    }
+    /// Private rows, cursors, totals and acknowledgments belong to one account; sign-out also detaches device alerts.
+    static func rebind(_ notifications: NotificationStore, _ device: NotificationDevice, to account: AccountID, signingOut: Bool) {
+        if signingOut { notifications.reset(account: .guest); Task { await device.detach() } }
+        else if notifications.account != account { notifications.reset(account: account); device.bind(account: account) }
     }
     func closeWindow() {
         identityRevision += 1
         if let composer, composer.hasChanges { _ = composer.save() }
-        composer = nil; suspendedComposer = nil; pendingAction = nil
+        composer = nil; suspendedComposer = nil; pendingAction = nil; pendingIntent = nil
+        windows?.unregister(self)
     }
+    /// Notification taps go to the window used most recently.
+    func becameActive() { windows?.activated(self) }
+    func notificationsReady() { if let windows { windows.windowReady(self) } else { acceptsNotifications = true } }
     var isOffline: Bool { fixture?.offline == true || (fixture == nil && connectivity.offline) }
     func loadCommunities() async {
         let request = UUID(), viewer = account
@@ -195,10 +284,94 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         do { siteTheme = try await service.siteTheme(); FomioTheme.current = siteTheme; themeError = nil }
         catch { themeError = error.localizedDescription }
     }
-    func refreshUnread() async {
-        guard username != nil else { unreadCount = 0; return }
-        let revision = identityRevision
-        if let page = try? await service.notifications(page: 0), revision == identityRevision, username != nil { unreadCount = page.items.filter { !$0.read && !isBlocked($0.actor) }.count }
+    /// Server-scoped badge (see `NotificationTotals`). Never derived from loaded rows.
+    var notificationBadge: String? { username == nil ? nil : notifications.totals?.badgeText }
+    func refreshNotificationTotals() async { guard username != nil else { return }; await notifications.refreshTotals() }
+    /// Foreground, reconnect and manual triggers re-read server state. None of them marks anything read.
+    func foregroundRefresh(force: Bool = false) async {
+        guard username != nil, notifications.account == account else { return }
+        // Throttled on the shared store, so several windows becoming active make one request.
+        if !force, let last = notifications.lastForegroundRefresh, Date().timeIntervalSince(last) < 30 { return }
+        notifications.lastForegroundRefresh = Date()
+        if notifications.feed.loaded { await notifications.refresh() } else { await notifications.refreshTotals() }
+    }
+    var notificationSite: URL? { configuration?.baseURL ?? (fixture != nil ? NotificationFixture.site : nil) }
+    /// Opens a notification's permitted destination. Acknowledgment waits until the destination is displayed.
+    func open(notification item: NotificationItem, in tab: AppTab = .notifications) {
+        let destination = NotificationResolver.destination(item, site: notificationSite, username: username)
+        let route: Route
+        let focus: FocusReason?
+        switch destination {
+        case let .post(topic, number): route = .discussion(topic, number); focus = .notification
+        case let .topic(topic): route = .discussion(topic, nil); focus = nil
+        case let .groupedReplies(topic, parent, count):
+            route = parent.map { .thread(topic, $0) } ?? .discussion(topic, nil); focus = .groupedReplies(count)
+        case .website, .unsupported: navigate(.notificationInfo(item.id), in: tab); return
+        }
+        // A previous visit's cached state must not count as displaying this notification's target.
+        tabs[tab]?.discussions[route] = nil
+        if item.id.rawValue > 0 { tabs[tab]?.acknowledgments[route] = item.id; tabs[tab]?.notificationRoutes[route] = item.id }
+        tabs[tab]?.focus[route] = focus
+        navigate(route, in: tab, focus: focus)
+    }
+    /// Called by the discussion screen after it rendered a successful load of `route`.
+    func displayed(_ route: Route, state: DiscussionState) {
+        guard let tab = tabs.first(where: { $0.value.acknowledgments[route] != nil })?.key, let id = tabs[tab]?.acknowledgments[route] else { return }
+        guard state.requiredContentReady else { return }
+        if case let .discussion(_, number?) = route, state.highlighted?.number != number { return }
+        tabs[tab]?.acknowledgments[route] = nil
+        let account = self.account
+        Task { guard self.account == account, self.notifications.account == account else { return }; await self.notifications.acknowledge(id) }
+    }
+    /// Validates and routes a notification tap. Unknown sites, other accounts and duplicates are refused.
+    func receive(_ intent: NotificationIntent) async {
+        guard taps.accept(intent) else { return }
+        guard let site = notificationSite, Self.sameSite(intent.site, site) else { banner = "This notification is for a different community, so Fomio won’t open it."; return }
+        selectedTab = .notifications
+        guard let username else {
+            pendingIntent = intent; tabs[.notifications]?.path = []
+            pendingAction = nil; gate = .notification; authRequested = true; return
+        }
+        guard intent.username.caseInsensitiveCompare(username) == .orderedSame else {
+            pendingIntent = nil; tabs[.notifications]?.path = [.notificationMismatch(intent.username)]; return
+        }
+        // An expired or revoked key must not reach protected content: confirm it first, keep the tap otherwise.
+        let account = self.account
+        let valid: Bool
+        do { valid = try await service.credentialIsValid(username: username) } catch { valid = true }
+        guard self.account == account, self.username == username else { return }
+        guard valid else {
+            // Every window learns the session ended; only this one asks to sign in and keeps the tap.
+            authenticationExpired()
+            pendingIntent = intent; tabs[.notifications]?.path = []
+            pendingAction = nil; gate = .notification; authRequested = true; return
+        }
+        if let composer, composer.hasChanges || composer.locked {
+            pendingIntent = intent; intentNeedsComposerDecision = true; return
+        }
+        composer?.close()
+        route(intent)
+    }
+    private func route(_ intent: NotificationIntent) {
+        pendingIntent = nil; intentNeedsComposerDecision = false
+        selectedTab = .notifications; tabs[.notifications]?.path = []
+        Task { await self.notifications.refresh() }
+        open(notification: notifications.item(intent.notificationID ?? .init(0)) ?? intent.item)
+    }
+    /// Composer protection: Keep Writing holds the notification; Save Draft and Open keeps the draft locally first.
+    func keepWritingWithPendingNotification() { intentNeedsComposerDecision = false }
+    func saveDraftAndOpenPendingNotification() {
+        guard let intent = pendingIntent, let composer, !composer.locked || composer.draft.submission != .submitting else { return }
+        composer.keepDraft(message: "Draft saved on this \(device.wording.device)")
+        guard self.composer == nil else { intentNeedsComposerDecision = false; return }
+        route(intent)
+    }
+    func composerClosed() {
+        if let intent = pendingIntent, username != nil, !intentNeedsComposerDecision, composer == nil { route(intent) }
+    }
+    nonisolated static func sameSite(_ lhs: URL, _ rhs: URL) -> Bool {
+        func key(_ url: URL) -> String { "\(url.scheme ?? "")://\(url.host?.lowercased() ?? ""):\(url.port ?? 443)\(url.path.hasSuffix("/") ? String(url.path.dropLast()) : url.path)" }
+        return key(lhs) == key(rhs)
     }
     /// Public category assets may use the site's relative root or an HTTPS CDN. Never attach user keys.
     func publicAssetURL(_ value: String?) -> URL? { PublicMedia.url(value, base: configuration?.baseURL) }
@@ -353,12 +526,15 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         if signingOut || self.account != account {
             if !signingOut, let composer { _ = composer.save() }
             composer = nil; suspendedComposer = nil
-            safety = nil; safetyError = nil; safetyChanging = []; pendingNotice = nil; unreadCount = 0
+            safety = nil; safetyError = nil; safetyChanging = []; pendingNotice = nil
+            pendingIntent = nil; intentNeedsComposerDecision = false; webDestination = nil
+            if windows == nil { Self.rebind(notifications, device, to: account, signingOut: signingOut); if signingOut { localTaps.clear() } }
             invalidateBrowseViewer()
             if signingOut { tabs = Dictionary(uniqueKeysWithValues: AppTab.allCases.map { ($0, TabState()) }) }
         }
         self.account = account; self.username = username; self.displayName = displayName
-        if !preserveIntent || signingOut { pendingAction = nil; suspendedComposer = nil; gate = .signIn; authRequested = false }
+        // A tap held for sign-in opens only in the window that signed in.
+        if !preserveIntent || signingOut { pendingAction = nil; pendingIntent = nil; suspendedComposer = nil; gate = .signIn; authRequested = false }
         if signingOut { guestNoteDismissed = false }
     }
     /// `anchor` is the window presenting the sign-in UI; live authorization is shown over it.
@@ -368,18 +544,18 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         var acceptedEpoch = epoch
         do {
             let member: String
-            if fixture != nil { member = Self.fixtureMember }
+            if let fixture { member = Self.fixtureMember; fixture.credentialExpired = false }
             else if let auth { member = try await auth.signIn(anchor: anchor) }
             else { throw RepositoryError.configuration }
             guard epoch == (windows?.identityRevision ?? identityRevision) else { return }
             let next: AccountID = fixture != nil ? .fixture : .init(rawValue: "\(configuration!.baseURL.absoluteString):\(member)")
-            let action = pendingAction, gate = self.gate
+            let action = pendingAction, gate = self.gate, intent = pendingIntent
             if let windows { windows.publish(account: next, username: member, displayName: fixture != nil ? "Jonah Wells" : nil, from: self) }
             else { receiveAccount(next, username: member, displayName: fixture != nil ? "Jonah Wells" : nil, signingOut: false, preserveIntent: true) }
             acceptedEpoch = windows?.identityRevision ?? identityRevision
             completingAuthentication = true
             defer { completingAuthentication = false; suspendedComposer = nil }
-            pendingAction = nil; authRequested = false
+            pendingAction = nil; pendingIntent = nil; authRequested = false
             try draftStore.migrateGuest(to: account); draftsRevision += 1
             try reconcileDraftFiles()
             let revision = identityRevision
@@ -394,7 +570,8 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
             default: toast("Signed in as \(member).")
             }
             self.gate = .signIn
-            await refreshUnread()
+            await refreshNotificationTotals()
+            if let intent, identityRevision == revision { forgetIntent(intent); await receive(intent) }
         } catch { if acceptedEpoch == (windows?.identityRevision ?? identityRevision) { banner = error.localizedDescription } }
     }
     func restoreAccount() async {
@@ -429,7 +606,7 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         if let windows { windows.publish(account: .guest, username: nil, displayName: nil, from: self, signingOut: true) }
         else { receiveAccount(.guest, username: nil, displayName: nil, signingOut: true, preserveIntent: false) }
         draftsRevision += 1
-        fixture?.bookmarks = [:]; fixture?.readNotices = []
+        fixture?.bookmarks = [:]
         toast("Signed out")
         Task { await loadCommunities() }
     }
@@ -511,6 +688,7 @@ struct PendingNotice: Equatable { var tab: AppTab; var depth: Int; var isReply: 
         state.focus = tab.focus[route]
         tab.discussions[route] = state; return state
     }
+    func forgetIntent(_ intent: NotificationIntent) { taps.forget(intent) }
     func handleLink(_ url: URL) {
         if auth?.receiveCallback(url) == true { return }
         guard let configuration, let route = LinkRouter.route(url, baseURL: configuration.baseURL) else { banner = "This link is not a supported community destination."; return }
