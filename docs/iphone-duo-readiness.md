@@ -2,6 +2,45 @@
 
 Started 2026-10-18 (Asia/Amman). Focused Duo simulator reply continuity now passes; the wider native acceptance matrix remains open.
 
+## Merge with `main` — 28 October 2026
+
+`duo-adaptive-reading` (`a6e42af`) was merged with `main` (`bece043`) as `5b30c43`, then landed on `main` through PR #3 (`ed1a87f`, 28 October). The suite below ran on that merged tree before the PR merged. Two conflicts were resolved: `PostCard` takes main's side (main moved the Safety menu into a context menu and removed `actionFrames`), and `CommunityScopePicker` keeps this branch's Return/resign-first-responder keyboard fix.
+
+Full `Fomio` scheme on iPhone 17 / iOS 27.0 simulator (`76A12DB0`), merged tree: **TEST SUCCEEDED, 0 failures.** Unit/contract: 218 executed, 4 skipped (opt-in live cases). UI: 110 executed, 31 skipped, about 29 minutes. Result bundle `merge-iphone.xcresult` is machine-local, in the release-readiness session's scratchpad. This run used the iOS 27.0 runtime rather than 27.1.
+
+Duo set (`scripts/test-duo-ui.sh`) on `main` at `ed1a87f`, iPhone Duo / iOS 27.1 simulator (`24097A57`): **62 executed, 62 passed, 0 failed** (about 25 minutes, result bundle machine-local). Rotation is still not part of the Duo set.
+
+**Gaps that block a Duo-ready claim:**
+- Rotation isn't covered on Duo. The simulator doesn't rotate its window, so those tests run on iPhone only.
+- No physical Duo device run. The simulator can't show fold and unfold behaviour.
+- No full VoiceOver traversal.
+- No TestFlight archive or signing check.
+
+## Duo UI regression set — 28 October 2026
+
+`scripts/test-duo-ui.sh` runs 62 UI tests on iPhone Duo / iOS 27.1 (Xcode 27.1): **62 passed, 0 failed** in the last full run (about 25 minutes). The set contains only checks that pass on Duo. Rotation tests are excluded: the Duo simulator does not rotate its window for device orientation requests, so those checks cover iPhone only. Duo window geometry is measured against `app.windows.firstMatch.frame`, not `app.frame`, because `app.frame` reports the requested portrait size.
+
+iPhone 17 / iOS 27.1, full `FomioUITests` target (28 October 2026, final run): **97 executed, 28 skipped, 0 failed**. Earlier failures came from three causes: a leftover landscape orientation in `AdaptiveReadingUITests` (fixed by a `setUp` reset), a landscape two-pane reply list that the scroll to reply #14 could not reach (fixed by scrolling to the Replies heading first), and the composer bar staying under the keyboard after a pushed block form closed (fixed by measuring the real keyboard overlap). Duo set (`scripts/test-duo-ui.sh`, 62 tests): **62 passed, 0 failed** in the same final pass. Rotation is still not part of the Duo set.
+
+Changes made to reach this state (app changes, all covered by the final iPhone 17 and Duo runs above):
+- `CommunityScopePicker`: Return in the community filter now also resigns the first responder, so the keyboard closes in the popover.
+- `DiscussionView.pathLink`: the category breadcrumb's 44 pt minimum applies to the whole button.
+- `DiscussionView` reply scroll: scrolls to the "Replies" heading before the target, so a reply below a short window's fold is laid out before the scroll.
+- `ComposerBar` keyboard avoidance: measures the real overlap for docked keyboards too, so the bar floats above the keyboard after a pushed form closes.
+- `AdaptiveReadingUITests.setUp`: resets the simulator to portrait, as the other test classes do.
+
+Not yet covered on Duo: rotation, VoiceOver traversal, physical-device and TestFlight checks (see Remaining native acceptance below).
+
+## Current status — 26 October 2026
+
+Read this summary before the chronological investigation below. The [26 October continuation](validation/2026-10-26-duo-closeout/README.md) records current-source Computer observations at **466×678 → 1000×678 → 466×678**. Native More-menu Redo/Undo, new typing/Undo at expanded width, and pending Redo/Undo after compact return now have direct screenshot-based evidence. A second multiline Markdown cycle retains visible paragraphs/mode and permits expanded typing/Undo plus Redo on compact return. Keep/reopen restores the visible writing. No editor or keyboard production fix was needed for these observations. The exact automated history journey and broader formatting/attachment matrix are not closed by this scoped manual sequence.
+
+The later [adaptive-reading acceptance audit](validation/2026-10-20-adaptive-native/acceptance-audit.md) already establishes qualified five-layout, actual fold, chooser/draft and targeted accessibility results. Its later design-conformance sections also identify which source changes were not rerun on Duo. Therefore older statements below that all pane/chooser/Keep or accessibility work is pending are historical, not the current verdict.
+
+Two maintenance corrections are included in this continuation: New window now follows SwiftUI's `supportsMultipleWindows` environment capability instead of an iPad idiom check; test targets now have explicit bundle identifiers so the UI runner is not packaged as `.xctrunner`. The final combined Duo regression passed after restarting the simulator: 177 unit/contract and four UI cases passed, four opt-in live cases skipped, zero failures. Original runner failures remain recorded. New window is exposed on the live Duo, but opening a second native window remains unchecked. The user completed live browser authorization; the member session survived Open → background → Closed → foreground. Pending authorization through fold/resize and live content writes remain separate checks.
+
+Still open: complete exact-value history at every tested width (including newly typed compact-return input), Markdown syntax/formatting/block/attachment history, final-source partial-fold/multitasking and short-sheet checks, full VoiceOver traversal, pending live authorization and upload/write continuity, and physical-device/TestFlight acceptance. This is partial readiness with concrete passing evidence, not release certification.
+
 ## Direction
 
 Keep the tab bar with per-tab navigation, the adaptive reading split (one pane, list + discussion, then community sidebar) and the bounded reading column across compact and expanded windows. Pane count follows the width each tab root is offered, scaled for text size. Adapt to the space SwiftUI supplies rather than identifying a foldable device or using hinge angles as layout inputs. Preserve the selected tab, each tab's path, loaded discussion, writing, editor mode and selection through size changes. Keep the iOS 26 deployment target; building with a newer SDK is separate from raising the minimum OS.
