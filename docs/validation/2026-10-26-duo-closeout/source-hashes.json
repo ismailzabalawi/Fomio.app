@@ -1,0 +1,16 @@
+{
+  "revision": "8e2a2487c2e6568e8f39ec57de9f016d150c8a53",
+  "date": "2026-10-26",
+  "note": "Working-tree source hashes after the capability and test-bundle corrections; revision alone does not identify these local changes.",
+  "sha256": {
+    "Fomio/App/AppState.swift": "8241ecfe4ab1851a5fce1f5076d0712de1362c83f618dff5cef8822689a3aade",
+    "Fomio/App/FomioApp.swift": "ab352e5c54dd31421e382ab6d9054fa832d8a0bad0747f0d0b8296825fb99a3f",
+    "Fomio/Data/Authentication.swift": "9840470e8aed4aa11ca94e1b7d7eadea81c0dee10912978da933de149e2e1874",
+    "Fomio/Features/ComposerView.swift": "9b09394eb4915211113ec2aacbd4ede84f529889776b05f2506670b9590c4822",
+    "Fomio/Features/FeedView.swift": "0836520ac16b7ae4a3732e7ebc49f96830bc2faf0cdaa2ac6e60882bcf181b66",
+    "FomioUITests/FomioUITests.swift": "8f3fd5474c215acb643e5c622a28f99a2c5e0db70d20fda586ca6acc0a26fa95",
+    "FomioTests/ContractTests.swift": "11ef67b03478b357310d7918c8eea9c9efdc63b151cc1b0818bccd36580dd4c4",
+    "project.yml": "111de74619cba4df8fd35134998921b950d9c53ddca25a74700893652b23dc5f",
+    "Fomio.xcodeproj/project.pbxproj": "75218e2dcf2f9b44f402b99c303282b0fe11c2ea572435b2fb577d83c5ea10b1"
+  }
+}

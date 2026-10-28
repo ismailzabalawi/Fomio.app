@@ -1,0 +1,8 @@
+{
+  "test": "FomioTests/LiveDiscourseTests/testStoredMemberReadPermissionsSavedAndNotifications",
+  "passed": 1,
+  "failed": 0,
+  "skipped": 0,
+  "resultBundle": "test_sim_2026-10-26T06-29-26-282Z_pid43453_f9438905.xcresult",
+  "scope": "Stored per-user credential; read-only live endpoints; no exported credentials or response payloads"
+}
