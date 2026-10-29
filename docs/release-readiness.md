@@ -114,6 +114,17 @@ Immediately preceding release, all four requested iPad Simulator composer journe
 Build 0.8.0 (7) includes dynamic native report flow, server-persisted Ignore/block and unblock with account-scoped content filtering, eligible self-deletion, policy/support links, callback registration and expanded privacy manifest. Live policies/contact and owner-approved reporting/Ignore/deletion limits updated. Connect native metadata and linked privacy labels saved. Final simulator regression:102passes,0failures,4opt-in live skips. Signed device archive and distribution IPA pass packaging/signature checks. Final member/device acceptance and listing assets remain; see [current submission packet](app-store-submission.md) and [validation](validation/2026-10-18-submission/README.md). Earlier build 6 blockers are historical.
 
 
+## Build 0.9.0 (9) upload — 2026-10-29
+
+Owner-authorized TestFlight upload only. No App Review submission or release was done.
+
+- **Source:** `main` at `3076975` (includes the Duo adaptive-reading merge, PR #3) with `CURRENT_PROJECT_VERSION` bumped 8 → 9 in `project.yml` and the committed project. Packaged Info.plist resolves 0.9.0 (9).
+- **Tests:** full `Fomio` scheme on iPhone 17 / iOS 27.0 simulator (`76A12DB0`), Xcode 27.1 (27A9275): **TEST SUCCEEDED**. 328 tests: 293 passed, 35 skipped (opt-in live and device-specific cases), 0 failed. About 29 minutes. The result bundle is machine-local. The Duo set and iPad were not rerun for this build. The last Duo run (62/62) was on `ed1a87f`.
+- **Archive:** Release, generic iOS, automatic signing, team `LK9253R3XB`: `ARCHIVE SUCCEEDED` (`.build/release-0.9.0-9/Fomio.xcarchive`). It has the same existing warnings: an unreachable fixture branch, `wordmark-color` asset symbol clash, `@Entry` closure, deprecated `Text +`, and the App Intents metadata notice.
+- **Export and checks:** app-store-connect export succeeded. IPA SHA-256 `7cbe1a7b95b0ba4fe255edf7ca155ce087c53a36a794133900d5405cffa2f0a0`. Signed by Apple Distribution: Ismail Zabalawi (LK9253R3XB). `codesign --verify --deep --strict` passes. Entitlements: application identifier `LK9253R3XB.com.fomio.mobile`, `beta-reports-active` true, `get-task-allow` false, no push entitlement. `scripts/submission_preflight.py`: source and packaged checks all PASS (20 packaged).
+- **Upload:** `xcodebuild -exportArchive` with destination `upload` on 2026-10-29 at 00:57 +03. Apple reported "Uploaded package is processing … Upload succeeded." Exit 0.
+- **Not established:** processing completion in App Store Connect, whether the 0.9.0 train still accepts builds for review, physical iPhone/iPad/Duo acceptance on TestFlight, Duo rotation, full VoiceOver traversal, and the failing iPad predictive Dynamic Type audits.
+
 ## Build 0.9.0 (8) upload — 2026-10-20
 
 Owner-authorized push and upload only; no App Review submission, automatic review submission or release was performed.
