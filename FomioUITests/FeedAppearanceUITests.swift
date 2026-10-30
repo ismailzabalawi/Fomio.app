@@ -10,7 +10,7 @@ import XCTest
         XCTAssertTrue(app.scrollViews["feed-compact"].exists, "Compact is the default")
         XCTAssertTrue(app.buttons["reveal-topic-search"].exists)
         openOptions(app)
-        XCTAssertTrue(app.buttons["New discussion"].exists, "Create remains available in the constrained toolbar menu")
+        XCTAssertTrue(app.buttons["New discussion"].exists, "Create stays reachable, beside Search or in the options menu")
         XCTAssertTrue(app.buttons["Compact"].waitForExistence(timeout: 5)); XCTAssertTrue(app.buttons["Compact"].isSelected); XCTAssertFalse(app.buttons["Cards"].isSelected)
         capture(app, "Home options menu, Compact selected")
         app.buttons["Cards"].tap()

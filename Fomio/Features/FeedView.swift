@@ -72,7 +72,6 @@ struct FeedView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.readingSidebarVisible) private var sidebarVisible
     @Environment(\.readingSidebarRestorable) private var sidebarRestorable
-    @Environment(\.readingTwoPanes) private var twoPanes
     @Bindable var state: FeedState
     let category: Community?
     let originTab: AppTab
@@ -93,10 +92,10 @@ struct FeedView: View {
         }.isEmpty
     }
     private var showsDirectCreate: Bool { roomyToolbar && needsNativeBack }
-    /// In two panes the tabs leave the window's top or bottom edge, so New discussion joins
-    /// Search and Options beside the wordmark: wordmark, three controls and spacing fit 300 pt.
+    /// New discussion sits beside Search and Options next to the wordmark: wordmark, three
+    /// controls and spacing fit 300 pt.
     private var showsHeaderCreate: Bool {
-        twoPanes && originTab == .home && !sidebarVisible && !needsNativeBack && !textSize.isAccessibilitySize
+        originTab == .home && !sidebarVisible && !needsNativeBack && !textSize.isAccessibilitySize
             && columnWidth >= (sidebarRestorable ? 352 : 300)
     }
     private var browse: TabState { app.tabs[originTab]! }

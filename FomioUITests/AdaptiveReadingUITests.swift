@@ -978,7 +978,7 @@ import UIKit
         if find(app, "reading-one-pane").exists {
             XCTAssertFalse(bar.exists, "One pane keeps the system tab bar")
             XCTAssertTrue(systemTab.waitForExistence(timeout: 10) && systemTab.isHittable)
-            XCTAssertFalse(app.buttons["header-new-discussion"].exists, "New discussion stays in Home options in one pane")
+            XCTAssertTrue(app.buttons["header-new-discussion"].exists, "New discussion sits beside Search in one pane too")
             return
         }
         guard find(app, "reading-two-pane").waitForExistence(timeout: 10) else { throw XCTSkip("Requires list and discussion without the community sidebar") }
