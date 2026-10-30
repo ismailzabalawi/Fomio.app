@@ -2,6 +2,16 @@
 
 Started 2026-10-18 (Asia/Amman). Focused Duo simulator reply continuity now passes; the wider native acceptance matrix remains open.
 
+## Glass Reply — 30 October 2026
+
+The discussion's floating Reply is now a compact Liquid Glass capsule (`.buttonStyle(.glass)`, accent label, as wide as its label, centred) instead of a full-width `.glassProminent` accent bar. It stays on screen whenever the reader can reply, on every device; identifier `discussion-reply` and its label are unchanged. Each post row's Reply is a plain per-post Reply (`post-reply-N`, "Reply to <author>, post N").
+
+The removed step-aside code (`DiscussionState.floatingReply`, `actionFrames`, `viewport`, `floatingBarHeight`) never took effect: no view wrote `actionFrames`, so the floating Reply never hid. The visible difference between iPad and Duo was width: `ReadingColumn` caps it at 620 pt, which the Duo's 639 pt discussion pane never reached, so it spanned the pane.
+
+- iPad Pro 11-inch (M5) / iOS 27.0, portrait: 7 passed, 0 failed (`testListColumnTabsFollowPaneCount`, `FeedAppearanceUITests` (6)). A fixture screenshot shows the capsule centred in the discussion pane, clear of the list column's tab capsule.
+- iPhone Duo / iOS 27.1 (`24097A57`), open: `FeedAppearanceUITests` 6 passed, 0 failed, including the one that taps `discussion-reply`. A fixture screenshot shows the capsule centred in the 639 pt discussion pane, clear of the list column's tab capsule. `testListColumnTabsFollowPaneCount` first failed twice at launch, waiting for `community-scope`, which the Home header now intentionally hides while the list is unscoped; with the shared `launch()` helper waiting for `reveal-topic-search` instead, it passes (1 passed, 0 failed, 31 October). The Reply frame recorded above (x 332–827) predates this change.
+- Not verified: the full scheme on either device, dark/AX/RTL rendering of the glass capsule, Reduce Transparency and Increase Contrast.
+
 ## Tabs in the list column — 29 October 2026
 
 Uncommitted working-tree change on `main` at `23b49a3`. In two panes without the community sidebar, the system tab bar is hidden and `ListColumnTabBar` (`AdaptiveReadingLayout.swift`) draws the four destinations as a glass capsule at the bottom of the list column (`safeAreaBar` on the list stack in `TabRoot`). One pane keeps the system tab bar; the sidebar layout is unchanged. Focused reading hides the list, so the system tab bar returns. While the software keyboard is up the capsule fades out and ignores touches but keeps its space, so the list's inset and reading position don't shift. The sidebar and capsule share `TabDestinationStatus` for the Notifications badge and unread value. In two panes Home also shows New discussion beside Search and Options in the wordmark row (`FeedView.showsHeaderCreate`), and Options no longer repeats it.
