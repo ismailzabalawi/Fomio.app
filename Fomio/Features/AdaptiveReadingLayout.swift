@@ -42,8 +42,8 @@ struct CommunitySidebar: View {
                 ForEach(AppTab.allCases) { tab in
                     let selected = app.selectedTab == tab
                     // The tab bar is hidden beside the sidebar, so the sidebar carries the server-scoped badge.
-                    let badge = tab == .notifications ? app.notificationBadge : nil
-                    let unread = badge == nil ? 0 : app.notifications.totals?.unread ?? 0
+                    let status = TabDestinationStatus(tab, app: app)
+                    let badge = status.badge
                     Button { app.selectedTab = tab } label: {
                         HStack(spacing: 8) {
                             Label(LocalizedStringKey(tab.title), systemImage: tab.symbol)
@@ -61,7 +61,7 @@ struct CommunitySidebar: View {
                         .background(selected ? Color.fomioAccent : .clear, in: .rect(cornerRadius: 12)).contentShape(.rect)
                     }.buttonStyle(.plain)
                         .accessibilityElement(children: .ignore).accessibilityLabel(LocalizedStringKey(tab.title))
-                        .accessibilityValue(unread == 0 ? "" : unread == 1 ? String(localized: "1 unread") : String(localized: "\(unread) unread"))
+                        .accessibilityValue(status.accessibilityValue)
                         .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
                         .accessibilityIdentifier("sidebar-tab-\(tab.rawValue)")
                 }
@@ -127,9 +127,71 @@ struct CommunitySidebar: View {
             .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
     }
 }
+/// What a destination shows and says wherever the tab bar is replaced: the sidebar and the list-column tabs.
+struct TabDestinationStatus {
+    let badge: String?
+    let unread: Int
+    @MainActor init(_ tab: AppTab, app: AppState) {
+        badge = tab == .notifications ? app.notificationBadge : nil
+        unread = badge == nil ? 0 : app.notifications.totals?.unread ?? 0
+    }
+    var accessibilityValue: String { unread == 0 ? "" : unread == 1 ? String(localized: "1 unread") : String(localized: "\(unread) unread") }
+}
+
+/// Destinations at the bottom of the list column in two panes. Tabs change the list, never the
+/// discussion, so they stay with the list; the system tab bar would span both panes and the fold.
+struct ListColumnTabBar: View {
+    @Environment(AppState.self) private var app
+    @Environment(\.dynamicTypeSize) private var textSize
+    @ScaledMetric(relativeTo: .body) private var symbolSize = 20.0
+    var body: some View {
+        GlassEffectContainer {
+            // Labels when every tab fits them; otherwise symbols, which keep their spoken names.
+            ViewThatFits(in: .horizontal) {
+                if !textSize.isAccessibilitySize { row(labels: true) }
+                row(labels: false)
+            }
+        }
+        .frame(maxWidth: .infinity).padding(.horizontal, 8).padding(.top, 6).padding(.bottom, 8)
+        .accessibilityElement(children: .contain).accessibilityIdentifier("list-tab-bar")
+    }
+    private func row(labels: Bool) -> some View {
+        HStack(spacing: 2) {
+            ForEach(AppTab.allCases) { tab in item(tab, labels: labels) }
+        }.padding(4).glassEffect(.regular, in: .capsule)
+    }
+    private func item(_ tab: AppTab, labels: Bool) -> some View {
+        let selected = app.selectedTab == tab
+        let status = TabDestinationStatus(tab, app: app)
+        return Button { app.selectedTab = tab } label: {
+            VStack(spacing: 2) {
+                Image(systemName: tab.symbol).font(.system(size: min(symbolSize, 28)))
+                    .overlay(alignment: .topTrailing) {
+                        if let badge = status.badge {
+                            Text(badge).font(.caption2.weight(.semibold)).monospacedDigit().foregroundStyle(Color.fomioOnAccent)
+                                .padding(.horizontal, 5).frame(minWidth: 18, minHeight: 18).background(Color.fomioAccent, in: .capsule)
+                                .fixedSize().offset(x: 10, y: -6)
+                        }
+                    }
+                if labels { Text(LocalizedStringKey(tab.title)).font(.caption2.weight(.semibold)).lineLimit(1).fixedSize() }
+            }
+            .foregroundStyle(selected ? Color.fomioAccent : Color.fomioText)
+            .padding(.horizontal, labels ? 6 : 8).frame(minWidth: 44, minHeight: 44)
+            .background(selected ? Color.fomioAccent.opacity(0.14) : .clear, in: .capsule).contentShape(.capsule)
+        }.buttonStyle(.plain)
+            // The button is already one element; its label replaces the symbol and caption it contains.
+            .accessibilityLabel(LocalizedStringKey(tab.title))
+            .accessibilityValue(status.accessibilityValue)
+            .accessibilityAddTraits(selected ? .isSelected : [])
+            .accessibilityIdentifier("list-tab-\(tab.rawValue)")
+    }
+}
+
 extension EnvironmentValues {
+    /// Whether the reading split shows list and discussion side by side.
+    @Entry var readingTwoPanes = false
     /// Whether the community sidebar sits beside this reading split; it then carries the wordmark.
     @Entry var readingSidebarVisible = false
-    /// Present when the window could show the sidebar but the reader hid it.
-    @Entry var readingShowSidebar: (() -> Void)? = nil
+    /// True when the window could show the sidebar but the reader hid it.
+    @Entry var readingSidebarRestorable = false
 }

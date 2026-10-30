@@ -144,7 +144,7 @@ struct NotificationRow: View {
                     Circle().fill(Color.fomioAccent).frame(width: 8, height: 8).padding(.top, 15).opacity(item.read ? 0 : 1).accessibilityHidden(true)
                     lead
                     VStack(alignment: .leading, spacing: 3) {
-                        (Text(copy.lead).fontWeight(item.read ? .semibold : .bold) + Text(copy.action).foregroundStyle(item.read ? Color.fomioSecondaryText : Color.fomioText))
+                        Text("\(Text(copy.lead).fontWeight(item.read ? .semibold : .bold))\(Text(copy.action).foregroundStyle(item.read ? Color.fomioSecondaryText : Color.fomioText))")
                             .font(.subheadline)
                         if let title = item.topicTitle, !title.isEmpty {
                             Text(title).font(.body.weight(item.read ? .regular : .semibold)).foregroundStyle(Color.fomioText).lineLimit(typeSize.isAccessibilitySize ? 3 : 2).multilineTextAlignment(.leading)

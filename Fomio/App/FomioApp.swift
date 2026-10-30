@@ -15,14 +15,12 @@ import SwiftUI
         // UI tests start from the default appearance unless they are checking relaunch persistence.
         if arguments.contains("--ui-testing") && !arguments.contains("--keep-preferences") { UserDefaults.standard.removeObject(forKey: FeedAppearance.storageKey) }
         let fixtureMode = arguments.contains("--rich-editor-prototype") || arguments.contains("--store-preview") || arguments.contains("--fixture") || (!arguments.contains("--live") && configuration == nil)
-        #else
-        let fixtureMode = false
         #endif
         let windows: AppWindows
+        #if DEBUG
         if fixtureMode {
             let fixture = FixtureService()
             var fixtureConfiguration: LiveConfiguration?
-            #if DEBUG
             if DevelopmentPresets.requested == "public-link" {
                 // Reserved host: exercise app-level link routing with fictional data.
                 // The repository remains FixtureService; no live request is made.
@@ -45,17 +43,18 @@ import SwiftUI
             if arguments.contains("--notif-ack-unknown") { fixture.notices.nextAcknowledgment = .unknown }
             if arguments.contains("--notif-more-fails") { fixture.notices.failNextPage = true }
             if arguments.contains("--notif-empty") { fixture.notices.rows = [] }
-            #endif
             var store = DraftStore()
-            #if DEBUG
             if arguments.contains("--ui-testing"), let raw = ProcessInfo.processInfo.environment["FOMIO_UI_TEST_NAMESPACE"], let namespace = UUID(uuidString: raw) {
                 store = DraftStore(directory: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("UITests/" + namespace.uuidString))
             }
-            #endif
             windows = AppWindows(service: fixture, fixture: fixture, configuration: fixtureConfiguration, store: store)
         } else {
             windows = AppWindows(service: DiscourseService(configuration: configuration), fixture: nil, configuration: configuration)
         }
+        #else
+        // Release builds never run fixtures.
+        windows = AppWindows(service: DiscourseService(configuration: configuration), fixture: nil, configuration: configuration)
+        #endif
         windows.installNotificationHandlers()
         _windows = State(initialValue: windows)
     }
@@ -178,6 +177,7 @@ struct TabRoot: View {
     @State private var visibility: NavigationSplitViewVisibility = .all
     @State private var compactColumn: NavigationSplitViewColumn = .sidebar
     @State private var focusedReading = false
+    @State private var keyboardShown = false
     /// A discussion opened only because two panes appeared with nothing selected.
     /// It is withdrawn again if the window narrows before the reader chooses anything.
     @State private var autoSelected: Route?
@@ -215,6 +215,8 @@ struct TabRoot: View {
         GeometryReader { geometry in
             let layout = ReadingLayout(width: geometry.size.width, scale: ReadingLayout.scale(for: textSize))
             let showsSidebar = layout.sidebar && !focusedReading && !app.sidebarHidden
+            // Two panes without the sidebar: the destinations move into the list column.
+            let showsListTabs = layout.twoPanes && !showsSidebar && !focusedReading
             HStack(spacing: 0) {
                 if showsSidebar {
                     CommunitySidebar(scope: state.browseScope) { scope in app.selectScope(scope, in: tab) }
@@ -223,6 +225,12 @@ struct TabRoot: View {
                 NavigationSplitView(columnVisibility: $visibility, preferredCompactColumn: $compactColumn) {
                     NavigationStack(path: listPath) {
                         root.navigationDestination(for: Route.self) { destination($0) }
+                    }
+                    // Hidden while typing, as the system tab bar stays under the keyboard.
+                    .safeAreaBar(edge: .bottom) {
+                        // The keyboard covers the tabs, but they keep their space so the list's inset, and the
+                        // reader's position in it, don't shift when the keyboard comes and goes.
+                        if showsListTabs { ListColumnTabBar().opacity(keyboardShown ? 0 : 1).allowsHitTesting(!keyboardShown).accessibilityHidden(keyboardShown) }
                     }
                     .navigationSplitViewColumnWidth(min: layout.listMinimum, ideal: layout.listIdeal, max: layout.listMaximum)
                 } detail: {
@@ -252,9 +260,12 @@ struct TabRoot: View {
                 // split receives this presentation hint; the app's composer keeps real window traits.
                 .environment(\.horizontalSizeClass, layout.twoPanes ? .regular : .compact)
                 .environment(\.readingSidebarVisible, showsSidebar)
-                .environment(\.readingShowSidebar, layout.sidebar && app.sidebarHidden && !focusedReading ? { app.sidebarHidden = false } : nil)
+                .environment(\.readingTwoPanes, layout.twoPanes)
+                .environment(\.readingSidebarRestorable, layout.sidebar && app.sidebarHidden && !focusedReading)
             }
-            .toolbar(showsSidebar ? .hidden : .visible, for: .tabBar)
+            .toolbar(showsSidebar || showsListTabs ? .hidden : .visible, for: .tabBar)
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in keyboardShown = true }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in keyboardShown = false }
             .onChange(of: readingRoute, initial: true) { _, route in
                 compactColumn = route == nil ? .sidebar : .detail
                 if route != autoSelected { autoSelected = nil }

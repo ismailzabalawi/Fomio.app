@@ -2,7 +2,7 @@ import XCTest
 
 /// Native notification journeys against fictional fixtures. Permission prompts and pushes are simulations.
 @MainActor final class NotificationUITests: XCTestCase {
-    override func setUp() { continueAfterFailure = false; XCUIDevice.shared.orientation = .portrait }
+    override func setUp() { continueAfterFailure = false; MainActor.assumeIsolated { XCUIDevice.shared.orientation = .portrait } }
     private func launch(_ arguments: [String] = [], inbox: Bool = true) -> XCUIApplication {
         let app = XCUIApplication(); app.launchArguments = ["--fixture", "--ui-testing"] + arguments
         app.launchEnvironment["FOMIO_UI_TEST_NAMESPACE"] = UUID().uuidString; app.launch()

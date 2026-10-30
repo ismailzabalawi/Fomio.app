@@ -198,13 +198,13 @@ import UIKit
         let closed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             abs(app.windows.firstMatch.frame.width - initialWidth) > 80
         }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [closed], timeout: 90), .completed)
+        XCTAssertEqual(XCTWaiter.wait(for: [closed], timeout: 90), .completed, "Window is \(app.windows.firstMatch.frame.width) pt wide; it started at \(initialWidth)")
         verifyFailure("Duo folded grouped failure")
         NSLog("DUO_ERROR_WAIT_REOPEN")
         let reopened = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             abs(app.windows.firstMatch.frame.width - initialWidth) < 2
         }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [reopened], timeout: 90), .completed)
+        XCTAssertEqual(XCTWaiter.wait(for: [reopened], timeout: 90), .completed, "Window is \(app.windows.firstMatch.frame.width) pt wide; it started at \(initialWidth)")
         verifyFailure("Duo reopened grouped failure")
         let retry = app.buttons["retry-topic-search"]
         scrollTo(retry, in: app); retry.tap()
@@ -285,7 +285,7 @@ import UIKit
         let folded = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             abs(app.windows.firstMatch.frame.width - initialWidth) > 80
         }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [folded], timeout: 90), .completed)
+        XCTAssertEqual(XCTWaiter.wait(for: [folded], timeout: 90), .completed, "Window is \(app.windows.firstMatch.frame.width) pt wide; it started at \(initialWidth)")
         XCTAssertEqual((body.value as? String)?.trimmingCharacters(in: .whitespacesAndNewlines), text)
         let close = app.buttons["composer-close"]
         XCTAssertTrue(close.waitForExistence(timeout: 10))
@@ -296,7 +296,11 @@ import UIKit
         XCTAssertEqual(becameReachable, .completed, "Close must remain reachable after the fold settles")
         close.tap()
         XCTAssertTrue(app.buttons["Keep draft"].waitForExistence(timeout: 10)); app.buttons["Keep draft"].tap()
-        app.buttons.matching(identifier: "Me").firstMatch.tap()
+        // The folded tab rail has no hit point until the dialog finishes closing; a tap before then is dropped.
+        XCTAssertTrue(app.buttons["Keep draft"].waitForNonExistence(timeout: 10))
+        let me = app.buttons.matching(identifier: "Me").firstMatch
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in me.isHittable }, object: nil)], timeout: 10), .completed)
+        me.tap()
         XCTAssertTrue(app.buttons["me-drafts"].waitForExistence(timeout: 10)); app.buttons["me-drafts"].tap()
         let saved = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Resume draft: Reply · Repairs")).firstMatch
         XCTAssertTrue(saved.waitForExistence(timeout: 10)); saved.tap()
@@ -320,7 +324,7 @@ import UIKit
         let reopened = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             abs(app.windows.firstMatch.frame.width - initialWidth) < 2
         }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [reopened], timeout: 90), .completed)
+        XCTAssertEqual(XCTWaiter.wait(for: [reopened], timeout: 90), .completed, "Window is \(app.windows.firstMatch.frame.width) pt wide; it started at \(initialWidth)")
         let continuation = placeCaretAtEnd ? " Continued." : "Q7"
         app.typeText(continuation)
         let continued = try XCTUnwrap(body.value as? String).trimmingCharacters(in: .whitespacesAndNewlines)
@@ -963,5 +967,65 @@ import UIKit
         XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 10), "Reselecting the same topic must reopen detail")
         app.buttons["back-to-topic-list"].tap()
         capture(app, "Retained search and exact discussion return")
+    }
+    /// Two panes without the sidebar move the destinations into the list column, as tabs change the
+    /// list and never the discussion. One pane keeps the system tab bar.
+    func testListColumnTabsFollowPaneCount() throws {
+        let app = launch()
+        let bar = find(app, "list-tab-bar")
+        // iPad draws its system tab bar outside `tabBars`, so match the destination by label instead.
+        let systemTab = app.buttons.matching(NSPredicate(format: "label == 'Communities' AND identifier != 'list-tab-communities'")).firstMatch
+        if find(app, "reading-one-pane").exists {
+            XCTAssertFalse(bar.exists, "One pane keeps the system tab bar")
+            XCTAssertTrue(systemTab.waitForExistence(timeout: 10) && systemTab.isHittable)
+            XCTAssertFalse(app.buttons["header-new-discussion"].exists, "New discussion stays in Home options in one pane")
+            return
+        }
+        guard find(app, "reading-two-pane").waitForExistence(timeout: 10) else { throw XCTSkip("Requires list and discussion without the community sidebar") }
+        XCTAssertTrue(bar.waitForExistence(timeout: 10))
+        let communities = app.buttons.matching(NSPredicate(format: "label == 'Communities'")).allElementsBoundByIndex
+        XCTAssertEqual(communities.count, 1, "Each destination is one accessibility element")
+        XCTAssertFalse(systemTab.exists && systemTab.isHittable, "The system tab bar is hidden while the list column carries the tabs")
+        let header = find(app, "browse-header"), window = app.windows.firstMatch
+        XCTAssertTrue(header.waitForExistence(timeout: 10))
+        XCTAssertGreaterThanOrEqual(bar.frame.minX, header.frame.minX - 1, "The tabs stay inside the list column")
+        XCTAssertLessThanOrEqual(bar.frame.maxX, header.frame.maxX + 1, "The tabs stay inside the list column")
+        XCTAssertGreaterThan(bar.frame.minY, window.frame.midY, "The tabs sit at the bottom of the list column")
+        for tab in ["home", "communities", "notifications", "me"] {
+            let button = app.buttons["list-tab-\(tab)"]
+            XCTAssertTrue(button.exists)
+            XCTAssertGreaterThanOrEqual(button.frame.width, 44); XCTAssertGreaterThanOrEqual(button.frame.height, 44)
+        }
+        XCTAssertTrue(app.buttons["header-new-discussion"].exists, "New discussion joins Search and Options beside the wordmark")
+        let reply = app.buttons["discussion-reply"]
+        XCTAssertTrue(reply.waitForExistence(timeout: 10))
+        XCTAssertGreaterThanOrEqual(reply.frame.minX, header.frame.maxX - 1, "Reply stays in the discussion pane")
+        XCTAssertLessThan(window.frame.maxY - reply.frame.maxY, 60, "With no tab bar below it, Reply sits at the bottom edge")
+        capture(app, "Two panes with list-column tabs")
+        // The list scrolls under the tabs, but its end stays clear of them.
+        let more = app.buttons["More discussions"], feed = app.scrollViews.matching(NSPredicate(format: "identifier BEGINSWITH 'feed-'")).firstMatch
+        for _ in 0..<8 where !(more.exists && more.isHittable) { feed.swipeUp(velocity: .slow) }
+        for _ in 0..<3 { feed.swipeUp() }
+        XCTAssertTrue(more.exists)
+        XCTAssertLessThanOrEqual(more.frame.maxY, bar.frame.minY + 1, "The end of the feed scrolls clear of the tabs")
+        feed.swipeDown(); feed.swipeDown()
+        let selected = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'topic-' AND selected == true")).firstMatch
+        XCTAssertTrue(selected.waitForExistence(timeout: 10))
+        let topic = selected.identifier
+        app.buttons["list-tab-notifications"].tap()
+        XCTAssertTrue(app.buttons["list-tab-notifications"].isSelected)
+        XCTAssertTrue(find(app, "list-tab-bar").waitForExistence(timeout: 10), "Every tab's list column carries the tabs")
+        app.buttons["list-tab-home"].tap()
+        XCTAssertTrue(app.buttons["list-tab-home"].isSelected)
+        let kept = app.buttons.matching(identifier: topic).matching(NSPredicate(format: "selected == true")).firstMatch
+        XCTAssertTrue(kept.waitForExistence(timeout: 10), "Home keeps its selected discussion")
+        XCTAssertTrue(app.buttons["discussion-reply"].exists)
+        app.buttons["toggle-topic-list"].tap()
+        XCTAssertTrue(find(app, "reading-focused").waitForExistence(timeout: 10))
+        XCTAssertFalse(find(app, "list-tab-bar").exists)
+        XCTAssertTrue(systemTab.waitForExistence(timeout: 10) && systemTab.isHittable, "Focused reading brings the system tab bar back")
+        capture(app, "Focused reading with the system tab bar")
+        app.buttons["toggle-topic-list"].tap()
+        XCTAssertTrue(find(app, "list-tab-bar").waitForExistence(timeout: 10))
     }
 }

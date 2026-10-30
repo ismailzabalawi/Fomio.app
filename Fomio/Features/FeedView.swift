@@ -71,7 +71,8 @@ struct FeedView: View {
     @Environment(\.dynamicTypeSize) private var textSize
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.readingSidebarVisible) private var sidebarVisible
-    @Environment(\.readingShowSidebar) private var showSidebar
+    @Environment(\.readingSidebarRestorable) private var sidebarRestorable
+    @Environment(\.readingTwoPanes) private var twoPanes
     @Bindable var state: FeedState
     let category: Community?
     let originTab: AppTab
@@ -92,6 +93,12 @@ struct FeedView: View {
         }.isEmpty
     }
     private var showsDirectCreate: Bool { roomyToolbar && needsNativeBack }
+    /// In two panes the tabs leave the window's top or bottom edge, so New discussion joins
+    /// Search and Options beside the wordmark: wordmark, three controls and spacing fit 300 pt.
+    private var showsHeaderCreate: Bool {
+        twoPanes && originTab == .home && !sidebarVisible && !needsNativeBack && !textSize.isAccessibilitySize
+            && columnWidth >= (sidebarRestorable ? 352 : 300)
+    }
     private var browse: TabState { app.tabs[originTab]! }
     private var search: DiscussionSearchState { browse.discussionSearch }
     private var selectedTopic: TopicID? {
@@ -238,9 +245,19 @@ struct FeedView: View {
             let showsLogo = originTab == .home && !sidebarVisible && !needsNativeBack
             // With a top row to share, the controls move up beside the wordmark so the title gets
             // the column's full width; beside it, a narrow column broke the title mid-word.
-            let controlsInTopRow = (showsLogo || showSidebar != nil) && !textSize.isAccessibilitySize
+            let controlsInTopRow = (showsLogo || sidebarRestorable) && !textSize.isAccessibilitySize
             let controls = HStack(spacing: 8) {
                 if textSize.isAccessibilitySize { Spacer(minLength: 0) }
+                if showsHeaderCreate {
+                    Button { app.create(category: category?.id) } label: {
+                        Image(systemName: "square.and.pencil").font(.system(size: min(controlSymbolSize, 28)))
+                            .foregroundStyle(Color.fomioText).frame(width: 44, height: 44)
+                            .contentShape(.circle).glassEffect(.regular.interactive(), in: .circle)
+                    }.buttonStyle(.plain)
+                        .accessibilityLabel(category.map { BrowseLocalization.format("New discussion in %@", locale: locale, $0.name) } ?? localized("New discussion"))
+                        .accessibilityIdentifier("header-new-discussion")
+                        .disabled(browse.browseScope.categoryID != nil && category == nil)
+                }
                 // Reveals and focuses search; with search open and empty it hides it again.
                 Button { toggleSearch(hiding: hidesSearch) } label: {
                     Image(systemName: "magnifyingglass").font(.system(size: min(controlSymbolSize, 28)))
@@ -252,10 +269,10 @@ struct FeedView: View {
                     .accessibilityIdentifier("reveal-topic-search")
                 optionsMenu.labelStyle(.iconOnly).buttonStyle(.plain)
             }
-            if showsLogo || showSidebar != nil {
+            if showsLogo || sidebarRestorable {
                 HStack(spacing: 12) {
-                    if let showSidebar {
-                        Button(action: showSidebar) {
+                    if sidebarRestorable {
+                        Button { app.sidebarHidden = false } label: {
                             Image(systemName: "sidebar.squares.leading").font(.system(size: min(controlSymbolSize, 28)))
                                 .frame(width: 44, height: 44).contentShape(.circle).glassEffect(.regular.interactive(), in: .circle)
                         }.buttonStyle(.plain).accessibilityLabel("Show sidebar").accessibilityIdentifier("show-sidebar")
@@ -373,7 +390,7 @@ struct FeedView: View {
                 Button { openWindow(id: "browse") } label: { Label("New window", systemImage: "macwindow.badge.plus") }
                     .accessibilityIdentifier("new-browsing-window")
             }
-            if !showsDirectCreate {
+            if !showsDirectCreate && !showsHeaderCreate {
                 Button { app.create(category: category?.id) } label: { Label("New discussion", systemImage: "square.and.pencil") }
                     .disabled(browse.browseScope.categoryID != nil && category == nil)
             }

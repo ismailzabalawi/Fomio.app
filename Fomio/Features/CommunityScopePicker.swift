@@ -162,7 +162,7 @@ struct CommunityScopePicker: View {
 struct FomioWordmark: View {
     var height: CGFloat = 24
     var body: some View {
-        Image("wordmark-color").resizable().scaledToFit().frame(height: height)
+        Image("wordmark-accent").resizable().scaledToFit().frame(height: height)
             .environment(\.layoutDirection, .leftToRight).accessibilityLabel("Fomio")
     }
 }

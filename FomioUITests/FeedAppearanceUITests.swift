@@ -208,9 +208,28 @@ import XCTest
         scrollToTop(app)
     }
     private func scrollUntilHittable(_ app: XCUIApplication, _ element: XCUIElement) {
+        // In two panes the list scrolls under its floating tabs and header, where XCUITest still reports
+        // an element as hittable but a tap at its centre would reach the tab or header control instead.
+        let tabs = app.descendants(matching: .any).matching(identifier: "list-tab-bar").firstMatch
+        let header = app.descendants(matching: .any).matching(identifier: "browse-header").firstMatch
+        func above() -> Bool { tabs.exists && header.exists && element.exists && element.frame.midY <= header.frame.maxY }
+        func reachable() -> Bool {
+            guard element.exists else { return false }
+            if tabs.exists && header.exists && !(header.frame.maxY..<tabs.frame.minY).contains(element.frame.midY) { return false }
+            return element.isHittable
+        }
         var attempts = 0
-        while !(element.exists && element.isHittable) && attempts < 12 { feedList(app).swipeUp(velocity: .slow); attempts += 1 }
-        XCTAssertTrue(element.exists && element.isHittable, "\(element) not reachable")
+        while !reachable() && attempts < 16 {
+            if tabs.exists {
+                // Short drags without momentum, so a tall card can't jump from below the tabs to under the header.
+                let list = feedList(app), centre = list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+                centre.press(forDuration: 0.05, thenDragTo: centre.withOffset(CGVector(dx: 0, dy: above() ? 160 : -160)), withVelocity: .slow, thenHoldForDuration: 0.2)
+            } else {
+                feedList(app).swipeUp(velocity: .slow)
+            }
+            attempts += 1
+        }
+        XCTAssertTrue(reachable(), "\(element) not reachable")
     }
     private func capture(_ app: XCUIApplication, _ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
