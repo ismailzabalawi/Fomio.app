@@ -332,10 +332,10 @@ struct TabRoot: View {
     @ViewBuilder private func destination(_ route: Route) -> some View {
         switch route {
         case let .community(id):
-            if let category = app.category(id) {
-                if category.restricted { AccessDeniedView(name: category.name) }
-                else { FeedView(state: state.feed(key: BrowseScope.category(id).feedKey), category: category, originTab: tab) }
-            } else { ScreenMessage(title: "Community unavailable", message: "This community could not be resolved or is inaccessible.", action: { Task { await app.loadCommunities() } }) }
+            if let category = app.category(id), category.restricted { AccessDeniedView(name: category.name) }
+            // An unresolved community stays in the feed, as on Home: it resolves the community itself,
+            // and a search failure that cleared the catalog keeps its query and error inline.
+            else { FeedView(state: state.feed(key: BrowseScope.category(id).feedKey), category: app.category(id), originTab: tab) }
         case .discussion, .thread: DiscussionView(state: app.discussionState(route, in: tab))
         case .search: scopedFeed
         case let .profile(name): ProfileView(username: name)

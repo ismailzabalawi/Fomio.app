@@ -13,10 +13,20 @@ import Observation
     @ObservationIgnored var savedPosition: FeedGeometry.Anchor?
     @ObservationIgnored var needsPositionRestore = false
     @ObservationIgnored var restoreAttempt: UUID?
+    /// Where the reader last came to rest, by their own scroll or a restore.
+    @ObservationIgnored var settledPosition: FeedGeometry.Anchor?
     func capturePosition() {
         savedPosition = geometry.topAnchor(in: items)
         if let savedPosition { anchor = savedPosition.id }
         restoreAttempt = nil
+    }
+    func settlePosition() { settledPosition = geometry.topAnchor(in: items) }
+    /// A collapsing split column can shift the content by its header before the list disappears,
+    /// so leaving keeps the settled position rather than measuring that transient one.
+    func captureSettledPosition() {
+        savedPosition = settledPosition
+        if let settledPosition { anchor = settledPosition.id }
+        restoreAttempt = nil; needsPositionRestore = true
     }
     @ObservationIgnored private var viewer: SearchViewer?
     @ObservationIgnored private var generation = 0
@@ -24,7 +34,7 @@ import Observation
         guard value != viewer else { return }
         viewer = value; generation += 1
         items = []; nextPage = 0; loading = false; loaded = false; error = nil; anchor = nil
-        geometry.frames = [:]; geometry.contentOffset = 0; savedPosition = nil; needsPositionRestore = false; restoreAttempt = nil
+        geometry.frames = [:]; geometry.contentOffset = 0; savedPosition = nil; settledPosition = nil; needsPositionRestore = false; restoreAttempt = nil
         scrollPosition = ScrollPosition(idType: BrowseRowAnchor.self)
     }
     func load(service: any CommunityService, category: Community?, refresh: Bool = false) async {
@@ -82,6 +92,9 @@ struct FeedView: View {
     private var geometry: FeedGeometry { state.geometry }
     @State private var pendingRestore: FeedGeometry.Anchor?
     @State private var columnWidth: CGFloat = 0
+    /// The scroll view's latest frame, kept unobserved like FeedGeometry. Geometry callbacks can still
+    /// run with the previous list's state while Home and a community swap, so the incoming list copies it.
+    @State private var scrollFrame = ScrollFrame()
     @State private var headerCornerInsets = RectangleCornerInsets()
     @State private var userScrolling = false
     @ScaledMetric(relativeTo: .body) private var controlSymbolSize = 20.0
@@ -163,7 +176,7 @@ struct FeedView: View {
             .scrollDismissesKeyboard(.interactively)
             .modifier(BrowseScrollPosition(searching: search.active, feed: $state.scrollPosition, search: rowAnchor))
             .id(ObjectIdentifier(state))
-            .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { geometry.originY = $0 }
+            .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { scrollFrame.origin = $0; geometry.originY = $0 }
             .accessibilityIdentifier(search.active ? "scoped-search-results" : "feed-\(appearance.rawValue)")
             .onScrollGeometryChange(for: CGFloat.self) { $0.contentOffset.y + $0.contentInsets.top } action: { old, offset in
                 geometry.contentOffset = offset
@@ -173,10 +186,13 @@ struct FeedView: View {
                 // already inside the content may hide it; layout/bounce cleanup cannot.
                 if old > 0 && offset > 64 && offset > old && search.revealed && !searchFocused && !search.active { search.revealed = false }
             }
-            .onScrollPhaseChange { _, phase in userScrolling = phase == .interacting }
+            .onScrollPhaseChange { old, phase in
+                userScrolling = phase == .interacting
+                if phase == .idle && old != .idle && !search.active { state.settlePosition() }
+            }
             .onScrollGeometryChange(for: FeedGeometry.Viewport.self) {
                 .init(top: 0, height: $0.containerSize.height)
-            } action: { geometry.viewport = .init(top: geometry.originY, height: $1.height) }
+            } action: { scrollFrame.height = $1.height; geometry.viewport = .init(top: geometry.originY, height: $1.height) }
             .onChange(of: appearance) { restore() }
             .onChange(of: search.active) { _, active in
                 if !active {
@@ -185,13 +201,16 @@ struct FeedView: View {
                 }
             }
             .onDisappear {
-                if !search.active { state.capturePosition(); state.needsPositionRestore = true }
+                if !search.active { state.captureSettledPosition() }
             }
             .task(id: ObjectIdentifier(state)) {
-                if state.needsPositionRestore, let anchor = state.savedPosition {
+                syncGeometry()
+                if state.needsPositionRestore {
                     state.needsPositionRestore = false
                     await Task.yield()
-                    restore(anchor: anchor)
+                    // Never scrolled: return to the top, undoing any shift while it was hidden.
+                    if let anchor = state.savedPosition { restore(anchor: anchor) }
+                    else if !search.active { state.scrollPosition.scrollTo(edge: .top) }
                 }
             }
         }
@@ -280,12 +299,19 @@ struct FeedView: View {
                     if controlsInTopRow { Spacer(minLength: 8); controls }
                 }.frame(minHeight: 44, alignment: .leading)
             }
-            layout {
-                // Keep this one chooser mounted while the header changes layout. Native
-                // toolbar title slots can silently clip or drop long/large scope labels.
-                CommunityScopePicker(scope: browse.browseScope, request: chooserRequest) { app.selectScope($0, in: originTab) }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                if !controlsInTopRow { controls }
+            // Unscoped, the list needs no title: the Communities tab is where a community is chosen.
+            // A scoped list keeps its name, which is also the way back to all communities.
+            let showsScope = browse.browseScope != .all
+            if showsScope {
+                layout {
+                    // Keep this one chooser mounted while the header changes layout. Native
+                    // toolbar title slots can silently clip or drop long/large scope labels.
+                    CommunityScopePicker(scope: browse.browseScope, request: chooserRequest) { app.selectScope($0, in: originTab) }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    if !controlsInTopRow { controls }
+                }
+            } else if !controlsInTopRow {
+                HStack(spacing: 8) { Spacer(minLength: 0); controls }
             }
         }.padding(.horizontal, 16).padding(.vertical, 6)
             // Padding participates in multiline measurement and hit testing.
@@ -300,7 +326,7 @@ struct FeedView: View {
     private var searchField: some View {
         let layout = textSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(alignment: .trailing, spacing: 0))
-            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
+            : AnyLayout(HStackLayout(alignment: .center, spacing: 8))
         return layout {
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass").font(.system(size: min(controlSymbolSize, 28)))
@@ -321,9 +347,13 @@ struct FeedView: View {
                     }
                         .accessibilityLabel("Clear search")
                 }
-            }.padding(.leading, 12).frame(minHeight: 44).background(Color.fomioFill, in: .rect(cornerRadius: 14))
-            Button { cancelSearch() } label: { Text("Cancel").frame(minHeight: 48).contentShape(.rect) }.accessibilityIdentifier("cancel-topic-search")
-        }.padding(.horizontal, 12).padding(.vertical, 6).background(Color.fomioBackground)
+            }.padding(.leading, 12).padding(.trailing, search.query.isEmpty ? 12 : 0)
+                .frame(minHeight: 44).background(Color.fomioFill, in: .rect(cornerRadius: 14))
+            Button { cancelSearch() } label: { Text("Cancel").frame(minHeight: 44).contentShape(.rect) }.accessibilityIdentifier("cancel-topic-search")
+        }.padding(.horizontal, 16).padding(.vertical, 6)
+            .padding(.leading, headerCornerInsets.topLeading.width)
+            .padding(.trailing, headerCornerInsets.topTrailing.width)
+            .background(Color.fomioBackground)
     }
     @ViewBuilder private var searchResults: some View {
         if let failure = search.failure, !isPagingFailure { searchFailure(failure) }
@@ -414,6 +444,10 @@ struct FeedView: View {
         var transaction = Transaction(); transaction.disablesAnimations = true
         withTransaction(transaction) { appearance = value }
     }
+    private func syncGeometry() {
+        guard scrollFrame.height > 0 else { return }
+        geometry.originY = scrollFrame.origin; geometry.viewport = .init(top: scrollFrame.origin, height: scrollFrame.height)
+    }
     private func restore(anchor requested: FeedGeometry.Anchor? = nil) {
         guard !search.active, let anchor = requested ?? pendingRestore ?? geometry.topAnchor(in: state.items) else { return }
         pendingRestore = nil
@@ -425,11 +459,14 @@ struct FeedView: View {
             try? await Task.sleep(for: .milliseconds(100))
             guard !Task.isCancelled, !search.active, browse.browseScope == scope,
                   self.viewer == viewer, browse.feeds[scope.feedKey] === state, state.restoreAttempt == attempt else { return }
+            syncGeometry()
             let offset = geometry.restoredOffset(for: anchor)
             if let offset { withTransaction(transaction) { state.scrollPosition.scrollTo(y: offset) } }
+            state.settledPosition = anchor
         }
     }
 }
+@MainActor private final class ScrollFrame { var origin: CGFloat = 0; var height: CGFloat = 0 }
 /// Non-observed layout readings used only when the appearance changes; updating them never re-renders the feed.
 @MainActor final class FeedGeometry {
     struct Viewport: Equatable { var top: CGFloat = 0; var height: CGFloat = 0 }

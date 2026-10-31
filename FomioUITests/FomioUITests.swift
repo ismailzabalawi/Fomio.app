@@ -740,7 +740,7 @@ import UIKit
         tapSettled(app.buttons["composer-more"]); let sample = app.buttons["Sample photo"]; XCTAssertTrue(sample.waitForExistence(timeout: 5)); sample.tap()
         XCTAssertTrue(app.buttons["Retry upload"].waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["composer-post"].isEnabled)
         app.buttons["composer-close"].tap(); XCTAssertTrue(app.buttons["Keep draft"].waitForExistence(timeout: 5)); app.buttons["Keep draft"].tap()
-        XCTAssertTrue(app.buttons["community-scope"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["reveal-topic-search"].waitForExistence(timeout: 5))
         app.buttons.matching(identifier: "Me").firstMatch.tap(); XCTAssertTrue(app.buttons["me-drafts"].waitForExistence(timeout: 5)); app.buttons["me-drafts"].tap(); let draft = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Photo recovery")).firstMatch; XCTAssertTrue(draft.waitForExistence(timeout: 5)); draft.tap()
         XCTAssertTrue(app.buttons["Resume upload"].waitForExistence(timeout: 5)); app.buttons["Remove photo"].firstMatch.tap()
         XCTAssertEqual(app.textViews["composer-title"].value as? String, "Photo recovery"); XCTAssertEqual((app.textViews["composer-body"].value as? String)?.trimmingCharacters(in: .whitespacesAndNewlines), "Writing stays")
@@ -777,8 +777,8 @@ import UIKit
         let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Focused reading retained after compact width"; capture.lifetime = .keepAlways; add(capture)
         toggle.tap()
         XCTAssertEqual(toggle.label, "Focus on discussion")
-        let scope = app.buttons["community-scope"]
-        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: scope)], timeout: 8), .completed, "Showing the list restores its header without changing its saved scroll position")
+        let search = app.buttons["reveal-topic-search"]
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: search)], timeout: 8), .completed, "Showing the list restores its header without changing its saved scroll position")
     }
     func testPhoneRotationKeepsHomeAndReplyReachable() {
         let app = launch()
@@ -931,7 +931,7 @@ import UIKit
         XCTAssertTrue(field.waitForExistence(timeout: 5)); XCTAssertTrue(field.label.contains("Repairs")); XCTAssertFalse(search.exists)
         // Choosing a community alone is not writing, so closing doesn't ask to keep a draft.
         app.buttons["composer-close"].tap()
-        XCTAssertTrue(app.buttons["community-scope"].waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["composer-keep-editing"].exists)
+        XCTAssertTrue(app.buttons["reveal-topic-search"].waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["composer-keep-editing"].exists)
     }
     func testKeyboardBarNextAndKeepEditing() {
         let app = launch()

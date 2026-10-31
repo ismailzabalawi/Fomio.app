@@ -70,6 +70,7 @@ import XCTest
         XCTAssertTrue(app.scrollViews["feed-cards"].exists, "Category feeds use the same appearance")
         capture(app, "Category feed in Cards")
         app.buttons["community-scope"].tap(); app.buttons["scope-all"].tap()
+        XCTAssertTrue(app.buttons["community-scope"].waitForNonExistence(timeout: 5), "All shows the untitled list")
         XCTAssertTrue(topic.waitForExistence(timeout: 5))
         XCTAssertLessThan(abs(topic.frame.minY - before), 3, "Choosing All restores the Home reading position")
         topic.tap()

@@ -15,7 +15,7 @@ import UIKit
         app.launchArguments = ["--fixture", "--ui-testing", "--adaptive-search-cases"] + arguments
         app.launchEnvironment["FOMIO_UI_TEST_NAMESPACE"] = UUID().uuidString
         app.launch()
-        if waitForScope { XCTAssertTrue(app.buttons["community-scope"].waitForExistence(timeout: 30)) }
+        if waitForScope { XCTAssertTrue(app.buttons["reveal-topic-search"].waitForExistence(timeout: 30)) }
         if ProcessInfo.processInfo.environment["FOMIO_NARROW_IPAD"] == "1" {
             narrowIPadWindow(app)
         }
@@ -54,8 +54,25 @@ import UIKit
         capture(app, "Actual narrow iPad before interaction")
         let controls = XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons["window-controls:com.fomio.mobile"]
         XCTAssertTrue(controls.exists)
-        XCTAssertFalse(app.buttons["community-scope"].frame.intersects(controls.frame),
-                       "Floating window controls must not cover the community selector")
+        XCTAssertFalse(app.buttons["reveal-topic-search"].frame.intersects(controls.frame),
+                       "Floating window controls must not cover the list header")
+    }
+    /// Home has no scope title; a community, and its chooser, open from the Communities tab.
+    private func openCommunity(_ app: XCUIApplication, _ id: Int) {
+        // The list column's own tab bar in two panes; the system tab bar, labelled per language, otherwise.
+        let listTab = app.buttons["list-tab-communities"]
+        let tab = listTab.exists ? listTab : app.buttons.matching(NSPredicate(format: "label IN %@", ["Communities", "المجتمعات"]))
+            .allElementsBoundByIndex.first { $0.isHittable } ?? app.buttons["Communities"].firstMatch
+        tab.tap()
+        let row = app.buttons["community-\(id)"]
+        XCTAssertTrue(row.waitForExistence(timeout: 10)); row.tap()
+        XCTAssertTrue(app.buttons["community-scope"].waitForExistence(timeout: 10))
+    }
+    private func returnToCommunityList(_ app: XCUIApplication) {
+        // Duo moves the system Back action into its native rail, outside the navigation bar.
+        let railBack = app.buttons["BackButton"]
+        if railBack.exists { railBack.tap() }
+        else { app.navigationBars.buttons.matching(NSPredicate(format: "label == 'Communities' OR label == 'Back'")).firstMatch.tap() }
     }
     private func expandIPadWindow(_ app: XCUIApplication, minimumWidth: CGFloat) {
         let system = XCUIApplication(bundleIdentifier: "com.apple.springboard")
@@ -81,13 +98,16 @@ import UIKit
         XCTAssertTrue(field.waitForExistence(timeout: 10)); field.tap(); field.typeText(term + "\n")
     }
     private func scrollTo(_ element: XCUIElement, in app: XCUIApplication) {
+        // Rows pass under the list column's floating tabs, which take the touch while still reporting the row hittable.
+        let tabs = app.buttons["list-tab-home"]
+        let reachable = { element.exists && element.isHittable && (!tabs.exists || element.frame.maxY <= tabs.frame.minY) }
         for _ in 0..<10 {
-            if element.exists && element.isHittable { return }
+            if reachable() { return }
             // Scroll the list itself: on a wide split view a window-level swipe lands in the detail pane.
             let list = app.scrollViews["scoped-search-results"]
             if list.exists { list.swipeUp() } else { app.scrollViews.matching(NSPredicate(format: "identifier BEGINSWITH %@", "feed-")).firstMatch.swipeUp() }
         }
-        XCTAssertTrue(element.exists && element.isHittable)
+        XCTAssertTrue(reachable())
     }
     private func capture(_ app: XCUIApplication, _ name: String) {
         let screens = XCUIScreen.screens
@@ -138,6 +158,7 @@ import UIKit
         let app = launch()
         NSLog("DUO_CHOOSER_WAIT_OPEN")
         XCTAssertTrue(find(app, "reading-two-pane").waitForExistence(timeout: 90))
+        openCommunity(app, 1)
         app.buttons["community-scope"].tap()
         let filter = app.textFields["community-filter"]
         XCTAssertTrue(filter.waitForExistence(timeout: 10)); filter.tap(); filter.typeText("Repairs")
@@ -183,14 +204,12 @@ import UIKit
         let failure = find(app, "search-error")
         XCTAssertTrue(failure.waitForExistence(timeout: 10))
         let initialWidth = app.windows.firstMatch.frame.width
-        let scopeLabelHeight = app.buttons["community-scope"].staticTexts.firstMatch.frame.height
         func verifyFailure(_ name: String) {
             XCTAssertTrue(failure.exists)
             XCTAssertFalse(app.buttons["topic-9101"].exists, "A one-shot failure must not be automatically retried during adaptation")
             XCTAssertEqual(app.textFields["topic-search-field"].value as? String, "Adaptive")
             XCTAssertTrue(app.buttons["retry-topic-search"].exists)
-            XCTAssertLessThanOrEqual(app.buttons["community-scope"].staticTexts.firstMatch.frame.height, scopeLabelHeight + 1,
-                                    "The short scope name should retain its line count; branding must yield the space after folding")
+            XCTAssertTrue(app.buttons["reveal-topic-search"].isHittable, "Header controls stay reachable after folding")
             recordWindow(app, name); capture(app, name)
         }
         verifyFailure("Duo open grouped failure")
@@ -357,7 +376,9 @@ import UIKit
         capture(app, "Collapsed topic search after Cancel")
     }
     func testFailedCommunityListKeepsFilterAndManualRetryRecovers() {
-        let app = launch(["--community-load-fails"])
+        // The Communities tab can't list rows without the catalog, so start in a scoped list whose title opens the chooser.
+        let app = launch(["--community-load-fails", "--preset", "partial-community"])
+        XCTAssertTrue(app.buttons["community-scope"].waitForExistence(timeout: 10))
         app.buttons["community-scope"].tap()
         XCTAssertTrue(app.staticTexts["Community list unavailable"].waitForExistence(timeout: 10))
         let filter = app.textFields["community-filter"]
@@ -454,6 +475,7 @@ import UIKit
     }
     func testCommunityChooserKeepsMatchingParentAndCancelKeepsScope() {
         let app = launch()
+        openCommunity(app, 5)
         app.buttons["community-scope"].tap()
         let filter = app.textFields["community-filter"]
         XCTAssertTrue(filter.waitForExistence(timeout: 10)); filter.tap(); filter.typeText("Finishing")
@@ -461,7 +483,7 @@ import UIKit
         XCTAssertTrue(app.buttons["scope-2"].exists)
         XCTAssertGreaterThanOrEqual(app.buttons["scope-cancel"].frame.height, 44 - 0.001)
         app.buttons["scope-cancel"].tap()
-        XCTAssertTrue(app.buttons["community-scope"].label.contains("All communities"))
+        XCTAssertTrue(app.buttons["community-scope"].label.contains("Electronics"))
         app.buttons["community-scope"].tap()
         XCTAssertTrue(filter.waitForExistence(timeout: 10)); filter.tap(); filter.typeText("Turning\n")
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
@@ -479,11 +501,7 @@ import UIKit
     }
     func testScopedAccessFailureRemovesRowsAndKeepsRecoveryVisible() {
         let app = launch(["--search-more-denied"])
-        app.buttons["community-scope"].tap()
-        // The iPad popover's lazy list creates lower rows only once they scroll into view.
-        let electronics = app.buttons["scope-5"]
-        for _ in 0..<4 where !electronics.isHittable { app.collectionViews.firstMatch.swipeUp() }
-        electronics.tap()
+        openCommunity(app, 5)
         search(app, "Adaptive")
         XCTAssertTrue(app.buttons["topic-9101"].waitForExistence(timeout: 10))
         let more = app.buttons["More results"]
@@ -504,6 +522,7 @@ import UIKit
     }
     func testScopeChangeKeepsQueryAndNeverShowsOldScopeResults() {
         let app = launch()
+        openCommunity(app, 5)
         search(app, "Adaptive")
         XCTAssertTrue(app.buttons["topic-9101"].waitForExistence(timeout: 10))
         app.buttons["community-scope"].tap()
@@ -513,7 +532,11 @@ import UIKit
         XCTAssertFalse(app.buttons["topic-9101"].exists)
         XCTAssertTrue(app.buttons["community-scope"].label.contains("Turning"))
         capture(app, "Query retained in empty selected community")
-        app.buttons["community-scope"].tap(); app.buttons["scope-all"].tap()
+        app.buttons["community-scope"].tap()
+        let electronics = app.buttons["scope-5"]
+        // The iPad popover's lazy list creates lower rows only once they scroll into view.
+        for _ in 0..<4 where !electronics.isHittable { app.collectionViews.firstMatch.swipeUp() }
+        electronics.tap()
         XCTAssertTrue(app.buttons["topic-9101"].waitForExistence(timeout: 10))
         app.buttons["cancel-topic-search"].tap()
         XCTAssertFalse(app.textFields["topic-search-field"].exists)
@@ -522,6 +545,7 @@ import UIKit
         let app = launch(["--accessibility-text", "--rtl", "--dark", "--search-initial-fails"])
         recordWindow(app, "Arabic large text actual window")
         capture(app, "Arabic large text initial header")
+        openCommunity(app, 5)
         let reachableScope = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             app.buttons["community-scope"].isHittable
         }, object: nil)
@@ -559,6 +583,7 @@ import UIKit
     func testCommunityChooserAccessibilityAudit() throws {
         for arguments in [["--dark"], ["--dark", "--rtl", "--accessibility-text"]] {
             let app = launch(arguments)
+            openCommunity(app, 1)
             app.buttons["community-scope"].tap()
             let filter = app.textFields["community-filter"]
             // Done ends editing; audit the chooser itself rather than the system keyboard's prediction cells.
@@ -580,6 +605,7 @@ import UIKit
             arguments += ["--rtl", "--accessibility-text"]
         }
         let app = launch(arguments)
+        openCommunity(app, 5)
         let initialScopeLabel = app.buttons["community-scope"].label
         addTeardownBlock { @MainActor in
             if UIAccessibility.isVoiceOverRunning {
@@ -662,6 +688,7 @@ import UIKit
             arguments += ["--rtl", "--accessibility-text"]
         }
         let app = launch(arguments)
+        openCommunity(app, 5)
         let initialScope = app.buttons["community-scope"].label
         addTeardownBlock { @MainActor in
             NSLog("VO_EXTERNAL_WAIT_DISABLE")
@@ -708,6 +735,7 @@ import UIKit
         }
         XCTAssertEqual(UIDevice.current.userInterfaceIdiom, .pad)
         let app = launch(["--dark"])
+        openCommunity(app, 1)
         app.buttons["community-scope"].tap()
         let filter = app.textFields["community-filter"]
         XCTAssertTrue(filter.waitForExistence(timeout: 10))
@@ -746,6 +774,7 @@ import UIKit
         }
         // No --accessibility-text argument: the native system setting must reach SwiftUI.
         let app = launch(["--dark", "--rtl", "--search-initial-fails"])
+        openCommunity(app, 5)
         app.buttons["community-scope"].tap()
         let filter = app.textFields["community-filter"]
         XCTAssertTrue(filter.waitForExistence(timeout: 10))
@@ -776,6 +805,7 @@ import UIKit
             throw XCTSkip("Requires native system text changes at SYSTEM_FONT_WAIT_AX5 and SYSTEM_FONT_WAIT_LARGE")
         }
         let app = launch(["--dark", "--rtl"])
+        openCommunity(app, 5)
         app.buttons["community-scope"].tap()
         let filter = app.textFields["community-filter"]
         XCTAssertTrue(filter.waitForExistence(timeout: 10)); filter.tap(); filter.typeText("Repairs")
@@ -879,7 +909,7 @@ import UIKit
         XCTAssertFalse(app.staticTexts["Discussion outside this community"].exists)
         XCTAssertTrue(app.buttons["discussion-reply"].exists)
         if app.buttons["back-to-topic-list"].exists { app.buttons["back-to-topic-list"].tap() }
-        XCTAssertTrue(app.buttons["community-scope"].label.contains("All communities"))
+        XCTAssertFalse(app.buttons["community-scope"].exists, "All shows the untitled list")
         capture(app, "Public link uses All and exact fictional reply")
     }
     func testOutsideScopeReturnRetainsExactSearchReply() throws {
@@ -899,6 +929,7 @@ import UIKit
         guard find(app, "reading-two-pane").waitForExistence(timeout: 10) else {
             throw XCTSkip("The actual rotated window cannot fit two readable columns")
         }
+        openCommunity(app, 5)
         search(app, "cracked diode")
         let topic = app.buttons["topic-4190"]
         XCTAssertTrue(topic.waitForExistence(timeout: 10)); topic.tap()
@@ -937,11 +968,10 @@ import UIKit
         let discussion = app.scrollViews["discussion-content"]
         for _ in 0..<8 where !opening.isHittable { discussion.swipeDown() }
         XCTAssertTrue(opening.isHittable)
-        app.buttons["community-scope"].tap()
-        XCTAssertTrue(filter.waitForExistence(timeout: 10)); filter.tap(); filter.typeText("Turning")
-        XCTAssertTrue(choice.waitForExistence(timeout: 10))
-        for _ in 0..<4 where !choice.isHittable { app.collectionViews.firstMatch.swipeUp() }
-        choice.tap()
+        // All has no scope title, so the second exclusion opens Woodworking from the community list.
+        returnToCommunityList(app)
+        let woodworking = app.buttons["community-1"]
+        XCTAssertTrue(woodworking.waitForExistence(timeout: 10)); woodworking.tap()
         XCTAssertTrue(app.staticTexts["Discussion outside this community"].waitForExistence(timeout: 10))
         XCTAssertTrue(restore.waitForExistence(timeout: 10)); restore.tap()
         let retained = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in opening.isHittable }, object: nil)

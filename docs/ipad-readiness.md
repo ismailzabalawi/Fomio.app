@@ -76,6 +76,14 @@ The [preserved native evidence packet](validation/2026-10-20-ipad-readiness/READ
 
 `testNativeNarrowWindowKeepsQueryAndSelection` is opt-in with `FOMIO_IPAD_WINDOW_RESIZE=1`, requiring the OS corner-resize affordance. It never substitutes a debug width and requires an observed window below 720pt. A skipped or failed probe is not a narrow-window pass.
 
+## Home header and list position — 31 October 2026
+
+- Home no longer shows the All communities title; a community, and its chooser, open from the Communities tab (or the sidebar). A scoped list keeps its title. The search field and Cancel share one centred row inset like the header. UI tests now wait for `reveal-topic-search` and reach the chooser through the Communities tab.
+- Restoring a list position copies the scroll view's current frame into the incoming list first. Geometry callbacks could still write to the previous list while Home and a community swapped, so returning to All placed the reading position 48 pt (the scope row) too low on iPhone.
+- Leaving a list keeps the position the reader last settled on instead of measuring during the column collapse, which shifted the list by its header in iPhone landscape focus mode; an unscrolled list returns to the top.
+- A Communities-tab community that is no longer in the catalog stays in the feed, as on Home, so an access-denied search keeps its query and inline error instead of a full-page Community unavailable screen.
+- Fixture results on the working tree: iPhone 17 / iOS 27.0, 11 passed (feed appearance suite, three phone rotation tests, community field and photo-keep). iPad Pro 11-inch (M5) / iOS 27.0, `AdaptiveReadingUITests` and `IPadReadinessUITests`: all non-opt-in tests pass except `testInlineSearchFailureAccessibilityAudit` (contrast), which also fails on `b1062de` without these changes. `testOpenCommunityChooserRetainsFilterAcrossRotation` failed once and passed on rerun. Opt-in Duo fold, VoiceOver and native text/resize probes were updated but not run.
+
 ## Final acceptance and release limits
 
 - Functional iPad window creation, scope parity/exclusion/return, narrow search/Back, chooser resizing/rotation, editor resizing/rotation and direct typing are verified at the recorded native/fixture layer. Existing passes are reused; no additional repeat run is needed.

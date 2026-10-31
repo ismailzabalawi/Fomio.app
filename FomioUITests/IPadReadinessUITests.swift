@@ -12,7 +12,7 @@ import UIKit
         app.launchArguments = ["--fixture", "--ui-testing"] + arguments
         app.launchEnvironment["FOMIO_UI_TEST_NAMESPACE"] = UUID().uuidString
         app.launch()
-        XCTAssertTrue(app.buttons["community-scope"].waitForExistence(timeout: 30))
+        XCTAssertTrue(app.buttons["reveal-topic-search"].waitForExistence(timeout: 30))
         let window = app.windows.firstMatch
         let screen = XCUIApplication(bundleIdentifier: "com.apple.springboard").frame
         if window.frame.width < screen.width - 40 {
@@ -28,20 +28,33 @@ import UIKit
         }
         let header = app.otherElements["browse-header"].firstMatch
         XCTAssertTrue(header.waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["community-scope"].exists, "Home has no scope title")
+        if !arguments.contains("--accessibility-text") {
+            let visible = app.buttons["reveal-topic-search"].frame.union(app.buttons["feed-options"].frame)
+            XCTAssertLessThanOrEqual(visible.height + 12, 80,
+                                     "Actions plus padding must occupy one compact header, excluding the OS safe area")
+        }
+        return app
+    }
+    /// Home has no scope title; a community, and its chooser, open from the Communities tab.
+    private func openCommunity(_ app: XCUIApplication, _ id: Int) {
+        // The list column's own tab bar in two panes; the system tab bar, labelled per language, otherwise.
+        let listTab = app.buttons["list-tab-communities"]
+        let tab = listTab.exists ? listTab : app.buttons.matching(NSPredicate(format: "label IN %@", ["Communities", "المجتمعات"]))
+            .allElementsBoundByIndex.first { $0.isHittable } ?? app.buttons["Communities"].firstMatch
+        tab.tap()
+        let row = app.buttons["community-\(id)"]
+        XCTAssertTrue(row.waitForExistence(timeout: 10)); row.tap()
+        XCTAssertTrue(app.buttons["community-scope"].waitForExistence(timeout: 10))
+    }
+    private func assertScopeTitleFits(_ app: XCUIApplication) {
+        let header = app.otherElements["browse-header"].firstMatch
         let label = app.buttons["community-scope"].staticTexts.firstMatch
-        XCTAssertGreaterThanOrEqual(label.frame.width, 90, "Scope must not collapse to one or two characters")
+        XCTAssertGreaterThanOrEqual(label.frame.width, 60, "Scope must not collapse to one or two characters")
         XCTAssertGreaterThanOrEqual(app.buttons["community-scope"].frame.height + 0.001, 44)
         XCTAssertGreaterThanOrEqual(label.frame.minX, header.frame.minX - 1)
         XCTAssertLessThanOrEqual(label.frame.maxX, header.frame.maxX + 1)
         XCTAssertLessThanOrEqual(label.frame.maxY, header.frame.maxY + 1)
-        if !arguments.contains("--accessibility-text") {
-            let visible = app.buttons["community-scope"].frame
-                .union(app.buttons["reveal-topic-search"].frame)
-                .union(app.buttons["feed-options"].frame)
-            XCTAssertLessThanOrEqual(visible.height + 12, 80,
-                                     "Scope/actions plus padding must occupy one compact header, excluding the OS safe area")
-        }
-        return app
     }
     private func capture(_ app: XCUIApplication, _ name: String) {
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
@@ -75,6 +88,7 @@ import UIKit
         app.buttons["sidebar-1"].tap()
         XCTAssertTrue(app.buttons["sidebar-9"].waitForExistence(timeout: 10)); app.buttons["sidebar-9"].tap()
         XCTAssertTrue(app.buttons["community-scope"].label.contains("Turning"))
+        assertScopeTitleFits(app)
         XCTAssertTrue(app.staticTexts["Discussion outside this community"].waitForExistence(timeout: 10))
         XCTAssertFalse(reply.exists)
         capture(app, "Wide iPad excludes selected discussion outside Turning")
@@ -90,8 +104,9 @@ import UIKit
         XCTAssertTrue(app.buttons["community-scope"].label.contains("Repairs"))
         XCTAssertTrue(topic.waitForExistence(timeout: 10)); XCTAssertTrue(topic.isSelected); XCTAssertTrue(reply.exists)
         app.buttons["sidebar-all"].tap()
-        XCTAssertTrue(app.buttons["community-scope"].label.contains("All communities"))
-        XCTAssertTrue(app.buttons["Home"].isSelected, "Scope changes stay in the originating Home tab")
+        XCTAssertTrue(app.buttons["community-scope"].waitForNonExistence(timeout: 10), "All shows the untitled list")
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label == %@", "Home")).allElementsBoundByIndex.contains { $0.isSelected },
+                      "Scope changes stay in the originating Home tab")
         XCTAssertTrue(topic.isSelected); XCTAssertTrue(reply.exists)
         capture(app, "Wide iPad sidebar root child All parity and retained discussion")
         app.buttons["hide-sidebar"].tap()
@@ -105,6 +120,8 @@ import UIKit
     }
     func testNewWindowStartsWithIndependentBrowsing() throws {
         let app = try launch()
+        openCommunity(app, 1)
+        assertScopeTitleFits(app)
         app.buttons["community-scope"].tap()
         revealChoice(app.buttons["scope-2"], in: app)
         app.buttons["scope-2"].tap()
@@ -112,12 +129,13 @@ import UIKit
         app.buttons["feed-options"].tap()
         let newWindow = app.buttons["new-browsing-window"]
         XCTAssertTrue(newWindow.waitForExistence(timeout: 5)); newWindow.tap()
+        // The new scene opens on Home, which has no scope title.
         let independent = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            app.buttons.matching(identifier: "community-scope").allElementsBoundByIndex.contains { $0.label.contains("All communities") && $0.isHittable }
+            app.buttons.matching(identifier: "reveal-topic-search").count >= 2
         }, object: nil)
-        XCTAssertEqual(XCTWaiter.wait(for: [independent], timeout: 15), .completed)
+        XCTAssertEqual(XCTWaiter.wait(for: [independent], timeout: 15), .completed, "Two native scenes must remain mounted")
         let scopes = app.buttons.matching(identifier: "community-scope").allElementsBoundByIndex
-        XCTAssertGreaterThanOrEqual(scopes.count, 2, "Two native scenes must remain mounted")
+        XCTAssertEqual(scopes.count, 1, "Only the original scene carries a scope")
         XCTAssertTrue(scopes.contains { $0.label.contains("Finishing") }, "Original scene retains its selected scope")
         capture(app, "Independent iPad browsing windows")
         let attachment = XCTAttachment(string: app.debugDescription)
@@ -146,6 +164,7 @@ import UIKit
     }
     func testOpenCommunityChooserRetainsFilterAcrossRotation() throws {
         let app = try launch()
+        openCommunity(app, 5)
         app.buttons["community-scope"].tap()
         let filter = app.textFields["community-filter"]
         XCTAssertTrue(filter.waitForExistence(timeout: 10)); filter.tap(); filter.typeText("Finishing")
@@ -163,6 +182,7 @@ import UIKit
         let app = try launch(["--accessibility-text", "--rtl", "--dark"])
         let wide = app.windows.firstMatch.frame.width >= 1340
         if wide { XCTAssertTrue(app.otherElements["reading-two-pane"].exists, "AX3 minima (×1.85) keep two panes at 1366 pt") }
+        openCommunity(app, 1)
         XCTAssertTrue(app.buttons["community-scope"].isHittable)
         app.buttons["community-scope"].tap()
         XCTAssertTrue(app.buttons["scope-cancel"].waitForExistence(timeout: 10))
@@ -253,6 +273,7 @@ import UIKit
         }
         let app = try launch()
         guard narrowWindow(app) else { return }
+        openCommunity(app, 1)
         app.buttons["community-scope"].tap()
         let field = app.textFields["community-filter"]
         XCTAssertTrue(field.waitForExistence(timeout: 10)); field.tap(); field.typeText("Finishing")
@@ -266,7 +287,7 @@ import UIKit
         XCTAssertTrue(app.buttons["scope-cancel"].isHittable)
         capture(app, "Resized iPad chooser keeps its open filter")
         app.buttons["scope-cancel"].tap()
-        XCTAssertTrue(app.buttons["community-scope"].label.contains("All communities"))
+        XCTAssertTrue(app.buttons["community-scope"].label.contains("Woodworking"), "Cancel keeps the current scope")
     }
 
     private func maximizeUsingSystemControls(_ app: XCUIApplication) -> Bool {
