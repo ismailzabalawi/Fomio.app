@@ -35,11 +35,23 @@ struct ComposerView: View {
     @State private var blockAffix: (leading: String, trailing: String)?
 
     @State private var suspendedSelection = EditorSelection()
+    #if DEBUG
+    /// The Debug-only rich prototype editing the body, when launched with `--rich-composer`.
+    @State private var richModel: PrototypeComposerModel?
+    #endif
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private enum Field: Hashable { case title, body }
     private enum Recovery: Hashable { case rejection, authorization, unconfirmed, pending, missingPhoto, photo, error }
     @State private var focusedField: Field?
     @AccessibilityFocusState private var recoveryFocus: Recovery?
+    init(state: ComposerState) {
+        self.state = state
+        #if DEBUG
+        if PrototypeComposerModel.isEnabled {
+            _richModel = State(initialValue: PrototypeComposerModel(source: state.draft.body) { [state] in state.draft.body = $0 })
+        }
+        #endif
+    }
     var body: some View {
         NavigationStack {
             ScrollViewReader { proxy in
@@ -49,7 +61,7 @@ struct ComposerView: View {
                             statusCards
                             if state.draft.intent.isNew { destinationRow } else { replyContext }
                             if state.draft.intent.isNew {
-                                NativeComposerEditor(raw: $state.draft.title, controller: titleEditor, isTitle: true, locked: state.locked, onNext: { bodyEditor.focus(); focusedField = .body }, onFocus: { bodyEditor.blur(); focusedField = .title }, identifier: "composer-title", label: "Title", placeholder: "Title")
+                                NativeComposerEditor(raw: $state.draft.title, controller: titleEditor, isTitle: true, locked: state.locked, onNext: focusBody, onFocus: { bodyEditor.blur(); focusedField = .title }, identifier: "composer-title", label: "Title", placeholder: "Title")
                                 Divider().overlay(Color.fomioSeparator)
                             }
                             if bodyEditor.markdown {
@@ -59,7 +71,7 @@ struct ComposerView: View {
                                     Button("Preview", systemImage: "eye") { suspendEditingFocus(); presentation = .preview }.accessibilityIdentifier("composer-preview").frame(minHeight: 44)
                                 }
                             }
-                            NativeComposerEditor(raw: $state.draft.body, controller: bodyEditor, locked: state.locked, allowChecklists: app.service.composerCapabilities.checklists, attachmentData: { state.data(for: $0) }, attachmentCaption: { node in state.attachment(for: node).map(photoStatus) }, onBlock: { node in if let attachment = state.attachment(for: node) { suspendEditingFocus(); photoDescription = attachment.description; editingPhoto = attachment } else { openBlock(node) } }, onRemove: { node in bodyEditor.send(.replace(node.range, "")) }, onFocus: { titleEditor.blur(); focusedField = .body; bodyEngaged = true }, label: state.draft.intent.isNew ? "Opening post" : "Reply text", placeholder: state.draft.intent.isNew ? "Write the opening post" : "Write your reply")
+                            bodyField
                             if !state.suggestions.isEmpty {
                                 DisclosureGroup("Similar discussions") {
                                     ForEach(state.suggestions) { topic in Button(topic.title) { if state.save() { suspendEditingFocus(); presentation = .discussion(topic.id) } }.frame(minHeight: 44) }
@@ -78,7 +90,7 @@ struct ComposerView: View {
                     // Keep the bar/menu mounted through geometry and community-list changes;
                     // rebuilding the native menu can interrupt keyboard presentation.
                     if !state.locked {
-                        composerBar.opacity(choosingCommunity ? 0 : 1).allowsHitTesting(!choosingCommunity).accessibilityHidden(choosingCommunity)
+                        bar.opacity(choosingCommunity ? 0 : 1).allowsHitTesting(!choosingCommunity).accessibilityHidden(choosingCommunity)
                             .padding(.bottom, floatingKeyboardInset)
                     }
                 }
@@ -163,7 +175,13 @@ struct ComposerView: View {
                 if previous != nil && current == nil && pendingInsert == nil { restoreEditingFocus() }
             }
             .onChange(of: state.draft.title) { state.edited() }
-            .onChange(of: state.draft.body) { state.edited() }
+            .onChange(of: state.draft.body) { _, body in
+                state.edited()
+                #if DEBUG
+                // A change from outside the rich editor it cannot represent hands the body back to the standard editor.
+                if let richModel, !richModel.adopt(body) { self.richModel = nil }
+                #endif
+            }
             .onChange(of: phase) { _, value in if value != .active && state.hasChanges { state.save() } }
             .onChange(of: photos) { _, items in
                 Task {
@@ -346,7 +364,32 @@ struct ComposerView: View {
     private static func isPushed(_ presentation: EditorPresentation) -> Bool {
         switch presentation { case .link, .preview, .photo, .block, .discussion: true; default: false }
     }
+    @ViewBuilder private var bodyField: some View {
+        #if DEBUG
+        if let richModel {
+            PrototypeComposerEditor(model: richModel, label: state.draft.intent.isNew ? "Opening post" : "Reply text", placeholder: state.draft.intent.isNew ? "Write the opening post" : "Write your reply", onFocus: { titleEditor.blur(); focusedField = .body; bodyEngaged = true })
+        } else { nativeBodyField }
+        #else
+        nativeBodyField
+        #endif
+    }
+    private var nativeBodyField: some View {
+        NativeComposerEditor(raw: $state.draft.body, controller: bodyEditor, locked: state.locked, allowChecklists: app.service.composerCapabilities.checklists, attachmentData: { state.data(for: $0) }, attachmentCaption: { node in state.attachment(for: node).map(photoStatus) }, onBlock: { node in if let attachment = state.attachment(for: node) { suspendEditingFocus(); photoDescription = attachment.description; editingPhoto = attachment } else { openBlock(node) } }, onRemove: { node in bodyEditor.send(.replace(node.range, "")) }, onFocus: { titleEditor.blur(); focusedField = .body; bodyEngaged = true }, label: state.draft.intent.isNew ? "Opening post" : "Reply text", placeholder: state.draft.intent.isNew ? "Write the opening post" : "Write your reply")
+    }
+    private func focusBody() {
+        #if DEBUG
+        if let richModel { richModel.requestFocus(); return }
+        #endif
+        bodyEditor.focus(); focusedField = .body
+    }
     // MARK: Bar
+    @ViewBuilder private var bar: some View {
+        #if DEBUG
+        if let richModel { PrototypeComposerBar(model: richModel) } else { composerBar }
+        #else
+        composerBar
+        #endif
+    }
     private var barMode: ComposerBar<ComposerMoreMenu>.Mode {
         if turningInto, let style = bodyEditor.textStyle { return .turnInto(style) }
         if titleEditor.focused { return .title }

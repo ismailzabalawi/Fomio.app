@@ -136,10 +136,11 @@ import UniformTypeIdentifiers
         // A native typing burst is a single session action, separate from mode changes.
         app.buttons["prototype-undo"].tap()
         XCTAssertEqual(rich.value as? String, original)
-        XCTAssertTrue(app.keyboards.firstMatch.exists)
+        // Check the editor keeps focus, not keyboard visibility: some simulators keep the software keyboard minimized.
+        XCTAssertTrue(rich.hasKeyboardFocus)
         app.buttons["prototype-redo"].tap()
         XCTAssertEqual(rich.value as? String, "مرحبا Fomio")
-        XCTAssertTrue(app.keyboards.firstMatch.exists)
+        XCTAssertTrue(rich.hasKeyboardFocus)
         app.segmentedControls["prototype-mode"].buttons["Markdown"].tap()
         XCTAssertEqual(app.textViews["prototype-markdown"].value as? String, "مرحبا Fomio")
     }
@@ -209,6 +210,83 @@ import UniformTypeIdentifiers
         XCTAssertTrue(source.contains("\\*\\*literal\\*\\*"), source)
     }
 
+    func testListsQuotesAndLinksTypedNativelyExportToDiscourseSource() throws {
+        let app = launch()
+        let rich = app.textViews["prototype-rich"]
+        XCTAssertTrue(rich.waitForExistence(timeout: 10))
+        app.buttons["prototype-samples"].tap(); app.buttons["Plain text"].tap()
+        app.buttons["prototype-select-all"].tap()
+        rich.typeText("Shopping\n")
+        app.buttons["prototype-bullet"].tap()
+        XCTAssertEqual(app.buttons["prototype-bullet"].value as? String, "On")
+        // Return continues the list; Return on the empty item leaves it.
+        rich.typeText("Milk\nخبز 🍞\n\nDone\n\n> quoted")
+        XCTAssertEqual(rich.value as? String, "Shopping\n• Milk\n• خبز 🍞\n\nDone\n\n▎ quoted")
+        rich.typeText(" ")
+        let text = app.textFields["prototype-link-text"], url = app.textFields["prototype-link-url"]
+        tap(app.buttons["prototype-link"], until: { text.exists })
+        text.tap(); text.typeText("Fomio")
+        url.tap(); url.typeText("meta.discourse.org")
+        app.buttons["prototype-link-apply"].tap()
+        XCTAssertTrue(rich.waitForValue("Shopping\n• Milk\n• خبز 🍞\n\nDone\n\n▎ quoted Fomio"), (rich.value as? String ?? "").debugDescription)
+        app.segmentedControls["prototype-mode"].buttons["Markdown"].tap()
+        let source = app.textViews["prototype-markdown"]
+        XCTAssertTrue(source.waitForExistence(timeout: 5), app.staticTexts["prototype-issue"].exists ? app.staticTexts["prototype-issue"].label : "")
+        XCTAssertEqual(source.value as? String, "Shopping\n- Milk\n- خبز 🍞\n\nDone\n\n> quoted [Fomio](https://meta.discourse.org)")
+        app.segmentedControls["prototype-mode"].buttons["Rich text"].tap()
+        XCTAssertEqual(rich.value as? String, "Shopping\n• Milk\n• خبز 🍞\n\nDone\n\n▎ quoted Fomio")
+        let capture = XCTAttachment(screenshot: app.screenshot())
+        capture.name = "Prototype lists, quote and link"; capture.lifetime = .keepAlways; add(capture)
+    }
+
+    func testRichComposerSwitchSavesDiscourseSourceToTheDraft() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--fixture", "--ui-testing", "--rich-composer"]
+        app.launchEnvironment["FOMIO_UI_TEST_NAMESPACE"] = UUID().uuidString
+        app.launch()
+        XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 10)); app.buttons["topic-4182"].tap()
+        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5)); app.buttons["discussion-reply"].tap()
+        let rich = app.textViews["composer-rich-body"]
+        XCTAssertTrue(rich.waitForExistence(timeout: 5)); rich.tap()
+        rich.typeText("Steps\n")
+        tapChangingText(app.buttons["prototype-bullet"], in: rich)
+        rich.typeText("مرحبا 👋🏽\nTwo")
+        XCTAssertEqual(rich.value as? String, "Steps\n• مرحبا 👋🏽\n• Two")
+        XCTAssertTrue(app.buttons["composer-post"].isEnabled)
+        let capture = XCTAttachment(screenshot: app.screenshot())
+        capture.name = "Debug rich composer"; capture.lifetime = .keepAlways; add(capture)
+        app.buttons["composer-close"].tap(); app.buttons["Keep draft"].tap()
+        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
+        // Without the switch, the kept draft opens in the standard composer as Discourse source.
+        app.terminate()
+        app.launchArguments = ["--fixture", "--ui-testing"]
+        app.launch()
+        XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 10))
+        app.buttons.matching(identifier: "Me").firstMatch.tap()
+        XCTAssertTrue(app.buttons["me-drafts"].waitForExistence(timeout: 5)); app.buttons["me-drafts"].tap()
+        let draft = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Resume draft:")).firstMatch
+        XCTAssertTrue(draft.waitForExistence(timeout: 5)); draft.tap()
+        let body = app.textViews["composer-body"]
+        XCTAssertTrue(body.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["composer-more"].waitForExistence(timeout: 5)); app.buttons["composer-more"].tap()
+        app.buttons["Edit in Markdown"].tap()
+        XCTAssertEqual(body.value as? String, "Steps\n- مرحبا 👋🏽\n- Two")
+    }
+
+    /// After `typeText` the simulator can keep its software keyboard minimized; the next touch restores it
+    /// and the composer bar moves under the finger, losing that tap. Tap again only while the text is unchanged.
+    private func tapChangingText(_ control: XCUIElement, in editor: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
+        let before = editor.value as? String
+        tap(control, until: { editor.value as? String != before }, file: file, line: line)
+    }
+    private func tap(_ control: XCUIElement, until done: @escaping () -> Bool, file: StaticString = #filePath, line: UInt = #line) {
+        for _ in 0..<3 {
+            control.tap()
+            let expectation = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in done() }, object: nil)
+            if XCTWaiter.wait(for: [expectation], timeout: 2) == .completed { return }
+        }
+        XCTFail("\(control) had no effect", file: file, line: line)
+    }
     private func assertControlsAboveKeyboard(_ app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
         let keyboard = app.keyboards.firstMatch.frame
         for identifier in ["prototype-bold", "prototype-italic", "prototype-strikethrough", "prototype-hide-keyboard"] {
@@ -248,6 +326,7 @@ import UniformTypeIdentifiers
 }
 
 private extension XCUIElement {
+    var hasKeyboardFocus: Bool { (value(forKey: "hasKeyboardFocus") as? Bool) == true }
     func waitForContainingValue(_ string: String, timeout: TimeInterval = 5) -> Bool {
         let expectation = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value CONTAINS %@", string), object: self)
         return XCTWaiter.wait(for: [expectation], timeout: timeout) == .completed

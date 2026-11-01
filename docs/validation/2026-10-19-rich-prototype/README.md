@@ -110,3 +110,42 @@ Corresponding `.log` files use the same basename alongside each bundle. The init
 History restoration keeps the same native editor while its mode is unchanged and retains the keyboard/focus. A restored mode change reveals the appropriate editor or preserved unsupported source. There is no editor identity reset, warning suppression, fixed keyboard geometry, runtime relocation or production composer change in this follow-up.
 
 The supported experiment is the prototype's **Undo/Redo controls**, **checked Paste button**, basic **native edit-menu paste**, and guarded rich/source transitions. Hardware paste/undo shortcuts and system gesture history remain unaccepted; a failed synthetic keyboard probe is not relabeled as a pass. Physical-device cross-app paste, IME and full clipboard-format fidelity remain required before any composer migration.
+
+## Links, lists, quotes and the Debug composer switch — 2026-11-01
+
+The user authorized continuing the prototype: links, then lists and quotes, then connecting it to the real composer behind a Debug switch. The existing composer remains the default in every build.
+
+**Document model.** `PrototypeRichDocument` adds an inline link (`[label](url)`, http/https/mailto only; images, reference links, nested links, spaces, parentheses and other schemes stay in Markdown) and three line blocks: bullet (`-`, `*`, `+`), ordered (`1.` or `1)`) and quote (`>`). In rich text a block shows a visible marker (`• `, `2. `, `▎ `) that carries the block attribute; content is ordinary prose. Ordered markers show the numbers Markdown renders, not the source digits. Unchanged lines keep their source bytes, including shifted lines in an edited middle (matched in order). New list lines copy the neighbouring item's bullet character or ordered delimiter so an insertion does not split a list. Changed lines serialize as `- `, `N. ` or `> `, with link labels escaped like other prose.
+
+Fail-closed rules: lazy continuation (ordinary text directly after a list or quote line), an ordered list not starting at 1 or an empty item directly after a paragraph, mixed ordered delimiters in one list, nested blocks (`- > x`, `> > x`, `- - x`), extra spaces after a marker, and setext/thematic-break lines stay in Markdown. In rich text, ordinary text directly after a list or quote is refused at export with "Leave an empty line between a list or quote and the text after it"; the rich buffer is kept.
+
+**Editing.** Return continues a list or quote; Return on an empty item leaves it and keeps the blank line Markdown needs. Typing `- `, `* `, `+ `, `1. ` or `> ` at a line start makes the block. Backspace into a marker removes the whole marker. Bulleted list, Numbered list and Quote buttons toggle the selected lines. Link opens a small sheet (Text and URL at a caret; URL for a selection; Remove link on a linked selection); a bare host gets `https://`. Pasted links (RTF/HTML) are still refused, unchanged from 2026-10-20.
+
+Two native-editor behaviours shaped the implementation, both found by UI journeys:
+
+- `TextEditor` ignores text changed inside its own binding update. Block shaping is therefore deferred (`editRich(_:deferShaping:)` then `shapePendingEdit()` on the next main-actor turn). Because fast typing can deliver several keys before that turn, a Return or shortcut is recognised anywhere in the batched insertion, including when a composed emoji modifier replaced the previous character.
+- While adopting a marker, the editor can send its own older text back with the next key where the marker was. Typing never replaces a marker, so that case restores the marker with the typed text after it (unit test `testStaleEditorTextCannotTypeOverAMarker`).
+
+A SwiftUI `alert` kept the Apply button state it was presented with (empty URL), so Apply never ran even though XCTest reported it enabled. The link editor is a sheet with toolbar Cancel/Apply instead, and it restores the selection captured when it opened.
+
+**Debug composer switch.** Launching a Debug build with `--rich-composer` makes `ComposerView` edit the body with the prototype (`PrototypeComposerModel`, `PrototypeComposerEditor`, `PrototypeComposerBar`). The draft stays Discourse source: every rich change is exported to `state.draft.body`, so existing autosave, Keep draft and Post are unchanged. A body the prototype cannot represent (photos, polls, mentions, headings, etc.) opens in the standard editor; an outside change it cannot represent hands the body back to the standard editor. The rich bar has two rows of 44-point controls (formatting, then Undo/Redo) so every action stays on screen on iPhone; it does not offer photos, blocks, preview or Markdown mode. Typing `@` in rich text exports a literal `\@`, not a mention. Release builds compile none of this (`#if DEBUG`; Release build succeeded).
+
+**Performance.** A 27,320-character mixed document (Arabic, emoji, links, lists, quotes): about 41–44 ms per rich keystroke including block shaping, and about 220 ms for a full export, in a Debug simulator build. The composer exports on every change, so long posts will feel this; it is fine for typical replies but is not acceptance for long-document editing.
+
+### Evidence — 2026-11-01
+
+Xcode/SDK 27.1. Simulators reused: iPhone 17 / iOS 27.0, iPad Pro 11-inch (M5) / iOS 27.0, iPhone Duo / iOS 27.1 (posture left as found; not changed during the run). Result bundles are machine-local in this session's scratchpad.
+
+| Scope | iPhone 17 | iPad Pro 11 (M5) | iPhone Duo |
+| --- | --- | --- | --- |
+| Prototype unit tests (34) + composer editor unit tests (15) | 49/49 | 33/34 prototype¹ | 33/34 prototype¹ |
+| Prototype and Debug-composer UI journeys (10) | 10/10 | 10/10 | 10/10 |
+| Standard composer journeys (6) | 6/6 | 2/6² | 6/6 |
+
+¹ The one failure was the new stale-text unit test building its Backspace input without marker attributes; the test was corrected and passed in the final iPhone unit run (49/49). Unit tests do not depend on the device.
+
+² `testDarkAccessibilityComposerRemainsReachable`, `testKeyboardBarNextAndKeepEditing`, `testNativeFormattingCaretTypingSurvivesSourceSwitch` and `testSwipeDismissalProtectsChangedWriting` fail identically on an unchanged checkout of `85c3c19` (HEAD before this work) on the same iPad, so they are not caused by this change. They are keyboard-geometry assertions on this iPad simulator's current keyboard state.
+
+Earlier in the day the 2026-10-20 suite (32 tests) passed on all three devices; its one iPad failure was a keyboard-visibility assertion on a minimized software keyboard. The editor kept keyboard focus after Undo, so that assertion now checks focus (`hasKeyboardFocus`).
+
+Not verified: iOS 26 runtime, physical devices (VoiceOver, Arabic and other IME marked text), Duo fold/unfold during rich editing (needs a posture change in Device Hub), hardware keyboard shortcuts, deployed Discourse rendering of the exported lists/quotes/links (standard Markdown; no live post was made), and posting from the Debug rich composer.

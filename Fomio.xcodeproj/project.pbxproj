@@ -60,6 +60,8 @@
 		CFA3CE784E34DACD424E4931 /* SafetyViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2F3B731B972AEB8D662D07 /* SafetyViews.swift */; };
 		D523B3A64E261860FF5C9118 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = C34669362D70C9736215EB26 /* Theme.swift */; };
 		D7FFD7C37E4FB24924613155 /* PrototypePaste.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5373FA041826E9F1C9454E3 /* PrototypePaste.swift */; };
+		3797F2EF54A1677F5D6DFBB1 /* PrototypeComposerEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42702FADB361F9146E7D9BF7 /* PrototypeComposerEditor.swift */; };
+		849E7DB921208AA073C79EAA /* PrototypeFormattingControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20018177CF3586C0A1D4AA42 /* PrototypeFormattingControls.swift */; };
 		D86DA8FF8F369C69E9B4310D /* TopicCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15F5B4A6A88AE8A40BE237F0 /* TopicCard.swift */; };
 		DA30C8FD55B64AB32DEF4C51 /* FomioTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF9D3CD324603F2AF7FC12A5 /* FomioTests.swift */; };
 		DD250616A3F5510B73EAA157 /* NativeComposerEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FFE3805FEE99CDD357899B8 /* NativeComposerEditor.swift */; };
@@ -142,6 +144,8 @@
 		C0DBF9E2C16D64A5EB580076 /* AccountViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountViews.swift; sourceTree = "<group>"; };
 		C34669362D70C9736215EB26 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		C5373FA041826E9F1C9454E3 /* PrototypePaste.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypePaste.swift; sourceTree = "<group>"; };
+		42702FADB361F9146E7D9BF7 /* PrototypeComposerEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeComposerEditor.swift; sourceTree = "<group>"; };
+		20018177CF3586C0A1D4AA42 /* PrototypeFormattingControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeFormattingControls.swift; sourceTree = "<group>"; };
 		CBE130186A7F35CCDFA9BDAD /* DiscussionSearchState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscussionSearchState.swift; sourceTree = "<group>"; };
 		CCDEAE5EB4BD2DBD84631447 /* ComposerEditorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerEditorTests.swift; sourceTree = "<group>"; };
 		CE25323914F9EC277460BEE2 /* Fomio.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Fomio.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -162,6 +166,8 @@
 			children = (
 				7C0096EC7D244C1C5C7E8FC5 /* PrototypeEditorSession.swift */,
 				C5373FA041826E9F1C9454E3 /* PrototypePaste.swift */,
+				42702FADB361F9146E7D9BF7 /* PrototypeComposerEditor.swift */,
+				20018177CF3586C0A1D4AA42 /* PrototypeFormattingControls.swift */,
 				A58CC69D299A6E31F3686A63 /* PrototypeRichDocument.swift */,
 				93F9F0FB0A551EF9A20EA395 /* SwiftUIRichComposerPrototype.swift */,
 			);
@@ -481,6 +487,8 @@
 				BA36A92B7F53C15D6B0AA86B /* Notifications.swift in Sources */,
 				2772DED3BFBD1864CEADC3A4 /* PrototypeEditorSession.swift in Sources */,
 				D7FFD7C37E4FB24924613155 /* PrototypePaste.swift in Sources */,
+				3797F2EF54A1677F5D6DFBB1 /* PrototypeComposerEditor.swift in Sources */,
+				849E7DB921208AA073C79EAA /* PrototypeFormattingControls.swift in Sources */,
 				1CBFC4CA3B35F9C659B12AD7 /* PrototypeRichDocument.swift in Sources */,
 				3E64383A44E0938646D41635 /* Repositories.swift in Sources */,
 				CFA3CE784E34DACD424E4931 /* SafetyViews.swift in Sources */,

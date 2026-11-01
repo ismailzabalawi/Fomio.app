@@ -228,5 +228,89 @@ import UniformTypeIdentifiers
         let plain = try await PrototypePaste.read([provider], plainText: true)
         XCTAssertEqual(String(plain.text.characters), "WRONG FALLBACK")
     }
+    func testReturnContinuesListsAndLeavesThemOnEmptyItem() throws {
+        var session = PrototypeEditorSession(source: "1. First")
+        let date = Date(timeIntervalSince1970: 100)
+        session.editRich(session.value.text + AttributedString("\n"), now: date)
+        XCTAssertEqual(String(session.value.text.characters), "1. First\n2. ")
+        XCTAssertEqual(PrototypeEditorSession.offsets(session.value.selection, in: session.value.text).0, 12)
+        session.editRich(session.value.text + AttributedString("ثاني"), now: date.addingTimeInterval(2))
+        session.editRich(session.value.text + AttributedString("\n"), now: date.addingTimeInterval(4))
+        session.editRich(session.value.text + AttributedString("\n"), now: date.addingTimeInterval(6))
+        XCTAssertEqual(String(session.value.text.characters), "1. First\n2. ثاني\n\n")
+        XCTAssertTrue(session.changeMode(true), session.value.document.issue ?? "")
+        XCTAssertEqual(session.value.source, "1. First\n2. ثاني\n\n")
+    }
+    func testTypedShortcutsBecomeBlocksAndToggleIsUndoable() throws {
+        var session = PrototypeEditorSession(source: "")
+        let date = Date(timeIntervalSince1970: 100)
+        session.editRich(AttributedString("-"), now: date)
+        session.editRich(AttributedString("- "), now: date.addingTimeInterval(0.1))
+        XCTAssertEqual(String(session.value.text.characters), "• ")
+        session.editRich(session.value.text + AttributedString("a\nb"), now: date.addingTimeInterval(2))
+        session.select(AttributedTextSelection(range: session.value.text.startIndex..<session.value.text.endIndex))
+        // A Return inside a longer insertion still continues the list.
+        XCTAssertEqual(session.selectedBlocks, [.bullet, .bullet])
+        session.toggleBlock(.quote)
+        XCTAssertEqual(String(session.value.text.characters), "▎ a\n▎ b")
+        session.toggleBlock(.quote)
+        XCTAssertEqual(String(session.value.text.characters), "a\nb")
+        session.undo()
+        XCTAssertEqual(String(session.value.text.characters), "▎ a\n▎ b")
+        XCTAssertTrue(session.changeMode(true))
+        XCTAssertEqual(session.value.source, "> a\n> b")
+    }
+    func testLinkingSelectionAndInsertingAtCaretExportAndUndo() throws {
+        var session = PrototypeEditorSession(source: "مرحبا Fomio")
+        let url = try XCTUnwrap(URL(string: "https://meta.discourse.org"))
+        session.select(AttributedTextSelection(range: try XCTUnwrap(session.value.text.range(of: "Fomio"))))
+        session.link(url)
+        XCTAssertEqual(session.selectedLink, url)
+        session.select(AttributedTextSelection(insertionPoint: session.value.text.endIndex))
+        session.link(URL(string: "mailto:a@example.com"), label: " mail")
+        XCTAssertTrue(session.changeMode(true), session.value.document.issue ?? "")
+        XCTAssertEqual(session.value.source, "مرحبا [Fomio](https://meta.discourse.org)[ mail](mailto:a@example.com)")
+        session.undo(); session.undo()
+        session.select(AttributedTextSelection(range: try XCTUnwrap(session.value.text.range(of: "Fomio"))))
+        session.link(nil)
+        XCTAssertNil(session.selectedLink)
+        XCTAssertTrue(session.changeMode(true))
+        XCTAssertEqual(session.value.source, "مرحبا Fomio")
+    }
+    func testLongDocumentKeystrokeAndExportStayFast() throws {
+        let paragraph = "مرحبا **Fomio** 👋🏽 [link](https://example.com) and _more_ text.\n- item\n- item two\n\n> quote\n\n"
+        var session = PrototypeEditorSession(source: String(repeating: paragraph, count: 300))
+        XCTAssertNotNil(session.value.document.projection)
+        XCTAssertGreaterThan(session.value.text.characters.count, 15_000)
+        let clock = ContinuousClock()
+        let typing = clock.measure {
+            for index in 0..<20 { session.editRich(session.value.text + AttributedString("x"), now: Date(timeIntervalSince1970: Double(index))) }
+        }
+        let export = clock.measure { XCTAssertTrue(session.changeMode(true)) }
+        // Generous bounds for a Debug simulator build; they catch accidental quadratic work.
+        XCTAssertLessThan(typing / 20, .milliseconds(100), "per keystroke")
+        XCTAssertLessThan(export, .seconds(1), "export")
+        print("PERF per-keystroke \(typing / 20) export \(export) characters \(session.value.source.count)")
+    }
+    func testStaleEditorTextCannotTypeOverAMarker() throws {
+        var session = PrototypeEditorSession(source: "S")
+        session.editRich(session.value.text + AttributedString("\n"))
+        session.select(AttributedTextSelection(range: session.value.text.startIndex..<session.value.text.endIndex))
+        session.select(AttributedTextSelection(insertionPoint: session.value.text.endIndex))
+        session.toggleBlock(.bullet)
+        XCTAssertEqual(String(session.value.text.characters), "S\n• ")
+        // The editor reports its own text from before the marker, with the next key typed.
+        session.editRich(AttributedString("S\nT"), deferShaping: true)
+        session.shapePendingEdit()
+        XCTAssertEqual(String(session.value.text.characters), "S\n• T")
+        XCTAssertEqual(PrototypeEditorSession.offsets(session.value.selection, in: session.value.text).0, 5)
+        // Backspace still removes a marker.
+        var deleted = session.value.text
+        let space = try XCTUnwrap(deleted.range(of: "• ")).lowerBound
+        deleted.characters.remove(at: deleted.characters.index(after: space))
+        session.editRich(deleted, deferShaping: true)
+        session.shapePendingEdit()
+        XCTAssertEqual(String(session.value.text.characters), "S\nT")
+    }
 }
 #endif

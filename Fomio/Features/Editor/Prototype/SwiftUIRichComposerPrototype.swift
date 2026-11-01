@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 /// An isolated, memory-only experiment. It has no repository, draft store or Post action.
 struct SwiftUIRichComposerPrototype: View {
     static let sample = "مرحبا **بالعالم** 👋🏽\n\nHello *Fomio* — family 👨‍👩‍👧‍👦 and ~~old text~~.\nEscaped: \\*literal\\*"
+    static let structuredSample = "Read [the guide](https://meta.discourse.org) first.\n\n- مرحبا 👋🏽\n- **Two**\n\n1. First\n2. Second\n\n> Quoted *words*"
     @State private var session = PrototypeEditorSession(source: sample)
     @State private var pasteNotice: String?
     @State private var pasteTask: Task<Void, Never>?
@@ -77,6 +78,7 @@ struct SwiftUIRichComposerPrototype: View {
                     Menu("Samples", systemImage: "doc.text") {
                         Button("Arabic and emoji") { load(Self.sample) }
                         Button("Plain text") { load("Write here…") }
+                        Button("Links, lists and quotes") { load(Self.structuredSample) }
                         Button("Preserved Discourse block") { load("[poll]\n* نعم 😀\n* No\n[/poll]") }
                     }.accessibilityIdentifier("prototype-samples")
                 }
@@ -88,11 +90,15 @@ struct SwiftUIRichComposerPrototype: View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading) {
-                    HStack { formatButtons }
+                    ScrollView(.horizontal) { controls }.scrollIndicators(.hidden)
                     HStack { selectAllButton; Spacer(minLength: 0); hideKeyboardButton }
                 }
             } else {
-                HStack { formatButtons; Spacer(minLength: 0); selectAllButton; hideKeyboardButton }
+                HStack {
+                    // Scroll rather than wrap so the bar keeps one height above the keyboard.
+                    ScrollView(.horizontal) { controls }.scrollIndicators(.hidden)
+                    selectAllButton; hideKeyboardButton
+                }
             }
         }
         .buttonStyle(.bordered)
@@ -108,10 +114,8 @@ struct SwiftUIRichComposerPrototype: View {
         .accessibilityIdentifier("prototype-hide-keyboard")
         .disabled(!focused)
     }
-    @ViewBuilder private var formatButtons: some View {
-        formatButton("Bold", symbol: "bold", mark: .bold)
-        formatButton("Italic", symbol: "italic", mark: .italic)
-        formatButton("Strikethrough", symbol: "strikethrough", mark: .strike)
+    private var controls: some View {
+        PrototypeFormattingControls(session: $session, willEdit: cancelPaste, didEdit: { focused = true })
     }
     private var selectAllButton: some View {
         Button("Select all") {
@@ -119,21 +123,6 @@ struct SwiftUIRichComposerPrototype: View {
             session.select(AttributedTextSelection(range: text.startIndex..<text.endIndex))
             focused = true
         }.accessibilityIdentifier("prototype-select-all")
-    }
-    private func isActive(_ mark: PrototypeMarks) -> Bool {
-        let values = Array(selection.attributes(in: text))
-        return !values.isEmpty && values.allSatisfy { ($0[PrototypeMarksAttribute.self] ?? []).contains(mark) }
-    }
-    private func formatButton(_ title: String, symbol: String, mark: PrototypeMarks) -> some View {
-        Button {
-            cancelPaste()
-            session.format(mark)
-            focused = true
-        } label: { Image(systemName: symbol).frame(minWidth: 32, minHeight: 32) }
-        .accessibilityLabel(title)
-        .accessibilityValue(isActive(mark) ? "On" : "Off")
-        .accessibilityIdentifier("prototype-\(title.lowercased())")
-        .tint(isActive(mark) ? .accentColor : .primary)
     }
     private var historyBar: some View {
         HStack {
@@ -152,7 +141,10 @@ struct SwiftUIRichComposerPrototype: View {
         }.labelStyle(.iconOnly).buttonStyle(.bordered)
     }
     private var richBinding: Binding<AttributedString> {
-        Binding(get: { text }, set: { session.editRich(PrototypePaste.native($0, context: fontContext)) })
+        Binding(get: { text }, set: {
+            session.editRich(PrototypePaste.native($0, context: fontContext), deferShaping: true)
+            Task { @MainActor in session.shapePendingEdit() }
+        })
     }
     private var sourceBinding: Binding<String> {
         Binding(get: { source }, set: { session.editSource($0) })

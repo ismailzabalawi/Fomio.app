@@ -5,7 +5,7 @@ import SwiftUI
 
 final class PrototypeRichDocumentTests: XCTestCase {
     func testModeSwitchWithoutEditsPreservesUTF8IncludingBlankLinesAndSpellings() throws {
-        for source in ["", "\n\n", "مرحبا **بالعالم** 👋🏽\n\n*English* 👨‍👩‍👧‍👦\n", "__bold__ and _italic_ and ~~old~~", "\\*literal\\* \\[brackets\\] \\\\", "[b]one [i]اثنان 😀[/i][/b]"] {
+        for source in ["", "\n\n", "مرحبا **بالعالم** 👋🏽\n\n*English* 👨‍👩‍👧‍👦\n", "* star\n+ plus\n\n3) three\n5) five\n\n>quote\n>\n> مرحبا", "See [**the** guide](https://meta.discourse.org/t/1?a=b#c) or [mail](mailto:a@example.com)", "__bold__ and _italic_ and ~~old~~", "\\*literal\\* \\[brackets\\] \\\\", "[b]one [i]اثنان 😀[/i][/b]"] {
             var document = PrototypeRichDocument(source: source)
             for _ in 0..<5 {
                 let projection = try XCTUnwrap(document.projection, source)
@@ -59,7 +59,7 @@ final class PrototypeRichDocumentTests: XCTestCase {
     }
 
     func testUnsupportedAndMalformedSourceCannotBeRewrittenByRichCommit() {
-        for source in ["[poll]\n* نعم\n* No\n[/poll]", "[quote=\"sam, post:2, topic:42\"]hi[/quote]", "![photo](upload://a.jpg)", "# Heading", "- list", "1. item", "    code", "[link](https://example.com)", "**unclosed", "x ** space**", "a_b_c", "```code```", "a\r\nb", "[unknown]x[/unknown]", "| A | B |"] {
+        for source in ["[poll]\n* نعم\n* No\n[/poll]", "[quote=\"sam, post:2, topic:42\"]hi[/quote]", "![photo](upload://a.jpg)", "# Heading", "- list\nlazy continuation", "> quote\nlazy", "text\n2. item", "text\n- ", "- > nested", "> > nested", "- - nested", "1. a\n2) b", "-  two spaces", "-", "text\n--", "![image](https://example.com/a.png)", "[reference][1]", "[script](javascript:alert(1))", "[spaced](https://example.com/a b)", "[nested [link](https://a.com)](https://b.com)", "    code", "**unclosed", "x ** space**", "a_b_c", "```code```", "a\r\nb", "[unknown]x[/unknown]", "| A | B |"] {
             var document = PrototypeRichDocument(source: source)
             XCTAssertNil(document.projection, source)
             XCTAssertNotNil(document.issue, source)
@@ -126,6 +126,77 @@ final class PrototypeRichDocumentTests: XCTestCase {
         text.replaceSelection(&selection, withCharacters: " جديد 👋🏽")
         document.commit(text)
         XCTAssertTrue(document.source.contains("[s] جديد 👋🏽[/s]"), document.source)
+    }
+    func testListsQuotesAndLinksProjectAsRenderedAndRoundTrip() throws {
+        let source = "Intro [guide](https://meta.discourse.org) here.\n\n- مرحبا 👋🏽\n- **Two**\n\n3. Three\n9. Next\n\n> Quoted *words*\n>\n> More"
+        var document = PrototypeRichDocument(source: source)
+        let projection = try XCTUnwrap(document.projection, document.issue ?? "")
+        // Ordered markers show the rendered numbers, not the source digits.
+        XCTAssertEqual(String(projection.characters), "Intro guide here.\n\n• مرحبا 👋🏽\n• Two\n\n3. Three\n4. Next\n\n▎ Quoted words\n▎ \n▎ More")
+        let guide = try XCTUnwrap(projection.range(of: "guide"))
+        XCTAssertEqual(projection[guide].runs.first?[PrototypeLinkAttribute.self], URL(string: "https://meta.discourse.org"))
+        XCTAssertTrue(document.commit(projection))
+        XCTAssertEqual(document.source, source)
+    }
+
+    func testEditedBlockLinesSerializeAndKeepNeighbourSpelling() throws {
+        var document = PrototypeRichDocument(source: "* one\n* two\n\n1) a\n2) b")
+        var lines = PrototypeRichDocument.split(try XCTUnwrap(document.projection))
+        // A new bullet and a new ordered item between existing ones.
+        lines.insert(PrototypeRichDocument.marker(.bullet) + plain("نعم 😀"), at: 1)
+        lines.insert(PrototypeRichDocument.marker(.ordered(2)) + plain("new"), at: 5)
+        let renumbered = PrototypeRichDocument.normalizeBlocks(join(lines)).text
+        XCTAssertTrue(document.commit(renumbered), document.issue ?? "")
+        XCTAssertEqual(document.source, "* one\n* نعم 😀\n* two\n\n1) a\n2) new\n3) b")
+    }
+
+    func testLinkSerializationEscapesLabelAndRejectsUnsafeAddresses() throws {
+        var document = PrototypeRichDocument(source: "")
+        var text = plain("A [b] مرحبا 😀")
+        text[try XCTUnwrap(text.range(of: "[b] مرحبا"))][PrototypeLinkAttribute.self] = URL(string: "https://example.com/x?y=1")
+        XCTAssertTrue(document.commit(PrototypeRichDocument.normalized(text)), document.issue ?? "")
+        XCTAssertEqual(document.source, "A [\\[b\\] مرحبا](https://example.com/x?y=1) 😀")
+        XCTAssertEqual(document.projection, PrototypeRichDocument.normalized(text))
+        for address in ["javascript:alert(1)", "https://example.com/a(b)", "ftp://example.com", "https://", "mailto:"] {
+            XCTAssertFalse(URL(string: address).map(PrototypeRichDocument.isLinkable) ?? false, address)
+        }
+    }
+
+    func testParagraphDirectlyAfterListIsRefusedWithoutLosingText() throws {
+        var document = PrototypeRichDocument(source: "- item")
+        var text = try XCTUnwrap(document.projection)
+        text += plain("\nlazy")
+        XCTAssertFalse(document.commit(text))
+        XCTAssertEqual(document.source, "- item")
+        XCTAssertTrue(document.issue?.contains("empty line") == true)
+    }
+
+    func testBrokenMarkerIsRemovedAndInheritedMarkerAttributesBecomeContent() throws {
+        let document = PrototypeRichDocument(source: "- one\n- two")
+        var text = try XCTUnwrap(document.projection)
+        // Delete the space of the second marker, as Backspace at the start of its text would.
+        let second = try XCTUnwrap(text.range(of: "• two"))
+        let space = text.characters.index(after: second.lowerBound)
+        text.removeSubrange(space..<text.characters.index(after: space))
+        // Typing after the first marker inherits its attributes.
+        let firstMarker = try XCTUnwrap(text.range(of: "• "))
+        var typed = AttributedString("x"); typed.setAttributes(text[firstMarker].runs.first!.attributes)
+        text.insert(typed, at: firstMarker.upperBound)
+        let repaired = PrototypeRichDocument.normalizeBlocks(text).text
+        XCTAssertEqual(String(repaired.characters), "• xone\ntwo")
+        XCTAssertEqual(PrototypeRichDocument.markerInfo(PrototypeRichDocument.split(repaired)[0])?.length, 2)
+        XCTAssertNil(PrototypeRichDocument.markerInfo(PrototypeRichDocument.split(repaired)[1]))
+    }
+
+    private func plain(_ string: String) -> AttributedString {
+        var text = AttributedString(string)
+        var attributes = AttributeContainer(); PrototypeRichDocument.apply([], to: &attributes); text.setAttributes(attributes)
+        return text
+    }
+    private func join(_ lines: [AttributedString]) -> AttributedString {
+        var result = AttributedString()
+        for (index, line) in lines.enumerated() { if index > 0 { result += plain("\n") }; result += line }
+        return result
     }
 }
 #endif

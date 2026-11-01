@@ -105,6 +105,8 @@ The [adaptive navigation IA/API map](adaptive-navigation-ia-api-map.md) now inco
 
 **2026-10-20 prototype follow-up:** session history and local clipboard import were added within the Debug experiment. RTF bold/italic/strikethrough map to the same semantic prose marks and existing raw serialization; plain clipboard text is literal in rich mode and exact source in Markdown mode. No new endpoint, backend modification, upload behavior or deployed rendering claim is established. Backend HEAD was rechecked and remains the revision above. See the linked validation document for native versus checked-paste limits and history controls.
 
+**2026-11-01 prototype follow-up:** links, lists and quotes were added to the Debug experiment, and a Debug `--rich-composer` launch argument routes the real composer body through it. Exported syntax is standard Markdown (`[label](url)`, `- `/`N. ` list items, `> ` quotes) plus the existing `[b]`/`[i]`/`[s]`; no endpoint, posting adapter or backend change. Deployed rendering of these lines was not verified and no live post was made. Backend HEAD rechecked: `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`. [Evidence and limits](validation/2026-10-19-rich-prototype/README.md#links-lists-quotes-and-the-debug-composer-switch--2026-11-01).
+
 **Finding:** iOS 26 `TextEditor` with `AttributedString` is a viable candidate for the prose-editing layer, but is not a complete replacement for Fomio's Discourse composer. Recommendation from the initial investigation: a contained prototype before migration. That source-review pass changed no app behavior, backend code, deployment settings or authentication scope; the subsequently authorized prototype is described above.
 
 ### Evidence and verification status
