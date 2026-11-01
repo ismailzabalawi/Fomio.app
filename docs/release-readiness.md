@@ -114,6 +114,17 @@ Immediately preceding release, all four requested iPad Simulator composer journe
 Build 0.8.0 (7) includes dynamic native report flow, server-persisted Ignore/block and unblock with account-scoped content filtering, eligible self-deletion, policy/support links, callback registration and expanded privacy manifest. Live policies/contact and owner-approved reporting/Ignore/deletion limits updated. Connect native metadata and linked privacy labels saved. Final simulator regression:102passes,0failures,4opt-in live skips. Signed device archive and distribution IPA pass packaging/signature checks. Final member/device acceptance and listing assets remain; see [current submission packet](app-store-submission.md) and [validation](validation/2026-10-18-submission/README.md). Earlier build 6 blockers are historical.
 
 
+## Build 0.9.1 (11) upload — 2026-11-01
+
+Owner-authorized TestFlight upload only. No App Review submission or release was done.
+
+- **Source:** `main` at `2258b2f`. That commit sets `MARKETING_VERSION` 0.9.0 → 0.9.1 on top of `dd26a47` (build 11) and `cdba569` (Home header without the scope title, list-position restores, inline Communities search errors). Packaged Info.plist resolves 0.9.1 (11). An earlier 0.9.0 (10) export from `b1062de` was not uploaded.
+- **Tests:** full `Fomio` scheme on the iPhone 17 / iOS 27.0 simulator at `dd26a47`, Xcode 27.1 (27A9275): **TEST SUCCEEDED**. 329 tests: 294 passed, 35 skipped (opt-in live and device-specific cases), 0 failed. About 30 minutes. `2258b2f` changes only version settings, so the suite was not rerun. The iPad suites were run on the `cdba569` changes and pass, apart from the inline-search contrast audit (it also fails at `b1062de`) and the flaky chooser-rotation test ([iPad readiness](ipad-readiness.md)).
+- **Archive:** Release, generic iOS, automatic signing, team `LK9253R3XB`: `ARCHIVE SUCCEEDED` (`.build/release-0.9.1-11/Fomio.xcarchive`).
+- **Export and checks:** the first export failed with "No Accounts" because Xcode's account sign-in had expired. The owner signed in again, and the export then succeeded. IPA SHA-256 `21dcef71c8bf11d2ad5185433754d6195876439873d22b5e05779a7b2e77397f`. Signed by Apple Distribution: Ismail Zabalawi (LK9253R3XB). `codesign --verify --deep --strict` passes. Entitlements: application identifier `LK9253R3XB.com.fomio.mobile`, `beta-reports-active` true, `get-task-allow` false, no push entitlement. `scripts/submission_preflight.py --app`: 20 PASS, no failures.
+- **Upload:** `xcodebuild -exportArchive` with destination `upload` on 2026-11-01 at 07:38. Apple reported "Upload succeeded". Exit 0.
+- **Not established:** processing completion in App Store Connect, physical iPhone/iPad/Duo acceptance on TestFlight, a Duo rerun for this build, full VoiceOver traversal, and the iPad contrast audit failure.
+
 ## Build 0.9.0 (9) upload — 2026-10-29
 
 Owner-authorized TestFlight upload only. No App Review submission or release was done.
