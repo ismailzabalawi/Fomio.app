@@ -4,3 +4,8 @@ DerivedData/
 *.xcuserstate
 xcuserdata/
 *.xcresult
+
+# Kept out of this public repository; see docs/app-store-submission.md
+/docs/app-store-assets/
+/docs/design/branding/
+/docs/design/audits/

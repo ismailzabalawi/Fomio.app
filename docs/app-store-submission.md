@@ -1,6 +1,26 @@
 # App Store submission preparation
 
-Prepared 2026-10-18 (Asia/Amman). **Build 7 is Ready for Review in a draft submission; final Submit for Review has not been clicked.** This is the current submission checklist; historical upload evidence remains in [release readiness](release-readiness.md). This document records evidence; it does not itself authorize a public release.
+## Current launch preparation — 3 November 2026
+
+The record below describes the 18 October 0.8.0 (7) submission and is historical, not proof of the current App Store Connect state. The local project now declares **0.9.1 (11)**. That build was uploaded to TestFlight from `2258b2f`; later commits and any working-tree changes are not in it. No current archive, Connect build selection, submission status, or TestFlight acceptance was verified in this assessment. Confirm the intended release version and freeze its source before producing release evidence; check Connect for a unique build number before uploading.
+
+The source-level `python3 scripts/submission_preflight.py` passes on 3 November. This checks configuration and manifest declarations, not a signed package or the accuracy of live privacy disclosures. Xcode 27.1 reports the iOS 27.1 SDK installed; the SDK used by the eventual archive must be verified independently. Apple currently requires at least the iOS 26 SDK for uploads and announces iOS 27 for uploads starting April 2027. [Apple SDK requirements](https://developer.apple.com/app-store/submitting/).
+
+### Release work queue
+
+- [ ] Establish the release source revision and reconcile the current changes, version and build number with the actual Connect record. Verify whether the old draft is still present before changing it.
+- [ ] Run the release regression on the current source, including iPhone, iPad and Duo open/closed transitions. The [adaptive acceptance audit](validation/2026-10-20-adaptive-native/acceptance-audit.md) records qualified simulator evidence and later source changes; full VoiceOver traversal and physical-device certification remain open. Capture failures and skips honestly.
+- [ ] Complete physical-device and TestFlight acceptance for authentication, live browsing, posting/reply, photos, draft recovery, accessibility and resizing. Use approved test accounts and content; verify reviewer credentials separately.
+- [ ] Verify report delivery, block/unblock and disposable-account deletion end to end with appropriate accounts; confirm moderator coverage, support mailbox monitoring and actual retention/deletion behavior. Reconcile privacy labels, policy, age rating and review notes with the release and deployment.
+- [ ] Capture current release screenshots using suitable public or authorized content. Apple currently requires a medium Dynamic Island iPhone screenshot and a 13-inch iPad screenshot; verify the actual Connect slots and accepted dimensions. Duo outer screenshots are 1398 × 2034 and inner screenshots 2007 × 2853 pixels (or their landscape rotations). Apple says Duo screenshots become required in April 2027 for apps built with the iOS 27.1 SDK or later; adding them displays an optimized-for-Duo badge. Do not imply that older 0.8.0 assets show this release. [Apple screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications/).
+- [ ] Review listing copy and screenshots against the final features and languages; supply accurate review instructions and working credentials in Connect's secure fields. Preserve the chosen release timing and confirm it with the owner.
+- [ ] Archive the frozen source, run packaged preflight, verify signature, entitlements, provisioning, version, icon and SDK, then validate and upload a unique build. Record the artifact and results. Select the processed build and perform final TestFlight acceptance before requesting review.
+
+Preparation and validation do not establish authorization to submit for review or release publicly. The old 0.8.0 draft and its recorded approval must not be assumed to apply to a newer build.
+
+## Historical submission packet — 18 October 2026
+
+At the time recorded, **build 7 was Ready for Review in a draft submission; final Submit for Review had not been clicked.** The live Connect state has not been rechecked. Historical upload evidence remains in [release readiness](release-readiness.md).
 
 ## Release identity
 
@@ -28,7 +48,7 @@ The callback scheme is now registered in `project.yml` and generated Info.plist.
 | Privacy labels | **Published in Connect.** Eight categories, linked, not tracking: Name, Email Address, User ID, Other User Content, Photos or Videos, Search History, Product Interaction, Other Data Types (request/IP data). App functionality for all; Search History additionally analytics because server search logging is enabled. Old audio and unlinked declarations corrected. Manifest matches these categories. Website Google Analytics wording/configuration preserved; no native analytics/ads SDK. |
 | Store copy | **Saved in Connect draft:** version 0.8.0, native description/promo/keywords/What's New/review notes; existing secure review credentials/contact and manual release mode preserved. No review submission. |
 | Live acceptance | **Member authentication and reads passed after user sign-in.** Current-user identity, Saved, notifications, profiles, feeds, dynamic report options, can_ignore_users and account-deletion eligibility endpoint all passed with the real per-user key. No report, Ignore mutation or account deletion was sent. TestFlight and physical-device acceptance remain. Real Photos, posting/reply, moderator delivery and destructive disposable deletion need appropriate member/device acceptance. |
-| Screenshots and devices | **Required assets complete in Connect:** 3 native iPhone 1206×2622 captures and 2 native iPad 2064×2752 captures. Old optional Expo iPhone sets removed from the version (retained in Asset Library). Disk blocker resolved after owner freed space; iPad capture passed. [Asset inventory](app-store-assets/0.8.0/README.md). Physical-device VoiceOver, real Photos and final TestFlight acceptance remain unverified. |
+| Screenshots and devices | **Required assets complete in Connect:** 3 native iPhone 1206×2622 captures and 2 native iPad 2064×2752 captures. Old optional Expo iPhone sets removed from the version (retained in Asset Library). Disk blocker resolved after owner freed space; iPad capture passed. The asset inventory is kept outside the repository. Physical-device VoiceOver, real Photos and final TestFlight acceptance remain unverified. |
 
 ## Draft listing copy
 
@@ -99,4 +119,4 @@ On 2026-10-18 at 08:02 Asia/Amman, after explicit owner approval for **Add for R
 
 ## Branding and ASO preparation — 18 October 2026
 
-Prepared a [branded English review set](app-store-assets/0.8.0/branded-en-US/README.md) from the accepted v0.2 identity: three 1206×2622 iPhone frames, two 2064×2752 iPad frames, metadata candidates and an editable renderer. Local pixel/dimension/profile/text-fit checks pass. This set and its copy have **not** been applied to Connect, and this preparation does not change the build/submission state above. Cloud outputs remain in the [Claude App Store review](https://claude.ai/design/p/b56face5-bd5a-4fc5-9732-1804845867e4?file=App+Store+Review.dc.html); cloud download failures led to separately verified local reproductions. The source content is weak for conversion, especially political headlines, no visible replies and welcome-post shortcode rendering. Prefer better native content captures before replacing the current listing.
+Prepared a branded English review set (kept outside the repository) from the accepted v0.2 identity: three 1206×2622 iPhone frames, two 2064×2752 iPad frames, metadata candidates and an editable renderer. Local pixel/dimension/profile/text-fit checks pass. This set and its copy have **not** been applied to Connect, and this preparation does not change the build/submission state above. Cloud outputs remain in the [Claude App Store review](https://claude.ai/design/p/b56face5-bd5a-4fc5-9732-1804845867e4?file=App+Store+Review.dc.html); cloud download failures led to separately verified local reproductions. The source content is weak for conversion, especially political headlines, no visible replies and welcome-post shortcode rendering. Prefer better native content captures before replacing the current listing.
