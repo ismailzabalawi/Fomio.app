@@ -48,6 +48,13 @@ import Foundation
         guard data.count <= 256 * 1024, let html = String(data: data, encoding: .utf8) else { return nil }
         return NativeOneboxParser.parse(html, url: url)
     }
+    func mentionCandidates(term: String, context: OneboxContext) async throws -> [MentionCandidate] {
+        var query = [URLQueryItem(name: "term", value: term), .init(name: "limit", value: "6")]
+        if let category = context.category { query.append(.init(name: "category_id", value: String(category.rawValue))) }
+        if let topic = context.topic { query.append(.init(name: "topic_id", value: String(topic.rawValue))) }
+        struct Envelope: Decodable { struct User: Decodable { let username: String; let name: String? }; let users: [User] }
+        return try await api.get(Envelope.self, "u/search/users.json", query: query, member: true).users.map { MentionCandidate(username: $0.username, name: $0.name) }
+    }
     func communities() async throws -> [Community] {
         var result: [Community] = []
         var seen: Set<CategoryID> = []

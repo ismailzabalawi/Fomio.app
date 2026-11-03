@@ -128,7 +128,7 @@ Two native-editor behaviours shaped the implementation, both found by UI journey
 
 A SwiftUI `alert` kept the Apply button state it was presented with (empty URL), so Apply never ran even though XCTest reported it enabled. The link editor is a sheet with toolbar Cancel/Apply instead, and it restores the selection captured when it opened.
 
-**Debug composer switch.** Launching a Debug build with `--rich-composer` makes `ComposerView` edit the body with the prototype (`PrototypeComposerModel`, `PrototypeComposerEditor`, `PrototypeComposerBar`). The draft stays Discourse source: every rich change is exported to `state.draft.body`, so existing autosave, Keep draft and Post are unchanged. A body the prototype cannot represent (photos, polls, mentions, headings, etc.) opens in the standard editor; an outside change it cannot represent hands the body back to the standard editor. The rich bar has two rows of 44-point controls (formatting, then Undo/Redo) so every action stays on screen on iPhone; it does not offer photos, blocks, preview or Markdown mode. Typing `@` in rich text exports a literal `\@`, not a mention. Release builds compile none of this (`#if DEBUG`; Release build succeeded).
+**Debug composer switch.** Launching a Debug build with `--rich-composer` makes `ComposerView` edit the body with the prototype (`PrototypeComposerModel`, `PrototypeComposerEditor`, `PrototypeComposerBar`). The draft stays Discourse source: every rich change is exported to `state.draft.body`, so existing autosave, Keep draft and Post are unchanged. A body the prototype cannot represent (photos, polls, headings, etc.) opens in the standard editor; an outside change it cannot represent hands the body back to the standard editor. The rich bar has two rows of 44-point controls (formatting, then Undo/Redo) so every action stays on screen on iPhone; it does not offer photos, blocks, preview or Markdown mode. Release builds compile none of this (`#if DEBUG`; Release build succeeded).
 
 **Performance.** A 27,320-character mixed document (Arabic, emoji, links, lists, quotes): about 41–44 ms per rich keystroke including block shaping, and about 220 ms for a full export, in a Debug simulator build. The composer exports on every change, so long posts will feel this; it is fine for typical replies but is not acceptance for long-document editing.
 
@@ -149,3 +149,35 @@ Xcode/SDK 27.1. Simulators reused: iPhone 17 / iOS 27.0, iPad Pro 11-inch (M5) /
 Earlier in the day the 2026-10-20 suite (32 tests) passed on all three devices; its one iPad failure was a keyboard-visibility assertion on a minimized software keyboard. The editor kept keyboard focus after Undo, so that assertion now checks focus (`hasKeyboardFocus`).
 
 Not verified: iOS 26 runtime, physical devices (VoiceOver, Arabic and other IME marked text), Duo fold/unfold during rich editing (needs a posture change in Device Hub), hardware keyboard shortcuts, deployed Discourse rendering of the exported lists/quotes/links (standard Markdown; no live post was made), and posting from the Debug rich composer.
+
+## Mentions and the editor typing race — 2026-11-01
+
+**Correction.** The section above said a typed `@` exported as a literal `\@`. That was wrong: Discourse's mention pass runs after `text_join`, so `\@bob` still cooks as a mention. It also said the list tests passed reliably; see the race below.
+
+**Mentions.** They are derived from the text rather than stored (`PrototypeMentions`), mirroring the rules recorded in the [API reference](../../discourse-api-reference.md). Text whose meaning depends on `unicode_usernames`, such as `@مرحبا` or `@bobé`, opens in Markdown mode, and typing it in rich mode shows an issue and does not export until it is fixed. In the Debug rich composer, an `@` word at the caret shows people from `GET /u/search/users.json` above the formatting row; choosing one inserts `@username`. The standalone prototype screen shows mentions but has no suggestions.
+
+Limits: no group suggestions or avatars; a failed search shows nothing; any `@name` is styled as a mention whether or not that user exists; `enable_mentions` is not read. In a right-to-left line a Latin mention displays as `name@`, because `@` is direction-neutral; no bidi control characters are added to post source.
+
+**Typing race.** The native editor adopts shaped text late and meanwhile sends edits of its older text. The earlier repair covered one stale pass, so a list item could lose its bullet; this also reproduced on commit `8fdc11a`. The session now compares each edit with the text the editor last sent and applies only the added keys to the current text (`testRepeatedStaleEditorTextKeepsTheMarker`, `testStaleEditorTextCannotUndoLeavingAList`).
+
+**Still open:** when `typeText` delivers a whole string on the iPad simulator, the race still fails. In 5 runs, `testListsQuotesAndLinksTypedNativelyExportToDiscourseSource` failed twice: once leaving `• ` on the line after leaving a list, and once moving a space to another line (`خبز🍞` … ` Done`). The second changes the writing, and the cause is not established. Sent one key per call, the same text passed 10 of 10 on that iPad (about 20 s per test), but that is slower than a fast typist and is not proof for real typing, which needs a physical device. The failing test stays in the suite unchanged.
+
+### Evidence — mentions
+
+Run from a temporary checkout of `8fdc11a` plus only this work, because another session had uncommitted standard-composer edits in the shared working tree. The simulators were reused. The key-at-a-time test was added after the main run and ran against the same app code.
+
+| Scope | iPhone 17 / 27.0 | iPad Pro 11 (M5) / 27.0 | iPhone Duo / 27.1 (unfolded) |
+| --- | --- | --- | --- |
+| Unit and contract tests (91) | 91/91 | 91/91 | 91/91 |
+| Prototype and Debug-composer UI journeys (11) | 11/11 | 11/11 | 11/11 |
+| Three list and mention journeys, 5 runs each | 15/15 | 13/15 | 15/15 |
+| Key-at-a-time list typing | 1/1 | 10/10 | 1/1 |
+| Standard composer journeys (6) | 6/6 | 2/6¹ | 4/6² |
+
+¹ The same four failures recorded above; `85c3c19` fails them identically on this iPad.
+
+² `testArabicComposerPreservesMixedTextAcrossModesAndRotation` and `testComposerKeepsWritingAndEditingModeAcrossLayoutChanges`. Both also fail on unchanged `8fdc11a` on this Duo, so this work did not cause them. They wait for a window rotation, and the Duo was unfolded; the posture as the cause was not tested. `testNativeFormattingCaretTypingSurvivesSourceSwitch` failed in some runs on both versions and passed in this one.
+
+Release build succeeded. Performance on a 29,420-character document that now includes mentions: about 56–60 ms per keystroke and 250–290 ms per export (Debug simulator), up from about 41–44 ms and 220 ms on a slightly shorter document without mentions.
+
+Not verified: a deployed site's user search, cooked mentions or site settings; posting from the rich composer; physical devices, including typing speed, VoiceOver and Arabic IME; iOS 26.

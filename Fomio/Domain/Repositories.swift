@@ -93,15 +93,18 @@ struct ComposerCapabilities: Equatable, Sendable {
 }
 struct OneboxContext: Sendable { var category: CategoryID?; var topic: TopicID? }
 struct OneboxMetadata: Equatable, Sendable { var url: URL; var title: String; var summary: String }
+struct MentionCandidate: Identifiable, Equatable, Sendable { var username: String; var name: String?; var id: String { username } }
 @MainActor protocol ComposerRepository {
     var composerCapabilities: ComposerCapabilities { get }
     func similarDiscussions(title: String, raw: String) async throws -> [DiscussionSummary]
     func oneboxPreview(url: URL, context: OneboxContext) async throws -> OneboxMetadata?
+    func mentionCandidates(term: String, context: OneboxContext) async throws -> [MentionCandidate]
 }
 extension ComposerRepository {
     var composerCapabilities: ComposerCapabilities { ComposerCapabilities() }
     func similarDiscussions(title: String, raw: String) async throws -> [DiscussionSummary] { throw RepositoryError.unsupported }
     func oneboxPreview(url: URL, context: OneboxContext) async throws -> OneboxMetadata? { throw RepositoryError.unsupported }
+    func mentionCandidates(term: String, context: OneboxContext) async throws -> [MentionCandidate] { throw RepositoryError.unsupported }
 }
 
 extension CommunityRepository { func siteTheme() async throws -> SiteTheme { SiteTheme() } }

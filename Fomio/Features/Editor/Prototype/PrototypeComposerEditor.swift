@@ -78,12 +78,57 @@ struct PrototypeComposerEditor: View {
     }
 }
 
+/// People matching the `@` word at the caret. Nothing shows when no one matches or the search fails: typing stays free.
+struct PrototypeMentionSuggestions: View {
+    @Binding var session: PrototypeEditorSession
+    let search: @MainActor (String) async throws -> [MentionCandidate]
+    var didEdit: () -> Void = {}
+    @State private var results: [MentionCandidate] = []
+
+    var body: some View {
+        let term = session.mentionQuery?.term
+        // A stack, not a Group: an empty Group has no view to run the task.
+        VStack(spacing: 0) {
+            if term != nil, !results.isEmpty {
+                ScrollView(.horizontal) {
+                    HStack {
+                        ForEach(results) { candidate in
+                            Button {
+                                session.mention(candidate.username)
+                                didEdit()
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Text(verbatim: "@\(candidate.username)").bold()
+                                    if let name = candidate.name, !name.isEmpty { Text(verbatim: name).foregroundStyle(.secondary) }
+                                }
+                                .lineLimit(1).frame(minHeight: 44)
+                            }
+                            .accessibilityLabel(Text(verbatim: "Mention \(candidate.name ?? candidate.username), @\(candidate.username)"))
+                            .accessibilityIdentifier("composer-mention-\(candidate.username)")
+                        }
+                    }
+                }.scrollIndicators(.hidden).scrollBounceBehavior(.basedOnSize, axes: .horizontal)
+            }
+        }
+        .task(id: term) {
+            guard let term else { results = []; return }
+            // Wait for a pause in typing before asking the server.
+            try? await Task.sleep(for: .milliseconds(250))
+            guard !Task.isCancelled else { return }
+            let found = (try? await search(term)) ?? []
+            if !Task.isCancelled { results = found }
+        }
+    }
+}
+
 /// Replaces the composer bar while the rich prototype edits the body.
 /// Two rows of 44-point controls, so every formatting action stays on screen on iPhone.
 struct PrototypeComposerBar: View {
     @Bindable var model: PrototypeComposerModel
+    let searchMentions: @MainActor (String) async throws -> [MentionCandidate]
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
+            PrototypeMentionSuggestions(session: $model.session, search: searchMentions, didEdit: model.requestFocus)
             // Scrolls only when large text no longer fits one row.
             ScrollView(.horizontal) {
                 PrototypeFormattingControls(session: $model.session, didEdit: model.requestFocus)

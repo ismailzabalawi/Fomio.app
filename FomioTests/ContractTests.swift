@@ -212,6 +212,16 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
         StubURLProtocol.status = 429
         do { _ = try await service.oneboxPreview(url: URL(string: "https://example.org")!, context: OneboxContext()); XCTFail("Expected rate limit") } catch { XCTAssertEqual(error as? RepositoryError, .rateLimited) }
     }
+    func testMentionCandidatesUseMemberUserSearch() async throws {
+        let (service, _) = try service(#"{"users":[{"id":1,"username":"priya","name":"Priya S.","avatar_template":"/a/{size}.png"},{"id":2,"username":"theo","avatar_template":"/b/{size}.png"}],"groups":[{"name":"woodworkers","full_name":null}]}"#, member: true)
+        let found = try await service.mentionCandidates(term: "مر", context: OneboxContext(category: .init(2), topic: .init(42)))
+        XCTAssertEqual(found, [MentionCandidate(username: "priya", name: "Priya S."), MentionCandidate(username: "theo", name: nil)])
+        let request = try XCTUnwrap(StubURLProtocol.captured)
+        XCTAssertEqual(request.url?.path, "/forum/u/search/users.json")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "User-Api-Key"), "fictional-test-key")
+        let items = URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false)?.queryItems ?? []
+        XCTAssertEqual(Set(items), [URLQueryItem(name: "term", value: "مر"), URLQueryItem(name: "limit", value: "6"), URLQueryItem(name: "category_id", value: "2"), URLQueryItem(name: "topic_id", value: "42")])
+    }
     func testUnknownPreviewCapabilityMakesNoRequest() async throws {
         let (service, _) = try service("{}", member: true)
         do { _ = try await service.similarDiscussions(title: "Title", raw: "Body"); XCTFail("Must stay gated") } catch { XCTAssertEqual(error as? RepositoryError, .unsupported) }

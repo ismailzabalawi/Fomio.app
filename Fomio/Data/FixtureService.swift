@@ -400,6 +400,12 @@ import Observation
         try check(); try await Task.sleep(for: .milliseconds(100))
         return OneboxMetadata(url: url, title: url.host ?? "Link", summary: "Fixture link preview")
     }
+    func mentionCandidates(term: String, context: OneboxContext) async throws -> [MentionCandidate] {
+        try check(); try await Task.sleep(for: .milliseconds(100))
+        let needle = term.lowercased()
+        return Self.people.filter { needle.isEmpty || $0.key.lowercased().hasPrefix(needle) || $0.value.name.lowercased().hasPrefix(needle) }
+            .sorted { $0.key < $1.key }.prefix(6).map { MentionCandidate(username: $0.key, name: $0.value.name) }
+    }
     func upload(_ data: Data, progress: @escaping @MainActor @Sendable (Double) -> Void) async throws -> UploadedPhoto {
         try check()
         for i in 1...10 { try await Task.sleep(for: uploadStep); progress(Double(i)/10); if uploadFails && i == 6 { throw RepositoryError.invalid("Photo upload failed. Retry or remove it.") } }

@@ -42,6 +42,7 @@ struct PrototypeAttributeScope: AttributeScope {
     let marks: PrototypeMarksAttribute
     let link: PrototypeLinkAttribute
     let block: PrototypeBlockAttribute
+    let mention: PrototypeMentionAttribute
     let swiftUI: AttributeScopes.SwiftUIAttributes
 }
 
@@ -79,8 +80,10 @@ struct PrototypeRichDocument {
                     counter = nil
                 }
                 var parser = InlineParser(String(content))
-                let text = try parser.parse()
-                lines.append((line, (display.map(Self.marker) ?? AttributedString()) + text))
+                var text = (display.map(Self.marker) ?? AttributedString()) + (try parser.parse())
+                // A mention whose meaning depends on `unicode_usernames` stays in source.
+                guard !PrototypeMentions.style(&text) else { throw ParseError.unsupported }
+                lines.append((line, text))
                 previous = block.map { $0.isList ? .list : .quote } ?? .paragraph
             }
             projection = Self.join(lines.map(\.text))
@@ -101,7 +104,12 @@ struct PrototypeRichDocument {
             issue = "This rich text contains links, underlining or structured formatting that the prose prototype cannot export. Your writing is still here. Undo the paste, then use Paste and its plain-text option if needed."
             return false
         }
-        let editedLines = Self.split(Self.normalized(edited))
+        var normalizedText = Self.normalized(edited)
+        guard !PrototypeMentions.style(&normalizedText) else {
+            issue = "Fomio can’t tell yet whether this community allows usernames in other alphabets, so it can’t tell if this @ is a mention. Put a space between the username and other letters, or choose a username from the suggestions. Your rich text is still here."
+            return false
+        }
+        let editedLines = Self.split(normalizedText)
         if let structure = Self.structureIssue(editedLines) { issue = structure; return false }
         let old = lines
         var prefix = 0
@@ -324,24 +332,34 @@ struct PrototypeRichDocument {
         // leading/trailing whitespace. It is Discourse source, never HTML or RTF.
         var output = ""
         var link: URL?
+        var tags: [String] = []
+        var marks: PrototypeMarks?
         for run in text.runs {
-            if run[PrototypeLinkAttribute.self] != link {
-                if let link { output += "](\(link.absoluteString))" }
-                link = run[PrototypeLinkAttribute.self]
-                if link != nil { output += "[" }
+            // Mention styling splits runs; tags follow only the marks and link.
+            let runMarks = run[PrototypeMarksAttribute.self] ?? []
+            if runMarks != marks || run[PrototypeLinkAttribute.self] != link {
+                for tag in tags.reversed() { output += "[/\(tag)]" }
+                if run[PrototypeLinkAttribute.self] != link {
+                    if let link { output += "](\(link.absoluteString))" }
+                    link = run[PrototypeLinkAttribute.self]
+                    if link != nil { output += "[" }
+                }
+                marks = runMarks
+                tags = [(PrototypeMarks.bold, "b"), (.italic, "i"), (.strike, "s")].filter { runMarks.contains($0.0) }.map(\.1)
+                for tag in tags { output += "[\(tag)]" }
             }
-            let marks = run[PrototypeMarksAttribute.self] ?? []
-            let tags = [(PrototypeMarks.bold, "b"), (.italic, "i"), (.strike, "s")].filter { marks.contains($0.0) }.map(\.1)
-            for tag in tags { output += "[\(tag)]" }
+            // A mention reads the same escaped or not, so keep it readable. `_` stays escaped so it cannot open emphasis.
+            let mention = run[PrototypeMentionAttribute.self] != nil
             for character in text[run.range].characters {
                 if character.unicodeScalars.count == 1, let scalar = character.unicodeScalars.first,
-                   scalar.isASCII, CharacterSet.punctuationCharacters.union(.symbols).contains(scalar) {
+                   scalar.isASCII, CharacterSet.punctuationCharacters.union(.symbols).contains(scalar),
+                   !mention || scalar == "_" {
                     output += "\\"
                 }
                 output.append(character)
             }
-            for tag in tags.reversed() { output += "[/\(tag)]" }
         }
+        for tag in tags.reversed() { output += "[/\(tag)]" }
         if let link { output += "](\(link.absoluteString))" }
         return output
     }
@@ -394,9 +412,8 @@ struct PrototypeRichDocument {
                     let remainder = String(characters[position...])
                     guard remainder.range(of: #"^&(?:#[0-9]+|#x[0-9a-fA-F]+|[a-zA-Z][a-zA-Z0-9]+);"#, options: .regularExpression) == nil else { throw ParseError.unsupported }
                 }
-                // Preserve mentions, emoji shortcodes and autolinks as source until
-                // their semantics are part of this prototype's document model.
-                if characters[position] == "@" { throw ParseError.unsupported }
+                // Preserve emoji shortcodes and autolinks as source until their semantics are
+                // part of this prototype's document model. Mentions are derived from the text afterwards.
                 if characters[position] == ":" {
                     let remainder = String(characters[position...])
                     guard !remainder.hasPrefix("://"),

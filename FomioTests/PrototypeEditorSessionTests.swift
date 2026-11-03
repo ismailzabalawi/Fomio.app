@@ -277,8 +277,110 @@ import UniformTypeIdentifiers
         XCTAssertTrue(session.changeMode(true))
         XCTAssertEqual(session.value.source, "مرحبا Fomio")
     }
+    func testMentionQueryFollowsTheCaretAndChoosingInsertsAMention() throws {
+        var session = PrototypeEditorSession(source: "Thanks")
+        func type(_ text: String) {
+            var updated = session.value.text
+            var piece = AttributedString(text)
+            if let last = updated.runs.last { piece.setAttributes(last.attributes) }
+            updated += piece
+            session.editRich(updated)
+            session.select(AttributedTextSelection(insertionPoint: session.value.text.endIndex))
+        }
+        XCTAssertNil(session.mentionQuery)
+        type(" @")
+        XCTAssertEqual(session.mentionQuery?.term, "")
+        type("pr")
+        XCTAssertEqual(session.mentionQuery?.term, "pr")
+        session.mention("priya")
+        XCTAssertEqual(String(session.value.text.characters), "Thanks @priya ")
+        XCTAssertNil(session.mentionQuery)
+        XCTAssertEqual(session.value.text.runs.compactMap { $0[PrototypeMentionAttribute.self] }, ["priya"])
+        // Text typed after a mention inherits its attributes; restyling keeps them on the mention.
+        type("and")
+        XCTAssertEqual(session.value.text.runs.compactMap { $0[PrototypeMentionAttribute.self] }, ["priya"])
+        XCTAssertTrue(session.syncSource(), session.value.document.issue ?? "")
+        XCTAssertEqual(session.value.source, "Thanks @priya and")
+        session.undo()
+        XCTAssertEqual(String(session.value.text.characters), "Thanks @priya ")
+        session.undo()
+        XCTAssertEqual(String(session.value.text.characters), "Thanks @pr")
+        // An `@` inside a word is not a mention, and neither is one in a link.
+        var email = PrototypeEditorSession(source: "a\\@pr")
+        email.select(AttributedTextSelection(insertionPoint: email.value.text.endIndex))
+        XCTAssertNil(email.mentionQuery)
+        var linked = PrototypeEditorSession(source: "[@pr](https://example.com)")
+        linked.select(AttributedTextSelection(insertionPoint: linked.value.text.endIndex))
+        XCTAssertNil(linked.mentionQuery)
+    }
+    func testChoosingAMentionBeforePunctuationAddsNoSpaceAndKeepsFormatting() throws {
+        var session = PrototypeEditorSession(source: "**@pr**, hi")
+        let word = try XCTUnwrap(session.value.text.range(of: "@pr"))
+        session.select(AttributedTextSelection(insertionPoint: word.upperBound))
+        session.mention("priya")
+        XCTAssertEqual(String(session.value.text.characters), "@priya, hi")
+        XCTAssertTrue(session.syncSource(), session.value.document.issue ?? "")
+        XCTAssertEqual(session.value.source, "[b]@priya[/b]\\, hi")
+    }
+    func testRepeatedStaleEditorTextKeepsTheMarker() throws {
+        var session = PrototypeEditorSession(source: "- one\n- ")
+        func staleEdit(_ typed: String) {
+            // The editor has not adopted the marker: its text has the keys where the marker is.
+            var text = AttributedString(try! XCTUnwrap(session.value.text.range(of: "\n").map { session.value.text[..<$0.upperBound] }))
+            var piece = AttributedString(typed); piece.setAttributes(text.runs.first!.attributes)
+            text += piece
+            session.editRich(text, deferShaping: true)
+            session.shapePendingEdit()
+        }
+        // Each pass repeats everything typed so far, so more than the marker differs from the second pass on.
+        for typed in ["T", "Tw", "Two", "Twoo"] {
+            staleEdit(typed)
+            XCTAssertEqual(String(session.value.text.characters), "• one\n• \(typed)")
+        }
+        XCTAssertTrue(session.syncSource(), session.value.document.issue ?? "")
+        XCTAssertEqual(session.value.source, "- one\n- Twoo")
+        // Replacing a marker together with its text, with something else, still replaces them.
+        var deleting = PrototypeEditorSession(source: "- one\n- two")
+        var text = deleting.value.text
+        text.removeSubrange(try XCTUnwrap(text.range(of: "• two")).lowerBound..<text.endIndex)
+        var other = AttributedString("x"); other.setAttributes(text.runs.first!.attributes)
+        text += other
+        deleting.editRich(text)
+        XCTAssertEqual(String(deleting.value.text.characters), "• one\nx")
+    }
+    func testStaleEditorTextCannotUndoLeavingAList() throws {
+        var session = PrototypeEditorSession(source: "- one")
+        func edit(_ characters: String) {
+            // Keep the markers the editor still holds, as its own text would.
+            var text = AttributedString()
+            for (index, line) in characters.components(separatedBy: "\n").enumerated() {
+                if index > 0 { text += AttributedString("\n") }
+                var content = AttributedString(line.hasPrefix("• ") ? String(line.dropFirst(2)) : line)
+                var attributes = AttributeContainer(); PrototypeRichDocument.apply([], to: &attributes); content.setAttributes(attributes)
+                text += line.hasPrefix("• ") ? PrototypeRichDocument.marker(.bullet) + content : content
+            }
+            session.editRich(text, deferShaping: true)
+            session.shapePendingEdit()
+        }
+        edit("• one\n")
+        XCTAssertEqual(String(session.value.text.characters), "• one\n• ")
+        edit("• one\n• \n")
+        XCTAssertEqual(String(session.value.text.characters), "• one\n\n")
+        // The editor has adopted the marker but not its removal, and sends the next keys on that text.
+        edit("• one\n• \nD")
+        XCTAssertEqual(String(session.value.text.characters), "• one\n\nD")
+        edit("• one\n• \nDo")
+        XCTAssertEqual(String(session.value.text.characters), "• one\n\nDo")
+        XCTAssertTrue(session.syncSource(), session.value.document.issue ?? "")
+        XCTAssertEqual(session.value.source, "- one\n\nDo")
+        // Once the editor has caught up, deleting and typing are ordinary edits.
+        edit("• one\n\nD")
+        XCTAssertEqual(String(session.value.text.characters), "• one\n\nD")
+        edit("• one\n\nDa")
+        XCTAssertEqual(String(session.value.text.characters), "• one\n\nDa")
+    }
     func testLongDocumentKeystrokeAndExportStayFast() throws {
-        let paragraph = "مرحبا **Fomio** 👋🏽 [link](https://example.com) and _more_ text.\n- item\n- item two\n\n> quote\n\n"
+        let paragraph = "مرحبا **Fomio** 👋🏽 @priya [link](https://example.com) and _more_ text.\n- item\n- item two\n\n> quote\n\n"
         var session = PrototypeEditorSession(source: String(repeating: paragraph, count: 300))
         XCTAssertNotNil(session.value.document.projection)
         XCTAssertGreaterThan(session.value.text.characters.count, 15_000)

@@ -43,6 +43,7 @@ struct PrototypeEditorSession {
     private var future: [Entry] = []
     private var typingMode: Bool?
     private var shapeBase: AttributedString?
+    private var editorText: AttributedString?
     private var lastEdit: Date?
     private(set) var revision = 0
     var canUndo: Bool { !past.isEmpty }
@@ -61,9 +62,35 @@ struct PrototypeEditorSession {
     mutating func editRich(_ text: AttributedString, now: Date = .now, deferShaping: Bool = false) {
         guard text != value.text else { return }
         let before = value
-        value.text = text
+        value.text = deferShaping ? replayingStaleEdit(text) : text
         if deferShaping { if shapeBase == nil { shapeBase = before.text } } else { shapeBlocks(after: before.text) }
         record(before, name: "Typing", typing: true, now: now)
+    }
+    /// The native editor adopts shaped text late, and until then keeps sending edits of its own older text.
+    /// When an edit only adds to what the editor last sent, but would undo shaping since, apply just the added keys.
+    private mutating func replayingStaleEdit(_ text: AttributedString) -> AttributedString {
+        defer { editorText = text }
+        guard let editorText, !editorText.characters.elementsEqual(value.text.characters) else { return text }
+        func difference(from old: AttributedString) -> (removed: Int, inserted: Range<Int>) {
+            let old = Array(old.characters), new = Array(text.characters)
+            var start = 0
+            while start < min(old.count, new.count), old[start] == new[start] { start += 1 }
+            var end = 0
+            while end < min(old.count, new.count) - start, old[old.count - end - 1] == new[new.count - end - 1] { end += 1 }
+            return (old.count - end - start, start..<(new.count - end))
+        }
+        let edit = difference(from: editorText)
+        // A stale edit swaps shaped text for keys. Removing alone is a real Backspace.
+        let current = difference(from: value.text)
+        guard edit.removed == 0, !edit.inserted.isEmpty, current.removed > 0, !current.inserted.isEmpty else { return text }
+        // Keys land the same distance from the end: shaping only changes text before the caret.
+        let count = text.characters.count
+        let at = Self.index(value.text.characters.count - (count - edit.inserted.upperBound), in: value.text)
+        var replayed = value.text
+        replayed.insert(AttributedString(text[Self.index(edit.inserted.lowerBound, in: text)..<Self.index(edit.inserted.upperBound, in: text)]), at: at)
+        let caret = value.text.characters.distance(from: value.text.startIndex, to: at) + edit.inserted.count
+        value.selection = AttributedTextSelection(insertionPoint: Self.index(caret, in: replayed))
+        return replayed
     }
     /// Applies list continuation, shortcuts and marker repair to the edit recorded by `editRich`.
     mutating func shapePendingEdit() {
@@ -71,7 +98,15 @@ struct PrototypeEditorSession {
         shapeBase = nil
         let text = value.text
         shapeBlocks(after: base)
+        styleMentions()
         if value.text != text, !past.isEmpty { past[past.count - 1].after = value }
+    }
+    /// Mentions are derived from the text, so every change restyles them.
+    private mutating func styleMentions() {
+        guard !value.markdown else { return }
+        var text = value.text
+        PrototypeMentions.style(&text)
+        if text != value.text { value.text = text }
     }
     /// Continues lists and quotes on Return, turns typed `- `, `1. ` and `> ` into blocks,
     /// and repairs markers the edit broke. Moves the caret only when it rewrites the text.
@@ -84,17 +119,23 @@ struct PrototypeEditorSession {
         while end < min(oldCharacters.count, newCharacters.count) - start,
               oldCharacters[oldCharacters.count - end - 1] == newCharacters[newCharacters.count - end - 1] { end += 1 }
         let inserted = Array(newCharacters[start..<(newCharacters.count - end)])
-        // While the editor is still adopting a marker it can send its own text back, with the next key typed
+        // While the editor is still adopting a marker it can keep sending its own text back, with the keys typed since
         // where the marker was. Typing never replaces a marker (Backspace removes it), so put the marker back.
         let removedRange = Self.index(start, in: old)..<Self.index(oldCharacters.count - end, in: old)
-        if !inserted.isEmpty, !removedRange.isEmpty, old[removedRange].runs.allSatisfy({ $0[PrototypeBlockAttribute.self] != nil }) {
-            let typed = value.text[Self.index(start, in: value.text)..<Self.index(newCharacters.count - end, in: value.text)]
-            var restored = AttributedString(old[..<removedRange.upperBound])
-            restored += AttributedString(typed)
-            restored += AttributedString(old[removedRange.upperBound...])
-            value.text = restored
-            value.selection = AttributedTextSelection(insertionPoint: Self.index(oldCharacters.count - end + inserted.count, in: value.text))
-            return shapeBlocks(after: old)
+        if !inserted.isEmpty, let first = old[removedRange].runs.first, first[PrototypeBlockAttribute.self] != nil {
+            let markerEnd = old[removedRange].runs.first { $0[PrototypeBlockAttribute.self] == nil }?.range.lowerBound ?? removedRange.upperBound
+            let markerLength = old.characters.distance(from: removedRange.lowerBound, to: markerEnd)
+            // Text typed after the marker in an earlier pass comes back too, at the start of what was inserted.
+            let kept = oldCharacters[(start + markerLength)..<(oldCharacters.count - end)]
+            if inserted.starts(with: kept), kept.isEmpty || inserted.count > kept.count {
+                let typed = value.text[Self.index(start, in: value.text)..<Self.index(newCharacters.count - end, in: value.text)]
+                var restored = AttributedString(old[..<markerEnd])
+                restored += AttributedString(typed)
+                restored += AttributedString(old[removedRange.upperBound...])
+                value.text = restored
+                value.selection = AttributedTextSelection(insertionPoint: Self.index(start + markerLength + inserted.count, in: value.text))
+                return shapeBlocks(after: old)
+            }
         }
         // Composed input such as an emoji modifier replaces the character before it, so allow removals without a line break.
         let removedBreak = oldCharacters[start..<(oldCharacters.count - end)].contains("\n")
@@ -217,6 +258,46 @@ struct PrototypeEditorSession {
         guard value.text != before.text else { return }
         record(before, name: url == nil ? "Remove Link" : "Link")
     }
+    /// The `@` word ending at the caret, for mention suggestions: its character offsets and the text after `@`.
+    var mentionQuery: (range: Range<Int>, term: String)? {
+        guard !value.markdown, case let .insertionPoint(caret) = value.selection.indices(in: value.text) else { return nil }
+        let characters = value.text.characters
+        var index = caret, term = ""
+        while index > characters.startIndex, term.count <= 60 {
+            let previous = characters.index(before: index)
+            let character = characters[previous]
+            if character == "@" {
+                if previous > characters.startIndex {
+                    let before = characters[characters.index(before: previous)]
+                    guard before.isWhitespace || before.isPunctuation || before.isSymbol else { return nil }
+                }
+                let run = value.text.runs[previous]
+                guard run[PrototypeLinkAttribute.self] == nil, run[PrototypeBlockAttribute.self] == nil else { return nil }
+                let start = characters.distance(from: characters.startIndex, to: previous)
+                return (start..<(start + 1 + term.count), term)
+            }
+            guard character.isLetter || character.isNumber || "._-".contains(character) else { return nil }
+            term = String(character) + term
+            index = previous
+        }
+        return nil
+    }
+    /// Replaces the `@` word at the caret with a mention of `username`, then a space unless punctuation follows.
+    mutating func mention(_ username: String) {
+        guard let query = mentionQuery else { return }
+        let before = value
+        let lower = Self.index(query.range.lowerBound, in: value.text), upper = Self.index(query.range.upperBound, in: value.text)
+        let next = upper < value.text.endIndex ? value.text.characters[upper] : nil
+        let inserted = "@" + username + (next.map { $0.isWhitespace || $0.isPunctuation } == true ? "" : " ")
+        var piece = AttributedString(inserted)
+        var attributes = AttributeContainer()
+        PrototypeRichDocument.apply(value.text.runs[lower][PrototypeMarksAttribute.self] ?? [], to: &attributes)
+        piece.setAttributes(attributes)
+        value.text.replaceSubrange(lower..<upper, with: piece)
+        value.selection = AttributedTextSelection(insertionPoint: Self.index(query.range.lowerBound + inserted.count, in: value.text))
+        breakTyping()
+        record(before, name: "Mention")
+    }
     static func offsets(_ selection: AttributedTextSelection, in text: AttributedString) -> (Int, Int) {
         func offset(_ index: AttributedString.Index) -> Int { text.characters.distance(from: text.startIndex, to: index) }
         switch selection.indices(in: text) {
@@ -304,9 +385,11 @@ struct PrototypeEditorSession {
         restored()
     }
     private mutating func restored() {
-        revision += 1; breakTyping(); shapeBase = nil
+        revision += 1; breakTyping(); shapeBase = nil; editorText = nil
     }
     private mutating func record(_ before: Snapshot, name: String, typing: Bool = false, now: Date = .now) {
+        // A deferred edit is restyled with its shaping, after the native editor's update.
+        if shapeBase == nil { styleMentions() }
         if typing, typingMode == value.markdown, let lastEdit, now.timeIntervalSince(lastEdit) < 1,
            !past.isEmpty, future.isEmpty {
             past[past.count - 1].after = value

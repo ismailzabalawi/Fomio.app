@@ -385,7 +385,11 @@ struct ComposerView: View {
     // MARK: Bar
     @ViewBuilder private var bar: some View {
         #if DEBUG
-        if let richModel { PrototypeComposerBar(model: richModel) } else { composerBar }
+        if let richModel {
+            PrototypeComposerBar(model: richModel) { [app, state] term in
+                try await app.service.mentionCandidates(term: term, context: OneboxContext(category: state.draft.categoryID, topic: state.draft.intent.topicID))
+            }
+        } else { composerBar }
         #else
         composerBar
         #endif

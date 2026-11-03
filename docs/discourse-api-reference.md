@@ -107,6 +107,17 @@ The [adaptive navigation IA/API map](adaptive-navigation-ia-api-map.md) now inco
 
 **2026-11-01 prototype follow-up:** links, lists and quotes were added to the Debug experiment, and a Debug `--rich-composer` launch argument routes the real composer body through it. Exported syntax is standard Markdown (`[label](url)`, `- `/`N. ` list items, `> ` quotes) plus the existing `[b]`/`[i]`/`[s]`; no endpoint, posting adapter or backend change. Deployed rendering of these lines was not verified and no live post was made. Backend HEAD rechecked: `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`. [Evidence and limits](validation/2026-10-19-rich-prototype/README.md#links-lists-quotes-and-the-debug-composer-switch--2026-11-01).
 
+**2026-11-01 mention contract (backend HEAD `d4296c5ecf2bef4f11e42d8f3fd2282c8752f4e2`).** Status: **source-verified; not exercised against a deployed site.**
+
+| Fact | Source | Result |
+| --- | --- | --- |
+| Suggestions | `config/routes.rb` (`u/search/users`), `UsersController#search_users`, `FoundUserSerializer`, `spec/requests/users_controller_spec.rb` `#search_users` | `GET /u/search/users.json` with `term`, `limit` (max 50), optional `topic_id` and `category_id`. Returns `users[]` with `id`, `username`, `avatar_template` and, only when `enable_names` is on, `name`. Groups appear only when an `include_*groups` parameter is sent; the app does not send one, so group mentions are not suggested. `UserApiKeyScope` `read` allows GET. |
+| Mention syntax | `frontend/pretty-text/addon/mentions.js`, `frontend/discourse-markdown-it/src/features/mentions.js` | `@(\w[\w.-]{0,58}[^\W_])\|@(\w)`, or the same shape over letters, marks and decimal digits when `unicode_usernames` is on. |
+| Boundaries | `features/text-post-process.js`, markdown-it `isWhiteSpace`/`isPunctChar` | Both neighbours must be whitespace or Unicode P/S, judged on one UTF-16 unit, so an adjacent astral emoji blocks a mention. A failed greedy match is skipped whole; shorter matches are not retried. |
+| Escapes and links | `text-post-process` is pushed after markdown-it's `text_join`; `textReplace(..., skipAllLinks = true)` | `\@bob` still becomes a mention, so backslash cannot make `@name` literal. Mentions never form inside link text. Each text token is scanned alone, so a formatting edge counts as a boundary. |
+
+Unresolved for the deployment: `unicode_usernames` and `enable_mentions` values (the app cannot read them yet, so text whose meaning depends on `unicode_usernames` is refused in rich mode), and whether a given username exists (Discourse links only real users after cooking).
+
 **Finding:** iOS 26 `TextEditor` with `AttributedString` is a viable candidate for the prose-editing layer, but is not a complete replacement for Fomio's Discourse composer. Recommendation from the initial investigation: a contained prototype before migration. That source-review pass changed no app behavior, backend code, deployment settings or authentication scope; the subsequently authorized prototype is described above.
 
 ### Evidence and verification status

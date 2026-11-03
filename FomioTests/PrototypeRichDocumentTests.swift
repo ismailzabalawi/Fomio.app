@@ -95,7 +95,7 @@ final class PrototypeRichDocumentTests: XCTestCase {
         XCTAssertNil(document.issue)
         XCTAssertEqual(document.source, "fixed")
         XCTAssertNil(PrototypeRichDocument(source: "&amp;").projection)
-        for source in ["Title\n===", "Hello @sam", ":smile:", "https://example.com"] {
+        for source in ["Title\n===", ":smile:", "https://example.com"] {
             XCTAssertNil(PrototypeRichDocument(source: source).projection, source)
         }
     }
@@ -186,6 +186,50 @@ final class PrototypeRichDocumentTests: XCTestCase {
         XCTAssertEqual(String(repaired.characters), "• xone\ntwo")
         XCTAssertEqual(PrototypeRichDocument.markerInfo(PrototypeRichDocument.split(repaired)[0])?.length, 2)
         XCTAssertNil(PrototypeRichDocument.markerInfo(PrototypeRichDocument.split(repaired)[1]))
+    }
+
+    func testMentionsFollowDiscoursesRule() throws {
+        // Expectations from Discourse's pretty-text tests and text-post-process boundaries.
+        let cases: [(String, [String])] = [
+            ("Hello @sam", ["sam"]), ("@sam yo", ["sam"]), ("(@sam)", ["sam"]), ("@foo/@bar", ["foo", "bar"]),
+            ("@bob.", ["bob"]), ("@bob\\_", ["bob"]), ("@b", ["b"]),
+            ("@\\_sam @1sam @ab-cd.123\\_ABC-xYz @sam1", ["_sam", "1sam", "ab-cd.123_ABC-xYz", "sam1"]),
+            // Escaping does not stop a mention: the pass runs on joined text.
+            ("\\@bob", ["bob"]),
+            // A formatting or link edge ends the text token, so it counts as a boundary.
+            ("**x**@bob", ["bob"]), ("x**@bob**", ["bob"]), ("- @bob", ["bob"]), ("> @bob", ["bob"]),
+            // Letters and astral characters are not boundaries; link labels are skipped.
+            ("a@bob", []), ("a@b.com", []), ("@bob👋", []), ("👋@bob", []), ("@ alone", []), ("[@bob](https://example.com)", [])
+        ]
+        for (source, expected) in cases {
+            let projection = try XCTUnwrap(PrototypeRichDocument(source: source).projection, source)
+            XCTAssertEqual(PrototypeMentions.find(in: projection).mentions.map(\.username), expected, source)
+            XCTAssertEqual(projection.runs.compactMap { $0[PrototypeMentionAttribute.self] }, expected, source)
+        }
+        // These depend on the `unicode_usernames` site setting, which is unknown here, so they stay in source.
+        for source in ["@مرحبا", "@bobé", "@bob\u{301}"] { XCTAssertNil(PrototypeRichDocument(source: source).projection, source) }
+    }
+    func testMentionsRoundTripAndSerializeReadably() throws {
+        for source in ["Hello @sam and \\@sam", "@foo/@bar", "**hi @bob ok**"] {
+            var document = PrototypeRichDocument(source: source)
+            XCTAssertTrue(document.commit(try XCTUnwrap(document.projection)))
+            XCTAssertEqual(document.source, source)
+        }
+        var document = PrototypeRichDocument(source: "old")
+        XCTAssertTrue(document.commit(plain("hi @bob.smith-x and a@b.com @a_b")), document.issue ?? "")
+        XCTAssertEqual(document.source, "hi @bob.smith-x and a\\@b\\.com @a\\_b")
+        // Mention styling must not split a formatting tag.
+        XCTAssertTrue(document.commit(try XCTUnwrap(PrototypeRichDocument(source: "**hi @bob ok**").projection)))
+        XCTAssertEqual(document.source, "[b]hi @bob ok[/b]")
+    }
+    func testAmbiguousMentionIsRefusedWithoutLosingText() throws {
+        var document = PrototypeRichDocument(source: "keep")
+        XCTAssertFalse(document.commit(plain("@bobé")))
+        XCTAssertEqual(document.source, "keep")
+        XCTAssertNotNil(document.issue)
+        XCTAssertTrue(document.commit(plain("@bob é")), document.issue ?? "")
+        XCTAssertEqual(document.source, "@bob é")
+        XCTAssertNil(document.issue)
     }
 
     private func plain(_ string: String) -> AttributedString {

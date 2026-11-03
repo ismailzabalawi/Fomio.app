@@ -210,6 +210,20 @@ import UniformTypeIdentifiers
         XCTAssertTrue(source.contains("\\*\\*literal\\*\\*"), source)
     }
 
+    /// `typeText` of a whole string delivers keys faster than anyone types, while the editor is still adopting shaped text.
+    /// This sends one key per call, closer to real typing.
+    func testListTypingOneKeyAtATimeStaysExact() throws {
+        let app = launch()
+        let rich = app.textViews["prototype-rich"]
+        XCTAssertTrue(rich.waitForExistence(timeout: 10))
+        app.buttons["prototype-samples"].tap(); app.buttons["Plain text"].tap()
+        app.buttons["prototype-select-all"].tap()
+        for key in "Shopping\n" { rich.typeText(String(key)) }
+        app.buttons["prototype-bullet"].tap()
+        for key in "Milk\nخبز 🍞\n\nDone\n\n> quoted" { rich.typeText(String(key)) }
+        XCTAssertEqual(rich.value as? String, "Shopping\n• Milk\n• خبز 🍞\n\nDone\n\n▎ quoted")
+    }
+
     func testListsQuotesAndLinksTypedNativelyExportToDiscourseSource() throws {
         let app = launch()
         let rich = app.textViews["prototype-rich"]
@@ -255,22 +269,50 @@ import UniformTypeIdentifiers
         XCTAssertTrue(app.buttons["composer-post"].isEnabled)
         let capture = XCTAttachment(screenshot: app.screenshot())
         capture.name = "Debug rich composer"; capture.lifetime = .keepAlways; add(capture)
+        assertKeptDraftSource("Steps\n- مرحبا 👋🏽\n- Two", in: app)
+    }
+
+    func testRichComposerSuggestsMentionsAndSavesThemAsSource() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--fixture", "--ui-testing", "--rich-composer"]
+        app.launchEnvironment["FOMIO_UI_TEST_NAMESPACE"] = UUID().uuidString
+        app.launch()
+        XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 10)); app.buttons["topic-4182"].tap()
+        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5)); app.buttons["discussion-reply"].tap()
+        let rich = app.textViews["composer-rich-body"]
+        XCTAssertTrue(rich.waitForExistence(timeout: 5)); rich.tap()
+        rich.typeText("شكرا @pr")
+        let suggestion = app.buttons["composer-mention-priya"]
+        XCTAssertTrue(suggestion.waitForExistence(timeout: 5))
+        let capture = XCTAttachment(screenshot: app.screenshot())
+        capture.name = "Mention suggestions"; capture.lifetime = .keepAlways; add(capture)
+        tapChangingText(suggestion, in: rich)
+        XCTAssertEqual(rich.value as? String, "شكرا @priya ")
+        XCTAssertFalse(suggestion.exists)
+        XCTAssertTrue(rich.hasKeyboardFocus)
+        rich.typeText("on it")
+        XCTAssertEqual(rich.value as? String, "شكرا @priya on it")
+        XCTAssertFalse(app.staticTexts["composer-rich-issue"].exists)
+        assertKeptDraftSource("شكرا @priya on it", in: app)
+    }
+
+    /// Keeps the draft, then reopens it without the switch: the standard composer shows it as Discourse source.
+    private func assertKeptDraftSource(_ source: String, in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
         app.buttons["composer-close"].tap(); app.buttons["Keep draft"].tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
-        // Without the switch, the kept draft opens in the standard composer as Discourse source.
+        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5), file: file, line: line)
         app.terminate()
         app.launchArguments = ["--fixture", "--ui-testing"]
         app.launch()
-        XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 10), file: file, line: line)
         app.buttons.matching(identifier: "Me").firstMatch.tap()
-        XCTAssertTrue(app.buttons["me-drafts"].waitForExistence(timeout: 5)); app.buttons["me-drafts"].tap()
+        XCTAssertTrue(app.buttons["me-drafts"].waitForExistence(timeout: 5), file: file, line: line); app.buttons["me-drafts"].tap()
         let draft = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Resume draft:")).firstMatch
-        XCTAssertTrue(draft.waitForExistence(timeout: 5)); draft.tap()
+        XCTAssertTrue(draft.waitForExistence(timeout: 5), file: file, line: line); draft.tap()
         let body = app.textViews["composer-body"]
-        XCTAssertTrue(body.waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["composer-more"].waitForExistence(timeout: 5)); app.buttons["composer-more"].tap()
+        XCTAssertTrue(body.waitForExistence(timeout: 5), file: file, line: line)
+        XCTAssertTrue(app.buttons["composer-more"].waitForExistence(timeout: 5), file: file, line: line); app.buttons["composer-more"].tap()
         app.buttons["Edit in Markdown"].tap()
-        XCTAssertEqual(body.value as? String, "Steps\n- مرحبا 👋🏽\n- Two")
+        XCTAssertEqual(body.value as? String, source, file: file, line: line)
     }
 
     /// After `typeText` the simulator can keep its software keyboard minimized; the next touch restores it
