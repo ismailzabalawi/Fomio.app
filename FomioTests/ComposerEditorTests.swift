@@ -351,6 +351,63 @@ final class ComposerEditorTests: XCTestCase {
         XCTAssertFalse(coordinator.textView(view, shouldChangeTextIn: .init(location: 10, length: 0), replacementText: "\n"))
         XCTAssertTrue(next)
     }
+    /// Applies an edit the way UIKit does: the delegate is asked, the storage changes and the caret moves, then the delegate hears about it.
+    private func typeNatively(_ text: String, replacing range: NSRange, in view: ComposerTextView, coordinator: NativeComposerEditor.Coordinator) {
+        XCTAssertTrue(coordinator.textView(view, shouldChangeTextIn: range, replacementText: text))
+        view.textStorage.replaceCharacters(in: range, with: text)
+        view.selectedRange = NSRange(location: range.location + (text as NSString).length, length: 0)
+        coordinator.textViewDidChange(view)
+    }
+    func testCaretStaysAtTheEditInsideARunOfTheSameCharacter() {
+        var raw = "apple"
+        let controller = EditorController()
+        let coordinator = NativeComposerEditor.Coordinator(NativeComposerEditor(raw: .init(get: { raw }, set: { raw = $0 }), controller: controller))
+        let view = ComposerTextView(usingTextLayoutManager: true); coordinator.view = view
+        coordinator.render(raw, selection: .init(location: 1, length: 0))
+        typeNatively("p", replacing: view.selectedRange, in: view, coordinator: coordinator)
+        XCTAssertEqual(raw, "appple"); XCTAssertEqual(view.selectedRange, NSRange(location: 2, length: 0))
+        XCTAssertEqual(controller.selection.range, NSRange(location: 2, length: 0))
+        typeNatively("X", replacing: view.selectedRange, in: view, coordinator: coordinator)
+        XCTAssertEqual(raw, "apXpple", "The next character lands where the writer is")
+        // Deleting the first of two equal characters leaves the caret before the survivor.
+        coordinator.render("hello", selection: .init(location: 3, length: 0))
+        typeNatively("", replacing: NSRange(location: 2, length: 1), in: view, coordinator: coordinator)
+        XCTAssertEqual(view.selectedRange, NSRange(location: 2, length: 0))
+        // The same holds in a styled run, whose source offsets differ from the visible ones.
+        coordinator.render("**aaa**", selection: .init(location: 3, length: 0))
+        controller.boldTyping = true
+        typeNatively("a", replacing: view.selectedRange, in: view, coordinator: coordinator)
+        XCTAssertEqual(view.selectedRange, NSRange(location: 2, length: 0))
+        XCTAssertEqual(controller.selection.range, NSRange(location: 4, length: 0))
+    }
+    func testTypingLeavesTheTextStorageContentsToUIKit() {
+        var raw = "Hello **bold** world\n- item"
+        let controller = EditorController()
+        let coordinator = NativeComposerEditor.Coordinator(NativeComposerEditor(raw: .init(get: { raw }, set: { raw = $0 }), controller: controller))
+        let view = ComposerTextView(usingTextLayoutManager: true); coordinator.view = view
+        coordinator.render(raw, selection: .init(location: 2, length: 0))
+        var rewrites = 0, armed = false
+        let observer = NotificationCenter.default.addObserver(forName: NSTextStorage.didProcessEditingNotification, object: view.textStorage, queue: nil) { note in
+            if armed, (note.object as? NSTextStorage)?.editedMask.contains(.editedCharacters) == true { rewrites += 1 }
+        }
+        defer { NotificationCenter.default.removeObserver(observer) }
+        // UIKit's own insertion is done before the delegate call; only what follows belongs to the editor.
+        XCTAssertTrue(coordinator.textView(view, shouldChangeTextIn: view.selectedRange, replacementText: "y"))
+        view.textStorage.replaceCharacters(in: view.selectedRange, with: "y")
+        view.selectedRange = NSRange(location: 3, length: 0)
+        armed = true
+        coordinator.textViewDidChange(view)
+        XCTAssertEqual(raw, "Heyllo **bold** world\n- item"); XCTAssertEqual(rewrites, 0, "An edit the view already shows must not replace its text under the keyboard")
+        XCTAssertEqual(view.selectedRange, NSRange(location: 3, length: 0))
+        // Formatting that leaves the visible text alone still repaints it, and without moving the caret.
+        coordinator.command(.style(.quote))
+        XCTAssertEqual(rewrites, 0); XCTAssertEqual(view.selectedRange, NSRange(location: 3, length: 0))
+        XCTAssertEqual(view.textStorage.attribute(.foregroundColor, at: 0, effectiveRange: nil) as? UIColor, .secondaryLabel)
+        // A change to the visible text, here a closing marker, still goes through.
+        coordinator.render("*it", selection: .init(location: 3, length: 0))
+        typeNatively("*", replacing: view.selectedRange, in: view, coordinator: coordinator)
+        XCTAssertEqual(raw, "*it*"); XCTAssertEqual(view.text, "it"); XCTAssertEqual(view.selectedRange, NSRange(location: 2, length: 0))
+    }
 }
 
 @MainActor final class DraftAttachmentTests: XCTestCase {

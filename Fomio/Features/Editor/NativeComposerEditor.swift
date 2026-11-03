@@ -210,12 +210,21 @@ struct NativeComposerEditor: UIViewRepresentable {
                     }
                 }
             } else { view.blockDecorations = [] }
-            view.attributedText = result
+            // Replacing the text resets the caret and the keyboard's view of the document, so an
+            // edit the view already shows only has its attributes repainted.
+            if view.textStorage.string == result.string {
+                if !view.textStorage.isEqual(to: result) {
+                    view.textStorage.beginEditing()
+                    result.enumerateAttributes(in: NSRange(location: 0, length: result.length)) { attributes, range, _ in view.textStorage.setAttributes(attributes, range: range) }
+                    view.textStorage.endEditing()
+                }
+            } else { view.attributedText = result }
             var typing = base; typing[.font] = font(bold: controller.boldTyping, italic: controller.italicTyping)
             view.typingAttributes = typing
             view.placeholder = raw.isEmpty ? String(localized: String.LocalizationValue(parent.placeholder)) : nil
-            view.selectedRange = displayRange(selection)
             lastDisplay = view.text ?? ""
+            let caret = displayRange(selection)
+            if view.selectedRange != caret { view.selectedRange = caret }
             controller.selection = EditorSelection(clamp(selection, in: raw))
             reportStyle()
             controller.canUndo = history.canUndo; controller.canRedo = history.canRedo
@@ -496,10 +505,13 @@ struct NativeComposerEditor: UIViewRepresentable {
             if nativeUndoSuspended { history.enableUndoRegistration(); nativeUndoSuspended = false }
             // Native IME composition is allowed to finish before deriving a single committed edit.
             let before = lastDisplay as NSString, after = (textView.text ?? "") as NSString
-            var prefix = 0
-            while prefix < min(before.length, after.length), before.character(at: prefix) == after.character(at: prefix) { prefix += 1 }
+            // The caret ends the edit. Text after it is matched first, or a character typed
+            // beside its own twin would be placed at the far end of the run.
+            let tail = textView.selectedRange.length == 0 ? after.length - textView.selectedRange.location : after.length
             var suffix = 0
-            while suffix < min(before.length, after.length) - prefix, before.character(at: before.length - suffix - 1) == after.character(at: after.length - suffix - 1) { suffix += 1 }
+            while suffix < min(before.length, tail), before.character(at: before.length - suffix - 1) == after.character(at: after.length - suffix - 1) { suffix += 1 }
+            var prefix = 0
+            while prefix < min(before.length, after.length) - suffix, before.character(at: prefix) == after.character(at: prefix) { prefix += 1 }
             if prefix > 0 && prefix < before.length && (0xDC00...0xDFFF).contains(before.character(at: prefix)) { prefix -= 1 }
             if suffix > 0 && suffix < before.length && (0xDC00...0xDFFF).contains(before.character(at: before.length - suffix)) { suffix -= 1 }
             let changed = NSRange(location: prefix, length: before.length - prefix - suffix)

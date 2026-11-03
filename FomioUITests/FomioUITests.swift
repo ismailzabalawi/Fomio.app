@@ -1000,4 +1000,24 @@ import UIKit
         if outcome == "expired" { XCTAssertFalse(app.buttons["composer-post"].isEnabled) }
     }
 
+
+    func testCaretStaysPutWhileTypingInsideExistingText() throws {
+        try XCTSkipIf(UIDevice.current.userInterfaceIdiom == .pad, "The tap below does not reach the first line's left edge on iPad; NativeEditorTests covers the caret logic.")
+        let app = XCUIApplication()
+        app.launchArguments = ["--fixture", "--ui-testing"]
+        app.launchEnvironment["FOMIO_UI_TEST_NAMESPACE"] = UUID().uuidString
+        app.launch()
+        XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 10)); app.buttons["topic-4182"].tap()
+        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5)); app.buttons["discussion-reply"].tap()
+        let body = app.textViews["composer-body"]
+        XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap()
+        let sentence = "The quick brown fox jumps over the lazy dog, then types on at full speed. "
+        body.typeText("aaaa\n" + sentence)
+        XCTAssertEqual(body.value as? String, "aaaa\n" + sentence)
+        // The left edge of the first line is the one caret position a tap reaches exactly.
+        body.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0)).withOffset(CGVector(dx: 4, dy: 20)).tap()
+        body.typeText("a")
+        body.typeText("X")
+        XCTAssertEqual(body.value as? String, "aXaaaa\n" + sentence)
+    }
 }
