@@ -36,7 +36,7 @@ import UIKit
         app.launch()
         XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 15))
         app.buttons["topic-4182"].tap()
-        app.buttons["discussion-reply"].tap()
+        app.buttons["post-reply-1"].tap()
         let body = app.textViews["composer-body"]
         XCTAssertTrue(body.waitForExistence(timeout: 10))
         body.tap(); body.typeText("Trait draft.")
@@ -130,7 +130,7 @@ import UIKit
 @MainActor final class FomioUITests: XCTestCase {
     func testComposerMoreRefreshesUndoRedoAfterEachAction() {
         let app = launch()
-        app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
+        app.buttons["topic-4182"].tap(); app.buttons["post-reply-1"].tap()
         let body = app.textViews["composer-body"]
         XCTAssertTrue(body.waitForExistence(timeout: 10)); body.tap(); body.typeText("Menu history.")
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
@@ -158,7 +158,7 @@ import UIKit
     func testDuoPhotoReplyAcrossManualFolds() throws {
         guard ProcessInfo.processInfo.environment["FOMIO_DUO_PHOTO_TEST"] == "1" else { throw XCTSkip("Requires Duo fold controls and native photo-picker selection") }
         let app = launch(["--upload-fails"])
-        app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
+        app.buttons["topic-4182"].tap(); app.buttons["post-reply-1"].tap()
         let body = app.textViews["composer-body"]
         XCTAssertTrue(body.waitForExistence(timeout: 10))
         do {
@@ -331,7 +331,7 @@ import UIKit
         XCTAssertTrue(topic.waitForExistence(timeout: 15))
         let feed = XCTAttachment(screenshot: app.screenshot()); feed.name = "Live subcategory header and feed"; feed.lifetime = .keepAlways; add(feed)
         topic.tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 15))
         let detail = XCTAttachment(screenshot: app.screenshot()); detail.name = "Live topic opening post and reply controls"; detail.lifetime = .keepAlways; add(detail)
         XCTAssertFalse(app.staticTexts["Fixture preview"].exists)
     }
@@ -355,7 +355,8 @@ import UIKit
     }
     func testDirectoryFilterKeepsAncestorAndQueryAfterBack() {
         let app = launch(["--preset", "communities"])
-        let search = app.searchFields.firstMatch; XCTAssertTrue(search.waitForExistence(timeout: 5)); search.tap(); search.typeText("Finishing\n")
+        let search = app.textFields["find-communities"]
+        XCTAssertTrue(search.waitForExistence(timeout: 5)); search.tap(); search.typeText("Finishing\n")
         XCTAssertTrue(app.buttons["community-1"].exists); XCTAssertFalse(app.buttons["community-5"].exists)
         let child = app.buttons["community-2"]; XCTAssertTrue(child.waitForExistence(timeout: 5)); child.tap()
         XCTAssertTrue(app.buttons["community-scope"].waitForExistence(timeout: 5))
@@ -376,7 +377,8 @@ import UIKit
         let about = app.buttons["community-about"]; XCTAssertTrue(about.waitForExistence(timeout: 5))
         // Native menu rows use system metrics; check 44-point sizing on our custom selector.
         XCTAssertTrue(about.isHittable)
-        XCTAssertTrue(app.buttons["New discussion"].exists)
+        // In the menu, or the vertical rail's own button with the community in its label.
+        XCTAssertTrue(app.buttons["New discussion"].exists || app.buttons["header-new-discussion"].exists)
         let capture = XCTAttachment(screenshot: app.screenshot()); capture.name = "Category dark accessibility teal"; capture.lifetime = .keepAlways; add(capture)
     }
     func testInserterCancelPreservesHiddenKeyboard() {
@@ -407,7 +409,7 @@ import UIKit
     }
     func testVisualDraftRecoversAfterTerminationWithExactMarkdown() {
         let app = launch()
-        app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
+        app.buttons["topic-4182"].tap(); app.buttons["post-reply-1"].tap()
         let body = app.textViews["composer-body"]
         XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("Recovery check")
         tapSettled(app.buttons["composer-block-type"]); chooseTurnInto(app, "composer-turn-into-Heading 2")
@@ -416,7 +418,7 @@ import UIKit
         XCTAssertEqual(body.value as? String, "## Recovery check")
         tapSettled(app.buttons["composer-more"]); app.buttons["Rich text"].tap()
         app.buttons["composer-close"].tap(); app.buttons["Keep draft"].tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 5))
         app.terminate(); app.launch()
         XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 10))
         app.buttons.matching(identifier: "Me").firstMatch.tap()
@@ -649,7 +651,7 @@ import UIKit
     }
     func testNativeBlockFormAndMarkdownRoundTrip() {
         let app = launch()
-        app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
+        app.buttons["topic-4182"].tap(); app.buttons["post-reply-1"].tap()
         let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5))
         body.tap(); body.typeText("Writing before code\n")
         tapSettled(app, app.buttons["composer-insert"])
@@ -680,12 +682,12 @@ import UIKit
     }
     func testSwipeDismissalProtectsChangedWriting() {
         let app = launch()
-        app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
+        app.buttons["topic-4182"].tap(); app.buttons["post-reply-1"].tap()
         XCTAssertTrue(app.textViews["composer-body"].waitForExistence(timeout: 5))
         let grabber = app.navigationBars["Reply"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         grabber.press(forDuration: 0.1, thenDragTo: grabber.withOffset(CGVector(dx: 0, dy: 480)), withVelocity: .slow, thenHoldForDuration: 0.3)
         XCTAssertTrue(app.textViews["composer-body"].waitForNonExistence(timeout: 5))
-        app.buttons["discussion-reply"].tap(); let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("Keep this writing")
+        app.buttons["post-reply-1"].tap(); let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("Keep this writing")
         dismissComposerKeyboard(app)
         let changedGrabber = app.navigationBars["Reply"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         changedGrabber.press(forDuration: 0.1, thenDragTo: changedGrabber.withOffset(CGVector(dx: 0, dy: 480)), withVelocity: .slow, thenHoldForDuration: 0.3)
@@ -694,10 +696,10 @@ import UIKit
     func testHomeDiscussionReplyAndKeepDraft() {
         let app = launch()
         XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 10)); app.buttons["topic-4182"].tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5)); app.buttons["discussion-reply"].tap()
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 5)); app.buttons["post-reply-1"].tap()
         let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("A durable native reply")
         app.buttons["composer-close"].tap(); app.buttons["Keep draft"].tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 5))
         app.buttons.matching(identifier: "Me").firstMatch.tap(); XCTAssertTrue(app.buttons["me-drafts"].waitForExistence(timeout: 5)); app.buttons["me-drafts"].tap()
         let saved = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Resume draft: Reply · Finishing")).firstMatch
         XCTAssertTrue(saved.waitForExistence(timeout: 5)); saved.tap()
@@ -708,7 +710,7 @@ import UIKit
     }
     func testGuestSignInDoesNotPost() {
         let app = launch(["--guest"])
-        app.buttons["topic-4190"].tap(); app.buttons["discussion-reply"].tap()
+        app.buttons["topic-4190"].tap(); app.buttons["post-reply-1"].tap()
         XCTAssertTrue(app.staticTexts["Sign in to reply"].waitForExistence(timeout: 5)); let signIn = app.buttons["signin-continue"]; XCTAssertTrue(signIn.waitForExistence(timeout: 5)); signIn.tap()
         XCTAssertTrue(app.textViews["composer-body"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["composer-post"].isEnabled)
@@ -722,7 +724,7 @@ import UIKit
     }
     func testUnconfirmedUIRequiresDuplicateWarning() {
         let app = launch(["--post-outcome", "unconfirmed"])
-        app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
+        app.buttons["topic-4182"].tap(); app.buttons["post-reply-1"].tap()
         let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap(); body.typeText("Uncertain reply")
         app.buttons["composer-post"].tap()
         XCTAssertTrue(app.staticTexts["We couldn't confirm whether your reply posted"].waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["composer-post"].isEnabled)
@@ -761,7 +763,7 @@ import UIKit
     func testReadingFocusPreferenceSurvivesPhoneRotation() {
         let app = launch()
         app.buttons["topic-4182"].tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 10))
         XCUIDevice.shared.orientation = .landscapeLeft
         assertPhoneWindowShape(app, landscape: true)
         let toggle = app.buttons["toggle-topic-list"]
@@ -769,7 +771,7 @@ import UIKit
         XCTAssertEqual(toggle.label, "Show topic list")
         XCUIDevice.shared.orientation = .portrait
         assertPhoneWindowShape(app, landscape: false)
-        XCTAssertTrue(app.buttons["discussion-reply"].isHittable)
+        XCTAssertTrue(app.buttons["post-reply-1"].isHittable)
         XCUIDevice.shared.orientation = .landscapeLeft
         assertPhoneWindowShape(app, landscape: true)
         XCTAssertTrue(toggle.waitForExistence(timeout: 10))
@@ -789,7 +791,7 @@ import UIKit
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "hittable == true"), object: app.buttons["topic-4190"])], timeout: 8), .completed)
         XCUIDevice.shared.orientation = .portrait
         assertPhoneWindowShape(app, landscape: false)
-        app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
+        app.buttons["topic-4182"].tap(); app.buttons["post-reply-1"].tap()
         XCTAssertTrue(app.textViews["composer-body"].waitForExistence(timeout: 5))
         XCUIDevice.shared.orientation = .landscapeLeft
         assertPhoneWindowShape(app, landscape: true)
@@ -822,7 +824,7 @@ import UIKit
         let app = launch()
         assertPhoneWindowShape(app, landscape: false)
         app.buttons["topic-4182"].tap()
-        app.buttons["discussion-reply"].tap()
+        app.buttons["post-reply-1"].tap()
         let body = app.textViews["composer-body"]
         XCTAssertTrue(body.waitForExistence(timeout: 5))
         body.tap(); body.typeText("Keep my writing as the window changes.")
@@ -849,11 +851,11 @@ import UIKit
         app.buttons["composer-close"].tap()
         XCTAssertTrue(app.buttons["Keep draft"].waitForExistence(timeout: 5))
         app.buttons["Keep draft"].tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 5))
     }
     func testArabicComposerPreservesMixedTextAcrossModesAndRotation() {
         let app = launch(["-AppleLanguages", "(ar)", "-AppleLocale", "ar_JO", "--rtl"])
-        app.buttons["topic-4182"].tap(); app.buttons["discussion-reply"].tap()
+        app.buttons["topic-4182"].tap(); app.buttons["post-reply-1"].tap()
         let body = app.textViews["composer-body"]; XCTAssertTrue(body.waitForExistence(timeout: 5))
         body.tap(); body.typeText("مرحبا Fomio")
         let written = body.value as? String
@@ -889,7 +891,7 @@ import UIKit
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 5))
         XCTAssertEqual(query.value as? String, "desk")
         topic.tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 5))
         // One pane returns with Back; two panes keep the results beside the discussion.
         let back = app.buttons["back-to-topic-list"]
         if back.exists { back.tap() }
@@ -984,8 +986,8 @@ import UIKit
         let app = launch(["--post-outcome", outcome])
         XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 10))
         app.buttons["topic-4182"].tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
-        app.buttons["discussion-reply"].tap()
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 5))
+        app.buttons["post-reply-1"].tap()
         let body = app.textViews["composer-body"]
         XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap()
         let writing = Array(repeating: "A long reply that retains its writing.", count: 12).joined(separator: "\n")
@@ -1008,7 +1010,7 @@ import UIKit
         app.launchEnvironment["FOMIO_UI_TEST_NAMESPACE"] = UUID().uuidString
         app.launch()
         XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 10)); app.buttons["topic-4182"].tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5)); app.buttons["discussion-reply"].tap()
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 5)); app.buttons["post-reply-1"].tap()
         let body = app.textViews["composer-body"]
         XCTAssertTrue(body.waitForExistence(timeout: 5)); body.tap()
         let sentence = "The quick brown fox jumps over the lazy dog, then types on at full speed. "

@@ -82,6 +82,8 @@ struct FeedView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.readingSidebarVisible) private var sidebarVisible
     @Environment(\.readingSidebarRestorable) private var sidebarRestorable
+    @Environment(\.readingVerticalBars) private var verticalBars
+    @Environment(\.readingTwoPanes) private var twoPanes
     @Bindable var state: FeedState
     let category: Community?
     let originTab: AppTab
@@ -104,11 +106,13 @@ struct FeedView: View {
             switch route { case .discussion, .thread: false; default: true }
         }.isEmpty
     }
-    private var showsDirectCreate: Bool { roomyToolbar && needsNativeBack }
+    /// One pane beside the system's vertical rail: the header's controls join the rail.
+    private var controlsInRail: Bool { verticalBars && !twoPanes }
+    private var showsDirectCreate: Bool { roomyToolbar && needsNativeBack && !controlsInRail }
     /// New discussion sits beside Search and Options next to the wordmark: wordmark, three
     /// controls and spacing fit 300 pt.
     private var showsHeaderCreate: Bool {
-        originTab == .home && !sidebarVisible && !needsNativeBack && !textSize.isAccessibilitySize
+        originTab == .home && !sidebarVisible && !needsNativeBack && !textSize.isAccessibilitySize && !controlsInRail
             && columnWidth >= (sidebarRestorable ? 352 : 300)
     }
     private var browse: TabState { app.tabs[originTab]! }
@@ -222,11 +226,22 @@ struct FeedView: View {
         }
         .background(Color.fomioBackground)
         .toolbar(removing: .sidebarToggle)
-        .toolbar(needsNativeBack ? .visible : .hidden, for: .navigationBar)
+        .toolbar(needsNativeBack || controlsInRail ? .visible : .hidden, for: .navigationBar)
         .navigationTitle("").navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
-                if showsDirectCreate {
+                if controlsInRail {
+                    Button { toggleSearch(hiding: search.revealed && !search.active && search.query.isEmpty) } label: { Image(systemName: "magnifyingglass") }
+                        .tint(search.revealed || search.active ? Color.fomioAccent : Color.fomioText)
+                        .accessibilityLabel(LocalizedStringKey(search.revealed && search.query.isEmpty ? "Hide search" : "Search discussions"))
+                        .accessibilityIdentifier("reveal-topic-search")
+                    Button { app.create(category: category?.id) } label: { Image(systemName: "square.and.pencil") }
+                        .tint(Color.fomioText)
+                        .accessibilityLabel(category.map { BrowseLocalization.format("New discussion in %@", locale: locale, $0.name) } ?? localized("New discussion"))
+                        .accessibilityIdentifier("header-new-discussion")
+                        .disabled(browse.browseScope.categoryID != nil && category == nil)
+                    optionsMenu
+                } else if showsDirectCreate {
                     Button { app.create(category: category?.id) } label: { Image(systemName: "square.and.pencil") }
                         .accessibilityLabel(category.map { BrowseLocalization.format("New discussion in %@", locale: locale, $0.name) } ?? localized("New discussion"))
                         .disabled(browse.browseScope.categoryID != nil && category == nil)
@@ -263,8 +278,9 @@ struct FeedView: View {
             let showsLogo = originTab == .home && !sidebarVisible && !needsNativeBack
             // With a top row to share, the controls move up beside the wordmark so the title gets
             // the column's full width; beside it, a narrow column broke the title mid-word.
-            let controlsInTopRow = (showsLogo || sidebarRestorable) && !textSize.isAccessibilitySize
+            let controlsInTopRow = (showsLogo || sidebarRestorable) && !textSize.isAccessibilitySize && !controlsInRail
             let controls = HStack(spacing: 8) {
+                if !controlsInRail {
                 if textSize.isAccessibilitySize { Spacer(minLength: 0) }
                 if showsHeaderCreate {
                     Button { app.create(category: category?.id) } label: {
@@ -286,6 +302,7 @@ struct FeedView: View {
                     .accessibilityLabel(LocalizedStringKey(hidesSearch ? "Hide search" : "Search discussions"))
                     .accessibilityIdentifier("reveal-topic-search")
                 optionsMenu.labelStyle(.iconOnly).buttonStyle(.plain)
+                }
             }
             if showsLogo || sidebarRestorable {
                 HStack(spacing: 12) {
@@ -308,12 +325,12 @@ struct FeedView: View {
                     // toolbar title slots can silently clip or drop long/large scope labels.
                     CommunityScopePicker(scope: browse.browseScope, request: chooserRequest) { app.selectScope($0, in: originTab) }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    if !controlsInTopRow { controls }
+                    if !controlsInTopRow && !controlsInRail { controls }
                 }
-            } else if !controlsInTopRow {
+            } else if !controlsInTopRow && !controlsInRail {
                 HStack(spacing: 8) { Spacer(minLength: 0); controls }
             }
-        }.padding(.horizontal, 16).padding(.vertical, 6)
+        }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 16).padding(.vertical, 6)
             // Padding participates in multiline measurement and hit testing.
             // A visual corner offset can reflow this header without reserving
             // the resulting extra text height in the safe-area inset.
@@ -419,7 +436,7 @@ struct FeedView: View {
                 Button { openWindow(id: "browse") } label: { Label("New window", systemImage: "macwindow.badge.plus") }
                     .accessibilityIdentifier("new-browsing-window")
             }
-            if !showsDirectCreate && !showsHeaderCreate {
+            if !showsDirectCreate && !showsHeaderCreate && !controlsInRail {
                 Button { app.create(category: category?.id) } label: { Label("New discussion", systemImage: "square.and.pencil") }
                     .disabled(browse.browseScope.categoryID != nil && category == nil)
             }
@@ -434,8 +451,13 @@ struct FeedView: View {
                     ForEach(FeedAppearance.allCases) { option in Label(option.title, systemImage: option.symbol).tag(option) }
                 } label: { Text("Feed appearance") }.pickerStyle(.inline)
             }
-        } label: { Label(localized(category == nil ? "Home options" : "Feed options"), systemImage: "ellipsis")
-                .font(.system(size: min(controlSymbolSize, 28))).frame(width: 44, height: 44).contentShape(.circle).glassEffect(.regular.interactive(), in: .circle) }
+        } label: {
+            if controlsInRail { Image(systemName: "ellipsis").accessibilityLabel(localized(category == nil ? "Home options" : "Feed options")) }
+            else {
+                Label(localized(category == nil ? "Home options" : "Feed options"), systemImage: "ellipsis")
+                    .font(.system(size: min(controlSymbolSize, 28))).frame(width: 44, height: 44).contentShape(.circle).glassEffect(.regular.interactive(), in: .circle)
+            }
+        }
         .accessibilityIdentifier("feed-options")
     }
     private func select(_ value: FeedAppearance) {
@@ -501,6 +523,13 @@ struct CommunitiesView: View {
     @FocusState private var searchFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ScaledMetric(relativeTo: .subheadline) private var descriptionSize: CGFloat = 14
+    @Environment(\.readingVerticalBars) private var verticalBars
+    /// Scrolling down folds the field into a search button in the bars, the rail where there is one, and scrolling up brings it back.
+    @State private var searchRetracted = false
+    @State private var scrolledDown: CGFloat = 0
+    @State private var scrolledUp: CGFloat = 0
+    @State private var railFieldHeight: CGFloat = 56
+    @Environment(\.readingTwoPanes) private var twoPanes
     private struct DirectoryGroup: Identifiable { var root: Community; var kids: [Community]; var visible: [Community]; var id: CategoryID { root.id } }
     var body: some View {
         let _ = app.siteTheme
@@ -508,6 +537,8 @@ struct CommunitiesView: View {
             ReadingColumn {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     PendingNoticeSlot()
+                    // The field floats over the list, so retracting it never shifts the rows.
+                    Color.clear.frame(height: railFieldHeight).accessibilityHidden(true)
                     ScaledTitle("Communities", size: 26).padding(.horizontal, 20).padding(.top, 8).padding(.bottom, 14)
                     if let error = app.communityError, app.communities.isEmpty { ScreenMessage(title: "Communities unavailable", message: error, action: { Task { await app.loadCommunities() } }) }
                     else if app.communities.isEmpty && app.communitiesLoaded { InfoCard(title: "No communities available", message: "There are no communities visible to this account.").padding(20) }
@@ -534,18 +565,66 @@ struct CommunitiesView: View {
                 }.padding(.bottom, 20)
             }
         }.scrollDismissesKeyboard(.interactively).background(Color.fomioBackground).navigationTitle("Communities").navigationBarTitleDisplayMode(.inline)
-        .searchable(text: $state.communityQuery, placement: .navigationBarDrawer(displayMode: .always), prompt: "Find communities")
-        .searchFocused($searchFocused)
-        .onSubmit(of: .search) { searchFocused = false }
+        .overlay(alignment: .top) { railSearchField }
+        // Capped at the end of the list, so bouncing back from it doesn't count as scrolling up.
+        .onScrollGeometryChange(for: CGFloat.self) { min($0.contentOffset.y + $0.contentInsets.top, max(0, $0.contentSize.height - $0.visibleRect.height + $0.contentInsets.top)) } action: { old, offset in retractSearch(from: old, to: offset) }
         .onDisappear { searchFocused = false }
         .toolbar {
             ToolbarItem(placement: .principal) { Color.clear.frame(width: 1, height: 1).accessibilityHidden(true) }
             ToolbarItemGroup(placement: .topBarTrailing) {
-                Button { app.navigate(.search) } label: { Image(systemName: "magnifyingglass") }.accessibilityLabel("Search discussions")
+                if searchRetracted {
+                    Button { revealSearch() } label: { Image(systemName: "magnifyingglass") }
+                        .accessibilityLabel("Find communities").accessibilityIdentifier("reveal-community-search")
+                }
                 Button { app.create() } label: { Image(systemName: "square.and.pencil") }.accessibilityLabel("New discussion")
             }
         }
         .refreshable { await app.loadCommunities() }
+    }
+    /// One field that shrinks toward the bars, where the search button takes over.
+    private var railSearchField: some View {
+        HStack(spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass").foregroundStyle(Color.fomioText).accessibilityHidden(true)
+                TextField("Find communities", text: $state.communityQuery)
+                    .textInputAutocapitalization(.never).autocorrectionDisabled().submitLabel(.search).focused($searchFocused)
+                    .onSubmit { searchFocused = false }
+                    .accessibilityIdentifier("find-communities")
+                    .opacity(searchRetracted ? 0 : 1)
+                if !state.communityQuery.isEmpty {
+                    Button { state.communityQuery = ""; searchFocused = true } label: {
+                        Image(systemName: "xmark.circle.fill").foregroundStyle(Color.fomioSecondaryText).frame(minWidth: 44, minHeight: 44)
+                    }.accessibilityLabel("Clear search")
+                }
+            }
+            .padding(.leading, 12).frame(minHeight: 44)
+            .background(Color.fomioFill, in: .capsule)
+            .frame(maxWidth: searchRetracted ? 44 : .infinity, alignment: .leading).clipShape(.capsule)
+            if searchFocused {
+                Button { state.communityQuery = ""; searchFocused = false } label: { Text("Cancel").foregroundStyle(Color.fomioAccent).frame(minHeight: 44).contentShape(.rect) }
+                    .accessibilityIdentifier("cancel-community-search")
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .trailing)
+        .padding(.horizontal, 20).padding(.vertical, 6)
+        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { railFieldHeight = $0 }
+        .offset(x: searchRetracted ? 40 : 0, y: searchRetracted && verticalBars && !twoPanes ? 92 : 0)
+        .opacity(searchRetracted ? 0 : 1)
+        .background { Color.fomioBackground.ignoresSafeArea(edges: .top).opacity(searchRetracted ? 0 : 1) }
+        .allowsHitTesting(!searchRetracted).accessibilityHidden(searchRetracted)
+    }
+    private func revealSearch() {
+        scrolledDown = 0; scrolledUp = 0
+        withAnimation(reduceMotion ? .easeInOut(duration: 0.15) : .spring(duration: 0.38, bounce: 0)) { searchRetracted = false }
+        searchFocused = true
+    }
+    private func retractSearch(from old: CGFloat, to offset: CGFloat) {
+        guard state.communityQuery.isEmpty, !searchFocused else { return }
+        let change = offset - old
+        if change > 0 { scrolledUp = 0; scrolledDown += change } else if change < 0 { scrolledDown = 0; scrolledUp -= change }
+        let retract = offset > 56 && scrolledDown > 12, restore = offset <= 8 || scrolledUp > 24
+        guard retract ? !searchRetracted : (restore && searchRetracted) else { return }
+        withAnimation(reduceMotion ? .easeInOut(duration: 0.15) : .spring(duration: 0.38, bounce: 0)) { searchRetracted = retract }
     }
     private var query: String { state.communityQuery.trimmingCharacters(in: .whitespacesAndNewlines) }
     private func hit(_ category: Community) -> Bool { category.name.localizedCaseInsensitiveContains(query) || category.description.localizedCaseInsensitiveContains(query) }

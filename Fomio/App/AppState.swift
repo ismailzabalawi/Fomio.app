@@ -435,10 +435,12 @@ struct TapFilter {
         }
         tabs[tab]?.path.append(route)
     }
-    func search(_ query: String) {
+    /// Searches every community. Leaving a community keeps the tab's scope, so going by the route
+    /// alone would search the last community opened here.
+    func search(_ query: String = "") {
+        selectScope(.all)
         tabs[selectedTab]?.discussionSearch.query = query
         tabs[selectedTab]?.discussionSearch.revealed = true
-        navigate(.search)
     }
     func selectScope(_ scope: BrowseScope, in origin: AppTab? = nil) {
         let tab = origin ?? selectedTab

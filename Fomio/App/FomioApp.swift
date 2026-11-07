@@ -178,6 +178,7 @@ struct TabRoot: View {
     @State private var compactColumn: NavigationSplitViewColumn = .sidebar
     @State private var focusedReading = false
     @State private var keyboardShown = false
+    @State private var verticalBars = false
     /// A discussion opened only because two panes appeared with nothing selected.
     /// It is withdrawn again if the window narrows before the reader chooses anything.
     @State private var autoSelected: Route?
@@ -261,8 +262,10 @@ struct TabRoot: View {
                 .environment(\.horizontalSizeClass, layout.twoPanes ? .regular : .compact)
                 .environment(\.readingSidebarVisible, showsSidebar)
                 .environment(\.readingTwoPanes, layout.twoPanes)
+                .environment(\.readingVerticalBars, verticalBars)
                 .environment(\.readingSidebarRestorable, layout.sidebar && app.sidebarHidden && !focusedReading)
             }
+            .background { VerticalBarReader { verticalBars = $0 }.accessibilityHidden(true) }
             .toolbar(showsSidebar || showsListTabs ? .hidden : .visible, for: .tabBar)
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in keyboardShown = true }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in keyboardShown = false }

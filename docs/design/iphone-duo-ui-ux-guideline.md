@@ -38,11 +38,11 @@ Fomio action priorities:
 | Surface | Preserve direct access first | Secondary access |
 | --- | --- | --- |
 | Browsing | Back, app destinations, notification unread status, community scope | Create and feed options remain discoverable through overflow when necessary |
-| Discussion | Back/Close, Reply and reading context | Like, Save, Share and permitted report actions retain stable contextual access |
+| Discussion | Back/Close and reading context; Reply stays with each post, with no floating Reply since 3 November 2026 | Like, Save, Share and permitted report actions retain stable contextual access |
 | Composer | Close, Post with its validation/submission state, writing area | Undo/Redo and frequently used formatting remain reachable; less frequent insertion tools can overflow |
 | Search/chooser | Cancel/Back, query/filter, current scope and result selection | Clear, hierarchy expansion and Retry remain reachable in short windows |
 
-Keep community selection, feed filtering and list search near the list they affect. Discussion actions belong to the discussion. Do not move every custom content control into a global side rail. The existing sidebar/tab handoff needs explicit review for destination parity, unread badges and focus continuity.
+Keep community selection, feed filtering and list search near the list they affect. Discussion actions belong to the discussion. Do not move every custom content control into a global side rail. One owner-approved exception (3 November 2026): in one pane beside the vertical rail, the browse header's Search, New discussion and Options join the rail, and the Communities field retracts into it while scrolling down. The community name and chooser stay with the list. The existing sidebar/tab handoff needs explicit review for destination parity, unread badges and focus continuity.
 
 ## Writing and sheets
 

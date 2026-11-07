@@ -104,8 +104,6 @@ import Observation
         return childrenLoaded.contains(target) && childErrors[target] == nil && !loadingChildren.contains(target)
     }
     var highlighted: Post? { highlight.flatMap { nodes[$0] } }
-    /// What the screen-level Reply answers: the notified post, otherwise the opening post.
-    var replyTarget: Post? { focus == .notification ? highlighted ?? opening : opening }
     func moreRoots() async {
         guard !loading, let next = page?.nextPage else { return }
         loading = true; defer { loading = false }

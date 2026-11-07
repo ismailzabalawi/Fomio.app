@@ -19,6 +19,8 @@ xcodebuild test \
   -only-testing:FomioUITests/AdaptiveReadingUITests/testCommunityChooserKeepsMatchingParentAndCancelKeepsScope \
   -only-testing:FomioUITests/AdaptiveReadingUITests/testCommunityChooserAccessibilityAudit \
   -only-testing:FomioUITests/AdaptiveReadingUITests/testListColumnTabsFollowPaneCount \
+  -only-testing:FomioUITests/AdaptiveReadingUITests/testCommunitiesSearchRetractsOnScroll \
+  -only-testing:FomioUITests/AdaptiveReadingUITests/testFoldedHeaderControlsSitInVerticalRail \
   -only-testing:FomioUITests/FomioUITests/testComposerSelectionFormattingKeepsActionsReachable \
   -only-testing:FomioUITests/FomioUITests/testLargestTextSelectionFitsBar \
   -only-testing:FomioUITests/FeedAppearanceUITests/testSwitchKeepsMidFeedTopicAnchorBothDirections \

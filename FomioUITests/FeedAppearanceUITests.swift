@@ -97,7 +97,7 @@ import XCTest
         XCTAssertTrue(loaded.exists, "Second page retained after switching")
         XCTAssertFalse(failure.exists)
         loaded.tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 5))
         returnToTopicList(app)
         XCTAssertTrue(loaded.waitForExistence(timeout: 5)); XCTAssertTrue(app.scrollViews["feed-compact"].exists)
     }

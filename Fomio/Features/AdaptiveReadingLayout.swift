@@ -187,9 +187,41 @@ struct ListColumnTabBar: View {
     }
 }
 
+/// Reports whether the system puts this window's bars on a vertical rail. iPhone Duo does in
+/// most sizes, and the answer changes with the window, so it is read from the trait, not the device.
+struct VerticalBarReader: UIViewRepresentable {
+    let onChange: (Bool) -> Void
+    final class Probe: UIView {
+        var onChange: ((Bool) -> Void)?
+        var reported: Bool?
+        override init(frame: CGRect) {
+            super.init(frame: frame)
+            isUserInteractionEnabled = false
+            if #available(iOS 27.1, *) {
+                registerForTraitChanges(UITraitCollection.systemTraitsAffectingVerticalBarEdge) { (probe: Probe, _: UITraitCollection) in probe.report() }
+            }
+        }
+        required init?(coder: NSCoder) { fatalError("Not used from a coder") }
+        override func didMoveToWindow() { super.didMoveToWindow(); report() }
+        func report() {
+            guard window != nil else { return }
+            var vertical = false
+            if #available(iOS 27.1, *) { vertical = traitCollection.verticalBarEdge != .unspecified }
+            guard vertical != reported else { return }
+            reported = vertical
+            // Not during the layout pass that delivered the trait change.
+            DispatchQueue.main.async { [onChange] in onChange?(vertical) }
+        }
+    }
+    func makeUIView(context: Context) -> Probe { Probe() }
+    func updateUIView(_ view: Probe, context: Context) { view.onChange = onChange; view.report() }
+}
+
 extension EnvironmentValues {
     /// Whether the reading split shows list and discussion side by side.
     @Entry var readingTwoPanes = false
+    /// Whether the system places this window's bars on a vertical rail.
+    @Entry var readingVerticalBars = false
     /// Whether the community sidebar sits beside this reading split; it then carries the wordmark.
     @Entry var readingSidebarVisible = false
     /// True when the window could show the sidebar but the reader hid it.

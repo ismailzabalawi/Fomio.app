@@ -57,6 +57,68 @@ import UIKit
         XCTAssertFalse(app.buttons["reveal-topic-search"].frame.intersects(controls.frame),
                        "Floating window controls must not cover the list header")
     }
+    func testCommunitiesSearchRetractsOnScroll() throws {
+        let app = launch(["--preset", "communities"], waitForScope: false)
+        let field = app.textFields["find-communities"]
+        XCTAssertTrue(field.waitForExistence(timeout: 15))
+        let reveal = app.buttons["reveal-community-search"], row = app.buttons["community-4"]
+        XCTAssertTrue(row.waitForExistence(timeout: 10))
+        XCTAssertFalse(reveal.exists, "At the top the field is showing, so the bars have no search button")
+        XCTAssertFalse(app.buttons["Search discussions"].exists, "The directory offers one search, for communities")
+        // Swipes start in the list column, not at the window's centre, which is the discussion pane in two panes.
+        let window = app.windows.firstMatch
+        let list = window.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.7)), above = window.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.3))
+        let top = row.frame.minY
+        list.press(forDuration: 0.05, thenDragTo: above); list.press(forDuration: 0.05, thenDragTo: above)
+        if !reveal.waitForExistence(timeout: 5), abs(row.frame.minY - top) < 56 { throw XCTSkip("The fixture list fits this window, so nothing scrolls") }
+        XCTAssertTrue(reveal.exists, "Scrolling down retracts the field into the bars")
+        capture(app, "Communities search retracted")
+        // A short upward drag brings it back without returning to the top of the list.
+        window.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.45)).press(forDuration: 0.05, thenDragTo: window.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.52)))
+        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: reveal)
+        XCTAssertEqual(XCTWaiter.wait(for: [gone], timeout: 5), .completed, "Scrolling up restores the field")
+        list.press(forDuration: 0.05, thenDragTo: above)
+        XCTAssertTrue(reveal.waitForExistence(timeout: 5))
+        let scrolled = row.frame.minY
+        reveal.tap()
+        XCTAssertTrue(app.buttons["cancel-community-search"].waitForExistence(timeout: 5), "Tapping the icon focuses the field")
+        XCTAssertEqual(row.frame.minY, scrolled, accuracy: 1, "Tapping the icon leaves the list in place")
+        field.typeText("Finishing")
+        XCTAssertTrue(app.buttons["community-2"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["community-5"].exists, "The field filters communities, not discussions")
+        capture(app, "Communities field focused from the search button")
+    }
+    func testFoldedHeaderControlsSitInVerticalRail() throws {
+        let app = launch()
+        let header = find(app, "browse-header"), search = app.buttons["reveal-topic-search"]
+        XCTAssertTrue(header.waitForExistence(timeout: 10))
+        let width = app.windows.firstMatch.frame.width
+        guard width < 720, search.frame.minX > width * 0.8 else { throw XCTSkip("No rail in this window") }
+        for id in ["header-new-discussion", "feed-options"] {
+            XCTAssertGreaterThan(app.buttons[id].frame.minX, width * 0.8, "\(id) joins the rail")
+        }
+        app.buttons["feed-options"].tap()
+        XCTAssertTrue(app.buttons["Refresh"].waitForExistence(timeout: 5), "Options still opens from the rail")
+        XCTAssertEqual(app.buttons.matching(NSPredicate(format: "label == 'New discussion'")).count, 1, "New discussion is in the rail, not repeated in Options")
+        capture(app, "Folded header controls in the rail")
+    }
+    func testCommunitiesSearchCoversAllCommunitiesAfterOpeningOne() throws {
+        let app = launch(["--preset", "communities"], waitForScope: false)
+        let directory = app.textFields["find-communities"], row = app.buttons["community-4"]
+        XCTAssertTrue(row.waitForExistence(timeout: 15)); row.tap()
+        XCTAssertTrue(app.buttons["community-scope"].waitForExistence(timeout: 10))
+        // Duo moves the system Back action into its native rail, outside the navigation bar.
+        let railBack = app.buttons["BackButton"]
+        if railBack.exists { railBack.tap() } else { app.navigationBars.buttons.firstMatch.tap() }
+        XCTAssertTrue(directory.waitForExistence(timeout: 10)); directory.tap()
+        directory.typeText("zzzz")
+        let search = app.buttons["Search discussions for “zzzz”"]
+        XCTAssertTrue(search.waitForExistence(timeout: 5)); search.tap()
+        let field = app.textFields["topic-search-field"]
+        XCTAssertTrue(field.waitForExistence(timeout: 10))
+        XCTAssertEqual(field.value as? String, "zzzz")
+        XCTAssertFalse(app.buttons["community-scope"].exists, "Not limited to the community opened earlier")
+    }
     /// Home has no scope title; a community, and its chooser, open from the Communities tab.
     private func openCommunity(_ app: XCUIApplication, _ id: Int) {
         // The list column's own tab bar in two panes; the system tab bar, labelled per language, otherwise.
@@ -292,7 +354,7 @@ import UIKit
         XCTAssertTrue(find(app, "reading-two-pane").waitForExistence(timeout: 90))
         search(app, "Adaptive discussion 01")
         XCTAssertTrue(app.buttons["topic-9101"].waitForExistence(timeout: 10)); app.buttons["topic-9101"].tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 10)); app.buttons["discussion-reply"].tap()
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 10)); app.buttons["post-reply-1"].tap()
         let body = app.textViews["composer-body"]
         XCTAssertTrue(body.waitForExistence(timeout: 10)); body.tap()
         let text = "Folded reply remains readable."
@@ -907,7 +969,7 @@ import UIKit
         capture(app, "Public link exact destination")
         XCTAssertEqual(becameVisible, .completed)
         XCTAssertFalse(app.staticTexts["Discussion outside this community"].exists)
-        XCTAssertTrue(app.buttons["discussion-reply"].exists)
+        XCTAssertTrue(app.buttons["post-reply-1"].exists)
         if app.buttons["back-to-topic-list"].exists { app.buttons["back-to-topic-list"].tap() }
         XCTAssertFalse(app.buttons["community-scope"].exists, "All shows the untitled list")
         capture(app, "Public link uses All and exact fictional reply")
@@ -948,7 +1010,7 @@ import UIKit
         for _ in 0..<4 where !choice.isHittable { app.collectionViews.firstMatch.swipeUp() }
         choice.tap()
         XCTAssertTrue(app.staticTexts["Discussion outside this community"].waitForExistence(timeout: 10))
-        XCTAssertFalse(app.buttons["discussion-reply"].exists)
+        XCTAssertFalse(app.buttons["post-reply-1"].exists)
         capture(app, "Exact discussion excluded by unrelated community")
         let restore = app.buttons.matching(NSPredicate(format: "label == %@", "All communities")).firstMatch
         XCTAssertTrue(restore.waitForExistence(timeout: 10)); restore.tap()
@@ -958,7 +1020,7 @@ import UIKit
         recordWindow(app, "Exact reply after restoring All")
         capture(app, "Exact reply after restoring All")
         XCTAssertEqual(restoredVisible, .completed, "Restoring All keeps the exact reply readable")
-        XCTAssertTrue(app.buttons["discussion-reply"].exists)
+        XCTAssertTrue(app.buttons["post-reply-1"].exists)
         XCTAssertEqual(app.textFields["topic-search-field"].value as? String, "cracked diode")
         capture(app, "All restores exact reply and original query")
 
@@ -987,14 +1049,14 @@ import UIKit
         search(app, "Adaptive")
         let topic = app.buttons["topic-9101"]
         XCTAssertTrue(topic.waitForExistence(timeout: 10)); topic.tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 10))
         let back = app.buttons["back-to-topic-list"]
         XCTAssertTrue(back.waitForExistence(timeout: 5)); back.tap()
         XCTAssertTrue(app.textFields["topic-search-field"].waitForExistence(timeout: 10))
         XCTAssertEqual(app.textFields["topic-search-field"].value as? String, "Adaptive")
         XCTAssertTrue(topic.exists)
         topic.tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 10), "Reselecting the same topic must reopen detail")
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 10), "Reselecting the same topic must reopen detail")
         app.buttons["back-to-topic-list"].tap()
         capture(app, "Retained search and exact discussion return")
     }
@@ -1027,10 +1089,9 @@ import UIKit
             XCTAssertGreaterThanOrEqual(button.frame.width, 44); XCTAssertGreaterThanOrEqual(button.frame.height, 44)
         }
         XCTAssertTrue(app.buttons["header-new-discussion"].exists, "New discussion joins Search and Options beside the wordmark")
-        let reply = app.buttons["discussion-reply"]
+        let reply = app.buttons["post-reply-1"]
         XCTAssertTrue(reply.waitForExistence(timeout: 10))
         XCTAssertGreaterThanOrEqual(reply.frame.minX, header.frame.maxX - 1, "Reply stays in the discussion pane")
-        XCTAssertLessThan(window.frame.maxY - reply.frame.maxY, 60, "With no tab bar below it, Reply sits at the bottom edge")
         capture(app, "Two panes with list-column tabs")
         // The list scrolls under the tabs, but its end stays clear of them.
         let more = app.buttons["More discussions"], feed = app.scrollViews.matching(NSPredicate(format: "identifier BEGINSWITH 'feed-'")).firstMatch
@@ -1049,7 +1110,7 @@ import UIKit
         XCTAssertTrue(app.buttons["list-tab-home"].isSelected)
         let kept = app.buttons.matching(identifier: topic).matching(NSPredicate(format: "selected == true")).firstMatch
         XCTAssertTrue(kept.waitForExistence(timeout: 10), "Home keeps its selected discussion")
-        XCTAssertTrue(app.buttons["discussion-reply"].exists)
+        XCTAssertTrue(app.buttons["post-reply-1"].exists)
         app.buttons["toggle-topic-list"].tap()
         XCTAssertTrue(find(app, "reading-focused").waitForExistence(timeout: 10))
         XCTAssertFalse(find(app, "list-tab-bar").exists)

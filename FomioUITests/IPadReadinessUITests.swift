@@ -83,7 +83,7 @@ import UIKit
         XCTAssertTrue(app.otherElements["reading-three-pane"].waitForExistence(timeout: 10))
         let topic = app.buttons["topic-4190"]
         XCTAssertTrue(topic.waitForExistence(timeout: 15)); topic.tap()
-        let reply = app.buttons["discussion-reply"]
+        let reply = app.buttons["post-reply-1"]
         XCTAssertTrue(reply.waitForExistence(timeout: 10))
         app.buttons["sidebar-1"].tap()
         XCTAssertTrue(app.buttons["sidebar-9"].waitForExistence(timeout: 10)); app.buttons["sidebar-9"].tap()
@@ -145,7 +145,7 @@ import UIKit
         let app = try launch()
         let topic = app.buttons["topic-4182"]
         XCTAssertTrue(topic.waitForExistence(timeout: 15)); topic.tap()
-        let reply = app.buttons["discussion-reply"]
+        let reply = app.buttons["post-reply-1"]
         XCTAssertTrue(reply.waitForExistence(timeout: 15))
         XCTAssertTrue(topic.isHittable, "List and selected discussion must be visible together")
         capture(app, "iPad landscape list and discussion")
@@ -230,7 +230,7 @@ import UIKit
         }
         let app = try launch()
         app.buttons["topic-4182"].tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 10))
         app.buttons["reveal-topic-search"].tap()
         let field = app.textFields["topic-search-field"]
         XCTAssertTrue(field.waitForExistence(timeout: 10)); field.tap(); field.typeText("walnut\n")
@@ -240,7 +240,7 @@ import UIKit
         XCTAssertEqual(field.value as? String, "walnut")
         XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 10))
         app.buttons["topic-4182"].tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 10))
         capture(app, "Narrow iPad retained search and selected discussion")
     }
 
@@ -251,7 +251,7 @@ import UIKit
         let app = try launch()
         guard narrowWindow(app) else { return }
         app.buttons["topic-4182"].tap()
-        let reply = app.buttons["discussion-reply"]
+        let reply = app.buttons["post-reply-1"]
         XCTAssertTrue(reply.waitForExistence(timeout: 10)); reply.tap()
         let body = app.textViews["composer-body"]
         XCTAssertTrue(body.waitForExistence(timeout: 10)); body.tap(); body.typeText("Window retained writing")

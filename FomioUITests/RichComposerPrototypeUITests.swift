@@ -259,7 +259,7 @@ import UniformTypeIdentifiers
         app.launchEnvironment["FOMIO_UI_TEST_NAMESPACE"] = UUID().uuidString
         app.launch()
         XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 10)); app.buttons["topic-4182"].tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5)); app.buttons["discussion-reply"].tap()
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 5)); app.buttons["post-reply-1"].tap()
         let rich = app.textViews["composer-rich-body"]
         XCTAssertTrue(rich.waitForExistence(timeout: 5)); rich.tap()
         rich.typeText("Steps\n")
@@ -278,7 +278,7 @@ import UniformTypeIdentifiers
         app.launchEnvironment["FOMIO_UI_TEST_NAMESPACE"] = UUID().uuidString
         app.launch()
         XCTAssertTrue(app.buttons["topic-4182"].waitForExistence(timeout: 10)); app.buttons["topic-4182"].tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5)); app.buttons["discussion-reply"].tap()
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 5)); app.buttons["post-reply-1"].tap()
         let rich = app.textViews["composer-rich-body"]
         XCTAssertTrue(rich.waitForExistence(timeout: 5)); rich.tap()
         rich.typeText("شكرا @pr")
@@ -299,7 +299,7 @@ import UniformTypeIdentifiers
     /// Keeps the draft, then reopens it without the switch: the standard composer shows it as Discourse source.
     private func assertKeptDraftSource(_ source: String, in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
         app.buttons["composer-close"].tap(); app.buttons["Keep draft"].tap()
-        XCTAssertTrue(app.buttons["discussion-reply"].waitForExistence(timeout: 5), file: file, line: line)
+        XCTAssertTrue(app.buttons["post-reply-1"].waitForExistence(timeout: 5), file: file, line: line)
         app.terminate()
         app.launchArguments = ["--fixture", "--ui-testing"]
         app.launch()

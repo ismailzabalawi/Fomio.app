@@ -66,17 +66,6 @@ struct DiscussionView: View {
                 guard !Task.isCancelled else { return }
                 proxy.scrollTo(target, anchor: .top)
             }
-            .safeAreaInset(edge: .bottom) {
-                if let page = state.page, let target = state.replyTarget, page.canReply || app.username == nil {
-                    ReadingColumn {
-                        // A compact glass capsule rather than a full-width accent bar, so the discussion shows through.
-                        Button { app.reply(to: target) } label: { Label("Reply", systemImage: "arrowshape.turn.up.left").font(.body.weight(.semibold)).padding(.horizontal, 12).frame(minHeight: 44) }
-                            .buttonStyle(.glass).tint(Color.fomioAccent).foregroundStyle(Color.fomioAccent).accessibilityIdentifier("discussion-reply")
-                            .accessibilityLabel(target.number.rawValue > 1 ? "Reply to \(target.author) · #\(target.number.rawValue)" : "Reply to \(page.summary.title)")
-                            .padding(.horizontal, 20).padding(.vertical, 8)
-                    }
-                }
-            }
         }.background(Color.fomioBackground).navigationTitle("Discussion").navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) { Color.clear.frame(width: 1, height: 1).accessibilityHidden(true) }

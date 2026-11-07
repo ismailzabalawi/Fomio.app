@@ -2,7 +2,34 @@
 
 Started 2026-10-18 (Asia/Amman). Focused Duo simulator reply continuity now passes; the wider native acceptance matrix remains open.
 
-## Glass Reply — 30 October 2026
+## Rail controls, Reply and Communities search — 3 November 2026
+
+Uncommitted working-tree change on `main`. Design: [Fomio Duo Tweaks](https://claude.ai/artifact/HFRmZNBraWiJebEuswdMhr).
+
+- **Vertical rail detection:** `VerticalBarReader` reads `UITraitCollection.verticalBarEdge` (iOS 27.1), not the device. Below 27.1 bars count as horizontal.
+- **Folded header:** in one pane beside the rail, Search, New discussion and Options are toolbar items, so the system places them on the rail. The wordmark and community chooser stay in the list header.
+- **Floating Reply removed on every device.** Replaces the "Glass Reply" section below. The opening post's own Reply (`post-reply-1`) answers the topic, so reaching it can mean scrolling back up. Removing it loses no permission path: the service gives each post the page's `canReply`, from the topic's `can_create_post`, and both versions show Reply to guests.
+- **Communities search, on every device:** the directory draws its own field, floating over the list so rows don't shift. It retracts past 56 pt after 12 pt of downward scrolling and returns after 24 pt upward or at the top. It stays open while focused or holding a query, and the search button refocuses it. The button sits on the rail in one pane beside the rail, and in the list column's toolbar otherwise. Native `.searchToolbarBehavior(.minimize)` was tried first and did not retract the drawer field on the folded Duo. The Communities toolbar no longer has a separate discussion search; the no-match card's "Search discussions for …" and Home's Search remain.
+- **Search scope fix:** `AppState.search` now selects All communities first. Leaving a community kept the tab's scope, so Search in Communities searched the last community opened.
+
+Results:
+- iPhone Duo / iOS 27.1 (`24097A57`), folded, `scripts/test-duo-ui.sh` set: 65 executed, 1 skipped, 5 failed. Two failures were wrong test assumptions, now corrected, and pass with `testCategoryDarkLargeTextAndThemeReflow` in a focused rerun (the full set was not repeated after those test edits). `testFloatingBarTurnsBlockIntoHeadingAndInserterCancelKeepsCaret`, `testLargestTextSelectionFitsBar` and `testVisualHeadingMarkdownPreviewAndReturnPreserveDraft` fail the same way with this change's source edits removed from a copy of the working tree, so this change does not cause them.
+- iPhone 17 / iOS 27.0, all `FomioUITests`: 119 executed, 33 skipped, 0 failed.
+- iPad Pro 11-inch (M5) / iOS 27.0, `IPadReadinessUITests`, `FeedAppearanceUITests` and `testListColumnTabsFollowPaneCount`: 16 executed, 4 skipped, 0 failed.
+
+- iPhone Duo / iOS 27.1 (`24097A57`), folded, rerun on 7 November after the retracting field moved to every device: `scripts/test-duo-ui.sh` 65 executed, 1 skipped, 4 failed. Every Communities, rail, feed and search test passed, including `testCommunitiesSearchRetractsOnScroll`, `testFoldedHeaderControlsSitInVerticalRail` and `testDirectoryFilterKeepsAncestorAndQueryAfterBack`. The 4 failures are composer tests that fail without this change: `testFloatingBarTurnsBlockIntoHeadingAndInserterCancelKeepsCaret`, `testLargestTextSelectionFitsBar` and `testVisualHeadingMarkdownPreviewAndReturnPreserveDraft` (folded baseline above), and `testNativeFormattingCaretTypingSurvivesSourceSwitch` (prediction row gap 89.7 pt against 64; fails on the open-Duo baseline below).
+
+Checked by hand on the folded Duo / iOS 27.1 with live content, 7 November: Home header controls (Search, New discussion, More) sit in the rail; on Communities the field sits at the top with New discussion alone in the rail; scrolling down fades and moves the field right while a search button joins New discussion in the rail; the rail search button brings the field back focused, with Cancel, and the list stays where it was. The floating Reply removal was checked by hand before this rerun.
+
+After the move to every device:
+- iPhone 17 / iOS 27.0, all `FomioUITests` before the last test corrections: 119 executed, 32 skipped, 2 failed, both wrong test assumptions in the two tests below. Corrected, and both pass with `testDirectoryFilterKeepsAncestorAndQueryAfterBack` in a focused rerun.
+- iPad Pro 11-inch (M5) / iOS 27.0, UI tests that use Communities: 10 executed, 2 skipped, 0 failed. `testCommunitiesSearchRetractsOnScroll` skips because the fixture list fits the window; one live-read test skips without opt-in. `IPadReadinessUITests` and `FeedAppearanceUITests` passed on this source: 15 executed, 4 skipped, 0 failed.
+- iPhone Duo / iOS 27.1, open: the same three Communities tests pass.
+- By hand with live content on iPhone 17, iPad Pro 11-inch (M5) and the open Duo: no floating Reply, the field retracts into the list column's toolbar, and the button brings it back focused with the list in place. On the open Duo, Home's controls stay in the list column; the rail placement applies only to one pane.
+
+Not verified: half-folded posture, the iPad's full UI suite, Arabic, Reduce Motion, VoiceOver, and the real animation on a physical Duo.
+
+## Glass Reply — 30 October 2026 (superseded)
 
 The discussion's floating Reply is now a compact Liquid Glass capsule (`.buttonStyle(.glass)`, accent label, as wide as its label, centred) instead of a full-width `.glassProminent` accent bar. It stays on screen whenever the reader can reply, on every device; identifier `discussion-reply` and its label are unchanged. Each post row's Reply is a plain per-post Reply (`post-reply-N`, "Reply to <author>, post N").
 
